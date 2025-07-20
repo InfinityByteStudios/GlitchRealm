@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Posts collection rules
+    match /posts/{postId} {
+      // Allow read access to all posts
+      allow read: if true;
+      
+      // Allow create access only to authenticated users
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.authorId
+        && request.resource.data.authorName is string
+        && request.resource.data.authorEmail is string
+        && request.resource.data.content is string
+        && request.resource.data.category is string
+        && request.resource.data.timestamp is timestamp
+        && request.resource.data.likes == 0
+        && request.resource.data.likedBy == [];
+      
+      // Allow update access only to post author for content/category updates
+      // or any authenticated user for likes
+      allow update: if request.auth != null && (
+        // Post author can update content and category
+        (request.auth.uid == resource.data.authorId && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['content', 'category'])) ||
+        
+        // Any authenticated user can update likes and likedBy
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy'])
+      );
+      
+      // Allow delete access only to post author
+      allow delete: if request.auth != null 
+        && request.auth.uid == resource.data.authorId;
+    }
+    
+    // User profiles collection (for future expansion)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Moderation reports (for future expansion)
+    match /reports/{reportId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if false; // Admin only (implement admin check later)
+    }
+  }
+}

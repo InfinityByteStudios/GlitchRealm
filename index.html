@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlitchRealm Community</title>
+    <link rel="stylesheet" href="community-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+        
+        // Firebase Configuration for Community
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXz_2Ap9sii3GIDjnCLoLcDC4KwK-1gYo",
+            authDomain: "glitchrealm-community.firebaseapp.com",
+            projectId: "glitchrealm-community",
+            storageBucket: "glitchrealm-community.firebasestorage.app",
+            messagingSenderId: "33894856330",
+            appId: "1:33894856330:web:6180c02ec196225769df73",
+            measurementId: "G-F9005ZZ0BD"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+        const googleProvider = new GoogleAuthProvider();
+        const githubProvider = new GithubAuthProvider();
+        
+        // Make Firebase functions available globally
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.googleProvider = googleProvider;
+        window.githubProvider = githubProvider;
+        window.firebaseSignInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.firebaseCreateUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.firebaseSignInWithPopup = signInWithPopup;
+        window.firebaseSignOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.firestoreCollection = collection;
+        window.firestoreAddDoc = addDoc;
+        window.firestoreGetDocs = getDocs;
+        window.firestoreQuery = query;
+        window.firestoreOrderBy = orderBy;
+        window.firestoreLimit = limit;
+        window.firestoreServerTimestamp = serverTimestamp;
+        window.firestoreDoc = doc;
+        window.firestoreUpdateDoc = updateDoc;
+        window.firestoreDeleteDoc = deleteDoc;
+        
+        // Dispatch a custom event when Firebase is ready
+        window.dispatchEvent(new Event('firebaseReady'));
+    </script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h1 class="glitch" data-text="GLITCHREALM">GLITCHREALM</h1>
+                <span class="nav-subtitle">COMMUNITY</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active">Community</a>
+                <div class="auth-section" id="authSection">
+                    <button class="btn btn-primary" id="loginBtn" onclick="showAuthModal()">Sign In</button>
+                    <div class="user-menu" id="userMenu" style="display: none;">
+                        <span class="user-name" id="userName">User</span>
+                        <button class="btn btn-secondary" onclick="logout()">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <h1 class="hero-title glitch-large" data-text="COMMUNITY HUB">COMMUNITY HUB</h1>
+                <p class="hero-subtitle">Connect with fellow gamers, share strategies, and discuss the latest updates</p>
+            </div>
+        </section>
+
+        <!-- Community Features -->
+        <section class="community-section">
+            <div class="container">
+                <!-- Post Creation -->
+                <div class="post-creator" id="postCreator" style="display: none;">
+                    <div class="creator-header">
+                        <h3>Share with the Community</h3>
+                    </div>
+                    <div class="creator-body">
+                        <textarea id="postContent" placeholder="What's on your mind? Share tips, strategies, or start a discussion..."></textarea>
+                        <div class="creator-actions">
+                            <select id="postCategory">
+                                <option value="general">General Discussion</option>
+                                <option value="tips">Tips & Strategies</option>
+                                <option value="updates">Game Updates</option>
+                                <option value="feedback">Feedback</option>
+                                <option value="showcase">Player Showcase</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="createPost()">Post</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Posts Feed -->
+                <div class="posts-feed">
+                    <div class="feed-header">
+                        <h2>Community Feed</h2>
+                        <div class="feed-filters">
+                            <button class="filter-btn active" onclick="filterPosts('all')">All</button>
+                            <button class="filter-btn" onclick="filterPosts('general')">General</button>
+                            <button class="filter-btn" onclick="filterPosts('tips')">Tips</button>
+                            <button class="filter-btn" onclick="filterPosts('updates')">Updates</button>
+                            <button class="filter-btn" onclick="filterPosts('feedback')">Feedback</button>
+                            <button class="filter-btn" onclick="filterPosts('showcase')">Showcase</button>
+                        </div>
+                    </div>
+                    <div id="postsContainer" class="posts-container">
+                        <div class="loading">Loading posts...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Authentication Modal -->
+    <div class="auth-overlay" id="authOverlay" style="display: none;">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h2 class="glitch-large" data-text="COMMUNITY ACCESS">COMMUNITY ACCESS</h2>
+                <p>Sign in to join the conversation</p>
+                <button class="auth-close" onclick="hideAuthModal()">&times;</button>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('signin')">Sign In</button>
+                <button class="auth-tab" onclick="switchTab('signup')">Sign Up</button>
+            </div>
+            
+            <div class="auth-forms">
+                <!-- Sign In Form -->
+                <div id="signinForm" class="auth-form active">
+                    <div class="input-group">
+                        <input type="email" id="signinEmail" placeholder="Email" required>
+                        <label>Email</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="signinPassword" placeholder="Password" required>
+                        <label>Password</label>
+                    </div>
+                    <button class="btn btn-primary auth-submit" onclick="signIn()">Sign In</button>
+                    <div class="auth-divider">or</div>
+                    <div class="social-auth">
+                        <button class="btn btn-google" onclick="signInWithGoogle()">
+                            <span>Continue with Google</span>
+                        </button>
+                        <button class="btn btn-github" onclick="signInWithGithub()">
+                            <span>Continue with GitHub</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Sign Up Form -->
+                <div id="signupForm" class="auth-form">
+                    <div class="input-group">
+                        <input type="email" id="signupEmail" placeholder="Email" required>
+                        <label>Email</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="signupPassword" placeholder="Password" required>
+                        <label>Password</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                        <label>Confirm Password</label>
+                    </div>
+                    <button class="btn btn-primary auth-submit" onclick="signUp()">Create Account</button>
+                    <div class="auth-divider">or</div>
+                    <div class="social-auth">
+                        <button class="btn btn-google" onclick="signInWithGoogle()">
+                            <span>Continue with Google</span>
+                        </button>
+                        <button class="btn btn-github" onclick="signInWithGithub()">
+                            <span>Continue with GitHub</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="auth-error" id="authError" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="community-script.js"></script>
+</body>
+</html>
