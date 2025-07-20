@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ================================
+    // Reviews Collection
+    // ================================
+    match /reviews/{reviewId} {
+      // Read: Anyone can read approved reviews, users can read their own pending reviews
+      allow read: if resource.data.moderationStatus == 'approved' || 
+                     (request.auth != null && request.auth.uid == resource.data.userId);
+      
+      // Create: Authenticated users only
+      allow create: if request.auth != null &&
+                       request.auth.uid == request.resource.data.userId &&
+                       isValidReview(request.resource.data);
+      
+      // Update: Only review author can update their own reviews
+      allow update: if request.auth != null &&
+                       request.auth.uid == resource.data.userId &&
+                       isValidReview(request.resource.data) &&
+                       // Prevent users from changing moderation status
+                       request.resource.data.moderationStatus == resource.data.moderationStatus;
+      
+      // Delete: Only admins can delete reviews
+      allow delete: if isAdmin(request.auth.uid);
+    }
+    
+    // ================================
+    // Review Replies Collection
+    // ================================
+    match /review_replies/{replyId} {
+      allow read: if true; // Publicly readable
+      
+      // Create: Authenticated users only
+      allow create: if request.auth != null &&
+                       request.auth.uid == request.resource.data.userId;
+      
+      // Update: Only reply author can update their own replies
+      allow update: if request.auth != null &&
+                       request.auth.uid == resource.data.userId;
+      
+      // Delete: Only admins and reply authors can delete
+      allow delete: if request.auth != null && 
+                       (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
+    }
+    
+    // ================================
+    // Admin Actions Collection
+    // ================================
+    match /adminActions/{actionId} {
+      allow read, write: if isAdmin(request.auth.uid);
+    }
+    
+    // ================================
+    // User Profiles
+    // ================================
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // ================================
+    // Other Collections (Authenticated)
+    // ================================
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // ================================
+    // Helper Functions
+    // ================================
+    function isValidReview(reviewData) {
+      return reviewData.keys().hasAll(['rating', 'gameId', 'userId', 'moderationStatus', 'timestamp']) &&
+             reviewData.rating is int &&
+             reviewData.rating >= 1 &&
+             reviewData.rating <= 5 &&
+             reviewData.gameId is string &&
+             reviewData.gameId.size() > 0 &&
+             reviewData.userId is string &&
+             reviewData.userId.size() > 0 &&
+             reviewData.moderationStatus in ['approved', 'pending', 'rejected', 'blocked'] &&
+             reviewData.timestamp is timestamp &&
+             (!reviewData.keys().hasAny(['comment']) || 
+              (reviewData.comment is string && reviewData.comment.size() <= 500)) &&
+             (!reviewData.keys().hasAny(['userDisplayName']) ||
+              (reviewData.userDisplayName is string && reviewData.userDisplayName.size() <= 50)) &&
+             (!reviewData.keys().hasAny(['gameName']) ||
+              (reviewData.gameName is string && reviewData.gameName.size() <= 100)) &&
+             (!reviewData.keys().hasAny(['reason']) ||
+              (reviewData.reason is string && reviewData.reason.size() <= 200)) &&
+             // Ensure no malicious fields
+             !reviewData.keys().hasAny(['admin', 'isAdmin', 'role', 'permissions']);
+    }
+    
+    function isAdmin(userId) {
+      return userId in [
+        'admin-uid-1',
+        'admin-uid-2',
+        'replace-with-your-admin-uid'
+      ];
+    }
+    
+    function isValidGameId(gameId) {
+      return gameId in [
+        'coderunner',
+        'neurocore',
+        'neurocore-byte-wars',
+        'bytesurge',
+        'shadowlight',
+        'dimensional-dominion'
+      ];
+    }
+  }
+}

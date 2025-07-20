@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=800, initial-scale=1.0">
+  <title>ByteSurge: Infinite Loop</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="game-container">    <h1 class="game-title">BYTESURGE</h1>
+    <p class="game-subtitle">Infinite Loop Protocol</p>
+    
+    <canvas id="gameCanvas" width="1200" height="800"></canvas>
+    
+    <div class="controls">
+      <div class="control-item">
+        <span class="key">SPACE</span>
+        <span>Turn Left</span>
+      </div>
+      <div class="control-item">
+        <span class="key">H</span>
+        <span>Deploy Harvester</span>
+      </div>
+      <div class="control-item">
+        <span class="key">CLICK</span>
+        <span>Alternative Turn</span>
+      </div>      <div class="control-item">
+        <span class="key">U</span>
+        <span>Upgrades</span>
+      </div>
+      <div class="control-item">
+        <span class="key">ESC</span>
+        <span>Settings</span>
+      </div>
+    </div>
+    
+    <div class="loading" id="loadingText">Initializing...</div>
+  </div>
+    <!-- Game stats are now rendered in canvas -->  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  
+  <!-- Modular Game Scripts -->
+  <script src="js/settings.js"></script>
+  <script src="js/audioSystem.js"></script>
+  <script src="js/openingAnimation.js"></script>
+  <script src="js/homeScreen.js"></script>
+  <script src="js/drone.js"></script>  <script src="js/energyNodes.js"></script>
+  <script src="js/corruptionBlobTypes.js"></script>
+  <script src="js/corruptionSystem.js"></script>
+  <script src="js/corruptionZones.js"></script>
+  <script src="js/harvesters.js"></script>  <script src="js/upgrades.js"></script>
+  <script src="js/tutorial.js"></script>
+  
+  <!-- Firebase Integration -->
+  <script src="js/firebase.js"></script>
+  <script src="js/authUI.js"></script>
+  
+  <script src="js/input.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

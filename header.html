@@ -1,0 +1,115 @@
+<nav class="nav">
+    <div class="nav-container">
+        <a href="index.html" class="logo">
+            <span class="glitch" data-text="GlitchRealm">GlitchRealm</span>
+            <span class="games-text">Games</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="games.html" class="nav-link">Games</a>
+            <a href="about.html" class="nav-link">About</a>
+            <a href="contact.html" class="nav-link">Contact</a>
+            <div class="nav-dropdown">
+                <button class="nav-link dropdown-trigger" type="button">More <span class="nav-dropdown-arrow">▼</span></button>
+                <div class="nav-dropdown-menu">
+                    <a href="projects.html" class="nav-dropdown-link">Our Projects</a>
+                </div>
+            </div>
+            <button id="sign-in-btn" class="btn btn-primary nav-signin">Sign In</button>
+            <div id="user-profile" class="user-profile" style="display: none;">
+                <div class="profile-dropdown">
+                    <button class="profile-trigger">
+                        <div class="user-avatar-container">
+                            <img id="user-avatar" class="user-avatar" src="" alt="Profile" />
+                            <div class="avatar-upload-overlay">
+                                <span class="upload-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <span id="user-name" class="user-name"></span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="profile-menu">
+                        <div class="profile-info">
+                            <div class="user-avatar-large-container">
+                                <img id="user-avatar-large" class="user-avatar-large" src="" alt="Profile" />
+                                <div class="avatar-upload-overlay-large">
+                                    <span class="upload-icon-large">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="profile-details">
+                                <span id="user-display-name" class="user-display-name"></span>
+                                <span id="user-email" class="user-email"></span>
+                                <span id="user-provider" class="user-provider"></span>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button id="refresh-profile-btn" class="profile-action-btn refresh-profile">
+                                <span class="action-icon">
+                                    <svg class="icon-svg" viewBox="0 0 24 24">
+                                        <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+                                    </svg>
+                                </span>
+                                Refresh Profile
+                            </button>
+                            <button id="sign-out-btn" class="profile-action-btn sign-out">
+                                <span class="action-icon">
+                                    <svg class="icon-svg" viewBox="0 0 24 24">
+                                        <path d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.59L17 17L22 12L17 7M4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z"/>
+                                    </svg>
+                                </span>
+                                Sign Out
+                            </button>
+                            <button id="delete-account-btn" class="profile-action-btn delete-account">
+                                <span class="action-icon">
+                                    <svg class="icon-svg" viewBox="0 0 24 24">
+                                        <path d="M9 3V4H4V6H5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V6H20V4H15V3H9ZM7 6H17V19H7V6ZM9 8V17H11V8H9ZM13 8V17H15V8H13Z"/>
+                                    </svg>
+                                </span>
+                                Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden file input for profile picture upload -->
+    <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;">
+</nav>
+
+<!-- Profile Picture Crop Modal -->
+<div id="crop-modal" class="crop-modal" style="display: none;">
+    <div class="crop-modal-content">
+        <div class="crop-modal-header">
+            <h3>Crop Profile Picture</h3>
+            <button class="crop-modal-close" id="crop-modal-close">&times;</button>
+        </div>
+        <div class="crop-container">
+            <div class="crop-preview-container">
+                <img id="crop-image" class="crop-image" src="" alt="Crop Preview">
+                <div class="crop-overlay">
+                    <div class="crop-circle"></div>
+                </div>
+            </div>
+        </div>
+        <div class="crop-controls">
+            <div class="zoom-control">
+                <label>Zoom:</label>
+                <input type="range" id="zoom-slider" min="1" max="3" step="0.1" value="1">
+            </div>
+            <div class="crop-actions">
+                <button id="crop-cancel" class="crop-btn crop-cancel">Cancel</button>
+                <button id="crop-confirm" class="crop-btn crop-confirm">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>

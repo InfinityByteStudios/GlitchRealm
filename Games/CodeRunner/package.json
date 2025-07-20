@@ -1,0 +1,37 @@
+{
+  "name": "coderunner-game",
+  "version": "2.1.0",
+  "description": "A digital exploration platformer game",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000 --bind 127.0.0.1",
+    "build": "echo 'Build script not implemented yet'",
+    "lint": "echo 'Linting not implemented yet'",
+    "test": "echo 'Testing not implemented yet'"
+  },
+  "keywords": [
+    "game",
+    "platformer",
+    "html5",
+    "canvas",
+    "javascript",
+    "web-game"
+  ],
+  "author": "CodeRunner Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/coderunner"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/coderunner/issues"
+  },
+  "homepage": "https://github.com/your-username/coderunner#readme"
+}
