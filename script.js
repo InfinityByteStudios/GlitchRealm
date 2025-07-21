@@ -1940,7 +1940,224 @@ function initializeProfileActions() {
             });
         }
     }
+
+    // Settings button functionality
+    const settingsBtn = document.getElementById('settings-btn');
+    if (settingsBtn) {
+        console.log('Settings button found, adding click listener');
+        settingsBtn.addEventListener('click', () => {
+            console.log('Settings button clicked');
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            if (profileDropdown) {
+                profileDropdown.classList.remove('open');
+            }
+            showSettingsModal();
+        });
+    } else {
+        console.log('Settings button not found during initialization');
+    }
 }
+
+// Delete user account function
+async function deleteUserAccount() {
+    try {
+        const user = auth.currentUser;
+        if (!user) {
+            console.error('No user is currently signed in');
+            showMessage('Error: No user is currently signed in', 'error');
+            return;
+        }
+
+        console.log('Attempting to delete user account:', user.uid);
+        
+        // Delete user data from Firestore first
+        try {
+            // Delete user reviews
+            const reviewsRef = collection(db, 'reviews');
+            const userReviewsQuery = query(reviewsRef, where('userId', '==', user.uid));
+            const reviewsSnapshot = await getDocs(userReviewsQuery);
+            
+            const deletePromises = [];
+            reviewsSnapshot.forEach((doc) => {
+                deletePromises.push(deleteDoc(doc.ref));
+            });
+            
+            // Delete user profile data if it exists
+            const userDocRef = doc(db, 'users', user.uid);
+            deletePromises.push(deleteDoc(userDocRef));
+            
+            // Wait for all deletions to complete
+            await Promise.all(deletePromises);
+            console.log('User data deleted from Firestore');
+            
+        } catch (firestoreError) {
+            console.warn('Error deleting user data from Firestore:', firestoreError);
+            // Continue with account deletion even if Firestore cleanup fails
+        }
+
+        // Delete the user account
+        await user.delete();
+        
+        console.log('User account deleted successfully');
+        showMessage('Account deleted successfully. You have been signed out.', 'success');
+        
+        // Clear any cached user data
+        localStorage.removeItem('userProfileCache');
+        localStorage.removeItem('gamePlayPreference');
+        
+        // Redirect to home page after a short delay
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error deleting user account:', error);
+        
+        // Handle specific error cases
+        if (error.code === 'auth/requires-recent-login') {
+            showMessage('For security reasons, please sign out and sign back in before deleting your account.', 'error');
+        } else if (error.code === 'auth/user-not-found') {
+            showMessage('User account not found.', 'error');
+        } else {
+            showMessage('Error deleting account: ' + error.message, 'error');
+        }
+    }
+}
+
+// Message display function
+function showMessage(message, type) {
+    // Create or get existing message element
+    let messageElement = document.getElementById('auth-message');
+    if (!messageElement) {
+        messageElement = document.createElement('div');
+        messageElement.id = 'auth-message';
+        messageElement.className = 'auth-message';
+        document.body.appendChild(messageElement);
+    }
+
+    // Set message content and type
+    messageElement.textContent = message;
+    messageElement.className = `auth-message ${type}`;
+    messageElement.style.display = 'block';
+
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+        messageElement.style.display = 'none';
+    }, 5000);
+}
+
+function showSettingsModal() {
+    // Remove any existing settings modal
+    const existingModal = document.getElementById('settingsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Create settings modal
+    const settingsModal = document.createElement('div');
+    settingsModal.className = 'auth-overlay';
+    settingsModal.innerHTML = `
+        <div class="auth-panel settings-panel">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <span class="glitch-constant" data-text="USER SETTINGS">USER SETTINGS</span>
+                </div>
+                <button class="auth-close" onclick="closeSettingsModal()">
+                    <span class="close-icon">×</span>
+                </button>
+            </div>
+            
+            <div class="auth-content">
+                <div class="settings-content">
+                    <div class="form-title">
+                        <span class="glitch-small" data-text="PREFERENCES">PREFERENCES</span>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h4>Game Launch Preference</h4>
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="radio" name="gamePreference" value="ask" ${!localStorage.getItem('gamePlayPreference') ? 'checked' : ''}>
+                                <span class="radio-custom"></span>
+                                Always ask (show modal)
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="radio" name="gamePreference" value="local" ${localStorage.getItem('gamePlayPreference') === 'local' ? 'checked' : ''}>
+                                <span class="radio-custom"></span>
+                                Always play in GlitchRealm
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="radio" name="gamePreference" value="external" ${localStorage.getItem('gamePlayPreference') === 'external' ? 'checked' : ''}>
+                                <span class="radio-custom"></span>
+                                Always open external site
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-actions">
+                        <button class="neural-button secondary" onclick="closeSettingsModal()">Cancel</button>
+                        <button class="neural-button primary" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="auth-bg-effect"></div>
+            <div class="auth-scanlines"></div>
+        </div>
+    `;
+    
+    settingsModal.id = 'settingsModal';
+    document.body.appendChild(settingsModal);
+    settingsModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+window.closeSettingsModal = function() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.remove();
+    }
+    document.body.style.overflow = 'auto';
+};
+
+window.saveSettings = function() {
+    const selectedPreference = document.querySelector('input[name="gamePreference"]:checked');
+    if (selectedPreference) {
+        if (selectedPreference.value === 'ask') {
+            localStorage.removeItem('gamePlayPreference');
+        } else {
+            localStorage.setItem('gamePlayPreference', selectedPreference.value);
+        }
+        
+        // Show confirmation
+        const message = document.createElement('div');
+        message.className = 'settings-saved-message';
+        message.textContent = 'Settings saved successfully!';
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #00fff9, #ff0080);
+            color: #0a0a0a;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease;
+        `;
+        
+        document.body.appendChild(message);
+        
+        setTimeout(() => {
+            message.remove();
+            closeSettingsModal();
+        }, 2000);
+    }
+};
 
 // Delete account functionality
     const deleteAccountBtn = document.getElementById('delete-account-btn');

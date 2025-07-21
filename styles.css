@@ -33,6 +33,33 @@ body {
     overflow-y: auto;
 }
 
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--darker-bg);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, var(--primary-cyan), var(--primary-magenta));
+    border-radius: 6px;
+    border: 2px solid var(--darker-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, var(--primary-magenta), var(--primary-cyan));
+    box-shadow: 0 0 10px rgba(0, 255, 249, 0.5);
+}
+
+/* Firefox scrollbar */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-cyan) var(--darker-bg);
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -2686,6 +2713,33 @@ body {
     animation-play-state: running;
 }
 
+/* Settings Button */
+.profile-action-btn.settings {
+    background: linear-gradient(135deg, #8a2be2, #00ffff);
+    border: 1px solid #8a2be2;
+    color: #000;
+}
+
+.profile-action-btn.settings:hover {
+    background: linear-gradient(135deg, #7b2edd, #00e6e6);
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+    transform: translateY(-1px);
+}
+
+.profile-action-btn.settings .action-icon {
+    animation: settingsRotate 0.6s ease paused;
+}
+
+.profile-action-btn.settings:hover .action-icon {
+    animation-play-state: running;
+}
+
+@keyframes settingsRotate {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Profile Picture Crop Modal */
 .crop-modal {
     position: fixed !important;
@@ -3276,5 +3330,339 @@ body {
     
     .terms-popup-actions .btn {
         max-width: none;
+    }
+}
+
+/* Game Options Modal Styles */
+.game-options-panel {
+    max-width: 500px;
+    width: 90%;
+}
+
+.game-options-content {
+    padding: 20px 0;
+}
+
+.game-info-display {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.game-info-display h3 {
+    color: var(--primary-cyan);
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.game-launch-subtitle {
+    color: var(--gray-200);
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.launch-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.launch-option {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--gray-800), var(--gray-700));
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.launch-option:hover {
+    border-color: var(--primary-cyan);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 255, 249, 0.2);
+}
+
+.launch-option.primary:hover {
+    border-color: var(--primary-cyan);
+    box-shadow: 0 10px 30px rgba(0, 255, 249, 0.3);
+}
+
+.launch-option.secondary:hover {
+    border-color: var(--primary-magenta);
+    box-shadow: 0 10px 30px rgba(255, 0, 128, 0.3);
+}
+
+.launch-icon {
+    width: 50px;
+    height: 50px;
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, var(--primary-cyan), var(--primary-magenta));
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.launch-icon .icon-svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--dark-bg);
+}
+
+.launch-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.launch-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.launch-desc {
+    font-size: 0.9rem;
+    color: var(--gray-400);
+    opacity: 0.8;
+}
+
+.outdated-badge {
+    display: none;
+    background: linear-gradient(45deg, var(--warning), #ff6b00);
+    color: var(--dark-bg);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 10px;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    animation: badgePulse 2s infinite;
+    box-shadow: 0 0 8px rgba(255, 184, 0, 0.4);
+    white-space: nowrap;
+    max-width: fit-content;
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+/* Animation for modal entrance */
+.game-options-panel {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .launch-options {
+        gap: 12px;
+    }
+    
+    .launch-option {
+        padding: 15px;
+    }
+    
+    .launch-icon {
+        width: 40px;
+        height: 40px;
+        margin-right: 15px;
+    }
+    
+    .launch-icon .icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .launch-title {
+        font-size: 1rem;
+    }
+    
+    .launch-desc {
+        font-size: 0.8rem;
+    }
+}
+
+/* Remember Option Checkbox */
+.remember-option {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.remember-checkbox {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    color: var(--gray-200);
+    font-size: 0.9rem;
+}
+
+.remember-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary-cyan);
+    border-radius: 4px;
+    margin-right: 10px;
+    position: relative;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.remember-checkbox:hover .checkmark {
+    background: rgba(0, 255, 249, 0.1);
+    box-shadow: 0 0 10px rgba(0, 255, 249, 0.3);
+}
+
+.remember-checkbox input:checked + .checkmark {
+    background: linear-gradient(45deg, var(--primary-cyan), var(--primary-magenta));
+    border-color: var(--primary-magenta);
+}
+
+.remember-checkbox input:checked + .checkmark:after {
+    content: "✓";
+    position: absolute;
+    color: var(--dark-bg);
+    font-size: 14px;
+    font-weight: bold;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.checkbox-text {
+    transition: color 0.3s ease;
+}
+
+.remember-checkbox:hover .checkbox-text {
+    color: var(--primary-cyan);
+}
+
+/* Settings Modal Styles */
+.settings-panel {
+    max-width: 600px;
+    width: 90%;
+}
+
+.settings-content {
+    padding: 20px 0;
+}
+
+.settings-section {
+    margin: 25px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--gray-800), var(--gray-700));
+    border-radius: 12px;
+    border: 1px solid var(--gray-600);
+}
+
+.settings-section h4 {
+    color: var(--primary-cyan);
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.setting-item {
+    margin: 12px 0;
+}
+
+.setting-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--gray-200);
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.setting-label:hover {
+    color: var(--primary-cyan);
+}
+
+.setting-label input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--primary-cyan);
+    border-radius: 50%;
+    margin-right: 12px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.setting-label:hover .radio-custom {
+    box-shadow: 0 0 10px rgba(0, 255, 249, 0.3);
+}
+
+.setting-label input:checked + .radio-custom {
+    background: var(--primary-cyan);
+    border-color: var(--primary-magenta);
+}
+
+.setting-label input:checked + .radio-custom:after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dark-bg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.settings-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.settings-actions .neural-button {
+    min-width: 120px;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
     }
 }

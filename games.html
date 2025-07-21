@@ -1062,6 +1062,52 @@
             border-color: var(--danger) !important;
             color: var(--danger) !important;
         }
+
+        /* Notification animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        /* Tip text styling */
+        .remember-tip {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 255, 249, 0.1);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .tip-text {
+            color: var(--primary-cyan);
+            font-family: 'Rajdhani', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tip-icon {
+            fill: var(--primary-cyan);
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -1115,7 +1161,7 @@
                                 <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
                             </div>
-                            <a href="Games/ByteSurge/index.html" class="btn btn-primary card-btn">Play Now</a>
+                            <button onclick="showGameOptionsModal('bytesurge', 'ByteSurge', 'Games/ByteSurge/index.html', 'https://bytesurgeloop.netlify.app/')" class="btn btn-primary card-btn">Play Now</button>
                         </div>
                     </div>
 
@@ -1134,7 +1180,7 @@
                                 <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
                             </div>
-                            <a href="Games/ByteWars/index.html" class="btn btn-primary card-btn">Play Now</a>
+                            <button onclick="showGameOptionsModal('neurocore', 'NeuroCore: Byte Wars', 'Games/ByteWars/index.html', 'https://neurocorebytewars.netlify.app/')" class="btn btn-primary card-btn">Play Now</button>
                         </div>
                     </div>
 
@@ -1154,7 +1200,7 @@
                                 <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS (doesn't work well in Safari)"></i>
                             </div>
-                            <a href="Games/CodeRunner/index.html" class="btn btn-primary card-btn">Play Now</a>
+                            <button onclick="showGameOptionsModal('coderunner', 'CodeRunner', 'Games/CodeRunner/index.html', 'https://coderunner-quest.netlify.app/')" class="btn btn-primary card-btn">Play Now</button>
                         </div>
                     </div>
 
@@ -1364,6 +1410,81 @@
             <div class="auth-bg-effect warning"></div>
             <div class="auth-scanlines warning"></div>
         </div>    </div>
+
+    <!-- Game Options Modal -->
+    <div id="gameOptionsModal" class="auth-overlay" style="display: none;">
+        <div class="auth-panel game-options-panel">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <span class="glitch-constant" data-text="LAUNCH OPTIONS">LAUNCH OPTIONS</span>
+                </div>
+                <button class="auth-close" onclick="closeGameOptionsModal()">
+                    <span class="close-icon">×</span>
+                </button>
+            </div>
+            
+            <div class="auth-content">
+                <div class="game-options-content">
+                    <div class="form-title">
+                        <span class="glitch-small" data-text="CHOOSE YOUR EXPERIENCE">CHOOSE YOUR EXPERIENCE</span>
+                    </div>
+                    
+                    <div class="game-info-display">
+                        <h3 id="gameOptionsTitle">Game Name</h3>
+                        <p class="game-launch-subtitle">Select how you'd like to play this game:</p>
+                    </div>
+                    
+                    <div class="launch-options">
+                        <button id="localGameBtn" class="neural-button primary launch-option">
+                            <div class="launch-icon">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <path d="M4,6H20V16H4M20,18A2,2 0 0,0 22,16V6C22,4.89 21.1,4 20,4H4C2.89,4 2,4.89 2,6V16A2,2 0 0,0 4,18H0V20H24V20H20Z"/>
+                                </svg>
+                            </div>
+                            <div class="launch-text">
+                                <span class="launch-title">PLAY IN GLITCHREALM</span>
+                                <span class="launch-desc">Stay in the cyberpunk realm</span>
+                                <div class="outdated-badge">⚠ Outdated Version</div>
+                            </div>
+                            <div class="button-glow"></div>
+                        </button>
+                        
+                        <button id="externalGameBtn" class="neural-button secondary launch-option">
+                            <div class="launch-icon">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
+                                </svg>
+                            </div>
+                            <div class="launch-text">
+                                <span class="launch-title">VISIT FULL SITE</span>
+                                <span class="launch-desc">Latest version - opens in new tab</span>
+                            </div>
+                            <div class="button-glow"></div>
+                        </button>
+                    </div>
+                    
+                    <div class="remember-option">
+                        <label class="remember-checkbox">
+                            <input type="checkbox" id="rememberChoice">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">Remember my choice</span>
+                        </label>
+                        <div class="remember-tip">
+                            <span class="tip-text">
+                                <svg class="tip-icon" viewBox="0 0 24 24" width="14" height="14">
+                                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17C11.45,17 11,16.55 11,16C11,15.45 11.45,15 12,15C12.55,15 13,15.45 13,16C13,16.55 12.55,17 12,17M12,7A1.5,1.5 0 0,1 13.5,8.5C13.5,9.25 13.17,9.9 12.71,10.36L12.41,10.66C12.15,10.92 12,11.28 12,11.66V13H10V11.66C10,10.85 10.35,10.09 10.93,9.51L11.24,9.2C11.46,8.98 11.5,8.77 11.5,8.5A0.5,0.5 0 0,0 11,8A0.5,0.5 0 0,0 10.5,8.5H9A1.5,1.5 0 0,1 10.5,7H12Z"/>
+                                </svg>
+                                Tip: You can change this later in settings under the user dropdown menu
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="auth-bg-effect"></div>
+            <div class="auth-scanlines"></div>
+        </div>
+    </div>
 
     <div id="auth-message" class="auth-message" style="display: none;"></div>
     <div id="auth-loading" class="auth-loading" style="display: none;">
@@ -2081,6 +2202,74 @@
         window.closeReviewModal = closeReviewModal;
         window.closeSignInErrorModal = closeSignInErrorModal;
         window.submitReview = submitReview;
+
+        // Game Options Modal Functions
+        let currentGameOptions = {
+            gameId: '',
+            gameName: '',
+            localPath: '',
+            externalUrl: ''
+        };
+
+        window.showGameOptionsModal = function(gameId, gameName, localPath, externalUrl) {
+            // Check if user has a remembered preference
+            const rememberedChoice = localStorage.getItem('gamePlayPreference');
+            if (rememberedChoice) {
+                if (rememberedChoice === 'local') {
+                    window.location.href = localPath;
+                    return;
+                } else if (rememberedChoice === 'external') {
+                    window.open(externalUrl, '_blank');
+                    return;
+                }
+            }
+            
+            currentGameOptions = { gameId, gameName, localPath, externalUrl };
+            
+            document.getElementById('gameOptionsTitle').textContent = gameName;
+            document.getElementById('gameOptionsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Reset checkbox
+            document.getElementById('rememberChoice').checked = false;
+            
+            // Set up button click handlers
+            document.getElementById('localGameBtn').onclick = function() {
+                const rememberChoice = document.getElementById('rememberChoice').checked;
+                if (rememberChoice) {
+                    localStorage.setItem('gamePlayPreference', 'local');
+                }
+                window.location.href = localPath;
+            };
+            
+            document.getElementById('externalGameBtn').onclick = function() {
+                const rememberChoice = document.getElementById('rememberChoice').checked;
+                if (rememberChoice) {
+                    localStorage.setItem('gamePlayPreference', 'external');
+                }
+                window.open(externalUrl, '_blank');
+                closeGameOptionsModal();
+            };
+        };
+
+        window.closeGameOptionsModal = function() {
+            document.getElementById('gameOptionsModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        };
+
+        // Function to clear remembered preference (for testing/resetting)
+        window.clearGamePreference = function() {
+            localStorage.removeItem('gamePlayPreference');
+            console.log('Game preference cleared!');
+        };
+
+        // Close modal on outside click
+        document.addEventListener('click', function(event) {
+            const gameOptionsModal = document.getElementById('gameOptionsModal');
+            if (event.target === gameOptionsModal) {
+                closeGameOptionsModal();
+            }
+        });
 
         // Reviews Display Functions for Modal
         async function loadModalReviews(gameId) {
