@@ -1,0 +1,132 @@
+<nav class="nav"></nav>
+    <div class="nav-container">
+        <a href="index.html" class="logo">
+            <span class="glitch" data-text="GlitchRealm">GlitchRealm</span>
+            <span class="games-text">Games</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="user-portal.html" class="nav-link">User Portal</a>
+            <button id="sign-in-btn" class="btn btn-primary nav-signin">Sign In</button>
+            <div id="user-profile" class="user-profile" style="display: none;">
+                <div class="profile-dropdown">
+                    <button class="profile-trigger">
+                        <div class="user-avatar-container">
+                            <img id="user-avatar" class="user-avatar" src="" alt="Profile" />
+                            <div class="avatar-upload-overlay">
+                                <span class="upload-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <span id="user-name" class="user-name"></span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="profile-menu">
+                        <div class="profile-info">
+                            <div class="user-avatar-large-container">
+                                <img id="user-avatar-large" class="user-avatar-large" src="" alt="Profile" />
+                                <div class="avatar-upload-overlay-large">
+                                    <label for="avatar-upload" class="upload-icon-large">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+                                        </svg>
+                                    </label>
+                                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                                </div>
+                            </div>
+                            <div class="user-info">
+                                <span id="user-name-large" class="user-name-large"></span>
+                                <span id="user-email-large" class="user-email-large"></span>
+                            </div>
+                        </div>
+                        <div class="profile-links">
+                            <a href="user-portal.html" class="profile-link">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                                </svg>
+                                My Portal
+                            </a>
+                            <button id="sign-out-dropdown-btn" class="profile-link sign-out-btn">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z" />
+                                </svg>
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="menu-toggle">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </button>
+    </div>
+</nav>
+
+<!-- Auth Modal -->
+<div id="auth-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="auth-container">
+            <div class="auth-header">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="signin">Sign In</button>
+                    <button class="auth-tab" data-tab="signup">Sign Up</button>
+                </div>
+            </div>
+            <div class="auth-body">
+                <div id="auth-spinner" class="auth-spinner" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+                <div id="signin-form" class="auth-form active">
+                    <div class="form-group">
+                        <label for="signin-email">Email</label>
+                        <input type="email" id="signin-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signin-password">Password</label>
+                        <input type="password" id="signin-password" class="form-control" required>
+                    </div>
+                    <div class="auth-error" id="signin-error"></div>
+                    <button id="signin-button" class="btn btn-primary btn-block">Sign In</button>
+                    <div class="auth-links">
+                        <a href="#" id="forgot-password-link">Forgot Password?</a>
+                    </div>
+                </div>
+                <div id="signup-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirm Password</label>
+                        <input type="password" id="signup-confirm-password" class="form-control" required>
+                    </div>
+                    <div class="auth-error" id="signup-error"></div>
+                    <button id="signup-button" class="btn btn-primary btn-block">Sign Up</button>
+                </div>
+                <div id="forgot-password-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="reset-email">Email</label>
+                        <input type="email" id="reset-email" class="form-control" required>
+                    </div>
+                    <div class="auth-error" id="reset-error"></div>
+                    <div class="auth-success" id="reset-success"></div>
+                    <button id="reset-button" class="btn btn-primary btn-block">Reset Password</button>
+                    <div class="auth-links">
+                        <a href="#" id="back-to-signin-link">Back to Sign In</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
