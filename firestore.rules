@@ -46,6 +46,28 @@ service cloud.firestore {
     }
     
     // ================================
+    // Game Playtime Collection
+    // ================================
+    match /playtime/{playTimeId} {
+      // Read: Users can only read their own playtime data
+      allow read: if request.auth != null && 
+                     request.auth.uid == resource.data.userId;
+      
+      // Create: Authenticated users only
+      allow create: if request.auth != null &&
+                       request.auth.uid == request.resource.data.userId &&
+                       isValidPlaytime(request.resource.data);
+      
+      // Update: Only the user can update their own playtime
+      allow update: if request.auth != null &&
+                       request.auth.uid == resource.data.userId &&
+                       isValidPlaytime(request.resource.data);
+      
+      // Delete: Only admins can delete playtime records
+      allow delete: if isAdmin(request.auth.uid);
+    }
+    
+    // ================================
     // Admin Actions Collection
     // ================================
     match /adminActions/{actionId} {
@@ -92,6 +114,21 @@ service cloud.firestore {
              !reviewData.keys().hasAny(['admin', 'isAdmin', 'role', 'permissions']);
     }
     
+    function isValidPlaytime(playtimeData) {
+      return playtimeData.keys().hasAll(['gameId', 'userId', 'hours', 'lastUpdated']) &&
+             playtimeData.gameId is string &&
+             isValidGameId(playtimeData.gameId) &&
+             playtimeData.userId is string &&
+             playtimeData.userId.size() > 0 &&
+             playtimeData.hours is number &&
+             playtimeData.hours >= 0 &&
+             playtimeData.lastUpdated is timestamp &&
+             (!playtimeData.keys().hasAny(['iconUrl']) || 
+              (playtimeData.iconUrl is string && playtimeData.iconUrl.size() > 0)) &&
+             (!playtimeData.keys().hasAny(['gameName']) || 
+              (playtimeData.gameName is string && playtimeData.gameName.size() > 0));
+    }
+    
     function isAdmin(userId) {
       return userId in [
         'admin-uid-1',
@@ -106,8 +143,7 @@ service cloud.firestore {
         'neurocore',
         'neurocore-byte-wars',
         'bytesurge',
-        'shadowlight',
-        'dimensional-dominion'
+        'shadowlight'
       ];
     }
   }

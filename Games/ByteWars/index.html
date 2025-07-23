@@ -439,7 +439,72 @@
     <script src="js/visualEffects.js"></script>
     <script src="js/modernUI.js"></script>
     <script src="js/player.js"></script>
-    <script src="js/game.js"></script><script>
+    <script src="js/game.js"></script>
+    
+    <!-- Firebase SDK (for playtime tracking) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Playtime Tracking -->
+    <script src="../game-playtime-tracker.js" type="text/javascript"></script>
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+        authDomain: "shared-sign-in.firebaseapp.com",
+        databaseURL: "https://shared-sign-in-default-rtdb.firebaseio.com/",
+        projectId: "shared-sign-in",
+        storageBucket: "shared-sign-in.firebasestorage.app",
+        messagingSenderId: "332039027753",
+        appId: "1:332039027753:web:aa7c6877d543bb90363038",
+        measurementId: "G-KK5XVVLMVN"
+      };
+      
+      // Initialize Firebase if not already initialized
+      if (typeof firebase !== 'undefined' && (!firebase.apps || !firebase.apps.length)) {
+          firebase.initializeApp(firebaseConfig);
+      }
+      
+      // ByteWars Playtime Tracking
+      document.addEventListener('DOMContentLoaded', async () => {
+        console.log('Initializing playtime tracking for ByteWars');
+        
+        // Create and initialize the playtime tracker
+        const tracker = new GamePlaytimeTracker();
+        await tracker.init('bytewars', 'NeuroCore: Byte Wars', true);
+        
+        // Store the tracker instance for debugging
+        window.playtimeTracker = tracker;
+        
+        // Start tracking playtime
+        tracker.startTracking();
+        
+        // Dispatch game started event
+        window.dispatchEvent(new CustomEvent('gameStarted'));
+        
+        // Handle visibility changes
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden && tracker && tracker.isTracking) {
+            console.log('Tab hidden - saving current playtime');
+            tracker.savePlaytimeData();
+          } else if (!document.hidden && tracker && !tracker.isTracking) {
+            console.log('Tab visible again - resuming playtime tracking');
+            tracker.startTracking();
+          }
+        });
+        
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+          if (tracker && tracker.isTracking) {
+            console.log('Page unloading - saving final playtime');
+            tracker.savePlaytimeData();
+          }
+        });
+      });
+    </script>
+    
+    <script>
         // Initialize game when page loads
         window.addEventListener('load', () => {
             console.log('Page loaded, initializing game...');

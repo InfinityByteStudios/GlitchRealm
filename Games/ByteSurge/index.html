@@ -62,5 +62,46 @@
   
   <script src="js/input.js"></script>
   <script src="js/game.js"></script>
+  
+  <!-- Playtime Tracking -->
+  <script src="../game-playtime-tracker.js" type="text/javascript"></script>
+  <script>
+    // ByteSurge Playtime Tracking
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('Initializing playtime tracking for ByteSurge');
+      
+      // Create and initialize the playtime tracker
+      const tracker = new GamePlaytimeTracker();
+      await tracker.init('bytesurge', 'ByteSurge', true);
+      
+      // Store the tracker instance for debugging
+      window.playtimeTracker = tracker;
+      
+      // Start tracking playtime
+      tracker.startTracking();
+      
+      // Dispatch game started event
+      window.dispatchEvent(new CustomEvent('gameStarted'));
+      
+      // Handle visibility changes
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && tracker && tracker.isTracking) {
+          console.log('Tab hidden - saving current playtime');
+          tracker.savePlaytimeData();
+        } else if (!document.hidden && tracker && !tracker.isTracking) {
+          console.log('Tab visible again - resuming playtime tracking');
+          tracker.startTracking();
+        }
+      });
+      
+      // Handle page unload
+      window.addEventListener('beforeunload', () => {
+        if (tracker && tracker.isTracking) {
+          console.log('Page unloading - saving final playtime');
+          tracker.savePlaytimeData();
+        }
+      });
+    });
+  </script>
 </body>
 </html>
