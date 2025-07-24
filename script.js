@@ -2508,41 +2508,68 @@ function initializeAuthElements() {
     // Re-get DOM elements after header is loaded
     const signInBtn = document.getElementById('sign-in-btn');
     const signOutBtn = document.getElementById('sign-out-btn');
-    const signInModal = document.getElementById('signin-modal');
-    const closeModal = document.getElementById('close-modal');
     const userProfile = document.getElementById('user-profile');
     
-    console.log('Auth elements found:', { signInBtn, signOutBtn, signInModal, closeModal, userProfile });
+    console.log('Auth elements found:', { signInBtn, signOutBtn, userProfile });
     
-    if (signInBtn && signInModal && closeModal) {
+    if (signInBtn) {
         console.log('Setting up sign-in modal event listeners...');
         
         // Remove existing listeners by cloning buttons
         const newSignInBtn = signInBtn.cloneNode(true);
         signInBtn.parentNode.replaceChild(newSignInBtn, signInBtn);
         
-        const newCloseModal = closeModal.cloneNode(true);
-        closeModal.parentNode.replaceChild(newCloseModal, closeModal);
-        
-        // Re-attach event listeners
+        // Add event listener to the sign-in button
         newSignInBtn.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('Sign in button clicked!');
-            signInModal.style.display = 'flex';
-            console.log('Modal display set to flex');
+            
+            // Check if we're on the signin.html page
+            if (window.location.pathname.includes('signin.html')) {
+                console.log('Already on signin page');
+                return;
+            }
+            
+            // Get the auth overlay (could be different IDs on different pages)
+            const authOverlay = document.querySelector('.auth-overlay');
+            if (authOverlay) {
+                console.log('Auth overlay found, displaying it');
+                authOverlay.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                console.log('Auth overlay not found, redirecting to signin page');
+                window.location.href = 'signin.html';
+            }
         });
         
-        newCloseModal.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Close modal button clicked!');
-            signInModal.style.display = 'none';
-            console.log('Modal display set to none');
-        });
+        console.log('Auth event listeners attached');
+        
+        // Find and handle close modal button
+        const closeModal = document.querySelector('.close-modal');
+        if (closeModal) {
+            const newCloseModal = closeModal.cloneNode(true);
+            closeModal.parentNode.replaceChild(newCloseModal, closeModal);
+            
+            newCloseModal.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Close modal button clicked!');
+                
+                // Get the auth overlay (could be different IDs on different pages)
+                const authOverlay = document.querySelector('.auth-overlay');
+                if (authOverlay) {
+                    console.log('Auth overlay found, hiding it');
+                    authOverlay.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        }
         
         // Close modal on backdrop click
-        signInModal.addEventListener('click', function(e) {
-            if (e.target === signInModal) {
-                signInModal.style.display = 'none';
+        document.addEventListener('click', function(e) {
+            const authOverlay = document.querySelector('.auth-overlay');
+            if (authOverlay && e.target === authOverlay) {
+                authOverlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
             }
         });
         

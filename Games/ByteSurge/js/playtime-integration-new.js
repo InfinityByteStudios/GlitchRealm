@@ -1,5 +1,5 @@
 // ByteSurge Game - Playtime Tracking Integration
-import GamePlaytimeTracker from '../../game-playtime-tracker.js';
+import GamePlaytimeTracker from '../game-playtime-tracker.js';
 
 // Initialize the playtime tracker when the game starts
 document.addEventListener('DOMContentLoaded', async () => {

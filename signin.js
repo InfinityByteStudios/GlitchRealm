@@ -96,25 +96,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Sign in form submission
     signinForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Sign in form submitted');
         
         if (!firebaseReady) {
+            console.log('Firebase not ready');
             showMessage('FIREBASE LOADING...', 'info');
             return;
         }
         
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        console.log('Attempting to sign in with:', email);
         
         try {
             const userCredential = await window.firebaseSignInWithEmailAndPassword(window.firebaseAuth, email, password);
             console.log('User signed in:', userCredential.user);
                   // Show success message with glitch effect
-        showMessage('ACCESS GRANTED', 'success');
+            showMessage('ACCESS GRANTED', 'success');
         
-        // Redirect to main page after delay
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 2000);
+            // Redirect to main page after delay
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
             
         } catch (error) {
             console.error('Sign in error:', error);
@@ -225,29 +228,24 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'forgot-password.html';
     });    // Message display function
     function showMessage(message, type) {
-        // Remove existing message if any
-        const existingMessage = document.querySelector('.auth-message');
-        if (existingMessage) {
-            existingMessage.remove();
+        // Get the auth message element
+        const authMessage = document.getElementById('authMessage');
+        if (!authMessage) {
+            console.error('Auth message element not found');
+            return;
         }
 
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `auth-message ${type}`;
-        messageDiv.textContent = message;
-
-        // Add glitch effect to the message
-        messageDiv.classList.add('glitch-message');
+        // Set message and show it
+        authMessage.textContent = message;
+        authMessage.className = `auth-message ${type}`;
+        authMessage.classList.remove('hidden');
         
-        // Insert message at the top of the auth container
-        const authContainer = document.querySelector('.auth-container');
-        const authHeader = document.querySelector('.auth-header');
-        authContainer.insertBefore(messageDiv, authHeader.nextSibling);
-
+        // Add glitch effect to the message
+        authMessage.classList.add('glitch-message');
+        
         // Auto remove after 5 seconds
         setTimeout(() => {
-            if (messageDiv.parentNode) {
-                messageDiv.remove();
-            }
+            authMessage.classList.add('hidden');
         }, 5000);
     }
 

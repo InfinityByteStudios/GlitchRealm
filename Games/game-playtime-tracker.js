@@ -83,11 +83,11 @@ class GamePlaytimeTracker {
         this.isTracking = true;
         this.startTime = new Date();
         
-        // Save every 2 minutes
+        // Save every 5 seconds
         this.saveInterval = setInterval(() => {
             this._updatePlaytime();
             this._savePlaytimeData();
-        }, 120000);
+        }, 5000);
         
         // Dispatch event for other systems
         this._dispatchTrackingEvent('trackingStarted');
