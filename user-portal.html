@@ -355,6 +355,31 @@
             background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
         }
         
+        .beta-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-magenta), var(--accent-purple));
+            color: var(--white);
+            font-size: 0.6rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            vertical-align: top;
+            box-shadow: 0 0 10px rgba(255, 0, 128, 0.3);
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 5px rgba(255, 0, 128, 0.3);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(255, 0, 128, 0.6);
+            }
+        }
+        
         .portal-subtitle {
             font-family: 'Rajdhani', sans-serif;
             font-size: 1.2rem;
@@ -636,7 +661,7 @@
                     <svg viewBox="0 0 24 24">
                         <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
                     </svg>
-                    Email Management
+                    Email Management <span class="beta-badge">BETA</span>
                 </h2>
                 <div class="form-group">
                     <label class="form-label">Current Email</label>
@@ -751,6 +776,18 @@
             
             try {
                 const user = window.firebaseAuth.currentUser;
+                
+                // Debug logging to see user info
+                console.log('Current user:', user);
+                console.log('User email:', user.email);
+                console.log('User providers:', user.providerData);
+                
+                // Check if user has an email
+                if (!user.email) {
+                    errorMessage.textContent = 'Email update is not available for anonymous accounts. Please sign in with an email account first.';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
                 
                 // Re-authenticate the user
                 const credential = window.EmailAuthProvider.credential(user.email, currentPassword);
