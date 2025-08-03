@@ -1885,9 +1885,9 @@
                     .trim();
             }
 
-            // Create variations of the text to catch bypasses
+            // Create variations of the text to catch bypasses - but exclude problematic vowel masking for legitimate words
             function createVariations(input) {
-                const variations = [
+                const baseVariations = [
                     input.toLowerCase(),
                     normalizeText(input),
                     input.replace(/[*@#$%^&+=_\-~`|\\\/]/g, ''), // Remove common mask characters
@@ -1895,15 +1895,17 @@
                         const numMap = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b'};
                         return numMap[match] || match;
                     }),
-                    input.replace(/[aeiou]/g, '*'), // Vowel masking detection
                     input.replace(/(.)/g, '$1 ').trim(), // Spaced out text
                     input.replace(/\s+/g, ''), // No spaces
                 ];
                 
-                // Add reverse bypass attempts
-                variations.push(input.split('').reverse().join(''));
+                // Only add vowel masking and reverse for shorter suspicious text (likely actual bypass attempts)
+                if (input.length < 20 && /[*@#$%^&+=_\-~`|\\\/]/.test(input)) {
+                    baseVariations.push(input.replace(/[aeiou]/g, '*')); // Vowel masking detection
+                    baseVariations.push(input.split('').reverse().join('')); // Reverse bypass attempts
+                }
                 
-                return [...new Set(variations)]; // Remove duplicates
+                return [...new Set(baseVariations)]; // Remove duplicates
             }
 
             // Enhanced banned words patterns with common bypasses - made more specific to avoid false positives
@@ -1929,9 +1931,9 @@
                 /\bd+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*m+n+\b/i,
                 /\bd[*@#$%^&+=_\-~`|\\\/\s]*mn\b/i,
                 
-                // Hell variations - more specific to avoid "bullets", "shell", etc.
+                // Hell variations - much more specific to avoid "bullets" -> "b*ll*ts"
                 /\bhell+\b/i, // Only match "hell" as standalone
-                /\bh+[*@#$%^&+=_\-~`|\\\/]*[e3*@#$%^&+=_\-~`|\\\/]*l+l+\b/i, // Must have double L
+                /\bh+[*@#$%^&+=_\-~`|\\\/]*e+[*@#$%^&+=_\-~`|\\\/]*l+[*@#$%^&+=_\-~`|\\\/]*l+\b/i, // Must start with H and have double L
                 
                 // Other offensive terms with bypass patterns - all with word boundaries
                 /\b[ck]+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*p+\b/i,
