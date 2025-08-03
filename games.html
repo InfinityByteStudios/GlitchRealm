@@ -1906,44 +1906,44 @@
                 return [...new Set(variations)]; // Remove duplicates
             }
 
-            // Enhanced banned words patterns with common bypasses
+            // Enhanced banned words patterns with common bypasses - made more specific to avoid false positives
             const bannedPatterns = [
-                // F-word variations
-                /f+[*@#$%^&+=_\-~`|\\\/\s]*[aeiou*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+/i,
-                /f+[*@#$%^&+=_\-~`|\\\/\s]*[aeiou4*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+/i,
-                /f+[u*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+/i,
+                // F-word variations - with word boundaries
+                /\bf+[*@#$%^&+=_\-~`|\\\/\s]*[aeiou*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
+                /\bf+[*@#$%^&+=_\-~`|\\\/\s]*[aeiou4*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
+                /\bf+[u*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
                 
-                // S-word variations  
-                /s+[*@#$%^&+=_\-~`|\\\/\s]*h+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*t+/i,
-                /sh[*@#$%^&+=_\-~`|\\\/\s]*t/i,
+                // S-word variations - with word boundaries
+                /\bs+[*@#$%^&+=_\-~`|\\\/\s]*h+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*t+\b/i,
+                /\bsh[*@#$%^&+=_\-~`|\\\/\s]*t\b/i,
                 
-                // B-word variations
-                /b+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*t+[*@#$%^&+=_\-~`|\\\/\s]*c+h+/i,
-                /b[*@#$%^&+=_\-~`|\\\/\s]*tch/i,
+                // B-word variations - with word boundaries
+                /\bb+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*t+[*@#$%^&+=_\-~`|\\\/\s]*c+h+\b/i,
+                /\bb[*@#$%^&+=_\-~`|\\\/\s]*tch\b/i,
                 
-                // A-word variations
-                /a+[*@#$%^&+=_\-~`|\\\/\s]*s+[*@#$%^&+=_\-~`|\\\/\s]*s+/i,
-                /[a4@*#$%^&+=_\-~`|\\\/\s]*s+[*@#$%^&+=_\-~`|\\\/\s]*s+/i,
+                // A-word variations - more specific to avoid matching legitimate words
+                /\bass+\b/i, // Only match "ass" as a standalone word
+                /\ba+[*@#$%^&+=_\-~`|\\\/\s]*s+[*@#$%^&+=_\-~`|\\\/\s]*s+\b/i,
                 
-                // D-word variations
-                /d+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*m+n+/i,
-                /d[*@#$%^&+=_\-~`|\\\/\s]*mn/i,
+                // D-word variations - with word boundaries
+                /\bd+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*m+n+\b/i,
+                /\bd[*@#$%^&+=_\-~`|\\\/\s]*mn\b/i,
                 
-                // Hell variations
-                /h+[*@#$%^&+=_\-~`|\\\/\s]*[e3*@#$%^&+=_\-~`|\\\/\s]*l+/i,
+                // Hell variations - more specific to avoid "bullets", "shell", etc.
+                /\bhell+\b/i, // Only match "hell" as standalone
+                /\bh+[*@#$%^&+=_\-~`|\\\/]*[e3*@#$%^&+=_\-~`|\\\/]*l+l+\b/i, // Must have double L
                 
-                // Other offensive terms with bypass patterns
-                /[ck]+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*p+/i,
-                /g+[a4@*#$%^&+=_\-~`|\\\/\s]*r+b+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*g+[e3*@#$%^&+=_\-~`|\\\/\s]*/i,
-                /t+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*s+h+/i,
-                /s+t+[*@#$%^&+=_\-~`|\\\/\s]*u+p+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*d+/i,
-                /d+u+m+b+/i,
-                /[i1*@#$%^&+=_\-~`|\\\/\s]*d+[i1*@#$%^&+=_\-~`|\\\/\s]*[o0*@#$%^&+=_\-~`|\\\/\s]*t+/i,
-                /m+[o0*@#$%^&+=_\-~`|\\\/\s]*r+[o0*@#$%^&+=_\-~`|\\\/\s]*n+/i,
-                /l+[o0*@#$%^&+=_\-~`|\\\/\s]*s+[e3*@#$%^&+=_\-~`|\\\/\s]*r+/i,
-                /n+[o0*@#$%^&+=_\-~`|\\\/\s]*[o0*@#$%^&+=_\-~`|\\\/\s]*b+/i,
-                /s+[ck]+r+u+b+/i,
-                /t+[o0*@#$%^&+=_\-~`|\\\/\s]*x+[i1*@#$%^&+=_\-~`|\\\/\s]*[ck]+/i
+                // Other offensive terms with bypass patterns - all with word boundaries
+                /\b[ck]+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*p+\b/i,
+                /\bt+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*s+h+\b/i,
+                /\bs+t+[*@#$%^&+=_\-~`|\\\/\s]*u+p+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*d+\b/i,
+                /\bd+u+m+b+\b/i,
+                /\b[i1*@#$%^&+=_\-~`|\\\/\s]*d+[i1*@#$%^&+=_\-~`|\\\/\s]*[o0*@#$%^&+=_\-~`|\\\/\s]*t+\b/i,
+                /\bm+[o0*@#$%^&+=_\-~`|\\\/\s]*r+[o0*@#$%^&+=_\-~`|\\\/\s]*n+\b/i,
+                /\bl+[o0*@#$%^&+=_\-~`|\\\/\s]*s+[e3*@#$%^&+=_\-~`|\\\/\s]*r+\b/i,
+                /\bn+[o0*@#$%^&+=_\-~`|\\\/\s]*[o0*@#$%^&+=_\-~`|\\\/\s]*b+\b/i,
+                /\bs+[ck]+r+u+b+\b/i,
+                /\bt+[o0*@#$%^&+=_\-~`|\\\/\s]*x+[i1*@#$%^&+=_\-~`|\\\/\s]*[ck]+\b/i
             ];
 
             const textVariations = createVariations(text);
