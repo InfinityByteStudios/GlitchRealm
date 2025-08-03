@@ -1958,10 +1958,12 @@
                 }
             }
             
-            // Original banned words check (fallback)
+            // Original banned words check (fallback) - with word boundaries to prevent false positives
             for (let variation of textVariations) {
                 for (let word of bannedWords) {
-                    if (variation.includes(word.toLowerCase())) {
+                    // Use word boundaries to prevent false positives like "hell" in "bullets"
+                    const wordPattern = new RegExp('\\b' + word.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+                    if (wordPattern.test(variation)) {
                         console.log(`🚫 Blocked word: "${text}" -> contains: "${word}"`);
                         return { status: 'blocked', reason: 'inappropriate content detected' };
                     }
@@ -2460,7 +2462,8 @@
             ];
             
             const artistUIDs = [
-                'yFtl1s7jOeSAL78yJPORchAgjE93'
+                'yFtl1s7jOeSAL78yJPORchAgjE93',
+                'cuGtyQvqilcWmxS859eta41Plak2'
             ];
             
             // Check for special badges
