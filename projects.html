@@ -65,6 +65,101 @@
             object-fit: cover !important;
         }
 
+        /* Avatar upload overlay styles - hide by default */
+        .user-avatar-container {
+            position: relative !important;
+            display: inline-block !important;
+        }
+
+        .avatar-upload-overlay {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.4) !important;
+            backdrop-filter: blur(4px) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            opacity: 0 !important;
+            transition: opacity 0.3s ease !important;
+            cursor: pointer !important;
+            z-index: 10 !important;
+        }
+
+        .user-avatar-container:hover .avatar-upload-overlay {
+            opacity: 0 !important;
+        }
+
+        /* Only show upload overlay when dropdown is open */
+        .profile-dropdown.active .user-avatar-container:hover .avatar-upload-overlay {
+            opacity: 1 !important;
+        }
+
+        .upload-icon {
+            font-size: 14px !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            text-shadow: 0 0 10px rgba(0, 255, 249, 0.5) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .upload-icon svg {
+            width: 16px !important;
+            height: 16px !important;
+            fill: currentColor !important;
+        }
+
+        .user-avatar-large-container {
+            position: relative !important;
+            display: inline-block !important;
+        }
+
+        .avatar-upload-overlay-large {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: blur(6px) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            opacity: 0 !important;
+            transition: opacity 0.3s ease !important;
+            cursor: pointer !important;
+            z-index: 10 !important;
+        }
+
+        .user-avatar-large-container:hover .avatar-upload-overlay-large {
+            opacity: 0 !important;
+        }
+
+        /* Only show large upload overlay when dropdown is open */
+        .profile-dropdown.active .user-avatar-large-container:hover .avatar-upload-overlay-large {
+            opacity: 1 !important;
+        }
+
+        .upload-icon-large {
+            font-size: 24px !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            text-shadow: 0 0 15px rgba(0, 255, 249, 0.7) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .upload-icon-large svg {
+            width: 28px !important;
+            height: 28px !important;
+            fill: currentColor !important;
+        }
+
         .user-name {
             font-size: 0.9rem !important;
             max-width: 120px !important;
@@ -125,54 +220,88 @@
         }
 
         .profile-details {
-            flex: 1 !important;
             display: flex !important;
             flex-direction: column !important;
             gap: 0.25rem !important;
         }
 
         .user-display-name {
-            font-family: 'Orbitron', monospace !important;
             font-size: 1.1rem !important;
             font-weight: 700 !important;
-            color: var(--primary-cyan) !important;
-            text-transform: uppercase !important;
+            color: var(--white) !important;
         }
 
         .user-email {
             font-size: 0.85rem !important;
-            color: var(--gray-200) !important;
+            color: var(--primary-cyan) !important;
+            opacity: 0.8 !important;
         }
 
         .user-provider {
             font-size: 0.75rem !important;
             color: var(--primary-magenta) !important;
             text-transform: uppercase !important;
+            font-weight: 600 !important;
         }
 
         .profile-actions {
-            padding: 1rem 1.5rem !important;
+            padding: 1rem !important;
             display: flex !important;
             flex-direction: column !important;
-            gap: 0.75rem !important;
+            gap: 0.5rem !important;
         }
 
         .profile-action-btn {
             display: flex !important;
             align-items: center !important;
             gap: 0.75rem !important;
-            background: rgba(0, 0, 0, 0.4) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            border-radius: 8px !important;
             padding: 0.75rem 1rem !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(0, 255, 249, 0.3) !important;
+            border-radius: 8px !important;
             color: var(--white) !important;
             font-family: 'Rajdhani', sans-serif !important;
-            font-size: 0.9rem !important;
             font-weight: 600 !important;
             cursor: pointer !important;
             transition: all 0.3s ease !important;
-            text-align: left !important;
             width: 100% !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+            overflow: visible !important;
+        }
+
+        .profile-action-btn:hover {
+            background: rgba(0, 255, 249, 0.1) !important;
+            border-color: var(--primary-cyan) !important;
+            box-shadow: 0 0 10px rgba(0, 255, 249, 0.2) !important;
+        }
+
+        /* Ensure sign out button text is visible */
+        .profile-action-btn.sign-out {
+            color: var(--white) !important;
+        }
+
+        /* More specific rule for sign out button text */
+        #sign-out-btn,
+        #sign-out-btn *:not(.action-icon):not(.icon-svg):not(path) {
+            color: var(--white) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .profile-action-btn.delete-account {
+            border-color: rgba(255, 0, 128, 0.5) !important;
+            color: var(--primary-magenta) !important;
+        }
+
+        .profile-action-btn.delete-account:hover {
+            background: rgba(255, 0, 128, 0.1) !important;
+            border-color: var(--primary-magenta) !important;
+            box-shadow: 0 0 10px rgba(255, 0, 128, 0.2) !important;
+        }
+
+        .action-icon {
+            font-size: 1.2rem !important;
         }
 
         .profile-action-btn:hover {
@@ -483,5 +612,36 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js"></script>
     <script src="script.js"></script>
+    
+    <script>
+        // Update header text for projects-specific branding
+        function updateProjectsHeader() {
+            // Wait for header to load, then update text
+            const updateHeaderText = () => {
+                // Update the logo "Games" text to "Projects"
+                const gamesText = document.querySelector('.games-text');
+                if (gamesText) {
+                    gamesText.textContent = 'Projects';
+                }
+            };
+            
+            // Try immediately
+            updateHeaderText();
+            
+            // Also try after a short delay to ensure header is loaded
+            setTimeout(updateHeaderText, 500);
+            
+            // And try again after the header placeholder is likely loaded
+            setTimeout(updateHeaderText, 1500);
+        }
+        
+        // Call the function when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProjectsHeader();
+        });
+        
+        // Also call it after a delay to ensure header is loaded
+        setTimeout(updateProjectsHeader, 2000);
+    </script>
 </body>
 </html>

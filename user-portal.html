@@ -723,6 +723,10 @@
         // User Portal Functionality
         function initializeUserPortal() {
             console.log('Initializing user portal...');
+            
+            // Update header text for portal-specific branding
+            updatePortalHeader();
+            
             const loadingContainer = document.getElementById('loading-container');
             const authRequired = document.getElementById('auth-required');
             const portalContent = document.getElementById('portal-content');
@@ -746,6 +750,30 @@
             if (updateEmailBtn) {
                 updateEmailBtn.addEventListener('click', updateUserEmail);
             }
+        }
+        
+        // Update header text for portal-specific branding
+        function updatePortalHeader() {
+            // Wait for header to load, then update text
+            const updateHeaderText = () => {
+                // Update the logo "Games" text to "Portal"
+                const gamesText = document.querySelector('.games-text');
+                if (gamesText) {
+                    gamesText.textContent = 'Portal';
+                }
+                
+                // Keep "Our Projects" unchanged in the dropdown
+                // (removed the GlitchRealm Projects modification)
+            };
+            
+            // Try immediately
+            updateHeaderText();
+            
+            // Also try after a short delay to ensure header is loaded
+            setTimeout(updateHeaderText, 500);
+            
+            // And try again after the header placeholder is likely loaded
+            setTimeout(updateHeaderText, 1500);
         }
         
         // Load user data including email and playtime

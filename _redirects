@@ -1,0 +1,3 @@
+# Netlify Redirects Configuration
+# Portal subdomain redirect - serve user-portal content for portal.glitchrealm.ca
+https://portal.glitchrealm.ca/*  /user-portal/:splat  200
