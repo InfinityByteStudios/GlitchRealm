@@ -872,11 +872,14 @@ async function initializeAuth() {
         }
     }    // Auth state observer with profile monitoring
     onAuthStateChanged(auth, (user) => {
+        const notificationBell = document.getElementById('notification-bell');
+        
         if (user) {
             // User is signed in
             updateUserProfile(user);
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
+            if (notificationBell) notificationBell.style.display = 'flex';
             
             // Store auth state for SSO
             if (window.sharedAuth) {
@@ -891,6 +894,7 @@ async function initializeAuth() {
             // User is signed out
             if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
+            if (notificationBell) notificationBell.style.display = 'none';
             
             // Clear auth state for SSO
             if (window.sharedAuth) {
@@ -2871,4 +2875,81 @@ window.fixProfileFunctions = function() {
         };
         console.log('Delete account function setup');
     }
+    
+    // Notification Bell Functionality
+    const notificationBell = document.getElementById('notification-bell');
+    if (notificationBell) {
+        notificationBell.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleNotificationClick();
+        });
+    }
 };
+
+// Notification Bell Functions
+function handleNotificationClick() {
+    console.log('Notification bell clicked');
+    // Clear notification count
+    updateNotificationCount(0);
+    
+    // Here you can add logic to:
+    // - Open a notifications dropdown/modal
+    // - Navigate to notifications page
+    // - Mark notifications as read
+    
+    // For now, just show an alert as placeholder
+    alert('Notifications feature coming soon!');
+}
+
+function updateNotificationCount(count) {
+    // Update notification count in dropdown menu
+    const notificationCountElement = document.getElementById('notification-count');
+    if (notificationCountElement) {
+        if (count > 0) {
+            notificationCountElement.textContent = count > 99 ? '99+' : count.toString();
+            notificationCountElement.style.display = 'flex';
+        } else {
+            notificationCountElement.style.display = 'none';
+        }
+    }
+    
+    // Update notification count badge on profile trigger
+    const notificationCountBadge = document.getElementById('notification-count-badge');
+    if (notificationCountBadge) {
+        if (count > 0) {
+            notificationCountBadge.textContent = count > 99 ? '99+' : count.toString();
+            notificationCountBadge.style.display = 'flex';
+        } else {
+            notificationCountBadge.style.display = 'none';
+        }
+    }
+}
+
+// Example function to simulate adding notifications (for testing)
+function addNotification() {
+    const currentCount = parseInt(document.getElementById('notification-count')?.textContent || '0');
+    updateNotificationCount(currentCount + 1);
+}
+
+// Auto-initialize notification bell when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Debug: Check if notification bell exists
+    const notificationBell = document.getElementById('notification-bell');
+    console.log('Notification bell found:', !!notificationBell);
+    
+    // TEMPORARY: Force show notification bell for testing (remove this later)
+    if (notificationBell) {
+        notificationBell.style.display = 'flex';
+        console.log('Notification bell forced to show for testing');
+    }
+    
+    // For testing purposes, show a notification count to verify visibility
+    setTimeout(() => {
+        updateNotificationCount(1);
+        console.log('Test notification count set to 1');
+    }, 1000);
+    
+    // You can call updateNotificationCount here with actual notification data
+    // For demo purposes, uncomment the line below to show a notification count:
+    // updateNotificationCount(3);
+});
