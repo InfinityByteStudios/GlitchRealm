@@ -713,6 +713,49 @@
                     Playtime is only tracked when playing games on GlitchRealm. External website builds do not contribute to this total.
                 </div>
             </div>
+
+            <!-- Support (Netlify Forms) -->
+            <div class="portal-section" id="support">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22H19A3,3 0 0,0 22,19V12A10,10 0 0,0 12,2M11,7H13V9H11V7M11,11H13V17H11V11Z" />
+                    </svg>
+                    Support
+                </h2>
+                <p style="margin-top: -6px; opacity: 0.85;">Have a question or need help? Send us a message. Submissions go straight to our Netlify dashboard.</p>
+
+                <!-- Netlify will detect this at deploy time; no extra JS required -->
+                <form name="support" method="POST" data-netlify="true" netlify data-netlify-honeypot="bot-field" class="neural-form" action="/thank-you">
+                    <!-- The hidden input is required for static form detection -->
+                    <input type="hidden" name="form-name" value="support" />
+                    <!-- Honeypot field -->
+                    <div style="display:none">
+                        <label>Don’t fill this out: <input name="bot-field" /></label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="support-name">Your Name</label>
+                        <input class="form-control" id="support-name" type="text" name="name" placeholder="Enter your name" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="support-email">Email</label>
+                        <input class="form-control" id="support-email" type="email" name="email" placeholder="you@example.com" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="support-subject">Subject</label>
+                        <input class="form-control" id="support-subject" type="text" name="subject" placeholder="How can we help?" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="support-message">Message</label>
+                        <textarea class="form-control" id="support-message" name="message" rows="5" placeholder="Describe the issue or question..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-portal">Send Support Request</button>
+                </form>
+            </div>
         </div>
     </main>
     
