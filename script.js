@@ -890,6 +890,8 @@ async function initializeAuth() {
             if (!window.profileMonitorInterval) {
                 setupProfilePictureMonitoring(auth);
             }
+
+            // Notifications now use a global feed; listener starts on page load.
         } else {
             // User is signed out
             if (signInBtn) signInBtn.style.display = 'block';
@@ -906,6 +908,8 @@ async function initializeAuth() {
                 clearInterval(window.profileMonitorInterval);
                 window.profileMonitorInterval = null;
             }
+
+            // Global notifications remain active regardless of auth state.
         }
     });
 
@@ -1362,6 +1366,92 @@ async function initializeAuth() {
     }
       // Make updateUIForUser available globally for SharedAuthSystem
     window.updateUIForUser = updateUIForUser;
+
+        // --- Firestore Notifications: initialization and listeners ---
+        // Lazily ensure Firestore SDK and instance are available on window
+        async function ensureFirestore() {
+            if (window.firebaseFirestore && window.firestoreCollection && window.firestoreQuery && window.firestoreWhere && window.firestoreOnSnapshot) {
+                return window.firebaseFirestore;
+            }
+            try {
+                const appAuthReady = !!window.firebaseAuth;
+                // Import Firestore SDK (modular)
+                const firestoreMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, orderBy, addDoc } = firestoreMod;
+                // Try to reuse an already initialized app via compat or prior module scripts
+                // Some pages initialize Firestore in page <script type="module"> blocks; expose helpers for reuse
+                const db = window.firebaseFirestore || getFirestore();
+                window.firebaseFirestore = db;
+                window.firestoreCollection = collection;
+                window.firestoreQuery = query;
+                window.firestoreWhere = where;
+                window.firestoreOnSnapshot = onSnapshot;
+                window.firestoreDoc = doc;
+                window.firestoreUpdateDoc = updateDoc;
+                window.firestoreServerTimestamp = serverTimestamp;
+                window.firestoreOrderBy = orderBy;
+                window.firestoreAddDoc = addDoc;
+                return db;
+            } catch (e) {
+                console.warn('Failed to initialize Firestore SDK:', e);
+                throw e;
+            }
+        }
+
+        // Manage a single active notifications unsubscribe
+        let notificationsUnsubscribe = null;
+        function detachNotificationsListener() {
+            if (typeof notificationsUnsubscribe === 'function') {
+                try { notificationsUnsubscribe(); } catch {}
+            }
+            notificationsUnsubscribe = null;
+        }
+
+        async function startGlobalNotificationsListener() {
+            const db = await ensureFirestore();
+            // Clean up any existing listener
+            detachNotificationsListener();
+
+            // Global notifications collection: /notifications
+            const notificationsRef = window.firestoreCollection(db, 'notifications');
+            // Optionally filter unread only; if you want total, remove where clause
+            const q = window.firestoreQuery(
+                notificationsRef,
+                window.firestoreWhere('read', '==', false)
+            );
+            notificationsUnsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
+                const count = snapshot.size || 0;
+                updateNotificationCount(count);
+            }, (error) => {
+                console.warn('Global notifications snapshot error:', error);
+            });
+        }
+
+        // Expose detach for use in auth sign-out branch
+        window.detachNotificationsListener = detachNotificationsListener;
+
+        // Create a test notification for the current user
+        async function createTestNotification() {
+            try {
+                const db = await ensureFirestore();
+                const notifRef = window.firestoreCollection(db, 'notifications');
+                await window.firestoreAddDoc(notifRef, {
+                    title: 'Test Notification',
+                    body: 'This is a test notification from Dev.',
+                    read: false,
+                    createdAt: window.firestoreServerTimestamp(),
+                    type: 'test',
+                    priority: 'normal'
+                });
+                showAuthMessage('Test notification created.', 'success');
+            } catch (e) {
+                console.error('Failed to create test notification:', e);
+                showAuthMessage('Failed to create test notification.', 'error');
+            }
+        }
+
+        // Expose for console use
+        window.createTestNotification = createTestNotification;
 
     // Profile picture monitoring system
     function setupProfilePictureMonitoring(auth) {
@@ -2881,7 +2971,12 @@ window.fixProfileFunctions = function() {
     if (notificationBell) {
         notificationBell.addEventListener('click', (e) => {
             e.preventDefault();
-            handleNotificationClick();
+            if (e.shiftKey && typeof window.createTestNotification === 'function') {
+                // Hidden dev shortcut: Shift+Click to create a test notification
+                window.createTestNotification();
+            } else {
+                handleNotificationClick();
+            }
         });
     }
 };
@@ -2937,17 +3032,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const notificationBell = document.getElementById('notification-bell');
     console.log('Notification bell found:', !!notificationBell);
     
-    // TEMPORARY: Force show notification bell for testing (remove this later)
-    if (notificationBell) {
-        notificationBell.style.display = 'flex';
-        console.log('Notification bell forced to show for testing');
+    // For testing purposes only, you can simulate a notification count.
+    // This is disabled by default to avoid overriding real Firestore counts.
+    const ENABLE_TEST_BADGE = false;
+    if (ENABLE_TEST_BADGE) {
+        setTimeout(() => {
+            updateNotificationCount(1);
+            console.log('Test notification count set to 1');
+        }, 1000);
     }
     
-    // For testing purposes, show a notification count to verify visibility
-    setTimeout(() => {
-        updateNotificationCount(1);
-        console.log('Test notification count set to 1');
-    }, 1000);
+    // Start global notifications listener (shared for all users)
+    (async () => {
+        try {
+            await startGlobalNotificationsListener();
+            console.log('Global notifications listener active');
+        } catch (e) {
+            console.warn('Failed to start global notifications listener:', e);
+        }
+    })();
     
     // You can call updateNotificationCount here with actual notification data
     // For demo purposes, uncomment the line below to show a notification count:
