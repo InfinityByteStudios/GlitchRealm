@@ -1936,6 +1936,20 @@ function initializeProfileDropdown() {
             console.log('Profile dropdown classes after toggle:', profileDropdown.className);
         });
 
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) {
+                profileDropdown.classList.remove('open');
+            }
+        });
+        
+        // Close dropdown with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                profileDropdown.classList.remove('open');
+            }
+        });
+        
         console.log('Profile dropdown initialized successfully');
     } else {
         console.log('Profile dropdown elements not found');
@@ -1952,6 +1966,16 @@ function initializeProfileActions() {
                 profileDropdown.classList.remove('open');
             }
             refreshUserProfile();
+        });
+    }
+
+    // NEW: User Portal navigation
+    const userPortalBtn = document.getElementById('user-portal-btn');
+    if (userPortalBtn) {
+        userPortalBtn.addEventListener('click', () => {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            if (profileDropdown) profileDropdown.classList.remove('open');
+            window.location.href = 'user-portal.html';
         });
     }
 
@@ -1985,14 +2009,12 @@ function initializeProfileActions() {
             document.body.style.overflow = 'hidden';
             if (deleteConfirmationInput) {
                 deleteConfirmationInput.value = '';
-                deleteConfirmationInput.disabled = false;
+                               deleteConfirmationInput.disabled = false;
                 deleteConfirmationInput.readOnly = false;
                 deleteConfirmationInput.style.pointerEvents = 'auto';
-                
                 setTimeout(() => {
                     deleteConfirmationInput.focus();
                     deleteConfirmationInput.click();
-                    console.log('Delete confirmation input should now be focused and ready for input');
                 }, 100);
             }
         });
@@ -2009,6 +2031,7 @@ function initializeProfileActions() {
             if (e.target === deleteAccountModal) {
                 deleteAccountModal.style.display = 'none';
                 document.body.style.overflow = 'auto';
+                showAuthMessage('Account termination cancelled.', 'info');
             }
         });
 
