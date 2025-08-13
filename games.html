@@ -1130,7 +1130,7 @@
                         <div class="card-image">
                             <img src="assets/Game Logos/ShadowLight.png" alt="ShadowLight" class="game-logo-image">
                             <div class="card-overlay"></div>
-                            <div class="game-badge coming-soon">COMING SOON</div>
+                            <div class="game-badge removed">GAME REMOVED</div>
                         </div><div class="card-content">
                             <h3 class="card-title">ShadowLight</h3>
                             <p class="card-description">Navigate through the delicate balance between light and shadow in this atmospheric puzzle adventure. Master the interplay of illumination and darkness to solve mind-bending challenges.</p>
@@ -1141,7 +1141,7 @@
                                 <i class="devicon-linux-plain platform-icon" title="Works on Linux"></i>
                                 <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
-                            </div><button class="btn btn-disabled card-btn" disabled>Coming Soon</button>
+                            </div><button class="btn card-btn" onclick="openGameRemovedModal('ShadowLight')">Why Removed?</button>
                         </div>
                     </div>                    <!-- ByteSurge Game Card -->
                     <div class="game-card" data-game="bytesurge">
@@ -1492,6 +1492,26 @@
         <span>Connecting...</span>
     </div>
 
+    <!-- Game Removed Modal -->
+    <div id="gameRemovedModal" class="review-modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeGameRemovedModal()">&times;</span>
+            <h2 class="modal-title">GAME REMOVED</h2>
+            <div class="game-info">
+                <strong id="removedGameName">Game Name</strong>
+            </div>
+            <div class="error-info">
+                <p class="error-message-text" style="margin-top:8px;">
+                    This game was removed due to violation of GlitchRealm’s Terms of Service and Privacy Policy, including failure to maintain basic functionality and compliance. If you have questions or need more information, please contact InfinityByte Studio / GlitchRealm.
+                </p>
+            </div>
+            <div class="submit-section">
+                <button class="btn cancel-btn" onclick="closeGameRemovedModal()">Close</button>
+                <a class="btn submit-btn" href="contact.html">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Review Modal -->
     <div id="reviewModal" class="review-modal">
         <div class="modal-content">
@@ -1728,6 +1748,21 @@
             if (errorModal) {
                 errorModal.style.display = 'none';
             }
+            document.body.style.overflow = 'auto';
+        };
+
+        // Game Removed modal helpers
+        window.openGameRemovedModal = function(gameName) {
+            const modal = document.getElementById('gameRemovedModal');
+            if (!modal) return;
+            document.getElementById('removedGameName').textContent = gameName;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeGameRemovedModal = function() {
+            const modal = document.getElementById('gameRemovedModal');
+            if (modal) modal.style.display = 'none';
             document.body.style.overflow = 'auto';
         };
 

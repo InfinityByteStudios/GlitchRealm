@@ -1600,6 +1600,11 @@ html {
     color: var(--dark-bg);
 }
 
+.game-badge.removed {
+    background: linear-gradient(45deg, #d9534f, #a94442);
+    color: #fff;
+}
+
 /* Studio Link Styles */
 .studio-link {
     color: var(--primary-cyan);
