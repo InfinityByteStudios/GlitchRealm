@@ -321,7 +321,7 @@
             <div class="container">
                 <div class="contact-grid">                    <div class="contact-info">
                         <h2 class="section-title">Get in Touch</h2>
-                        <p>Ready to dive deeper into the digital realm? We'd love to hear from you. Whether you have feedback, questions, just want to chat about cyberpunk games, or are interested in joining GlitchRealm as a developer or artist, don't hesitate to reach out. To join our team, email glitchrealm@outlook.com.</p><div class="social-links">
+                        <p>Ready to dive deeper into the digital realm? We'd love to hear from you. Whether you have feedback, questions, just want to chat about cyberpunk games, or are interested in joining GlitchRealm as a developer or artist, don't hesitate to reach out. To join our team, email glitchrealm@outlook.com or fill out the form.</p><div class="social-links">
                             <a href="mailto:infinitybyte.dev@gmail.com" class="social-link">
                                 <span class="social-icon">
                                     <img src="assets/Logos/InfinityByte.png" alt="InfinityByte" class="logo-icon">
@@ -353,12 +353,46 @@
                             </a>
                             <a href="mailto:glitchrealm@outlook.com" class="social-link">
                                 <span class="social-icon">
-                                    <svg class="icon-svg" viewBox="0 0 24 24">
-                                        <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z"/>
-                                    </svg>
+                                    <img src="assets/glitch realm favicon image.png" alt="GlitchRealm" class="logo-icon">
                                 </span>
                                 <span>glitchrealm@outlook.com</span>
                             </a>                        </div>
+                    </div>
+
+                    <!-- Netlify Contact Form -->
+                    <div class="contact-form" id="contact-form">
+                        <h2 class="section-title">Send a Message</h2>
+                        <p style="margin-top:-6px; opacity:0.85;">Prefer a form? Drop your message here and we’ll get back to you.</p>
+                        <form name="contact" method="POST" data-netlify="true" netlify data-netlify-honeypot="bot-field" class="neural-form" action="/thank-you">
+                            <!-- Hidden input required for Netlify static form detection -->
+                            <input type="hidden" name="form-name" value="contact" />
+                            <!-- Honeypot field -->
+                            <div style="display:none">
+                                <label>Don’t fill this out: <input name="bot-field" /></label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="contact-name">Your Name</label>
+                                <input class="form-control" id="contact-name" type="text" name="name" placeholder="Enter your name" required />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="contact-email">Email</label>
+                                <input class="form-control" id="contact-email" type="email" name="email" placeholder="you@example.com" required />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="contact-subject">Subject</label>
+                                <input class="form-control" id="contact-subject" type="text" name="subject" placeholder="What’s this about?" required />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="contact-message">Message</label>
+                                <textarea class="form-control" id="contact-message" name="message" rows="6" placeholder="Write your message..." required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-portal">Send Message</button>
+                        </form>
                     </div>
   
                 </div>

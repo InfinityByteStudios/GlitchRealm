@@ -962,6 +962,17 @@ async function initializeAuth() {
         if (userEmailElement) userEmailElement.textContent = email;
         if (userProviderElement) userProviderElement.textContent = provider;
         if (userAvatarLargeElement) userAvatarLargeElement.src = profilePicture;
+
+        // If the Email Management section exists on this page, populate the current email field
+        const currentEmailInput = document.getElementById('current-email');
+        if (currentEmailInput) {
+            // Only set a real email; avoid writing placeholder labels like 'Anonymous User'
+            if (user.email) {
+                currentEmailInput.value = user.email;
+            } else {
+                currentEmailInput.value = '';
+            }
+        }
         
         // Initialize profile picture upload functionality
         initializeProfilePictureUpload();
