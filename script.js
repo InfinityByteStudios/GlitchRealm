@@ -2584,6 +2584,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         console.log('Force initializing dropdowns...');
                         forceInitializeDropdowns();
+                        // After dropdowns are ready, maybe show the Portal intro popup
+                        setTimeout(() => {
+                            maybeShowPortalIntro();
+                        }, 300);
                     }, 200);
                 }, 100);
             }
@@ -2895,6 +2899,120 @@ function forceInitializeDropdowns() {
         window.globalDropdownHandlerAdded = true;
         console.log('Global dropdown handlers added');
     }
+}
+
+// One-time intro popup for GlitchRealm Portal
+function maybeShowPortalIntro() {
+    try {
+        if (localStorage.getItem('gr.portalIntro.dismissed') === '1') return;
+    } catch (e) {
+        // Ignore storage errors; continue to show once per session
+    }
+
+    // Don't show on the Portal page or portal subdomain
+    const onPortal = /(^|\/)user-portal\.html$/i.test(location.pathname) || location.hostname.toLowerCase().startsWith('portal.');
+    if (onPortal) return;
+
+    // Avoid duplicate if already injected
+    if (document.getElementById('portal-intro-modal')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'portal-intro-modal';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'portal-intro-title');
+    overlay.style.position = 'fixed';
+    overlay.style.inset = '0';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.background = 'rgba(0,0,0,0.55)';
+    overlay.style.zIndex = '10000';
+
+    const card = document.createElement('div');
+    card.style.width = 'min(540px, 92vw)';
+    card.style.background = '#0b0e14';
+    card.style.border = '1px solid #263043';
+    card.style.borderRadius = '12px';
+    card.style.boxShadow = '0 12px 32px rgba(0,0,0,0.4)';
+    card.style.color = '#e6edf3';
+    card.style.padding = '20px 20px 16px';
+
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.gap = '12px';
+    header.style.alignItems = 'center';
+
+    const icon = document.createElement('img');
+    icon.src = 'assets/glitch realm favicon image.png';
+    icon.alt = '';
+    icon.width = 28;
+    icon.height = 28;
+    icon.style.borderRadius = '6px';
+
+    const title = document.createElement('h2');
+    title.id = 'portal-intro-title';
+    title.textContent = 'Introducing GlitchRealm Portal';
+    title.style.margin = '0';
+    title.style.fontSize = '1.35rem';
+
+    header.appendChild(icon);
+    header.appendChild(title);
+
+    const body = document.createElement('div');
+    body.style.marginTop = '10px';
+    body.style.lineHeight = '1.6';
+    body.innerHTML = `
+        Manage your account, track playtime across GlitchRealm games, and get support — all in one place.<br/>
+        Access it anytime from your profile menu (top-right) under <strong>User Portal</strong>,
+        or from <strong>More → User Portal</strong> in the top navigation.
+    `;
+
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.justifyContent = 'flex-end';
+    actions.style.gap = '10px';
+    actions.style.marginTop = '16px';
+
+    const dismissBtn = document.createElement('button');
+    dismissBtn.type = 'button';
+    dismissBtn.textContent = 'Got it';
+    dismissBtn.style.padding = '10px 14px';
+    dismissBtn.style.borderRadius = '8px';
+    dismissBtn.style.background = 'transparent';
+    dismissBtn.style.border = '1px solid #3b475e';
+    dismissBtn.style.color = '#e6edf3';
+
+    const openBtn = document.createElement('a');
+    openBtn.href = 'user-portal.html';
+    openBtn.textContent = 'Open Portal';
+    openBtn.style.padding = '10px 14px';
+    openBtn.style.borderRadius = '8px';
+    openBtn.style.background = '#2d72d2';
+    openBtn.style.border = '1px solid #2d72d2';
+    openBtn.style.color = '#ffffff';
+    openBtn.style.textDecoration = 'none';
+
+    actions.appendChild(dismissBtn);
+    actions.appendChild(openBtn);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(actions);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    const dismiss = () => {
+        try { localStorage.setItem('gr.portalIntro.dismissed', '1'); } catch (e) {}
+        overlay.remove();
+    };
+
+    dismissBtn.addEventListener('click', dismiss);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismiss(); }, { once: true });
+
+    // Focus for accessibility
+    setTimeout(() => dismissBtn.focus(), 0);
 }
 
 // Test profile functions
