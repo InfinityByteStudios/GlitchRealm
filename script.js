@@ -355,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const parallax = scrolled * 0.5;
             
             if (background) {
+                if (GR_SETTINGS?.reduceMotion) return; // respect reduce motion
                 background.style.transform = `translateY(${parallax}px)`;
             }
             
@@ -892,6 +893,10 @@ async function initializeAuth() {
             }
 
             // Notifications now use a global feed; listener starts on page load.
+            // Optional: auto-open portal on sign-in
+            if (GR_SETTINGS.portalAutoOpenOnSignIn && !/user-portal\.html$/i.test(location.pathname)) {
+                setTimeout(() => { window.location.href = 'user-portal.html'; }, 300);
+            }
         } else {
             // User is signed out
             if (signInBtn) signInBtn.style.display = 'block';
@@ -1918,6 +1923,35 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Global Settings
+const GR_SETTINGS = {
+    notificationsBadgeEnabled: true,
+    reduceMotion: false,
+    portalAutoOpenOnSignIn: false
+};
+
+function loadSettings() {
+    try {
+        const badge = localStorage.getItem('gr.settings.notifications.badgeEnabled');
+        const motion = localStorage.getItem('gr.settings.accessibility.reduceMotion');
+        const autoPortal = localStorage.getItem('gr.settings.portal.autoOpenOnSignIn');
+        if (badge !== null) GR_SETTINGS.notificationsBadgeEnabled = badge === '1';
+        if (motion !== null) GR_SETTINGS.reduceMotion = motion === '1';
+        if (autoPortal !== null) GR_SETTINGS.portalAutoOpenOnSignIn = autoPortal === '1';
+    } catch (e) {}
+    applySettings();
+}
+
+function applySettings() {
+    const root = document.documentElement;
+    if (GR_SETTINGS.reduceMotion) root.classList.add('gr-reduce-motion');
+    else root.classList.remove('gr-reduce-motion');
+}
+
+// Initial settings load
+try { loadSettings(); } catch (e) {}
+document.addEventListener('DOMContentLoaded', () => { try { loadSettings(); } catch (e) {} });
+
 // Function to initialize profile dropdown functionality
 function initializeProfileDropdown() {
     console.log('Initializing profile dropdown functionality...');
@@ -2188,7 +2222,7 @@ function showSettingsModal() {
         <div class="auth-panel settings-panel">
             <div class="auth-header">
                 <div class="auth-logo">
-                    <span class="glitch-constant" data-text="USER SETTINGS">USER SETTINGS</span>
+                    <span class="glitch-constant" data-text="SETTINGS">SETTINGS</span>
                 </div>
                 <button class="auth-close" onclick="closeSettingsModal()">
                     <span class="close-icon">×</span>
@@ -2198,34 +2232,54 @@ function showSettingsModal() {
             <div class="auth-content">
                 <div class="settings-content">
                     <div class="form-title">
-                        <span class="glitch-small" data-text="PREFERENCES">PREFERENCES</span>
+                        <span class="glitch-small" data-text="GENERAL">GENERAL</span>
                     </div>
-                    
                     <div class="settings-section">
                         <h4>Game Launch Preference</h4>
+                        <div class="setting-item"><label class="setting-label"><input type="radio" name="gamePreference" value="ask" ${!localStorage.getItem('gamePlayPreference') ? 'checked' : ''}><span class="radio-custom"></span>Always ask (show modal)</label></div>
+                        <div class="setting-item"><label class="setting-label"><input type="radio" name="gamePreference" value="local" ${localStorage.getItem('gamePlayPreference') === 'local' ? 'checked' : ''}><span class="radio-custom"></span>Always play in GlitchRealm</label></div>
+                        <div class="setting-item"><label class="setting-label"><input type="radio" name="gamePreference" value="external" ${localStorage.getItem('gamePlayPreference') === 'external' ? 'checked' : ''}><span class="radio-custom"></span>Always open external site</label></div>
+                    </div>
+
+                    <div class="form-title" style="margin-top:18px;">
+                        <span class="glitch-small" data-text="ACCESSIBILITY">ACCESSIBILITY</span>
+                    </div>
+                    <div class="settings-section">
                         <div class="setting-item">
                             <label class="setting-label">
-                                <input type="radio" name="gamePreference" value="ask" ${!localStorage.getItem('gamePlayPreference') ? 'checked' : ''}>
+                                <input type="checkbox" id="setting-reduce-motion" ${GR_SETTINGS.reduceMotion ? 'checked' : ''}>
                                 <span class="radio-custom"></span>
-                                Always ask (show modal)
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="setting-label">
-                                <input type="radio" name="gamePreference" value="local" ${localStorage.getItem('gamePlayPreference') === 'local' ? 'checked' : ''}>
-                                <span class="radio-custom"></span>
-                                Always play in GlitchRealm
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="setting-label">
-                                <input type="radio" name="gamePreference" value="external" ${localStorage.getItem('gamePlayPreference') === 'external' ? 'checked' : ''}>
-                                <span class="radio-custom"></span>
-                                Always open external site
+                                Reduce motion effects (less parallax/animation)
                             </label>
                         </div>
                     </div>
-                    
+
+                    <div class="form-title" style="margin-top:18px;">
+                        <span class="glitch-small" data-text="NOTIFICATIONS">NOTIFICATIONS</span>
+                    </div>
+                    <div class="settings-section">
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="checkbox" id="setting-notifications-badge" ${GR_SETTINGS.notificationsBadgeEnabled ? 'checked' : ''}>
+                                <span class="radio-custom"></span>
+                                Show unread count badge on bell/profile
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-title" style="margin-top:18px;">
+                        <span class="glitch-small" data-text="PORTAL">PORTAL</span>
+                    </div>
+                    <div class="settings-section">
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="checkbox" id="setting-portal-auto" ${GR_SETTINGS.portalAutoOpenOnSignIn ? 'checked' : ''}>
+                                <span class="radio-custom"></span>
+                                Open User Portal automatically after sign-in
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="settings-actions">
                         <button class="neural-button secondary" onclick="closeSettingsModal()">Cancel</button>
                         <button class="neural-button primary" onclick="saveSettings()">Save Settings</button>
@@ -2255,36 +2309,46 @@ window.closeSettingsModal = function() {
 window.saveSettings = function() {
     const selectedPreference = document.querySelector('input[name="gamePreference"]:checked');
     if (selectedPreference) {
-        if (selectedPreference.value === 'ask') {
-            localStorage.removeItem('gamePlayPreference');
-        } else {
-            localStorage.setItem('gamePlayPreference', selectedPreference.value);
-        }
-        
-        // Show confirmation
-        const message = document.createElement('div');
-        message.className = 'settings-saved-message';
-        message.textContent = 'Settings saved successfully!';
-        message.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(45deg, #00fff9, #ff0080);
-            color: #0a0a0a;
-            padding: 15px 25px;
-            border-radius: 8px;
-            font-weight: bold;
-            z-index: 10000;
-            animation: slideInRight 0.3s ease;
-        `;
-        
-        document.body.appendChild(message);
-        
-        setTimeout(() => {
-            message.remove();
-            closeSettingsModal();
-        }, 2000);
+        if (selectedPreference.value === 'ask') localStorage.removeItem('gamePlayPreference');
+        else localStorage.setItem('gamePlayPreference', selectedPreference.value);
     }
+
+    // New toggles
+    const reduceMotion = document.getElementById('setting-reduce-motion')?.checked;
+    const badgeEnabled = document.getElementById('setting-notifications-badge')?.checked;
+    const portalAuto = document.getElementById('setting-portal-auto')?.checked;
+
+    try {
+        localStorage.setItem('gr.settings.accessibility.reduceMotion', reduceMotion ? '1' : '0');
+        localStorage.setItem('gr.settings.notifications.badgeEnabled', badgeEnabled ? '1' : '0');
+        localStorage.setItem('gr.settings.portal.autoOpenOnSignIn', portalAuto ? '1' : '0');
+    } catch (e) {}
+
+    GR_SETTINGS.reduceMotion = !!reduceMotion;
+    GR_SETTINGS.notificationsBadgeEnabled = !!badgeEnabled;
+    GR_SETTINGS.portalAutoOpenOnSignIn = !!portalAuto;
+    applySettings();
+    if (!GR_SETTINGS.notificationsBadgeEnabled) {
+        // Hide any visible badges immediately
+        const notificationCountElement = document.getElementById('notification-count');
+        const notificationCountBadge = document.getElementById('notification-count-badge');
+        if (notificationCountElement) notificationCountElement.style.display = 'none';
+        if (notificationCountBadge) notificationCountBadge.style.display = 'none';
+    }
+
+    // Confirmation toast
+    const message = document.createElement('div');
+    message.className = 'settings-saved-message';
+    message.textContent = 'Settings saved!';
+    message.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: linear-gradient(45deg, #00fff9, #ff0080);
+        color: #0a0a0a; padding: 12px 18px; border-radius: 8px;
+        font-weight: bold; z-index: 10000; animation: messageSlideIn 0.3s ease;
+    `;
+    document.body.appendChild(message);
+    setTimeout(() => { message.style.animation = 'messageSlideOut 0.3s ease'; setTimeout(() => message.remove(), 300); }, 1400);
+    closeSettingsModal();
 };
 
 // Delete account functionality
@@ -3152,7 +3216,7 @@ function updateNotificationCount(count) {
     // Update notification count in dropdown menu
     const notificationCountElement = document.getElementById('notification-count');
     if (notificationCountElement) {
-        if (count > 0) {
+    if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
             notificationCountElement.textContent = count > 99 ? '99+' : count.toString();
             notificationCountElement.style.display = 'flex';
         } else {
@@ -3163,7 +3227,7 @@ function updateNotificationCount(count) {
     // Update notification count badge on profile trigger
     const notificationCountBadge = document.getElementById('notification-count-badge');
     if (notificationCountBadge) {
-        if (count > 0) {
+    if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
             notificationCountBadge.textContent = count > 99 ? '99+' : count.toString();
             notificationCountBadge.style.display = 'flex';
         } else {
