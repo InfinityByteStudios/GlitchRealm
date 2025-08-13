@@ -1560,18 +1560,18 @@ html {
     border-radius: 12px;
     border: 1px solid var(--primary-cyan);
     z-index: 10;
-    animation: badgePulse 2s ease-in-out infinite;
+    animation: badgePulse 3.5s ease-in-out infinite;
     font-family: 'Orbitron', monospace;
 }
 
 @keyframes badgePulse {
     0%, 100% { 
         transform: scale(1);
-        box-shadow: 0 0 5px var(--primary-magenta);
+    box-shadow: 0 0 2px var(--primary-magenta);
     }
     50% { 
-        transform: scale(1.05);
-        box-shadow: 0 0 15px var(--primary-magenta);
+    transform: scale(1.005);
+    box-shadow: 0 0 4px var(--primary-magenta);
     }
 }
 

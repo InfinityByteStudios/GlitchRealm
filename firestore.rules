@@ -6,9 +6,13 @@ service cloud.firestore {
     // Reviews Collection
     // ================================
     match /reviews/{reviewId} {
-      // Read: Anyone can read approved reviews, users can read their own pending reviews
-      allow read: if resource.data.moderationStatus == 'approved' || 
-                     (request.auth != null && request.auth.uid == resource.data.userId);
+  // Read: Anyone can read approved reviews,
+  //        users can read their own pending reviews,
+  //        developers and admins can read all reviews
+  allow read: if resource.data.moderationStatus == 'approved' || 
+         (request.auth != null && request.auth.uid == resource.data.userId) ||
+         isAdmin(request.auth.uid) ||
+         isDeveloper(request.auth.uid);
       
       // Create: Authenticated users only
       allow create: if request.auth != null &&
@@ -134,6 +138,17 @@ service cloud.firestore {
         'admin-uid-1',
         'admin-uid-2',
         'replace-with-your-admin-uid'
+      ];
+    }
+    
+    // Developer accounts allowed to moderate/reply to reviews
+    function isDeveloper(userId) {
+      return userId in [
+        '6iZDTXC78aVwX22qrY43BOxDRLt1',
+        'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+        'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+        '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+        'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
       ];
     }
     

@@ -288,6 +288,14 @@ document.addEventListener('DOMContentLoaded', function() {
     initParallaxEffect();
     initConsoleMessage();
     initBadgeAutoHide();
+    // Register service worker (for caching/offline)
+    if ('serviceWorker' in navigator) {
+        try {
+            navigator.serviceWorker.register('/sw.js');
+        } catch (e) {
+            console.log('SW registration failed:', e);
+        }
+    }
     
     // Initialize modal functionality immediately
     initializeBasicModal();
