@@ -1960,6 +1960,385 @@ function applySettings() {
 try { loadSettings(); } catch (e) {}
 document.addEventListener('DOMContentLoaded', () => { try { loadSettings(); } catch (e) {} });
 
+// Globally style the widget's launcher to match our FAB (works even without our own button)
+let __doaiWidgetStyled = false;
+function styleDoAIWidgetLauncher() {
+    if (__doaiWidgetStyled) return true;
+    try {
+        const selectors = [
+            '[data-doai-launcher]',
+            '[class*="doai"][class*="launch"]',
+            '.doai-launcher',
+            '.doai-widget-launcher',
+            '.doai-chatbot-launcher',
+            '.doai-floating-button',
+            'button[aria-label*="chat" i]',
+            'button[title*="chat" i]'
+        ];
+        const candidates = [];
+        selectors.forEach(sel => document.querySelectorAll(sel).forEach(el => candidates.push(el)));
+        const launcher = candidates.find(el => {
+            try { const r = el.getBoundingClientRect(); return r.width && r.height; } catch { return false; }
+        });
+        if (!launcher) return false;
+        launcher.classList.add('chatbot-fab', 'doai-styled-fab');
+        Object.assign(launcher.style, {
+            position: 'fixed', right: '20px', bottom: '20px', width: '56px', height: '56px', zIndex: '2200'
+        });
+        // Hide original icon and inject ours
+        const existingIcon = launcher.querySelector('svg, img');
+        if (existingIcon) existingIcon.style.display = 'none';
+        if (!launcher.querySelector('.gr-fab-icon')) {
+            const wrapper = document.createElement('span');
+            wrapper.className = 'gr-fab-icon';
+            wrapper.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.48 3 2 6.94 2 11.8c0 2.48 1.24 4.72 3.26 6.28V21l2.98-1.64c1.11.31 2.3.48 3.76.48 5.52 0 10-3.94 10-8.8S17.52 3 12 3zm-5 8h10v2H7v-2zm8-3v2H7V8h8z"/></svg>';
+            launcher.appendChild(wrapper);
+        }
+        __doaiWidgetStyled = true;
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// Try to preload chatbot script early and bind when FAB appears
+(function primeChatbotInit() {
+    function ensureLoaderPresent() {
+        if (!document.getElementById('doai-chatbot-loader')) {
+            const s = document.createElement('script');
+            s.id = 'doai-chatbot-loader';
+            s.async = true;
+            s.src = 'https://kcur57gey4euhzpupakvb43g.agents.do-ai.run/static/chatbot/widget.js';
+            s.setAttribute('data-agent-id', 'bd55ebc0-7b86-11f0-b074-4e013e2ddde4');
+            s.setAttribute('data-chatbot-id', 'iLcsXT380jITKSw3t6GQxi14J3z3bc64');
+            s.setAttribute('data-name', 'GlitchRealm Bot');
+            s.setAttribute('data-primary-color', '#031B4E');
+            s.setAttribute('data-secondary-color', '#E5E8ED');
+            s.setAttribute('data-button-background-color', '#0061EB');
+            s.setAttribute('data-starting-message', 'Hello! How can I help you today?');
+            s.setAttribute('data-logo', '/static/chatbot/icons/default-agent.svg');
+            document.body.appendChild(s);
+        }
+    }
+    // Preload quickly after DOM is interactive
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        try { ensureLoaderPresent(); } catch {}
+    } else {
+        document.addEventListener('DOMContentLoaded', () => { try { ensureLoaderPresent(); } catch {} });
+    }
+    // Bind when FAB shows up
+    function tryBind() {
+        if (document.getElementById('chatbot-fab')) {
+            try { setupChatbotFab(); } catch {}
+            return true;
+        }
+        return false;
+    }
+    if (!tryBind()) {
+        const obs = new MutationObserver(() => { if (tryBind()) { obs.disconnect(); } });
+        obs.observe(document.documentElement, { childList: true, subtree: true });
+        // Stop observing after 10s
+        setTimeout(() => { try { obs.disconnect(); } catch {} }, 10000);
+    }
+    // Independently attempt to style the widget launcher for a short time window
+    let tries = 0;
+    const t = setInterval(() => { tries++; if (styleDoAIWidgetLauncher() || tries > 40) clearInterval(t); }, 250);
+})();
+
+// If the widget posts any messages, attempt styling immediately
+window.addEventListener('message', (ev) => {
+    try { if (typeof ev.origin === 'string' && ev.origin.includes('agents.do-ai.run')) { styleDoAIWidgetLauncher(); } } catch {}
+});
+
+// One-time coachmark bubble above chat button
+function maybeShowChatCoachmark() {
+    try { if (localStorage.getItem('gr.chatCoachmark.dismissed') === '1') return; } catch {}
+    const onHome = /(^|\/)(index\.html)?$/i.test(location.pathname) || location.pathname === '/';
+    const onPortal = /(^|\/)user-portal\.html$/i.test(location.pathname);
+    if (!(onHome || onPortal)) return; // show only on home or user portal
+
+    // Ensure launcher is present (widget button)
+    const attempt = () => {
+        const launcher = document.querySelector('.doai-styled-fab.chatbot-fab');
+        if (!launcher) return false;
+        if (document.querySelector('.chatbot-coachmark')) return true;
+        const bubble = document.createElement('div');
+        bubble.className = 'chatbot-coachmark';
+        bubble.innerHTML = `
+            <button class="coach-close" aria-label="Close">×</button>
+            <div>Hello! How can I help you today?</div>
+            <div class="coach-action">Open chat</div>
+        `;
+        document.body.appendChild(bubble);
+        const dismiss = () => { try { localStorage.setItem('gr.chatCoachmark.dismissed', '1'); } catch {}; bubble.remove(); };
+        bubble.querySelector('.coach-close')?.addEventListener('click', dismiss);
+        bubble.querySelector('.coach-action')?.addEventListener('click', () => {
+            // Simulate click on launcher
+            try { launcher.click(); } catch {}
+            dismiss();
+        });
+        // Auto-dismiss on chat open attempt via our event channel
+        window.addEventListener('doai:open', dismiss, { once: true });
+        return true;
+    };
+    let tries = 0;
+    const timer = setInterval(() => { tries++; if (attempt() || tries > 40) clearInterval(timer); }, 250);
+}
+
+// Trigger coachmark after minimal delay
+setTimeout(maybeShowChatCoachmark, 1200);
+
+// Chatbot FAB initializer (works even when footer scripts don't run)
+function setupChatbotFab() {
+    const btn = document.getElementById('chatbot-fab');
+    if (!btn) return; // No FAB on this page
+
+    // Ensure loader script exists only once
+    let loader = document.getElementById('doai-chatbot-loader');
+    if (!loader) {
+        loader = document.createElement('script');
+        loader.id = 'doai-chatbot-loader';
+        loader.async = true;
+        loader.src = 'https://kcur57gey4euhzpupakvb43g.agents.do-ai.run/static/chatbot/widget.js';
+        // Mirror data-* attributes used in footer.html so it boots correctly
+        loader.setAttribute('data-agent-id', 'bd55ebc0-7b86-11f0-b074-4e013e2ddde4');
+        loader.setAttribute('data-chatbot-id', 'iLcsXT380jITKSw3t6GQxi14J3z3bc64');
+    loader.setAttribute('data-name', 'GlitchRealm Bot');
+        loader.setAttribute('data-primary-color', '#031B4E');
+        loader.setAttribute('data-secondary-color', '#E5E8ED');
+        loader.setAttribute('data-button-background-color', '#0061EB');
+        loader.setAttribute('data-starting-message', 'Hello! How can I help you today?');
+        loader.setAttribute('data-logo', '/static/chatbot/icons/default-agent.svg');
+        loader.addEventListener('load', () => {
+            console.log('[Chatbot] Widget script loaded');
+            resolveOpenFnCache = null; // reset
+        });
+        loader.addEventListener('error', () => {
+            console.warn('[Chatbot] Failed to load widget script');
+        });
+    document.body.appendChild(loader);
+    }
+
+    // Small status hint bubble
+    function hint(msg, isError) {
+        try {
+            const el = document.createElement('div');
+            el.textContent = msg;
+            el.style.position = 'fixed';
+            el.style.right = '90px';
+            el.style.bottom = '26px';
+            el.style.padding = '8px 12px';
+            el.style.border = '1px solid var(--primary-cyan)';
+            el.style.background = 'rgba(0,0,0,0.85)';
+            el.style.color = isError ? 'var(--danger)' : 'var(--primary-cyan)';
+            el.style.borderRadius = '6px';
+            el.style.zIndex = 2300;
+            el.style.fontFamily = 'Rajdhani, sans-serif';
+            el.style.fontSize = '0.9rem';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1400);
+        } catch {}
+    }
+
+    // Detect an open() function from various namespaces
+    let resolveOpenFnCache = null;
+    let readyInstance = null; // capture instance from ready event if provided
+    let pendingOpen = false; // set true on click until opened or timeout
+    function resolveOpenFn() {
+        if (resolveOpenFnCache) return resolveOpenFnCache;
+        // Prefer an explicit instance first
+        try {
+            if (readyInstance) {
+                const m = ['open','toggle','show','start','expand','openChat','openWidget','openChatbot'].find(k => typeof readyInstance[k] === 'function');
+                if (m) return (resolveOpenFnCache = () => readyInstance[m]());
+                if (readyInstance.widget) {
+                    const wm = ['open','toggle','show','start','expand','openChat','openWidget','openChatbot'].find(k => typeof readyInstance.widget[k] === 'function');
+                    if (wm) return (resolveOpenFnCache = () => readyInstance.widget[wm]());
+                }
+            }
+        } catch {}
+        const g = window;
+        const namespaces = [g.DOAIChatbot, g.DoAIChatbot, g.doAIChatbot, g.doaiChatbot, g.DOAI, g.DoAI, g.doAI, g.doai].filter(Boolean);
+        try {
+            for (const k of Object.keys(g)) {
+                if (/doai|DoAI|DOAI/i.test(k)) {
+                    try { namespaces.push(g[k]); } catch {}
+                }
+            }
+        } catch {}
+        const methods = ['open', 'toggle', 'show', 'start', 'expand', 'openChat', 'openWidget', 'openChatbot'];
+        for (const ns of namespaces) {
+            if (!ns) continue;
+            for (const m of methods) {
+                try { if (typeof ns[m] === 'function') return (resolveOpenFnCache = () => ns[m]()); } catch {}
+            }
+            try {
+                if (ns.widget) {
+                    for (const m of methods) {
+                        if (typeof ns.widget[m] === 'function') return (resolveOpenFnCache = () => ns.widget[m]());
+                    }
+                }
+            } catch {}
+        }
+        return null;
+    }
+
+    function tryOpen() {
+        const fn = resolveOpenFn();
+        if (fn) {
+            try { fn(); return true; } catch (e) { console.warn('[Chatbot] open failed:', e); }
+        }
+        // Fire events and postMessage as a fallback
+        try { window.dispatchEvent(new CustomEvent('doai:open')); } catch {}
+        try { window.dispatchEvent(new Event('doai-open')); } catch {}
+        try { window.postMessage({ type: 'doai:open' }, '*'); } catch {}
+        return false;
+    }
+
+    // Update cache when widget posts messages or loads
+    window.addEventListener('message', (ev) => {
+        try {
+            if (typeof ev.origin === 'string' && ev.origin.includes('agents.do-ai.run')) {
+                if (ev.data && (ev.data.type || ev.data.event)) {
+                    console.log('[Chatbot] message from widget:', ev.data.type || ev.data.event);
+                }
+                resolveOpenFnCache = null;
+                // If user clicked and widget just spoke, try to open immediately
+                if (pendingOpen) {
+                    tryOpen();
+                }
+                // Try styling the widget launcher when we detect its messages
+                setTimeout(styleWidgetLauncher, 100);
+            }
+        } catch {}
+    });
+    ['doai:ready', 'doai-ready', 'DoAI:ready'].forEach(evt => window.addEventListener(evt, (e) => {
+        console.log('[Chatbot] ready event:', evt, e && e.detail);
+        if (e && e.detail) readyInstance = e.detail;
+        resolveOpenFnCache = null;
+        if (pendingOpen) {
+            tryOpen();
+        }
+    }));
+    window.addEventListener('load', () => { resolveOpenFnCache = null; });
+
+    // If tryOpen keeps failing, probe for candidates and log them once
+    let probed = false;
+    function deepProbe() {
+        if (probed) return; probed = true;
+        try {
+            const candidates = [];
+            for (const k of Object.keys(window)) {
+                if (/doai|chat|bot|widget/i.test(k)) {
+                    try {
+                        const v = window[k];
+                        if (v && (typeof v === 'object' || typeof v === 'function')) {
+                            const keys = Object.keys(v).slice(0, 10);
+                            candidates.push({ key: k, type: typeof v, keys });
+                        }
+                    } catch {}
+                }
+            }
+            console.log('[Chatbot] probe candidates:', candidates);
+        } catch {}
+        // Try posting directly to widget iframes
+        try {
+            document.querySelectorAll('iframe[src*="agents.do-ai.run"]').forEach((ifr) => {
+                try { ifr.contentWindow?.postMessage({ type: 'doai:open' }, '*'); } catch {}
+            });
+        } catch {}
+    }
+
+    // Try to find the widget's own launcher button and make it look like our FAB
+    let widgetStyled = false;
+    function styleWidgetLauncher() {
+        if (widgetStyled) return true;
+        const candidates = [];
+        try {
+            const selectors = [
+                '[data-doai-launcher]',
+                '[class*="doai"][class*="launch"]',
+                '.doai-launcher',
+                '.doai-widget-launcher',
+                '.doai-chatbot-launcher',
+                '.doai-floating-button',
+                'button[aria-label*="chat" i]',
+                'button[title*="chat" i]'
+            ];
+            selectors.forEach(sel => document.querySelectorAll(sel).forEach(el => candidates.push(el)));
+        } catch {}
+        const launcher = candidates.find(el => {
+            try {
+                const r = el.getBoundingClientRect();
+                return r.width && r.height; // visible-ish
+            } catch { return false; }
+        });
+        if (!launcher) return false;
+
+        try {
+            launcher.classList.add('chatbot-fab', 'doai-styled-fab');
+            // Minimal inline to standardize placement; visual look comes from CSS class with !important
+            Object.assign(launcher.style, {
+                position: 'fixed',
+                right: '20px',
+                bottom: '20px',
+                width: '56px',
+                height: '56px',
+                zIndex: '2200'
+            });
+            // Hide any existing icon and inject our speech bubble SVG if not present
+            const existingIcon = launcher.querySelector('svg, img');
+            if (existingIcon) existingIcon.style.display = 'none';
+            if (!launcher.querySelector('.gr-fab-icon')) {
+                const wrapper = document.createElement('span');
+                wrapper.className = 'gr-fab-icon';
+                wrapper.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.48 3 2 6.94 2 11.8c0 2.48 1.24 4.72 3.26 6.28V21l2.98-1.64c1.11.31 2.3.48 3.76.48 5.52 0 10-3.94 10-8.8S17.52 3 12 3zm-5 8h10v2H7v-2zm8-3v2H7V8h8z"/></svg>';
+                launcher.appendChild(wrapper);
+            }
+            // Hide our duplicate FAB if present
+            const fab = document.getElementById('chatbot-fab');
+            if (fab) fab.style.display = 'none';
+            widgetStyled = true;
+            console.log('[Chatbot] Styled widget launcher to match FAB');
+            return true;
+        } catch (e) {
+            console.warn('[Chatbot] Failed to style widget launcher', e);
+            return false;
+        }
+    }
+
+    // Bind click with retries and console logs
+    btn.addEventListener('click', () => {
+        console.log('[Chatbot] FAB clicked');
+        hint('Opening chat…');
+        pendingOpen = true;
+        if (tryOpen()) { pendingOpen = false; return; }
+        let elapsed = 0;
+        const step = 500; // ms
+        const max = 20000; // 20s
+        const timer = setInterval(() => {
+            elapsed += step;
+            if (tryOpen()) { clearInterval(timer); pendingOpen = false; return; }
+            if (elapsed === 2000) hint('Chatbot still loading…');
+            if (elapsed >= max) {
+                clearInterval(timer);
+                hint('Chatbot not ready', true);
+                deepProbe();
+                pendingOpen = false;
+            }
+        }, step);
+    }, { once: false });
+
+    // Periodically attempt to style the widget's launcher for a short window
+    let styleAttempts = 0;
+    const styleTimer = setInterval(() => {
+        styleAttempts++;
+        if (styleWidgetLauncher() || styleAttempts > 30) {
+            clearInterval(styleTimer);
+        }
+    }, 300);
+}
+
 // Function to initialize profile dropdown functionality
 function initializeProfileDropdown() {
     console.log('Initializing profile dropdown functionality...');
@@ -2659,6 +3038,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         // After dropdowns are ready, maybe show the Portal intro popup
                         setTimeout(() => {
                             maybeShowPortalIntro();
+                            // Also introduce the GlitchRealm Bot (shows only once and only on home/portal)
+                            setTimeout(() => { try { maybeShowBotIntro(); } catch (e) { console.warn('Bot intro failed:', e); } }, 500);
                         }, 300);
                     }, 200);
                 }, 100);
@@ -2700,6 +3081,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const footerPlaceholder = document.getElementById('footer-placeholder');
             if (footerPlaceholder) {
                 footerPlaceholder.innerHTML = data;
+                // After injecting footer via innerHTML, inline <script> tags won't execute.
+                // Ensure the chatbot FAB is initialized here.
+                try { setupChatbotFab(); } catch (e) { console.warn('setupChatbotFab failed:', e); }
             }
         })
         .catch(error => console.error('Error loading footer:', error));
@@ -3085,6 +3469,167 @@ function maybeShowPortalIntro() {
 
     // Focus for accessibility
     setTimeout(() => dismissBtn.focus(), 0);
+}
+
+// One-time intro popup for GlitchRealm Bot (appears on Home or User Portal)
+function maybeShowBotIntro() {
+    // Respect prior dismissal
+    try { if (localStorage.getItem('gr.botIntro.dismissed') === '1') return; } catch {}
+
+    // Show only on Home or User Portal
+    const onHome = /(^|\/)((index\.html)?$)/i.test(location.pathname) || location.pathname === '/';
+    const onPortal = /(^|\/)user-portal\.html$/i.test(location.pathname);
+    if (!(onHome || onPortal)) return;
+
+    // If another intro modal is visible, skip to avoid stacking
+    if (document.getElementById('portal-intro-modal')) return;
+    if (document.getElementById('bot-intro-modal')) return;
+
+    // Build overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'bot-intro-modal';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'bot-intro-title');
+    overlay.style.position = 'fixed';
+    overlay.style.inset = '0';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.background = 'rgba(0,0,0,0.55)';
+    overlay.style.zIndex = '10000';
+
+    const card = document.createElement('div');
+    card.style.width = 'min(560px, 92vw)';
+    card.style.background = '#0b0e14';
+    card.style.border = '1px solid #263043';
+    card.style.borderRadius = '12px';
+    card.style.boxShadow = '0 12px 32px rgba(0,0,0,0.4)';
+    card.style.color = '#e6edf3';
+    card.style.padding = '20px 20px 16px';
+
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.gap = '12px';
+    header.style.alignItems = 'center';
+
+    const icon = document.createElement('img');
+    icon.src = 'assets/glitch realm favicon image.png';
+    icon.alt = '';
+    icon.width = 28;
+    icon.height = 28;
+    icon.style.borderRadius = '6px';
+
+    const title = document.createElement('h2');
+    title.id = 'bot-intro-title';
+    title.textContent = 'Introducing GlitchRealm Bot';
+    title.style.margin = '0';
+    title.style.fontSize = '1.35rem';
+
+    header.appendChild(icon);
+    header.appendChild(title);
+
+    const body = document.createElement('div');
+    body.style.marginTop = '10px';
+    body.style.lineHeight = '1.6';
+    body.innerHTML = `
+        <div style="margin-bottom: 4px; opacity: 0.9;">Our biggest milestone yet — a smart assistant built into GlitchRealm.</div>
+        <div>Ask about our games, get playtime tips, account help, roadmap info, and troubleshooting — 24/7.</div>
+        <ul style="margin: 10px 0 0 18px; line-height: 1.6;">
+            <li>Instant answers about CodeRunner, ByteSurge, Byte Wars, and more</li>
+            <li>Account and portal guidance without leaving the page</li>
+            <li>Updates, changelogs, and “what’s new” at your fingertips</li>
+        </ul>
+        <div style="margin-top:10px; opacity:0.85;">Open it anytime from the chat button in the bottom-right.</div>
+    `;
+
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.justifyContent = 'flex-end';
+    actions.style.gap = '10px';
+    actions.style.marginTop = '16px';
+
+    const laterBtn = document.createElement('button');
+    laterBtn.type = 'button';
+    laterBtn.textContent = 'Maybe later';
+    laterBtn.style.padding = '10px 14px';
+    laterBtn.style.borderRadius = '8px';
+    laterBtn.style.background = 'transparent';
+    laterBtn.style.border = '1px solid #3b475e';
+    laterBtn.style.color = '#e6edf3';
+
+    const openBtn = document.createElement('button');
+    openBtn.type = 'button';
+    openBtn.textContent = 'Open Chat';
+    openBtn.style.padding = '10px 14px';
+    openBtn.style.borderRadius = '8px';
+    openBtn.style.background = '#2d72d2';
+    openBtn.style.border = '1px solid #2d72d2';
+    openBtn.style.color = '#ffffff';
+
+    actions.appendChild(laterBtn);
+    actions.appendChild(openBtn);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(actions);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    const dismiss = () => {
+        try {
+            localStorage.setItem('gr.botIntro.dismissed', '1');
+            // Also avoid showing the coachmark after intro
+            localStorage.setItem('gr.chatCoachmark.dismissed', '1');
+        } catch {}
+        try { overlay.remove(); } catch {}
+    };
+
+    // Minimal open helper (namespaces + launcher click + event broadcast)
+    function openChatbotNow() {
+        try {
+            const g = window;
+            const namespaces = [g.DOAIChatbot, g.DoAIChatbot, g.doAIChatbot, g.doaiChatbot, g.DOAI, g.DoAI, g.doAI, g.doai].filter(Boolean);
+            const methods = ['open','toggle','show','start','expand','openChat','openWidget','openChatbot'];
+            for (const ns of namespaces) {
+                if (!ns) continue;
+                for (const m of methods) {
+                    if (typeof ns[m] === 'function') { ns[m](); return true; }
+                }
+                if (ns.widget) {
+                    for (const m of methods) { if (typeof ns.widget[m] === 'function') { ns.widget[m](); return true; } }
+                }
+            }
+        } catch {}
+        try { window.dispatchEvent(new CustomEvent('doai:open')); } catch {}
+        try { window.dispatchEvent(new Event('doai-open')); } catch {}
+        try { window.postMessage({ type: 'doai:open' }, '*'); } catch {}
+        // Try clicking the launcher
+        try {
+            const selectors = ['[data-doai-launcher]','[class*="doai"][class*="launch"]','.doai-launcher','.doai-widget-launcher','.doai-chatbot-launcher','.doai-floating-button','button[aria-label*="chat" i]','button[title*="chat" i]'];
+            for (const sel of selectors) {
+                const el = document.querySelector(sel);
+                if (el) { el.click(); return true; }
+            }
+        } catch {}
+        return false;
+    }
+
+    laterBtn.addEventListener('click', dismiss);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismiss(); }, { once: true });
+    openBtn.addEventListener('click', () => {
+        dismiss();
+        // Give the widget a brief moment if still loading, then try to open
+        setTimeout(() => {
+            if (!openChatbotNow()) {
+                setTimeout(() => openChatbotNow(), 600);
+            }
+        }, 150);
+    });
+
+    // Focus for accessibility
+    setTimeout(() => openBtn.focus(), 0);
 }
 
 // Test profile functions
