@@ -6,6 +6,13 @@
     <link rel="icon" type="image/png" href="assets/glitch realm favicon image.png">    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css">
+    <!-- Performance: preconnect to critical third-parties -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//www.gstatic.com">
       <!-- Firebase SDK -->
     <script type="module">        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -1128,7 +1135,7 @@
                 <div class="game-cards">                    <!-- ShadowLight Game Card -->
                     <div class="game-card" data-game="shadowlight">
                         <div class="card-image">
-                            <img src="assets/Game Logos/ShadowLight.png" alt="ShadowLight" class="game-logo-image">
+                            <img src="assets/Game Logos/ShadowLight.png" alt="ShadowLight" class="game-logo-image" loading="lazy" decoding="async">
                             <div class="card-overlay"></div>
                             <div class="game-badge removed">GAME REMOVED</div>
                         </div><div class="card-content">
@@ -1146,7 +1153,7 @@
                     </div>                    <!-- ByteSurge Game Card -->
                     <div class="game-card" data-game="bytesurge">
                         <div class="card-image">
-                            <img src="assets/Game Logos/ByteSurge.png" alt="ByteSurge" class="game-logo-image">
+                            <img src="assets/Game Logos/ByteSurge.png" alt="ByteSurge" class="game-logo-image" loading="lazy" decoding="async">
                             <div class="card-overlay"></div>
                             <div class="game-badge new">NEW</div>
                         </div>
@@ -1167,7 +1174,7 @@
 
                     <!-- NeuroCore: Byte Wars Game Card -->
                     <div class="game-card" data-game="neurocore">                        <div class="card-image">
-                            <img src="assets/Game Logos/NeuroCore Byte Wars Logo.png" alt="NeuroCore: Byte Wars" class="game-logo-image">                            <div class="card-overlay"></div>
+                            <img src="assets/Game Logos/NeuroCore Byte Wars Logo.png" alt="NeuroCore: Byte Wars" class="game-logo-image" loading="lazy" decoding="async">                            <div class="card-overlay"></div>
                             <div class="game-badge coming-soon" style="display: none;">UPDATE SOON</div>
                         </div>                        <div class="card-content">
                             <h3 class="card-title">NeuroCore: Byte Wars</h3>
@@ -1187,7 +1194,7 @@
                     <!-- CodeRunner Game Card -->
                     <div class="game-card" data-game="coderunner">
                         <div class="card-image">
-                            <img src="assets/Game Logos/CodeRunner Logo.png" alt="CodeRunner" class="game-logo-image">
+                            <img src="assets/Game Logos/CodeRunner Logo.png" alt="CodeRunner" class="game-logo-image" loading="lazy" decoding="async">
                             <div class="card-overlay"></div>
                             <div class="game-badge updated">UPDATED</div>
                         </div><div class="card-content">                            <h3 class="card-title">CodeRunner</h3>
@@ -1337,16 +1344,16 @@
                 
                 <!-- Social Login -->
                 <div class="social-auth">                    <button id="google-signin" class="social-button google">
-                        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="social-icon">
+                        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
                         <span id="google-button-text">Sign in with Google</span>
                         <div class="social-glow"></div>
                     </button>
                       <button id="github-signin" class="social-button github">
-                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="social-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
                         <span id="github-button-text">Sign in with GitHub</span>
                         <div class="social-glow"></div>
                     </button>                      <button id="anonymous-signin" class="social-button guest">
-                        <img src="https://cdn.jsdelivr.net/gh/feathericons/feather/icons/user.svg" alt="Anonymous" class="social-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/feathericons/feather/icons/user.svg" alt="Anonymous" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
                         <span>ANONYMOUS MODE</span>
                         <div class="social-glow"></div>
                     </button>
@@ -1575,11 +1582,11 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js"></script>
-    <script src="script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
+    <script src="script.js" defer></script>
 
     <script>
         // Review System JavaScript

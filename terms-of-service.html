@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>    <meta charset="UTF-8">
-    <meta nam        .profile-dropdown.open .profile-menu {
-            opacity: 1 !important;
-            visibility: visible !important;
-            transform: translateY(0) scale(1) !important;
-        }ewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service - GlitchRealm Games</title>
     <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
     <style>
         /* Force proper styling for profile dropdown */
         .user-profile {
@@ -852,19 +856,19 @@
                 <!-- Social Login -->
                 <div class="social-auth">
                     <button id="google-signin" class="social-button google">
-                        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="social-icon">
+                        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
                         <span id="google-button-text">Sign in with Google</span>
                         <div class="social-glow"></div>
                     </button>
                     
                     <button id="github-signin" class="social-button github">
-                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="social-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
                         <span id="github-button-text">Sign in with GitHub</span>
                         <div class="social-glow"></div>
                     </button>
                     
                     <button id="anonymous-signin" class="social-button guest">
-                        <img src="https://cdn.jsdelivr.net/gh/feathericons/feather/icons/user.svg" alt="Anonymous" class="social-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/feathericons/feather/icons/user.svg" alt="Anonymous" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
                         <span>ANONYMOUS MODE</span>
                         <div class="social-glow"></div>
                     </button>
@@ -981,12 +985,10 @@
         window.addEventListener('load', fixProfileButtonText);
     </script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js"></script>
-    <script src="script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
+    <script src="script.js" defer></script>
 </body>
 </html>

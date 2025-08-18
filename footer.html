@@ -6,7 +6,7 @@
         <div class="netlify-branding">
             <span>Powered by</span>
             <a href="https://www.netlify.com" target="_blank" rel="noopener noreferrer" class="netlify-link">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/netlify/netlify-original.svg" alt="Netlify" class="netlify-logo">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/netlify/netlify-original.svg" alt="Netlify" class="netlify-logo" loading="lazy" decoding="async" width="24" height="24">
                 Netlify
             </a>
         </div>
@@ -21,11 +21,11 @@
     data-agent-id="bd55ebc0-7b86-11f0-b074-4e013e2ddde4"
     data-chatbot-id="iLcsXT380jITKSw3t6GQxi14J3z3bc64"
     data-name="GlitchRealm Bot"
-    data-primary-color="#031B4E"
+    data-primary-color="#00FFF9"
     data-secondary-color="#E5E8ED"
-    data-button-background-color="#0061EB"
+    data-button-background-color="#0A1629"
     data-starting-message="Hello! How can I help you today?"
-    data-logo="http://www.w3.org/2000/svg"></script>
+    data-logo="assets/glitch realm favicon image.png"></script>
 
 <!-- Open handler: resilient detection + retry -->
 <script>
@@ -126,4 +126,70 @@
             });
         }
     })();
+</script>
+
+<!-- Structured Data: inject JSON-LD into <head> on every page -->
+<script>
+    (function addStructuredData() {
+        try {
+            if (document.getElementById('gr-structured-data')) return;
+            var data = {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "Organization",
+                        "@id": "https://glitchrealm.ca/#organization",
+                        "name": "GlitchRealm",
+                        "alternateName": "GlitchRealm Games",
+                        "url": "https://glitchrealm.ca",
+                        "description": "GlitchRealm is a browser-based gaming platform and community. Play original indie titles, track progress, and connect with fellow players.",
+                                                "logo": {
+                                                    "@type": "ImageObject",
+                                                    "url": "https://glitchrealm.ca/assets/glitch%20realm%20favicon%20image.png"
+                                                },
+                        "sameAs": [
+                            "https://github.com/InfinityByteStudios",
+                            "https://twitter.com/GlitchRealm",
+                            "https://glitchrealm.itch.io"
+                        ],
+                        "contactPoint": [
+                            {
+                                "@type": "ContactPoint",
+                                "contactType": "customer support",
+                                "email": "glitchrealm@outlook.com"
+                            }
+                        ]
+                    },
+                    {
+                        "@type": "WebSite",
+                        "@id": "https://glitchrealm.ca/#website",
+                        "url": "https://glitchrealm.ca",
+                        "name": "GlitchRealm",
+                        "description": "Cyberpunk-inspired indie games and a friendly gaming community—play in your browser on GlitchRealm.",
+                        "inLanguage": "en",
+                        "publisher": { "@id": "https://glitchrealm.ca/#organization" }
+                    },
+                    {
+                        "@type": "VideoGame",
+                        "@id": "https://glitchrealm.ca/#game-bytesurge",
+                        "name": "ByteSurge",
+                        "url": "https://glitchrealm.ca/Games/ByteSurge/",
+                        "description": "An original browser game available on the GlitchRealm platform.",
+                        "applicationCategory": "Game",
+                        "operatingSystem": "Web",
+                        "inLanguage": "en",
+                        "image": { "@type": "ImageObject", "url": "https://glitchrealm.ca/assets/glitch%20realm%20favicon%20image.png" },
+                        "author": { "@id": "https://glitchrealm.ca/#organization" },
+                        "publisher": { "@id": "https://glitchrealm.ca/#organization" }
+                    }
+                ]
+            };
+            var el = document.createElement('script');
+            el.type = 'application/ld+json';
+            el.id = 'gr-structured-data';
+            el.text = JSON.stringify(data);
+            (document.head || document.documentElement).appendChild(el);
+        } catch (e) { /* no-op */ }
+    })();
+    // Hint: Use a square-ish transparent logo (>=112x112). If you update it, change the URL above.
 </script>
