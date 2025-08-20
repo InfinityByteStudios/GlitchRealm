@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community - GlitchRealm</title>
+    <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+        <link rel="dns-prefetch" href="https://www.gstatic.com">
+        <style>
+            /* Community page: ensure secondary label is visible */
+            .logo .games-text { display: inline-block; margin-left: 8px; }
+
+            /* Community page: bump header size to match homepage presence */
+            .nav-container { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+            .logo { font-size: 1.9rem; }
+            .logo .glitch { font-weight: 900; }
+            .logo .games-text { font-size: 1.1em; }
+            @media (max-width: 600px) {
+                .logo { font-size: 1.6rem; }
+                .nav-container { padding-top: 1rem; padding-bottom: 1rem; }
+            }
+
+            /* Auth modal hardening (Community) */
+            #signin-modal .auth-panel img { max-width: 48px; max-height: 48px; width: auto; height: auto; object-fit: contain; }
+            #signin-modal .social-icon { width: 24px; height: 24px; }
+            #signin-modal .auth-panel { max-width: 440px; }
+            #signin-modal.auth-overlay { z-index: 4000; }
+        </style>
+
+    <!-- Firebase SDK init (module) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+
+    const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.firebasestorage.app",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        try { getAnalytics(app); } catch (e) {}
+    // Expose for compat and console helpers
+    window.firebaseAuth = auth;
+    window.firebaseConfig = firebaseConfig;
+    </script>
+</head>
+<body>
+    <div class="background-animation"></div>
+
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Community">Community</span>
+                </h1>
+                <p class="page-subtitle">Share updates, discuss games, and connect with players and devs</p>
+            </div>
+        </section>
+
+        <section class="contact-content">
+            <div class="container">
+                <div class="community-toolbar" style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:16px;">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <select id="filter-tag" class="neural-input" style="min-width:180px;">
+                            <option value="">All tags</option>
+                            <option value="announcement">#announcement</option>
+                            <option value="update">#update</option>
+                            <option value="bug">#bug</option>
+                            <option value="feature">#feature</option>
+                            <option value="bytesurge">#bytesurge</option>
+                            <option value="neurocore">#neurocore</option>
+                            <option value="coderunner">#coderunner</option>
+                        </select>
+                        <select id="sort-order" class="neural-input" style="min-width:160px;">
+                            <option value="new">Newest</option>
+                            <option value="top">Top (likes)</option>
+                        </select>
+                    </div>
+                    <button id="create-post-btn" class="btn-portal" style="display:none;">Create Post</button>
+                </div>
+
+                <div id="posts-list" class="game-cards" aria-live="polite" aria-busy="true"></div>
+
+                <div id="posts-empty" style="display:none; opacity:0.85; text-align:center; margin:24px 0;">
+                    No posts yet. Be the first to share something!
+                </div>
+
+                <div style="display:flex; justify-content:center; margin:16px 0; gap:8px;">
+                    <button id="load-more" class="neural-button secondary" style="display:none;">
+                        <span class="button-text">Load more</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- Sign In Modal (copied from index.html for consistency) -->
+    <div id="signin-modal" class="auth-overlay" style="display: none;">
+        <div class="auth-panel">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <span class="glitch" data-text="GLITCHREALM ACCESS">GLITCHREALM ACCESS</span>
+                </div>
+                <button class="auth-close" id="close-modal">
+                    <span class="close-icon">×</span>
+                </button>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="signin">
+                    <span class="tab-icon">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M10,17V14H3V10H10V7L15,12L10,17M10,2H19A2,2 0 0,1 21,4V20A2,2 0 0,1 19,22H10A2,2 0 0,1 8,20V18H10V20H19V4H10V6H8V4A2,2 0 0,1 10,2Z"/>
+                        </svg>
+                    </span>
+                    <span>SIGN IN</span>
+                </button>
+                <button class="auth-tab" data-tab="signup">
+                    <span class="tab-icon">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M6,10V7H4V10H1V12H4V15H6V12H9V10M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12Z"/>
+                        </svg>
+                    </span>
+                    <span>SIGN UP</span>
+                </button>
+            </div>
+
+            <div class="auth-content">
+                <!-- Sign In Form -->
+                <div class="auth-form-container active" id="signin-form">
+                    <div class="form-title">
+                        <span class="glitch-small" data-text="AUTHENTICATE">AUTHENTICATE</span>
+                    </div>
+                    <form id="email-signin-form" class="neural-form">
+                        <div class="input-container">
+                            <div class="input-label">Email/Username</div>
+                            <input type="email" id="signin-email" class="neural-input" required>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <div class="input-container">
+                            <div class="input-label">Password</div>
+                            <input type="password" id="signin-password" class="neural-input" required>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <button type="submit" class="neural-button primary">
+                            <span class="button-text">INITIATE CONNECTION</span>
+                            <div class="button-glow"></div>
+                        </button>
+                        <button type="button" class="forgot-link">
+                            <span>Forgot Password?</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Sign Up Form -->
+                <div class="auth-form-container" id="signup-form">
+                    <div class="form-title">
+                        <span class="glitch-small" data-text="INITIALIZE">INITIALIZE</span>
+                    </div>
+                    <form id="email-signup-form" class="neural-form">
+                        <div class="input-container">
+                            <div class="input-label">Email</div>
+                            <input type="email" id="signup-email" class="neural-input" required>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <div class="input-container">
+                            <div class="input-label">Password</div>
+                            <input type="password" id="signup-password" class="neural-input" required>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <div class="input-container">
+                            <div class="input-label">Confirm Password</div>
+                            <input type="password" id="confirm-password" class="neural-input" required>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <button type="submit" class="neural-button primary">
+                            <span class="button-text">CREATE NEURAL LINK</span>
+                            <div class="button-glow"></div>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Divider -->
+                <div class="auth-divider">
+                    <div class="divider-line"></div>
+                    <span class="divider-text">ALTERNATIVE ACCESS</span>
+                    <div class="divider-line"></div>
+                </div>
+
+                <!-- Social Login -->
+                <div class="social-auth">
+                    <button id="google-signin" class="social-button google">
+                        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
+                        <span id="google-button-text">Sign in with Google</span>
+                        <div class="social-glow"></div>
+                    </button>
+
+                    <button id="github-signin" class="social-button github">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
+                        <span id="github-button-text">Sign in with GitHub</span>
+                        <div class="social-glow"></div>
+                    </button>
+
+                    <button id="anonymous-signin" class="social-button guest">
+                        <img src="https://cdn.jsdelivr.net/gh/feathericons/feather/icons/user.svg" alt="Anonymous" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
+                        <span>ANONYMOUS MODE</span>
+                        <div class="social-glow"></div>
+                    </button>
+                </div>
+
+                <!-- Terms Agreement -->
+                <div class="terms-agreement">
+                    <p>By signing in / signing up you agree to our <a href="terms-of-service.html" target="_blank">Terms of Service</a> and <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.</p>
+                </div>
+            </div>
+
+            <!-- Background Effects -->
+            <div class="auth-bg-effect"></div>
+            <div class="auth-scanlines"></div>
+        </div>
+    </div>
+
+    <!-- Simple Create Post Modal -->
+    <div id="create-post-modal" class="auth-overlay" style="display:none;">
+        <div class="auth-panel">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <span class="glitch" data-text="NEW POST">NEW POST</span>
+                </div>
+                <button class="auth-close" id="close-create-post">
+                    <span class="close-icon">×</span>
+                </button>
+            </div>
+            <div class="auth-content">
+                <form id="create-post-form" class="neural-form">
+                    <div class="input-container">
+                        <div class="input-label">Title</div>
+                        <input type="text" id="post-title" class="neural-input" maxlength="200" required>
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-container">
+                        <div class="input-label">Body</div>
+                        <textarea id="post-body" class="neural-input" rows="6" maxlength="10000" required></textarea>
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-container">
+                        <div class="input-label">Tags (comma-separated, optional)</div>
+                        <input type="text" id="post-tags" class="neural-input" placeholder="announcement, bytesurge">
+                        <div class="input-line"></div>
+                    </div>
+                    <button type="submit" class="neural-button primary">
+                        <span class="button-text">Publish</span>
+                        <div class="button-glow"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase compat libs + scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+        <!-- Initialize compat app if not already (enables console use of firebase.firestore()) -->
+        <script defer>
+            (function(){
+                function initCompat(){
+                    try {
+                        if (window.firebase && window.firebaseConfig && (!window.firebase.apps || !window.firebase.apps.length)) {
+                            window.firebase.initializeApp(window.firebaseConfig);
+                        }
+                    } catch(e) { /* noop */ }
+                }
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    initCompat();
+                } else {
+                    document.addEventListener('DOMContentLoaded', initCompat);
+                }
+            })();
+        </script>
+    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
+    <script src="script.js" defer></script>
+    <script src="community.js" defer></script>
+        <script>
+            // Change the shared header label to "Community" on this page
+            (function(){
+                const desired = 'Community';
+                function setLabel(){
+                    const el = document.querySelector('.logo .games-text');
+                    if (el) { el.textContent = desired; return true; }
+                    return false;
+                }
+                function init(){
+                    if (setLabel()) return;
+                    const host = document.getElementById('header-placeholder') || document.body;
+                    const mo = new MutationObserver(() => { if (setLabel()) mo.disconnect(); });
+                    mo.observe(host, { childList: true, subtree: true });
+                }
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+                else init();
+            })();
+        </script>
+        <script>
+            // Fallback: ensure header Sign In opens this page's #signin-modal
+            (function(){
+                function bindSignIn(){
+                    const btn = document.getElementById('sign-in-btn');
+                    const modal = document.getElementById('signin-modal');
+                    if (!btn || !modal) return false;
+                    // Ensure modal is a direct child of body and sits on top
+                    try {
+                        if (modal.parentNode !== document.body) {
+                            document.body.appendChild(modal);
+                        }
+                        modal.style.zIndex = '4000';
+                    } catch (e) {}
+                    // Avoid duplicate handlers
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', function(e){
+                        e.preventDefault();
+                        // Close any other overlays to avoid conflicts
+                        document.querySelectorAll('.auth-overlay').forEach(el => {
+                            if (el !== modal) el.style.display = 'none';
+                        });
+                        modal.style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    });
+                    // Close handlers
+                    const close = document.getElementById('close-modal');
+                    if (close) {
+                        const newClose = close.cloneNode(true);
+                        close.parentNode.replaceChild(newClose, close);
+                        newClose.addEventListener('click', function(e){
+                            e.preventDefault();
+                            modal.style.display = 'none';
+                            document.body.style.overflow = 'auto';
+                        });
+                    }
+                    // Backdrop click close for this modal only
+                    modal.addEventListener('click', function(e){
+                        if (e.target === modal) {
+                            modal.style.display = 'none';
+                            document.body.style.overflow = 'auto';
+                        }
+                    });
+                    return true;
+                }
+                function init(){
+                    if (bindSignIn()) return;
+                    const host = document.getElementById('header-placeholder') || document.body;
+                    const mo = new MutationObserver(() => { if (bindSignIn()) mo.disconnect(); });
+                    mo.observe(host, { childList: true, subtree: true });
+                }
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+                else init();
+            })();
+        </script>
+</body>
+</html>

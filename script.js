@@ -3118,8 +3118,8 @@ function initializeAuthElements() {
                 return;
             }
             
-            // Get the auth overlay (could be different IDs on different pages)
-            const authOverlay = document.querySelector('.auth-overlay');
+            // Get the sign-in auth overlay explicitly by id
+            const authOverlay = document.getElementById('signin-modal');
             if (authOverlay) {
                 console.log('Auth overlay found, displaying it');
                 authOverlay.style.display = 'flex';
@@ -3132,8 +3132,8 @@ function initializeAuthElements() {
         
         console.log('Auth event listeners attached');
         
-        // Find and handle close modal button
-        const closeModal = document.querySelector('.close-modal');
+    // Find and handle close modal button (specific to sign-in modal)
+    const closeModal = document.querySelector('#close-modal');
         if (closeModal) {
             const newCloseModal = closeModal.cloneNode(true);
             closeModal.parentNode.replaceChild(newCloseModal, closeModal);
@@ -3142,8 +3142,8 @@ function initializeAuthElements() {
                 e.preventDefault();
                 console.log('Close modal button clicked!');
                 
-                // Get the auth overlay (could be different IDs on different pages)
-                const authOverlay = document.querySelector('.auth-overlay');
+        // Get the sign-in auth overlay explicitly by id to avoid other overlays
+        const authOverlay = document.getElementById('signin-modal');
                 if (authOverlay) {
                     console.log('Auth overlay found, hiding it');
                     authOverlay.style.display = 'none';
@@ -3153,9 +3153,9 @@ function initializeAuthElements() {
         }
         
         // Close modal on backdrop click
-        document.addEventListener('click', function(e) {
-            const authOverlay = document.querySelector('.auth-overlay');
-            if (authOverlay && e.target === authOverlay) {
+    document.addEventListener('click', function(e) {
+        const authOverlay = document.getElementById('signin-modal');
+        if (authOverlay && e.target === authOverlay) {
                 authOverlay.style.display = 'none';
                 document.body.style.overflow = 'auto';
             }

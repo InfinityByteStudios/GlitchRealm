@@ -53,9 +53,12 @@ service cloud.firestore {
     // Game Playtime Collection
     // ================================
     match /playtime/{playTimeId} {
-      // Read: Users can only read their own playtime data
-      allow read: if request.auth != null && 
-                     request.auth.uid == resource.data.userId;
+      // Read: Users can read their own playtime doc
+      // Support either a stored userId field OR the doc ID being the userId
+      allow read: if request.auth != null && (
+                     request.auth.uid == resource.data.userId ||
+                     request.auth.uid == playTimeId
+                   );
       
       // Create: Authenticated users only
       allow create: if request.auth != null &&
@@ -63,11 +66,25 @@ service cloud.firestore {
                        isValidPlaytime(request.resource.data);
       
       // Update: Only the user can update their own playtime
+      // (requires valid schema at top-level)
       allow update: if request.auth != null &&
-                       request.auth.uid == resource.data.userId &&
+                       (request.auth.uid == resource.data.userId || request.auth.uid == playTimeId) &&
                        isValidPlaytime(request.resource.data);
       
       // Delete: Only admins can delete playtime records
+      allow delete: if isAdmin(request.auth.uid);
+    }
+
+    // Subcollection: per-game playtime documents at /playtime/{userId}/games/{gameDocId}
+    match /playtime/{userId}/games/{gameDocId} {
+      // Read: Only the owner can read their per-game playtime
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Create/Update: Only the owner can write their per-game playtime
+      // (Do not enforce isValidPlaytime here since these docs may use different fields like totalMinutes)
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+
+      // Delete: Admins only
       allow delete: if isAdmin(request.auth.uid);
     }
     
@@ -86,15 +103,36 @@ service cloud.firestore {
     }
     
     // ================================
-    // Other Collections (Authenticated)
-    // ================================
+    // Other Collections (Authenticated Read-Only by default)
+    // Explicit write rules must be defined per collection above.
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
     }
     
     // ================================
     // Helper Functions
     // ================================
+    // Community Posts Collection: Public reads for published, writes restricted
+    match /community_posts/{postId} {
+      // Anyone can read published posts; owners and admins can read their drafts/others
+      allow read: if resource.data.status == 'published' ||
+                   (request.auth != null && request.auth.uid == resource.data.userId) ||
+                   isAdmin(request.auth.uid);
+
+      // Only signed-in users can create; must be owner and data must be valid
+      allow create: if request.auth != null &&
+                     request.auth.uid == request.resource.data.userId &&
+                     isValidCommunityPost(request.resource.data);
+
+      // Only the owner can update their post (admins may use delete for moderation)
+      allow update: if request.auth != null &&
+                     request.auth.uid == resource.data.userId &&
+                     isValidCommunityPost(request.resource.data);
+
+      // Only admins can delete posts
+      allow delete: if isAdmin(request.auth.uid);
+    }
+
     function isValidReview(reviewData) {
       return reviewData.keys().hasAll(['rating', 'gameId', 'userId', 'moderationStatus', 'timestamp']) &&
              reviewData.rating is int &&
@@ -131,6 +169,24 @@ service cloud.firestore {
               (playtimeData.iconUrl is string && playtimeData.iconUrl.size() > 0)) &&
              (!playtimeData.keys().hasAny(['gameName']) || 
               (playtimeData.gameName is string && playtimeData.gameName.size() > 0));
+    }
+
+    // Validate a community post payload
+    function isValidCommunityPost(postData) {
+      return postData.keys().hasAll(['title','body','userId','createdAt','updatedAt','status']) &&
+             postData.title is string && postData.title.size() > 0 && postData.title.size() <= 200 &&
+             postData.body is string && postData.body.size() > 0 && postData.body.size() <= 10000 &&
+             postData.userId is string && postData.userId.size() > 0 &&
+             postData.createdAt is timestamp &&
+             postData.updatedAt is timestamp &&
+             postData.status in ['published','draft','archived'] &&
+             (!postData.keys().hasAny(['tags']) || (
+               postData.tags is list && postData.tags.size() <= 10
+             )) &&
+             (!postData.keys().hasAny(['likesCount']) || (postData.likesCount is int && postData.likesCount >= 0)) &&
+             (!postData.keys().hasAny(['commentsCount']) || (postData.commentsCount is int && postData.commentsCount >= 0)) &&
+             // Ensure no privilege-escalation fields
+             !postData.keys().hasAny(['admin','isAdmin','role','permissions']);
     }
     
     function isAdmin(userId) {

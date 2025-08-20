@@ -2165,6 +2165,137 @@ body {
 }
 
 /* ==============================================
+   GLOBAL PROFILE AVATAR SIZING (Header/Profile)
+   Ensures consistent avatar sizing across pages
+   ============================================== */
+.user-profile { position: relative !important; }
+.profile-dropdown { position: relative !important; }
+
+.profile-trigger {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    background: rgba(0, 255, 249, 0.1) !important;
+    border: 1px solid var(--primary-cyan) !important;
+    border-radius: 8px !important;
+    padding: 0.5rem 0.75rem !important;
+    color: var(--white) !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.profile-trigger:hover {
+    background: rgba(0, 255, 249, 0.2) !important;
+    box-shadow: 0 0 15px rgba(0, 255, 249, 0.3) !important;
+}
+.user-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    border: 2px solid var(--primary-cyan) !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+.user-avatar-large {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 50% !important;
+    border: 3px solid var(--primary-cyan) !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+.user-avatar-container,
+.user-avatar-large-container {
+    position: relative !important;
+    display: inline-block !important;
+}
+
+/* Hard containment on containers to prevent overflow from odd images */
+.user-avatar-container { width: 32px !important; height: 32px !important; overflow: hidden !important; border-radius: 50% !important; }
+.user-avatar-large-container { width: 60px !important; height: 60px !important; overflow: hidden !important; border-radius: 50% !important; }
+
+.dropdown-arrow { font-size: 0.8rem !important; color: var(--primary-cyan) !important; transition: transform 0.3s ease !important; }
+.profile-dropdown.open .dropdown-arrow { transform: rotate(180deg) !important; }
+
+.profile-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    background: linear-gradient(135deg, #0a1629 0%, #041018 100%) !important;
+    border: 2px solid var(--primary-cyan) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 249, 0.3) !important;
+    min-width: 280px !important;
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    z-index: 10000 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) scale(0.95) !important;
+    transition: all 0.3s ease !important;
+    margin-top: 0.5rem !important;
+}
+.profile-dropdown.open .profile-menu { opacity: 1 !important; visibility: visible !important; transform: translateY(0) scale(1) !important; }
+
+.profile-info { padding: 1.5rem !important; border-bottom: 1px solid rgba(0, 255, 249, 0.2) !important; display: flex !important; align-items: center !important; gap: 1rem !important; }
+.profile-details { display: flex !important; flex-direction: column !important; gap: 0.25rem !important; }
+.user-display-name { font-size: 1.1rem !important; font-weight: 700 !important; color: var(--white) !important; }
+.user-email { font-size: 0.85rem !important; color: var(--primary-cyan) !important; opacity: 0.8 !important; }
+.user-provider { font-size: 0.75rem !important; color: var(--primary-magenta) !important; text-transform: uppercase !important; font-weight: 600 !important; }
+
+.profile-actions { padding: 1rem !important; display: flex !important; flex-direction: column !important; gap: 0.5rem !important; }
+.profile-action-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(0, 255, 249, 0.3) !important;
+    border-radius: 8px !important;
+    color: var(--white) !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+}
+.profile-action-btn:hover { background: rgba(0, 255, 249, 0.1) !important; border-color: var(--primary-cyan) !important; box-shadow: 0 0 10px rgba(0, 255, 249, 0.2) !important; }
+.profile-action-btn.sign-out { color: var(--white) !important; }
+#sign-out-btn, #sign-out-btn *:not(.action-icon):not(.icon-svg):not(path) { color: var(--white) !important; opacity: 1 !important; visibility: visible !important; }
+.profile-action-btn.delete-account { border-color: rgba(255, 0, 128, 0.5) !important; color: var(--primary-magenta) !important; }
+.profile-action-btn.delete-account:hover { background: rgba(255, 0, 128, 0.1) !important; border-color: var(--primary-magenta) !important; box-shadow: 0 0 10px rgba(255, 0, 128, 0.2) !important; }
+.action-icon { font-size: 1.2rem !important; }
+
+.avatar-upload-overlay,
+.avatar-upload-overlay-large {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.user-avatar-container:hover .avatar-upload-overlay,
+.user-avatar-large-container:hover .avatar-upload-overlay-large {
+    opacity: 1;
+}
+
+/* ==============================================
    NEURAL-THEMED AUTH MODAL STYLING
    ============================================== */
 
