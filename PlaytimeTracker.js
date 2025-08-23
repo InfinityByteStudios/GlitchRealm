@@ -68,7 +68,7 @@ class PlaytimeTracker {
             document.addEventListener('mousemove', this.handleActivity);
             document.addEventListener('keydown', this.handleActivity);
             document.addEventListener('click', this.handleActivity);
-            document.addEventListener('touchstart', this.handleActivity);
+            document.addEventListener('touchstart', this.handleActivity, { passive: true });
             
             this.initialized = true;
             

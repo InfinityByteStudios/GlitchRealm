@@ -306,8 +306,8 @@ function setupInputHandlers() {
         else if (e.touches.length >= 2) {
             handleHarvesterDrop();
         }
-    });
-      canvas.addEventListener('touchmove', (e) => {
+    }, { passive: false });
+    canvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
         
         for (let touch of e.changedTouches) {
@@ -324,7 +324,7 @@ function setupInputHandlers() {
                 }
             }
         }
-    });
+    }, { passive: false });
     
     canvas.addEventListener('touchend', (e) => {
         e.preventDefault();
@@ -332,7 +332,7 @@ function setupInputHandlers() {
         for (let touch of e.changedTouches) {
             inputState.touches.delete(touch.identifier);
         }
-    });
+    }, { passive: false });
     
     // === GAMEPAD SUPPORT ===
     window.addEventListener('gamepadconnected', (e) => {

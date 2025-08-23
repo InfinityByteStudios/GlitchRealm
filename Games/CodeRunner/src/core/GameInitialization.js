@@ -306,7 +306,7 @@ export class GameInitialization {
         this.game.canvas.addEventListener('mousemove', (e) => this.game.eventHandlers.handleMouseMove(e));
         this.game.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.game.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-        this.game.canvas.addEventListener('wheel', (e) => this.handleMouseWheel(e));
+    this.game.canvas.addEventListener('wheel', (e) => this.handleMouseWheel(e), { passive: true });
         
         // Add focus/blur listeners to manage scrolling prevention
         this.game.canvas.addEventListener('focus', () => {

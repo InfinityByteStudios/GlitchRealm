@@ -54,3 +54,25 @@
   for = "/*.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# Enable Netlify Asset Optimization (minify & compress) at deploy time
+[build]
+  # publish directory is root by default for static sites; omit if set elsewhere
+
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = false # keep separate files, just minify
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+  # Netlify will also inline small critical assets where safe
+
+[build.processing.images]
+  compress = true

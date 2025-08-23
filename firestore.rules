@@ -119,10 +119,9 @@ service cloud.firestore {
                    (request.auth != null && request.auth.uid == resource.data.userId) ||
                    isAdmin(request.auth.uid);
 
-      // Only signed-in users can create; must be owner and data must be valid
-      allow create: if request.auth != null &&
-                     request.auth.uid == request.resource.data.userId &&
-                     isValidCommunityPost(request.resource.data);
+  // Loosened: any authenticated user can create valid posts (owner check removed)
+  allow create: if request.auth != null &&
+         isValidCommunityPost(request.resource.data);
 
       // Only the owner can update their post (admins may use delete for moderation)
       allow update: if request.auth != null &&
@@ -131,6 +130,16 @@ service cloud.firestore {
 
       // Only admins can delete posts
       allow delete: if isAdmin(request.auth.uid);
+
+      // Comments subcollection under each post
+      match /comments/{commentId} {
+        // Publicly readable
+        allow read: if true;
+        // Create: authenticated users can comment with valid data
+        allow create: if request.auth != null && isValidComment(request.resource.data);
+        // Update/Delete: only author or admin
+        allow update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
+      }
     }
 
     function isValidReview(reviewData) {
@@ -183,6 +192,8 @@ service cloud.firestore {
              (!postData.keys().hasAny(['tags']) || (
                postData.tags is list && postData.tags.size() <= 10
              )) &&
+             (!postData.keys().hasAny(['authorName']) || (postData.authorName is string && postData.authorName.size() <= 100)) &&
+             (!postData.keys().hasAny(['authorPhotoUrl']) || (postData.authorPhotoUrl is string && postData.authorPhotoUrl.size() <= 2000)) &&
              (!postData.keys().hasAny(['likesCount']) || (postData.likesCount is int && postData.likesCount >= 0)) &&
              (!postData.keys().hasAny(['commentsCount']) || (postData.commentsCount is int && postData.commentsCount >= 0)) &&
              // Ensure no privilege-escalation fields
@@ -216,6 +227,19 @@ service cloud.firestore {
         'bytesurge',
         'shadowlight'
       ];
+    }
+
+    // Validate a comment payload under community posts
+    function isValidComment(commentData) {
+      return commentData.keys().hasAll(['body','userId','createdAt']) &&
+             commentData.body is string && commentData.body.size() > 0 && commentData.body.size() <= 2000 &&
+             commentData.userId is string && commentData.userId.size() > 0 &&
+             commentData.createdAt is timestamp &&
+             (!commentData.keys().hasAny(['authorName']) || (commentData.authorName is string && commentData.authorName.size() <= 100)) &&
+             (!commentData.keys().hasAny(['authorPhotoUrl']) || (commentData.authorPhotoUrl is string && commentData.authorPhotoUrl.size() <= 2000)) &&
+             (!commentData.keys().hasAny(['likesCount']) || (commentData.likesCount is int && commentData.likesCount >= 0)) &&
+             // Prevent privilege-escalation fields
+             !commentData.keys().hasAny(['admin','isAdmin','role','permissions']);
     }
   }
 }

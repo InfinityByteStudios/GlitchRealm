@@ -293,6 +293,8 @@
                     try {
                         if (window.firebase && window.firebaseConfig && (!window.firebase.apps || !window.firebase.apps.length)) {
                             window.firebase.initializeApp(window.firebaseConfig);
+                            // Ensure compat Auth is initialized so Firestore attaches ID tokens
+                            try { window.firebase.auth(); } catch(e) {}
                         }
                     } catch(e) { /* noop */ }
                 }

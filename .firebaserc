@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "shared-sign-in"
-  }
+    "default": "shared-sign-in",
+    "prod": "shared-sign-in"
+  },
+  "targets": {},
+  "etags": {}
 }

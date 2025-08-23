@@ -288,10 +288,15 @@ document.addEventListener('DOMContentLoaded', function() {
     initParallaxEffect();
     initConsoleMessage();
     initBadgeAutoHide();
-    // Register service worker (for caching/offline)
+    // Register service worker (skip on localhost/file to avoid dev caching issues)
     if ('serviceWorker' in navigator) {
         try {
-            navigator.serviceWorker.register('/sw.js');
+            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
+            if (!isLocal) {
+                navigator.serviceWorker.register('/sw.js');
+            } else {
+                console.log('Skipping SW registration in local development');
+            }
         } catch (e) {
             console.log('SW registration failed:', e);
         }
@@ -377,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        window.addEventListener('scroll', requestTick);
+    window.addEventListener('scroll', requestTick, { passive: true });
     }
     
     // Console-style message on home page
