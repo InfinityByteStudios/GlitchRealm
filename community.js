@@ -12,6 +12,9 @@
     limit: null,
     getDocs: null,
     addDoc: null,
+  deleteDoc: null,
+  doc: null,
+  updateDoc: null,
     Timestamp: null
   };
   let lastCursor = null;
@@ -26,7 +29,7 @@
   async function ensureModFirestore(){
     if (mfs.db) return mfs;
     const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-    const { getFirestore, collection, query, where, orderBy, startAfter, limit, getDocs, addDoc, Timestamp } = mod;
+  const { getFirestore, collection, query, where, orderBy, startAfter, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, Timestamp } = mod;
     // Reuse default app initialized in page; getFirestore() will use it
     mfs.db = getFirestore();
     mfs.collection = collection;
@@ -37,6 +40,9 @@
     mfs.limit = limit;
     mfs.getDocs = getDocs;
     mfs.addDoc = addDoc;
+  mfs.deleteDoc = deleteDoc;
+  mfs.doc = doc;
+  mfs.updateDoc = updateDoc;
     mfs.Timestamp = Timestamp;
     return mfs;
   }
@@ -47,22 +53,29 @@
     const likes = d.likesCount || 0;
     const date = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date();
     const author = escapeHtml(d.userDisplayName || d.userName || d.authorName || 'Anonymous');
+    const avatar = escapeHtml(d.authorPhotoUrl || 'assets/icons/anonymous.png');
     return `
-      <article class="game-card" data-id="${doc.id}">
+      <article class="game-card community-card" data-id="${doc.id}" data-owner="${escapeHtml(d.userId || '')}">
         <div class="card-content">
-          <h3 class="card-title">${escapeHtml(d.title || 'Untitled')}</h3>
+          <div class="post-header-row">
+            <h3 class="card-title">${escapeHtml(d.title || 'Untitled')}</h3>
+            <div class="post-actions"></div>
+          </div>
           <p class="card-description">${escapeHtml((d.body || '').slice(0, 220))}${(d.body||'').length>220?'…':''}</p>
           <div class="card-tags">${tags}</div>
-          <div class="card-meta" style="display:flex; gap:12px; align-items:center; opacity:0.85; margin-top:8px; flex-wrap:wrap;">
-            <span title="Author">👤 ${author}</span>
-            <span title="Likes">❤ ${likes}</span>
-            <span title="Date">${date.toLocaleDateString()}</span>
+          <div class="card-meta community-meta">
+            <img class="author-avatar" src="${avatar}" alt="" onerror="this.src='assets/icons/anonymous.png'" />
+            <span class="author-name" title="Author">${author}</span>
+            <span class="meta-dot">•</span>
+            <span class="meta-date" title="Date">${date.toLocaleDateString()}</span>
+            <span class="spacer"></span>
+            <span class="meta-likes" title="Likes">❤ ${likes}</span>
           </div>
-          <div class="comments" id="comments-${doc.id}" style="margin-top:12px;">
-            <div class="comments-list" data-loaded="0" style="display:flex; flex-direction:column; gap:8px;"></div>
-            <div class="comment-compose" style="display:flex; gap:8px; margin-top:8px;">
-              <input type="text" class="neural-input" placeholder="Write a reply..." style="flex:1; padding:8px;" />
-              <button class="neural-button secondary comment-send"><span class="button-text">Reply</span></button>
+          <div class="comments" id="comments-${doc.id}">
+            <div class="comments-list" data-loaded="0"></div>
+            <div class="comment-compose">
+              <input type="text" class="neural-input comment-input" placeholder="Write a reply..." />
+              <button class="neural-button comment-send"><span class="button-text">Reply</span></button>
             </div>
           </div>
         </div>
@@ -111,6 +124,19 @@
     postsList.insertAdjacentHTML('beforeend', items.join(''));
     lastCursor = snap.docs[snap.docs.length - 1] || null;
     loadMoreBtn.style.display = snap.size === pageSize ? 'inline-flex' : 'none';
+
+    // Auto-load the latest comments so action buttons are visible
+    requestAnimationFrame(() => {
+      const cards = postsList.querySelectorAll('article.game-card');
+      cards.forEach(card => {
+        const postId = card.getAttribute('data-id');
+        const list = card.querySelector(`#comments-${postId} .comments-list`);
+        if (list && list.dataset.loaded !== '1') {
+          loadCommentsFor(postId, list);
+        }
+      });
+  refreshOwnerPostActions();
+    });
   }
 
   async function fallbackLoadPosts(reset, tag){
@@ -157,6 +183,7 @@
       lastCursor = snap.docs[snap.docs.length - 1] || null;
       // Only show Load More if we received a full page from Firestore
       loadMoreBtn.style.display = snap.size === pageSize ? 'inline-flex' : 'none';
+  requestAnimationFrame(() => refreshOwnerPostActions());
     } catch (e) {
       console.error('Fallback load failed:', e);
       if (reset) postsList.innerHTML = '';
@@ -262,6 +289,8 @@
         if (createBtn) {
           createBtn.style.display = u ? 'inline-flex' : 'none';
         }
+    // Toggle post owner actions on auth change
+    refreshOwnerPostActions();
   // no-op; index-builder UI removed
       });
     }
@@ -300,6 +329,87 @@
       }
     });
 
+    // Delegate comment delete
+    postsList.addEventListener('click', async (e) => {
+      const del = e.target.closest('.comment-delete');
+      if (!del) return;
+      const card = e.target.closest('article.game-card');
+      if (!card) return;
+      if (!auth || !auth.currentUser) { alert('You must be signed in.'); return; }
+      const postId = card.getAttribute('data-id');
+      const commentId = del.getAttribute('data-cid');
+      const confirmMsg = 'Delete this comment? This cannot be undone.';
+      if (!commentId || !confirm(confirmMsg)) return;
+      try {
+        const f = await ensureModFirestore();
+        await mfs.deleteDoc(mfs.doc(mfs.db, `community_posts/${postId}/comments/${commentId}`));
+        const list = card.querySelector(`#comments-${postId} .comments-list`);
+        await loadCommentsFor(postId, list);
+      } catch (err) {
+        console.error('Delete comment failed:', err);
+        alert('Failed to delete comment.');
+      }
+    });
+
+    // Delegate comment edit start
+    postsList.addEventListener('click', async (e) => {
+      const edit = e.target.closest('.comment-edit');
+      if (!edit) return;
+      const item = e.target.closest('.comment-item');
+      if (!item) return;
+      const bodyEl = item.querySelector('.comment-body');
+      if (!bodyEl || item.classList.contains('editing')) return;
+      const original = bodyEl.textContent;
+      item.dataset.original = original;
+      item.classList.add('editing');
+      bodyEl.innerHTML = `<textarea class="comment-edit-input neural-input" rows="2">${escapeHtml(original)}</textarea>`;
+      const actions = item.querySelector('.comment-actions');
+      if (actions) actions.innerHTML = `
+        <button class="comment-save">Save</button>
+        <button class="comment-cancel">Cancel</button>
+      `;
+    });
+
+    // Delegate comment edit cancel
+    postsList.addEventListener('click', (e) => {
+      const cancel = e.target.closest('.comment-cancel');
+      if (!cancel) return;
+      const item = e.target.closest('.comment-item');
+      const bodyEl = item?.querySelector('.comment-body');
+      if (!item || !bodyEl) return;
+      bodyEl.textContent = item.dataset.original || '';
+      const actions = item.querySelector('.comment-actions');
+      if (actions) actions.innerHTML = actions.dataset.template || '';
+      item.classList.remove('editing');
+    });
+
+    // Delegate comment edit save
+    postsList.addEventListener('click', async (e) => {
+      const save = e.target.closest('.comment-save');
+      if (!save) return;
+      const item = e.target.closest('.comment-item');
+      if (!item) return;
+      const card = e.target.closest('article.game-card');
+      const postId = card?.getAttribute('data-id');
+      const commentId = item?.getAttribute('data-cid');
+      const input = item.querySelector('.comment-edit-input');
+      const newText = (input?.value || '').trim();
+      if (!newText || !postId || !commentId) return;
+      if (!auth || !auth.currentUser) { alert('You must be signed in.'); return; }
+      try {
+        const f = await ensureModFirestore();
+        await mfs.updateDoc(mfs.doc(mfs.db, `community_posts/${postId}/comments/${commentId}`), {
+          body: newText,
+          updatedAt: mfs.Timestamp.fromDate(new Date())
+        });
+        const list = card.querySelector(`#comments-${postId} .comments-list`);
+        await loadCommentsFor(postId, list);
+      } catch (err) {
+        console.error('Save comment failed:', err);
+        alert('Failed to save changes.');
+      }
+    });
+
     postsList.addEventListener('focusin', async (e) => {
       const input = e.target.closest('.comment-compose input');
       if (!input) return;
@@ -311,6 +421,75 @@
         await loadCommentsFor(postId, list);
       }
     });
+  });
+
+  function refreshOwnerPostActions(){
+    const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
+    const cards = postsList.querySelectorAll('article.game-card');
+    cards.forEach(card => {
+      const owner = card.getAttribute('data-owner');
+      const ctr = card.querySelector('.post-actions');
+      if (!ctr) return;
+      if (uid && owner === uid) {
+        if (!ctr.dataset.bound) {
+          ctr.innerHTML = '<button class="post-edit">Edit</button><button class="post-delete">Delete</button>';
+          ctr.dataset.bound = '1';
+        }
+      } else {
+        ctr.innerHTML = '';
+        delete ctr.dataset.bound;
+      }
+    });
+  }
+
+  // Post actions (owner only)
+  postsList.addEventListener('click', async (e) => {
+    const del = e.target.closest('.post-delete');
+    if (!del) return;
+    const card = e.target.closest('article.game-card');
+    if (!card) return;
+    const owner = card.getAttribute('data-owner');
+    if (!auth || !auth.currentUser || auth.currentUser.uid !== owner) return;
+    const postId = card.getAttribute('data-id');
+    if (!postId || !confirm('Delete this post? This cannot be undone.')) return;
+    try {
+      await ensureModFirestore();
+      await mfs.deleteDoc(mfs.doc(mfs.db, `community_posts/${postId}`));
+      lastCursor = null; postsList.innerHTML = ''; await loadPosts(true);
+    } catch (err) {
+      console.error('Delete post failed:', err);
+      alert('Failed to delete post.');
+    }
+  });
+
+  postsList.addEventListener('click', async (e) => {
+    const edit = e.target.closest('.post-edit');
+    if (!edit) return;
+    const card = e.target.closest('article.game-card');
+    if (!card) return;
+    const owner = card.getAttribute('data-owner');
+    if (!auth || !auth.currentUser || auth.currentUser.uid !== owner) return;
+    const titleEl = card.querySelector('.card-title');
+    const descEl = card.querySelector('.card-description');
+    const oldTitle = titleEl?.textContent || '';
+    const oldBody = descEl?.textContent?.replace(/…$/, '') || '';
+    const newTitle = prompt('Edit title:', oldTitle);
+    if (newTitle == null) return;
+    const newBody = prompt('Edit body:', oldBody);
+    if (newBody == null) return;
+    try {
+      await ensureModFirestore();
+      const postId = card.getAttribute('data-id');
+      await mfs.updateDoc(mfs.doc(mfs.db, `community_posts/${postId}`), {
+        title: String(newTitle).trim(),
+        body: String(newBody).trim(),
+        updatedAt: mfs.Timestamp.fromDate(new Date())
+      });
+      lastCursor = null; postsList.innerHTML = ''; await loadPosts(true);
+    } catch (err) {
+      console.error('Edit post failed:', err);
+      alert('Failed to save changes.');
+    }
   });
 
   async function loadCommentsFor(postId, listEl){
@@ -327,12 +506,15 @@
         const c = doc.data();
         const when = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : '';
         const who = escapeHtml(c.authorName || 'Anonymous');
-        items.push(`<div class="comment-item" style="display:flex; gap:8px; align-items:flex-start;">
-          <img src="${escapeHtml(c.authorPhotoUrl || '')}" alt="" onerror="this.style.display='none'" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--primary-cyan);object-fit:cover;" />
-          <div style="flex:1;">
-            <div style="font-size:0.85rem; opacity:0.9;"><strong>${who}</strong> · <span style="opacity:0.7;">${when}</span></div>
-            <div style="font-size:0.95rem;">${escapeHtml(c.body)}</div>
+        const canOwn = !!(auth && auth.currentUser && c.userId === auth.currentUser.uid);
+        const actionsTpl = canOwn ? `<div class="comment-actions" data-template="<div class=\"comment-actions\"><button class=\"comment-edit\" data-cid=\"${doc.id}\">Edit<\/button><button class=\"comment-delete\" data-cid=\"${doc.id}\">Delete<\/button><\/div>"><button class="comment-edit" data-cid="${doc.id}">Edit</button><button class="comment-delete" data-cid="${doc.id}">Delete</button></div>` : '<div class="comment-actions"></div>';
+        items.push(`<div class="comment-item" data-cid="${doc.id}">
+          <img class="comment-avatar" src="${escapeHtml(c.authorPhotoUrl || '')}" alt="" onerror="this.style.display='none'" />
+          <div class="comment-main">
+            <div class="comment-head"><strong>${who}</strong> <span class="comment-when">${when}</span></div>
+            <div class="comment-body">${escapeHtml(c.body)}</div>
           </div>
+          ${actionsTpl}
         </div>`);
       });
       listEl.innerHTML = items.join('');

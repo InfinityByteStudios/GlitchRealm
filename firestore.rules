@@ -128,8 +128,8 @@ service cloud.firestore {
                      request.auth.uid == resource.data.userId &&
                      isValidCommunityPost(request.resource.data);
 
-      // Only admins can delete posts
-      allow delete: if isAdmin(request.auth.uid);
+  // Delete: owner or admin can delete posts
+  allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
 
       // Comments subcollection under each post
       match /comments/{commentId} {

@@ -34,6 +34,45 @@
             #signin-modal .social-icon { width: 24px; height: 24px; }
             #signin-modal .auth-panel { max-width: 440px; }
             #signin-modal.auth-overlay { z-index: 4000; }
+
+            /* Community post card polish */
+            .community-card { border-radius: 12px; }
+            .community-card .card-title { margin-bottom: 6px; font-size: 1.1rem; }
+            .community-card .card-description { margin-bottom: 10px; color: var(--gray-200); }
+            .community-card .card-tags { margin-bottom: 10px; }
+            /* Force a 2-column grid for posts on this page */
+            #posts-list.game-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 1.5rem; }
+            @media (max-width: 900px) { #posts-list.game-cards { grid-template-columns: 1fr !important; } }
+            .community-meta { display:flex; align-items:center; gap:10px; opacity:0.9; margin-top:4px; }
+            .community-meta .author-avatar { width:24px; height:24px; border-radius:50%; border:1px solid var(--primary-cyan); object-fit:cover; }
+            .community-meta .author-name { font-weight:600; }
+            .community-meta .meta-dot { opacity:0.6; }
+            .community-meta .spacer { flex:1; }
+            .post-header-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+            .post-actions { display:flex; gap:6px; }
+            .post-actions .post-edit, .post-actions .post-delete { background: transparent; border:1px solid var(--gray-700); color: var(--gray-200); border-radius:6px; padding:4px 8px; cursor:pointer; transition: all .2s ease; font-size:0.85rem; }
+            .post-actions .post-edit:hover { border-color: var(--primary-cyan); color: var(--primary-cyan); box-shadow: 0 0 10px rgba(0,255,249,.25); }
+            .post-actions .post-delete:hover { border-color: var(--danger); color: var(--danger); box-shadow: 0 0 10px rgba(255,7,58,.25); }
+            .comments { margin-top:12px; border-top:1px solid var(--gray-700); padding-top:10px; }
+            .comments-list { display:flex; flex-direction:column; gap:8px; }
+            .comment-item { display:flex; gap:10px; align-items:flex-start; background: rgba(255,255,255,0.02); border:1px solid var(--gray-700); border-radius:8px; padding:8px 10px; }
+            .comment-avatar { width:24px; height:24px; border-radius:50%; border:1px solid var(--primary-cyan); object-fit:cover; }
+            .comment-main { flex:1; min-width:0; }
+            .comment-head { font-size:0.85rem; opacity:0.9; display:flex; gap:6px; align-items:center; }
+            .comment-when { opacity:0.7; font-size:0.8rem; }
+            .comment-body { font-size:0.95rem; word-break:break-word; }
+            .comment-delete { background: transparent; border: 1px solid var(--gray-700); color: var(--gray-200); border-radius:6px; padding:4px 6px; cursor:pointer; transition: all .2s ease; }
+            .comment-delete:hover { border-color: var(--danger); color: var(--danger); box-shadow: 0 0 10px rgba(255,7,58,.25); }
+            .comment-actions { display:flex; gap:6px; align-items:center; }
+            .comment-edit, .comment-save, .comment-cancel { background: transparent; border:1px solid var(--gray-700); color: var(--gray-200); border-radius:6px; padding:4px 8px; cursor:pointer; transition: all .2s ease; }
+            .comment-edit:hover, .comment-save:hover { border-color: var(--primary-cyan); color: var(--primary-cyan); box-shadow: 0 0 10px rgba(0,255,249,.25); }
+            .comment-cancel:hover { border-color: var(--primary-magenta); color: var(--primary-magenta); box-shadow: 0 0 10px rgba(255,0,128,.25); }
+            .comment-item.editing .comment-body { width: 100%; }
+            .comment-compose { display:flex; gap:8px; margin-top:8px; align-items:center; }
+            .comment-input { padding:10px 0 10px; }
+            /* Compact reply button variant */
+            .community-card .comment-send.neural-button { width:auto; padding:10px 16px; border-radius:8px; margin-top:0; font-size:0.85rem; }
+            .community-card .comment-send .button-text { letter-spacing:1px; }
         </style>
 
     <!-- Firebase SDK init (module) -->
