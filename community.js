@@ -1,6 +1,27 @@
 // Community page logic: list posts, create post modal, basic filters
 (function(){
   const auth = window.firebaseAuth;
+  // Role UIDs (keep in sync with firestore.rules isDeveloper + extend for artists as needed)
+  const ROLE_UIDS = {
+    developers: new Set([
+      '6iZDTXC78aVwX22qrY43BOxDRLt1',
+      'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+    ]),
+    artists: new Set([
+      // Add artist account UIDs here
+    ])
+  };
+
+  function roleBadgesFor(uid){
+    if (!uid) return '';
+    const out = [];
+    if (ROLE_UIDS.developers.has(uid)) out.push('<span class="role-badge dev" title="Developer">DEV</span>');
+    if (ROLE_UIDS.artists.has(uid)) out.push('<span class="role-badge artist" title="Artist">ART</span>');
+    return out.join(' ');
+  }
   // Modular Firestore helpers (lazy-loaded)
   let mfs = {
     db: null,
@@ -66,6 +87,7 @@
           <div class="card-meta community-meta">
             <img class="author-avatar" src="${avatar}" alt="" onerror="this.src='assets/icons/anonymous.png'" />
             <span class="author-name" title="Author">${author}</span>
+            ${roleBadgesFor(d.userId)}
             <span class="meta-dot">•</span>
             <span class="meta-date" title="Date">${date.toLocaleDateString()}</span>
             <span class="spacer"></span>
@@ -505,13 +527,13 @@
       snap.forEach(doc => {
         const c = doc.data();
         const when = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : '';
-        const who = escapeHtml(c.authorName || 'Anonymous');
+    const who = escapeHtml(c.authorName || 'Anonymous');
         const canOwn = !!(auth && auth.currentUser && c.userId === auth.currentUser.uid);
-        const actionsTpl = canOwn ? `<div class="comment-actions" data-template="<div class=\"comment-actions\"><button class=\"comment-edit\" data-cid=\"${doc.id}\">Edit<\/button><button class=\"comment-delete\" data-cid=\"${doc.id}\">Delete<\/button><\/div>"><button class="comment-edit" data-cid="${doc.id}">Edit</button><button class="comment-delete" data-cid="${doc.id}">Delete</button></div>` : '<div class="comment-actions"></div>';
+    const actionsTpl = canOwn ? `<div class="comment-actions" data-template="<div class=\"comment-actions\"><button class=\"comment-edit\" data-cid=\"${doc.id}\">Edit<\/button><button class=\"comment-delete\" data-cid=\"${doc.id}\">Delete<\/button><\/div>"><button class="comment-edit" data-cid="${doc.id}">Edit</button><button class="comment-delete" data-cid="${doc.id}">Delete</button></div>` : '<div class="comment-actions"></div>';
         items.push(`<div class="comment-item" data-cid="${doc.id}">
           <img class="comment-avatar" src="${escapeHtml(c.authorPhotoUrl || '')}" alt="" onerror="this.style.display='none'" />
           <div class="comment-main">
-            <div class="comment-head"><strong>${who}</strong> <span class="comment-when">${when}</span></div>
+      <div class="comment-head"><strong>${who}</strong> ${roleBadgesFor(c.userId)} <span class="comment-when">${when}</span></div>
             <div class="comment-body">${escapeHtml(c.body)}</div>
           </div>
           ${actionsTpl}
