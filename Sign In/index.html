@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlitchRealm Access - Sign In</title>
+    <link rel="icon" type="image/png" href="../assets/Glitch Realm FaviCon Image.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../auth-message.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    </noscript>
+    <style>
+        /* Dedicated Sign-In page polish + scrolling fixes */
+        html, body { height: 100%; box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: inherit; }
+        /* Ensure the overlay itself can scroll on small viewports */
+        .auth-overlay {
+            position: fixed; /* ensure it covers the viewport */
+            inset: 0;
+            width: 100%;
+            height: 100dvh; /* respect mobile dynamic viewport */
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto; /* scroll inside overlay */
+            -webkit-overflow-scrolling: touch;
+            padding: 24px 12px; /* space around the card */
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 520px;
+            margin: 24px auto; /* allow breathing room so content can scroll */
+            background: linear-gradient(145deg, rgba(26,26,46,0.95), rgba(22,33,62,0.95));
+            border: 2px solid var(--primary-cyan);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45), 0 0 30px rgba(0,255,249,0.15);
+            padding: 28px 22px 26px;
+            backdrop-filter: blur(10px);
+            overflow: hidden; /* keep inner glow effects contained */
+        }
+        .auth-header { 
+            text-align: left; 
+            margin-bottom: 18px; 
+            display: flex !important; /* override global */
+            flex-direction: column !important; 
+            align-items: flex-start !important; 
+            gap: 6px; 
+            border-bottom: none !important; /* avoid extra divider under header on this page */
+        }
+    /* Tweak big title spacing */
+    .glitch-large { line-height: 1.05; font-size: clamp(2.2rem, 5.5vw, 3rem); }
+        .auth-header p { 
+            margin-top: 6px; 
+            opacity: .85; 
+            font-family: 'Rajdhani', sans-serif; 
+            max-width: 56ch; 
+        }
+
+        /* Tabs */
+        .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--primary-cyan); border-radius: 12px; overflow: hidden; margin: 16px 0 22px; }
+        .auth-tab { 
+            background: transparent; color: var(--white); padding: 14px 10px; border: 0; cursor: pointer; font-family: 'Orbitron', monospace; font-weight: 800; letter-spacing: .8px;
+        }
+        .auth-tab.active { 
+            background: linear-gradient(90deg, rgba(0,255,249,0.15) 0%, rgba(255,0,128,0.15) 100%);
+            box-shadow: inset 0 0 20px rgba(0,255,249,.15);
+        }
+
+        /* Forms */
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+    .auth-form .form-group { margin-bottom: 14px; }
+        .auth-form input {
+            width: 100%; padding: 14px 16px; background: rgba(5,5,5,0.75); border: 2px solid var(--gray-700);
+            border-radius: 10px; color: var(--white); font-family: 'Rajdhani', sans-serif; transition: .2s border, .2s box-shadow;
+        }
+        .auth-form input:focus { outline: none; border-color: var(--primary-cyan); box-shadow: 0 0 18px rgba(0,255,249,.22), inset 0 0 8px rgba(0,255,249,.08); }
+    .forgot-password-btn { width: 100%; margin-top: 8px; }
+
+        /* Buttons */
+        .auth-button { 
+            width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 10px; 
+            padding: 14px 16px; border-radius: 12px; font-family: 'Orbitron', monospace; font-weight: 800; letter-spacing: .8px; 
+            border: 0; cursor: pointer; transition: transform .08s ease, box-shadow .2s ease, background .2s ease; margin-top: 10px;
+        }
+        .auth-button:active { transform: translateY(1px); }
+        .auth-button.primary { color: var(--white); background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta)); box-shadow: 0 10px 25px rgba(0,255,249,.15); }
+        .auth-button.primary:hover { box-shadow: 0 14px 30px rgba(0,255,249,.25); }
+        .auth-button.secondary { background: transparent; color: var(--primary-cyan); border: 1px solid rgba(0,255,249,.35); }
+        .auth-button.secondary:hover { background: rgba(0,255,249,.08); }
+
+        /* Social buttons */
+        .auth-button.google { background: rgba(0,0,0,0.35); border: 1px solid rgba(0,255,249,.25); color: var(--white); }
+        .auth-button.google:hover { background: rgba(0,0,0,0.45); box-shadow: 0 0 16px rgba(0,255,249,.18); }
+        .auth-button.github { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,0,128,.25); color: var(--white); }
+        .auth-button.github:hover { background: rgba(0,0,0,0.45); box-shadow: 0 0 16px rgba(255,0,128,.18); }
+    .google-icon, .github-icon { filter: drop-shadow(0 0 6px rgba(0,0,0,.35)); width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; }
+    .github-icon svg { width: 20px; height: 20px; fill: currentColor; }
+    .google-icon svg { width: 20px; height: 20px; }
+
+        /* Divider */
+        .auth-divider { position: relative; text-align: center; margin: 18px 0; }
+        .auth-divider span { position: relative; z-index: 1; padding: 0 10px; color: var(--gray-300); font-family: 'Rajdhani', sans-serif; }
+        .auth-divider::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); }
+
+        /* Footer */
+        .auth-footer { text-align: center; margin-top: 8px; }
+        .auth-footer .guest-note { margin: 8px 0 6px; opacity: .85; font-family: 'Rajdhani', sans-serif; }
+        .auth-button.guest { background: transparent; color: var(--white); border: 1px solid var(--gray-700); }
+        .auth-button.guest:hover { border-color: var(--primary-cyan); box-shadow: 0 0 14px rgba(0,255,249,.2); }
+
+    /* Small tweaks */
+        @media (max-width: 520px) { .auth-container { margin: 16px 8px; } }
+        @media (max-height: 700px) {
+            .auth-container { margin: 12px auto; }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.firebasestorage.app",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        try { getAnalytics(app); } catch (e) {}
+        const provider = new GoogleAuthProvider();
+        const githubProvider = new GithubAuthProvider();
+        
+        // Make Firebase functions available globally
+        window.firebaseAuth = auth;
+        window.googleProvider = provider;
+        window.githubProvider = githubProvider;
+        window.firebaseSignInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.firebaseCreateUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.firebaseSignInWithPopup = signInWithPopup;
+        
+        window.dispatchEvent(new Event('firebaseReady'));
+    </script>
+</head>
+<body>
+    <div class="background-animation"></div>
+
+    <div class="auth-overlay" style="display: none;">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h2 class="glitch-large" data-text="GLITCHREALM ACCESS">GLITCHREALM ACCESS</h2>
+                <p>Sign in to save your progress and compete on leaderboards</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="signin-tab" data-tab="signin">SIGN IN</button>
+                <button class="auth-tab" id="signup-tab" data-tab="signup">CREATE ACCOUNT</button>
+            </div>
+            
+            <div id="authMessage" class="auth-message hidden"></div>
+            
+            <form id="signin-form" class="auth-form active">
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                
+                <button type="submit" class="auth-button primary">SIGN IN</button>
+                
+                <button type="button" class="auth-button secondary forgot-password-btn">FORGOT PASSWORD?</button>
+            </form>
+            
+            <form id="signup-form" class="auth-form">
+                <div class="form-group">
+                    <input type="email" id="signup-email" placeholder="Email" required>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" id="signup-password" placeholder="Password (min 6 characters)" required>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+                </div>
+                
+                <button type="submit" class="auth-button primary">CREATE ACCOUNT</button>
+            </form>
+            
+            <div class="auth-divider"><span>OR</span></div>
+            
+            <button id="google-signin" class="auth-button google">
+                <span class="google-icon" aria-hidden="true">
+                    <!-- Official Google "G" mark -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" role="img" focusable="false">
+                        <title>Google</title>
+                        <path fill="#4285F4" d="M17.64 9.2045c0-.638-.0573-1.2527-.164-1.835H9v3.469h4.844c-.208 1.124-.84 2.075-1.79 2.713v2.258h2.896c1.695-1.562 2.668-3.86 2.668-6.605z"/>
+                        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.188l-2.896-2.258c-.806.54-1.836.86-3.06.86-2.355 0-4.353-1.59-5.066-3.73H.956v2.34C2.438 15.982 5.481 18 9 18z"/>
+                        <path fill="#FBBC05" d="M3.934 10.684c-.18-.54-.282-1.116-.282-1.705s.102-1.165.282-1.705V4.934H.956C.347 6.164 0 7.542 0 9c0 1.458.347 2.836.956 4.066l2.978-2.382z"/>
+                        <path fill="#EA4335" d="M9 3.58c1.321 0 2.512.454 3.447 1.346l2.585-2.585C13.465.89 11.43 0 9 0 5.481 0 2.438 2.018.956 4.934l2.978 2.34C4.647 5.17 6.645 3.58 9 3.58z"/>
+                    </svg>
+                </span>
+                <span id="google-button-text">Sign in with Google</span>
+            </button>
+            
+            <button id="github-signin" class="auth-button github">
+                <span class="github-icon" aria-hidden="true">
+                    <!-- GitHub Octocat mark -->
+                    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img">
+                        <title>GitHub</title>
+                        <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.11 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.91.08 2.11.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.94-.01 2.21 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                </span>
+                <span id="github-button-text">Sign in with GitHub</span>
+            </button>
+            
+            <div class="auth-footer">
+                <p class="guest-note">Want to play without an account?</p>
+                <button id="continueAsGuestBtn" class="auth-button guest" onclick="window.location.href='../index.html'">CONTINUE AS GUEST</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../signin.js" defer></script>
+    <script defer>
+        // Show the modal immediately on the dedicated sign-in page
+        document.addEventListener('DOMContentLoaded', function() {
+            const authOverlay = document.querySelector('.auth-overlay');
+            if (authOverlay) {
+                authOverlay.style.display = 'flex';
+                // Allow overlay to manage its own scroll without locking the page entirely
+                document.body.style.overflow = 'auto';
+                                // If a redirect param exists, store it so signin.js can send the user back
+                                try {
+                                    const p = new URLSearchParams(window.location.search);
+                                    const r = p.get('redirect');
+                                    if (r) sessionStorage.setItem('gr.returnTo', decodeURIComponent(r));
+                                } catch {}
+            }
+        });
+    </script>
+</body>
+</html>
