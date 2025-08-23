@@ -7,7 +7,14 @@
     <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-message.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    </noscript>
       <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -119,8 +126,8 @@
                 </button>
             </div>        </div>
     </div>    
-    <script src="signin.js"></script>
-    <script>
+    <script src="signin.js" defer></script>
+    <script defer>
         // Show the modal immediately on the dedicated sign-in page
         document.addEventListener('DOMContentLoaded', function() {
             const authOverlay = document.querySelector('.auth-overlay');

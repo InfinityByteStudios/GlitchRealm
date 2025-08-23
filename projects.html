@@ -3,9 +3,9 @@
 <head>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projects - GlitchRealm</title>
-    <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css">
+    <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Preconnects first to speed up font and CDN handshakes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -14,6 +14,16 @@
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <!-- Async Google Fonts (non-render-blocking) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap">
+    </noscript>
+    <!-- Async devicon CSS (non-critical) -->
+    <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css">
+    </noscript>
       <!-- Firebase SDK -->
     <script type="module">        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -361,7 +371,7 @@
                     <!-- GlitchBot Project Card -->
                     <div class="game-card coming-soon" data-game="glitchbot">
                         <div class="card-image">
-                            <img src="assets/game logos/project logos/glitchbot with words.png" alt="GlitchBot" class="game-logo-image" loading="lazy" decoding="async">
+                            <img src="assets/game logos/project logos/glitchbot with words.png" alt="GlitchBot" class="game-logo-image" loading="eager" fetchpriority="high" decoding="async">
                             <div class="card-overlay"></div>
                             <div class="game-badge under-development">UNDER DEVELOPMENT</div>
                         </div>

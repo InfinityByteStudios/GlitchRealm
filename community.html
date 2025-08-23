@@ -6,7 +6,8 @@
     <title>Community - GlitchRealm</title>
     <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -36,7 +37,7 @@
             #signin-modal.auth-overlay { z-index: 4000; }
 
             /* Community post card polish */
-            .community-card { border-radius: 12px; }
+            .community-card { border-radius: 12px; content-visibility: auto; contain-intrinsic-size: 360px 560px; }
             .community-card .card-title { margin-bottom: 6px; font-size: 1.1rem; }
             .community-card .card-description { margin-bottom: 10px; color: var(--gray-200); }
             .community-card .card-tags { margin-bottom: 10px; }

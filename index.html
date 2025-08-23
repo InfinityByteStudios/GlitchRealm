@@ -11,7 +11,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GlitchRealm Games</title>
     <link rel="icon" type="image/png" href="assets/glitch realm favicon image.png">    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    </noscript>
     <style>
         /* Force proper styling for profile dropdown */
         .user-profile {
@@ -338,7 +341,7 @@
             <div class="container">
                 <h2 class="section-title">Newest Game</h2>                <div class="featured-card">
                     <div class="featured-image">
-                        <img src="assets/Game Logos/ByteSurge.png" alt="ByteSurge" class="featured-logo-image" decoding="async">
+                        <img src="assets/Game Logos/ByteSurge.png" alt="ByteSurge" class="featured-logo-image" decoding="async" fetchpriority="high" loading="eager">
                         <div class="game-badge new">NEW</div>
                     </div>                    <div class="featured-info">                        <h3>ByteSurge</h3>
                         <p>Navigate through digital realms and cyber challenges in this high-intensity action game. Master the flow of data and surge through obstacles in a neon-soaked cyberpunk world.</p>

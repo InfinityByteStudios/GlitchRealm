@@ -85,7 +85,7 @@
           <p class="card-description">${escapeHtml((d.body || '').slice(0, 220))}${(d.body||'').length>220?'…':''}</p>
           <div class="card-tags">${tags}</div>
           <div class="card-meta community-meta">
-            <img class="author-avatar" src="${avatar}" alt="" onerror="this.src='assets/icons/anonymous.png'" />
+            <img class="author-avatar" src="${avatar}" alt="" loading="lazy" decoding="async" onerror="this.src='assets/icons/anonymous.png'" />
             <span class="author-name" title="Author">${author}</span>
             ${roleBadgesFor(d.userId)}
             <span class="meta-dot">•</span>
@@ -531,7 +531,7 @@
         const canOwn = !!(auth && auth.currentUser && c.userId === auth.currentUser.uid);
     const actionsTpl = canOwn ? `<div class="comment-actions" data-template="<div class=\"comment-actions\"><button class=\"comment-edit\" data-cid=\"${doc.id}\">Edit<\/button><button class=\"comment-delete\" data-cid=\"${doc.id}\">Delete<\/button><\/div>"><button class="comment-edit" data-cid="${doc.id}">Edit</button><button class="comment-delete" data-cid="${doc.id}">Delete</button></div>` : '<div class="comment-actions"></div>';
         items.push(`<div class="comment-item" data-cid="${doc.id}">
-          <img class="comment-avatar" src="${escapeHtml(c.authorPhotoUrl || '')}" alt="" onerror="this.style.display='none'" />
+          <img class="comment-avatar" src="${escapeHtml(c.authorPhotoUrl || '')}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'" />
           <div class="comment-main">
       <div class="comment-head"><strong>${who}</strong> ${roleBadgesFor(c.userId)} <span class="comment-when">${when}</span></div>
             <div class="comment-body">${escapeHtml(c.body)}</div>

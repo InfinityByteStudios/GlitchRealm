@@ -4,8 +4,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games - GlitchRealm Games</title>
     <link rel="icon" type="image/png" href="assets/glitch realm favicon image.png">    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css">
+    <!-- Async Google Fonts (non-render-blocking) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap">
+    </noscript>
+    <!-- Async devicon CSS (non-critical) -->
+    <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css">
+    </noscript>
     <!-- Performance: preconnect to critical third-parties -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,7 +63,10 @@
         }, 2000);
     </script>
     <style>
-        /* Review button styles */
+    /* Performance: avoid rendering offscreen cards until scrolled into view */
+    .game-card { content-visibility: auto; contain-intrinsic-size: 400px 1px; }
+
+    /* Review button styles */
         .review-btn {
             background: linear-gradient(45deg, var(--primary-cyan), #00cc99);
             border: none;
@@ -1135,7 +1146,7 @@
                 <div class="game-cards">                    <!-- ShadowLight Game Card -->
                     <div class="game-card" data-game="shadowlight">
                         <div class="card-image">
-                            <img src="assets/Game Logos/ShadowLight.png" alt="ShadowLight" class="game-logo-image" loading="lazy" decoding="async">
+                            <img src="assets/Game Logos/ShadowLight.png" alt="ShadowLight" class="game-logo-image" loading="eager" fetchpriority="high" decoding="async">
                             <div class="card-overlay"></div>
                             <div class="game-badge removed">GAME REMOVED</div>
                         </div><div class="card-content">
