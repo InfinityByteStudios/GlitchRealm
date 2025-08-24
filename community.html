@@ -30,17 +30,34 @@
                 .nav-container { padding-top: 1rem; padding-bottom: 1rem; }
             }
 
-            /* Auth modal hardening (Community) */
-            #signin-modal .auth-panel img { max-width: 48px; max-height: 48px; width: auto; height: auto; object-fit: contain; }
+                /* Auth modal hardening (Community)
+                    Avoid enlarging all images; target header-only if used */
+                #signin-modal .auth-header img { max-width: 48px; max-height: 48px; width: auto; height: auto; object-fit: contain; }
             #signin-modal .social-icon { width: 24px; height: 24px; }
+                /* Ensure any provider <img> inside social buttons remains consistent */
+                #signin-modal .social-button img { width: 24px; height: 24px; object-fit: contain; }
             #signin-modal .auth-panel { max-width: 440px; }
             #signin-modal.auth-overlay { z-index: 4000; }
 
             /* Community post card polish */
             .community-card { border-radius: 12px; content-visibility: auto; contain-intrinsic-size: 360px 560px; }
             .community-card .card-title { margin-bottom: 6px; font-size: 1.1rem; }
-            .community-card .card-description { margin-bottom: 10px; color: var(--gray-200); }
+            .community-card .card-description { margin-bottom: 10px; color: var(--gray-200); white-space: pre-wrap; overflow-wrap: anywhere; }
             .community-card .card-tags { margin-bottom: 10px; }
+            .community-card .read-toggle.link { 
+                appearance: none; background: none; border: none; padding: 0; margin: 0;
+                color: var(--primary-cyan); text-decoration: underline; cursor: pointer;
+                font: inherit; font-size: 0.9em; letter-spacing: .5px;
+            }
+            .community-card .read-toggle.link:hover { color: #86f6ff; }
+
+            /* High-contrast dropdown options (Community page) */
+            #filter-tag.neural-input, #sort-order.neural-input { color: #e6edf3; background: rgba(0,0,0,0.6); }
+            #filter-tag.neural-input option, #sort-order.neural-input option {
+                background-color: #0a1629; color: #e6edf3; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem;
+            }
+            #filter-tag.neural-input option:checked, #sort-order.neural-input option:checked { background-color: rgba(0,255,249,0.22); color: #16e1ff; }
+            #filter-tag.neural-input option:hover, #sort-order.neural-input option:hover { background-color: #112030; color: #a7f7ff; }
             /* Force a 2-column grid for posts on this page */
             #posts-list.game-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 1.5rem; }
             @media (max-width: 900px) { #posts-list.game-cards { grid-template-columns: 1fr !important; } }
@@ -126,6 +143,7 @@
                             <option value="">All tags</option>
                             <option value="announcement">#announcement</option>
                             <option value="update">#update</option>
+                            <option value="issues">#issues</option>
                             <option value="bug">#bug</option>
                             <option value="feature">#feature</option>
                             <option value="bytesurge">#bytesurge</option>
@@ -157,7 +175,8 @@
 
     <div id="footer-placeholder"></div>
 
-    <!-- Sign In Modal (copied from index.html for consistency) -->
+
+ <!-- Sign In Modal -->
     <div id="signin-modal" class="auth-overlay" style="display: none;">
         <div class="auth-panel">
             <div class="auth-header">
@@ -168,7 +187,7 @@
                     <span class="close-icon">×</span>
                 </button>
             </div>
-
+            
             <div class="auth-tabs">
                 <button class="auth-tab active" data-tab="signin">
                     <span class="tab-icon">
@@ -187,7 +206,7 @@
                     <span>SIGN UP</span>
                 </button>
             </div>
-
+            
             <div class="auth-content">
                 <!-- Sign In Form -->
                 <div class="auth-form-container active" id="signin-form">
@@ -200,13 +219,13 @@
                             <input type="email" id="signin-email" class="neural-input" required>
                             <div class="input-line"></div>
                         </div>
-
+                        
                         <div class="input-container">
                             <div class="input-label">Password</div>
                             <input type="password" id="signin-password" class="neural-input" required>
                             <div class="input-line"></div>
                         </div>
-
+                        
                         <button type="submit" class="neural-button primary">
                             <span class="button-text">INITIATE CONNECTION</span>
                             <div class="button-glow"></div>
@@ -216,7 +235,7 @@
                         </button>
                     </form>
                 </div>
-
+                
                 <!-- Sign Up Form -->
                 <div class="auth-form-container" id="signup-form">
                     <div class="form-title">
@@ -228,33 +247,33 @@
                             <input type="email" id="signup-email" class="neural-input" required>
                             <div class="input-line"></div>
                         </div>
-
+                        
                         <div class="input-container">
                             <div class="input-label">Password</div>
                             <input type="password" id="signup-password" class="neural-input" required>
                             <div class="input-line"></div>
                         </div>
-
+                        
                         <div class="input-container">
                             <div class="input-label">Confirm Password</div>
                             <input type="password" id="confirm-password" class="neural-input" required>
                             <div class="input-line"></div>
                         </div>
-
+                        
                         <button type="submit" class="neural-button primary">
                             <span class="button-text">CREATE NEURAL LINK</span>
                             <div class="button-glow"></div>
                         </button>
                     </form>
                 </div>
-
+                
                 <!-- Divider -->
                 <div class="auth-divider">
                     <div class="divider-line"></div>
                     <span class="divider-text">ALTERNATIVE ACCESS</span>
                     <div class="divider-line"></div>
                 </div>
-
+                
                 <!-- Social Login -->
                 <div class="social-auth">
                     <button id="google-signin" class="social-button google">
@@ -262,26 +281,26 @@
                         <span id="google-button-text">Sign in with Google</span>
                         <div class="social-glow"></div>
                     </button>
-
+                    
                     <button id="github-signin" class="social-button github">
                         <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
                         <span id="github-button-text">Sign in with GitHub</span>
                         <div class="social-glow"></div>
                     </button>
-
+                    
                     <button id="anonymous-signin" class="social-button guest">
                         <img src="https://cdn.jsdelivr.net/gh/feathericons/feather/icons/user.svg" alt="Anonymous" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
                         <span>ANONYMOUS MODE</span>
                         <div class="social-glow"></div>
                     </button>
                 </div>
-
+                
                 <!-- Terms Agreement -->
                 <div class="terms-agreement">
                     <p>By signing in / signing up you agree to our <a href="terms-of-service.html" target="_blank">Terms of Service</a> and <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.</p>
                 </div>
             </div>
-
+            
             <!-- Background Effects -->
             <div class="auth-bg-effect"></div>
             <div class="auth-scanlines"></div>

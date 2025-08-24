@@ -4098,3 +4098,80 @@ body {
                     0 2px 10px rgba(0, 0, 0, 0.3);
     }
 }
+
+/* ================================
+     Community Intro Overlay Styles
+     ================================ */
+.community-intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    background:
+        radial-gradient(ellipse at center, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.88) 60%),
+        linear-gradient(135deg, rgba(10, 22, 41, 0.9) 0%, rgba(4, 16, 24, 0.96) 50%, rgba(6, 10, 18, 0.9) 100%);
+}
+
+@keyframes communityIntroPop {
+    from { transform: translateY(18px) scale(0.98); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.community-intro-dialog {
+    position: relative;
+    width: min(760px, 92vw);
+    border-radius: 20px;
+    padding: 28px 24px;
+    border: 2px solid rgba(0,255,249,0.7);
+    background:
+        linear-gradient(135deg, rgba(10, 22, 41, 0.95) 0%, rgba(4, 16, 24, 0.98) 50%, rgba(6, 10, 18, 0.95) 100%),
+        radial-gradient(circle at 50% 0%, rgba(0,255,249,0.08) 0%, transparent 55%);
+    box-shadow: 0 25px 80px rgba(0,0,0,0.8), 0 15px 35px rgba(0,255,249,0.18), 0 5px 15px rgba(255,0,128,0.12);
+    color: #e8f8ff;
+    overflow: hidden;
+    animation: communityIntroPop .35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.community-intro-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    border: 1px solid rgba(0,255,249,0.35);
+    background: rgba(0,0,0,0.35);
+    color: #fff;
+    cursor: pointer;
+}
+
+.community-intro-body { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.community-intro-title {
+    margin: 0;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(1.8rem, 3.8vw, 2.6rem);
+    color: #16e1ff;
+    text-shadow: 0 0 12px rgba(0,255,249,0.6);
+}
+.community-intro-desc { margin: 0; font-family: 'Rajdhani', sans-serif; font-size: 1.05rem; opacity: .92; max-width: 65ch; }
+.community-intro-actions { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+
+/* Button variants for neural-button */
+.neural-button.primary { background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta)); color: var(--dark-bg); border: 1px solid var(--primary-cyan); width: auto; }
+.neural-button.secondary { background: transparent; color: var(--primary-cyan); border: 1px solid var(--primary-cyan); width: auto; }
+.neural-button.primary:hover { box-shadow: 0 0 20px var(--primary-cyan); transform: translateY(-2px); }
+.neural-button.secondary:hover { background: var(--primary-cyan); color: var(--dark-bg); box-shadow: 0 0 20px var(--primary-cyan); }
+
+@media (max-width: 520px) {
+    .community-intro-dialog { padding: 22px 18px; border-radius: 16px; }
+    .community-intro-title { font-size: clamp(1.5rem, 5vw, 2rem); }
+    .community-intro-actions .neural-button { padding: 12px 18px; }
+}

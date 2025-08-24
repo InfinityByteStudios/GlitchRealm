@@ -11,7 +11,7 @@
       'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
     ]),
     artists: new Set([
-      // Add artist account UIDs here
+      'cuGtyQvqilcWmxS859eta41Plak2'
     ])
   };
 
@@ -75,6 +75,10 @@
     const date = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date();
     const author = escapeHtml(d.userDisplayName || d.userName || d.authorName || 'Anonymous');
     const avatar = escapeHtml(d.authorPhotoUrl || 'assets/icons/anonymous.png');
+  const fullBody = String(d.body || '');
+  const truncLen = 220;
+  const isTruncated = fullBody.length > truncLen;
+  const truncated = fullBody.slice(0, truncLen);
     return `
       <article class="game-card community-card" data-id="${doc.id}" data-owner="${escapeHtml(d.userId || '')}">
         <div class="card-content">
@@ -82,7 +86,7 @@
             <h3 class="card-title">${escapeHtml(d.title || 'Untitled')}</h3>
             <div class="post-actions"></div>
           </div>
-          <p class="card-description">${escapeHtml((d.body || '').slice(0, 220))}${(d.body||'').length>220?'…':''}</p>
+          <p class="card-description" data-trunc-len="${truncLen}" data-full-uri="${encodeURIComponent(fullBody)}" data-state="truncated">${escapeHtml(truncated)}${isTruncated ? '… <button class="read-toggle link" type="button" aria-expanded="false" aria-label="Read full post">Read more</button>' : ''}</p>
           <div class="card-tags">${tags}</div>
           <div class="card-meta community-meta">
             <img class="author-avatar" src="${avatar}" alt="" loading="lazy" decoding="async" onerror="this.src='assets/icons/anonymous.png'" />
@@ -305,6 +309,14 @@
   // Initial load
     loadPosts(true);
 
+    // One-time community announcement toast
+    try {
+      if (!localStorage.getItem('gr.community.announce.v1')) {
+        showCommunityAnnouncement();
+        localStorage.setItem('gr.community.announce.v1', '1');
+      }
+    } catch (e) {}
+
     // Hide create button when signed out
     if (auth) {
       auth.onAuthStateChanged((u)=>{
@@ -319,6 +331,33 @@
 
     // Delegate comment send and lazy-load comments on focus
     postsList.addEventListener('click', async (e) => {
+      // Read more / less toggle
+  const toggle = e.target.closest('.read-toggle');
+      if (toggle) {
+        const card = e.target.closest('article.game-card');
+        const desc = card?.querySelector('.card-description');
+        if (desc) {
+          const state = desc.getAttribute('data-state') || 'truncated';
+          const fullUri = desc.getAttribute('data-full-uri') || '';
+          const truncLen = parseInt(desc.getAttribute('data-trunc-len') || '220', 10);
+          try {
+            const full = decodeURIComponent(fullUri);
+            if (state === 'truncated') {
+      // Expand with inline Read less
+      desc.innerHTML = `${escapeHtml(full)} <button class="read-toggle link" type="button" aria-expanded="true" aria-label="Collapse post">Read less</button>`;
+      desc.setAttribute('data-state', 'expanded');
+            } else {
+      const short = full.slice(0, truncLen);
+      desc.innerHTML = `${escapeHtml(short)}${full.length > truncLen ? '… <button class="read-toggle link" type="button" aria-expanded="false" aria-label="Read full post">Read more</button>' : ''}`;
+      desc.setAttribute('data-state', 'truncated');
+            }
+          } catch (err) {
+            console.warn('Toggle read failed:', err);
+          }
+        }
+        return; // don't fall through to comment handlers
+      }
+
       const btn = e.target.closest('.comment-send');
       if (!btn) return;
       const card = e.target.closest('article.game-card');
@@ -444,6 +483,38 @@
       }
     });
   });
+
+  // Show a dismissible toast announcing the community page
+  function showCommunityAnnouncement(){
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed; top: 20px; right: -420px; width: 360px; max-width: calc(100vw - 24px);
+      background: linear-gradient(145deg, rgba(22, 225, 255, 0.12), rgba(255, 46, 166, 0.12));
+      border: 2px solid rgba(22, 225, 255, 0.7);
+      border-radius: 14px; padding: 0; z-index: 10000; backdrop-filter: blur(10px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35), 0 0 20px rgba(22,225,255,0.2);
+      transition: right 450ms cubic-bezier(0.4, 0, 0.2, 1);
+      color: #e8f8ff; font-family: 'Rajdhani', system-ui, sans-serif;
+    `;
+    toast.innerHTML = `
+      <div style="display:flex; align-items:flex-start; gap:.75rem; padding:1rem;">
+        <div style="font-size:1.4rem; line-height:1; filter: drop-shadow(0 0 6px rgba(0,255,249,0.4));">✨</div>
+        <div style="flex:1;">
+          <strong style="display:block; font-family:'Orbitron', monospace; letter-spacing:.6px; margin-bottom:.2rem; text-shadow:0 0 10px rgba(0,255,249,0.4);">Community is live!</strong>
+          <p style="margin:.1rem 0 0; opacity:.9;">Create posts, share updates, and reply to others. Be respectful and have fun.</p>
+        </div>
+        <button aria-label="Dismiss" style="background:none;border:none;color:#16e1ff;font-size:1.2rem;cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:8px;">
+          ×
+        </button>
+      </div>
+    `;
+    const closeBtn = toast.querySelector('button');
+    closeBtn.addEventListener('click', () => toast.remove());
+    document.body.appendChild(toast);
+    setTimeout(()=>{ toast.style.right = '20px'; }, 60);
+    // Auto-hide after 8s
+    setTimeout(()=>{ try { if (toast && toast.parentNode) toast.remove(); } catch(e){} }, 8000);
+  }
 
   function refreshOwnerPostActions(){
     const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
