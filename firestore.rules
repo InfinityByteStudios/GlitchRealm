@@ -123,10 +123,13 @@ service cloud.firestore {
   allow create: if request.auth != null &&
          isValidCommunityPost(request.resource.data);
 
-      // Only the owner can update their post (admins may use delete for moderation)
-      allow update: if request.auth != null &&
-                     request.auth.uid == resource.data.userId &&
-                     isValidCommunityPost(request.resource.data);
+  // Only the owner can update their post (admins may use delete for moderation)
+  allow update: if request.auth != null &&
+         request.auth.uid == resource.data.userId &&
+         isValidCommunityPost(request.resource.data);
+
+  // Allow safe likesCount-only updates by any authenticated user (for upvotes)
+  allow update: if request.auth != null && isLikesCountOnlyUpdate();
 
   // Delete: owner or admin can delete posts
   allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
@@ -139,6 +142,22 @@ service cloud.firestore {
         allow create: if request.auth != null && isValidComment(request.resource.data);
         // Update/Delete: only author or admin
         allow update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
+      }
+
+      // Likes (Upvotes) subcollection under each post
+      match /likes/{uid} {
+        // Only the owner of the like can read their like doc (used to mark UI state)
+        allow read: if request.auth != null && request.auth.uid == uid;
+        // Create: user creates their own like doc with basic schema
+        allow create: if request.auth != null &&
+                       request.auth.uid == uid &&
+                       request.resource.data.keys().hasOnly(['userId','createdAt']) &&
+                       request.resource.data.userId == uid &&
+                       request.resource.data.createdAt is timestamp;
+        // Delete: user can remove their own like; admins too
+        allow delete: if request.auth != null && (request.auth.uid == uid || isAdmin(request.auth.uid));
+        // No updates to like docs (delete/recreate)
+        allow update: if false;
       }
     }
 
@@ -240,6 +259,13 @@ service cloud.firestore {
              (!commentData.keys().hasAny(['likesCount']) || (commentData.likesCount is int && commentData.likesCount >= 0)) &&
              // Prevent privilege-escalation fields
              !commentData.keys().hasAny(['admin','isAdmin','role','permissions']);
+    }
+
+    // Allow only likesCount field to change, keeping it >= 0
+    function isLikesCountOnlyUpdate() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['likesCount']) &&
+             request.resource.data.likesCount is int &&
+             request.resource.data.likesCount >= 0;
     }
   }
 }

@@ -66,6 +66,28 @@
             .community-meta .author-name { font-weight:600; }
             .community-meta .meta-dot { opacity:0.6; }
             .community-meta .spacer { flex:1; }
+            /* Upvote control affordances */
+            .community-meta .meta-likes {
+                display: inline-flex; align-items: center; gap: 6px;
+                padding: 2px 10px; border: 1px solid var(--gray-700);
+                border-radius: 999px; cursor: pointer; user-select: none;
+                transition: color .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+            }
+            .community-meta .meta-likes:hover,
+            .community-meta .meta-likes:focus {
+                border-color: var(--primary-cyan); color: var(--primary-cyan);
+                background: rgba(0,255,249,0.08); box-shadow: 0 0 8px rgba(0,255,249,0.2);
+                outline: none;
+            }
+            .community-meta .meta-likes:focus-visible {
+                outline: 2px solid var(--primary-cyan); outline-offset: 2px;
+            }
+            .community-meta .meta-likes[aria-pressed="true"] {
+                border-color: var(--accent-purple); color: #ffffff;
+                background: linear-gradient(135deg, rgba(22,225,255,0.12), rgba(138,43,226,0.18));
+                box-shadow: 0 0 10px rgba(138,43,226,0.25);
+            }
+            .community-meta .meta-likes .like-count { min-width: 1ch; }
             .post-header-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
             .post-actions { display:flex; gap:6px; }
             .post-actions .post-edit, .post-actions .post-delete { background: transparent; border:1px solid var(--gray-700); color: var(--gray-200); border-radius:6px; padding:4px 8px; cursor:pointer; transition: all .2s ease; font-size:0.85rem; }
@@ -152,7 +174,7 @@
                         </select>
                         <select id="sort-order" class="neural-input" style="min-width:160px;">
                             <option value="new">Newest</option>
-                            <option value="top">Top (likes)</option>
+                            <option value="top">Top (upvotes)</option>
                         </select>
                     </div>
                     <button id="create-post-btn" class="btn-portal" style="display:none;">Create Post</button>

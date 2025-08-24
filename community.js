@@ -36,6 +36,9 @@
   deleteDoc: null,
   doc: null,
   updateDoc: null,
+    getDoc: null,
+    setDoc: null,
+    increment: null,
     Timestamp: null
   };
   let lastCursor = null;
@@ -50,7 +53,7 @@
   async function ensureModFirestore(){
     if (mfs.db) return mfs;
     const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-  const { getFirestore, collection, query, where, orderBy, startAfter, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, Timestamp } = mod;
+  const { getFirestore, collection, query, where, orderBy, startAfter, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, Timestamp, getDoc, setDoc, increment } = mod;
     // Reuse default app initialized in page; getFirestore() will use it
     mfs.db = getFirestore();
     mfs.collection = collection;
@@ -64,6 +67,9 @@
   mfs.deleteDoc = deleteDoc;
   mfs.doc = doc;
   mfs.updateDoc = updateDoc;
+  mfs.getDoc = getDoc;
+  mfs.setDoc = setDoc;
+  mfs.increment = increment;
     mfs.Timestamp = Timestamp;
     return mfs;
   }
@@ -95,7 +101,7 @@
             <span class="meta-dot">•</span>
             <span class="meta-date" title="Date">${date.toLocaleDateString()}</span>
             <span class="spacer"></span>
-            <span class="meta-likes" title="Likes">❤ ${likes}</span>
+            <span class="meta-likes" role="button" tabindex="0" aria-pressed="false" title="Upvotes">▲ <span class="like-count">${likes}</span></span>
           </div>
           <div class="comments" id="comments-${doc.id}">
             <div class="comments-list" data-loaded="0"></div>
@@ -160,6 +166,8 @@
         if (list && list.dataset.loaded !== '1') {
           loadCommentsFor(postId, list);
         }
+  // Mark upvote state for current user
+  markUpvoteState(card, postId);
       });
   refreshOwnerPostActions();
     });
@@ -203,13 +211,20 @@
         emptyEl.style.display = 'none';
       }
       const html = pageDocs.map(x => postCard(x.ref)).join('');
-      postsList.insertAdjacentHTML('beforeend', html);
+  postsList.insertAdjacentHTML('beforeend', html);
 
       // Update cursor from original snapshot order
       lastCursor = snap.docs[snap.docs.length - 1] || null;
       // Only show Load More if we received a full page from Firestore
       loadMoreBtn.style.display = snap.size === pageSize ? 'inline-flex' : 'none';
-  requestAnimationFrame(() => refreshOwnerPostActions());
+  requestAnimationFrame(() => {
+        const cards = postsList.querySelectorAll('article.game-card');
+        cards.forEach(card => {
+          const postId = card.getAttribute('data-id');
+          markUpvoteState(card, postId);
+        });
+        refreshOwnerPostActions();
+      });
     } catch (e) {
       console.error('Fallback load failed:', e);
       if (reset) postsList.innerHTML = '';
@@ -329,8 +344,42 @@
       });
     }
 
-    // Delegate comment send and lazy-load comments on focus
+    // Delegate upvote toggle, comment send and lazy-load comments on focus
     postsList.addEventListener('click', async (e) => {
+      // Upvote toggle
+      const likeEl = e.target.closest('.meta-likes');
+      if (likeEl) {
+        const card = likeEl.closest('article.game-card');
+        const postId = card?.getAttribute('data-id');
+        const countEl = likeEl.querySelector('.like-count');
+        if (!postId || !countEl) return;
+        if (!auth || !auth.currentUser) { alert('Please sign in to upvote.'); return; }
+        try {
+          const f = await ensureModFirestore();
+          const uid = auth.currentUser.uid;
+          const likeDocRef = mfs.doc(mfs.db, `community_posts/${postId}/likes/${uid}`);
+          const snap = await mfs.getDoc(likeDocRef);
+          const postRef = mfs.doc(mfs.db, `community_posts/${postId}`);
+          const current = parseInt(countEl.textContent || '0', 10) || 0;
+          if (snap.exists()) {
+            // Remove like
+            await mfs.deleteDoc(likeDocRef);
+            await mfs.updateDoc(postRef, { likesCount: mfs.increment(-1) });
+            countEl.textContent = Math.max(0, current - 1);
+            likeEl.setAttribute('aria-pressed', 'false');
+          } else {
+            await mfs.setDoc(likeDocRef, { userId: uid, createdAt: mfs.Timestamp.fromDate(new Date()) });
+            await mfs.updateDoc(postRef, { likesCount: mfs.increment(1) });
+            countEl.textContent = current + 1;
+            likeEl.setAttribute('aria-pressed', 'true');
+          }
+        } catch (err) {
+          console.error('Toggle upvote failed:', err);
+          alert('Failed to toggle upvote.');
+        }
+        return;
+      }
+
       // Read more / less toggle
   const toggle = e.target.closest('.read-toggle');
       if (toggle) {
@@ -388,6 +437,15 @@
         console.error('Add comment failed:', err);
         alert('Failed to add reply.');
       }
+    });
+
+    // Keyboard support for upvote (Enter/Space)
+    postsList.addEventListener('keydown', async (e) => {
+      const likeEl = e.target.closest('.meta-likes');
+      if (!likeEl) return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      likeEl.click();
     });
 
     // Delegate comment delete
@@ -533,6 +591,21 @@
         delete ctr.dataset.bound;
       }
     });
+  }
+
+  async function markUpvoteState(card, postId){
+    try {
+      if (!auth || !auth.currentUser) return;
+      const likeEl = card.querySelector('.meta-likes');
+      if (!likeEl) return;
+      const uid = auth.currentUser.uid;
+      await ensureModFirestore();
+      const likeDocRef = mfs.doc(mfs.db, `community_posts/${postId}/likes/${uid}`);
+      const snap = await mfs.getDoc(likeDocRef);
+      likeEl.setAttribute('aria-pressed', snap.exists() ? 'true' : 'false');
+    } catch (e) {
+      // Non-fatal
+    }
   }
 
   // Post actions (owner only)
