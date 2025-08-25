@@ -908,12 +908,15 @@ async function initializeAuth() {
                     const newBtn = moderationMenuBtn.cloneNode(true);
                     moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
                     const show = DEV_UIDS.has(user.uid);
-                    newBtn.style.display = show ? 'flex' : 'none';
                     if (show) {
+                        newBtn.style.display = 'flex';
                         newBtn.addEventListener('click', (e) => {
                             e.preventDefault();
                             window.location.href = 'moderation.html';
                         });
+                    } else {
+                        // Remove entirely so CSS cannot force it visible
+                        newBtn.remove();
                     }
                 }
             } catch (e) { /* non-fatal */ }
@@ -938,7 +941,7 @@ async function initializeAuth() {
             if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
             if (notificationBell) notificationBell.style.display = 'none';
-            if (moderationMenuBtn) moderationMenuBtn.style.display = 'none';
+            if (moderationMenuBtn) moderationMenuBtn.remove();
             
             // Clear auth state for SSO
             if (window.sharedAuth) {
@@ -3070,12 +3073,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 const newBtn = moderationMenuBtn.cloneNode(true);
                                 moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
                                 const show = !!(user && DEV_UIDS.has(user.uid));
-                                newBtn.style.display = show ? 'flex' : 'none';
                                 if (show) {
+                                    newBtn.style.display = 'flex';
                                     newBtn.addEventListener('click', (e) => {
                                         e.preventDefault();
                                         window.location.href = 'moderation.html';
                                     });
+                                } else {
+                                    newBtn.remove();
                                 }
                             }
                         } catch (e) { /* non-fatal */ }
