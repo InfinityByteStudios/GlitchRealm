@@ -94,12 +94,35 @@ service cloud.firestore {
     match /adminActions/{actionId} {
       allow read, write: if isAdmin(request.auth.uid);
     }
+
+    // ================================
+    // Community Post Reports (Moderation)
+    // ================================
+    match /community_post_reports/{reportId} {
+  // Admins, developers, and the reporter can read
+  allow read: if request.auth != null && (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid) || request.auth.uid == resource.data.userId);
+      // Any authenticated user can create their own report
+      allow create: if request.auth != null &&
+                    request.auth.uid == request.resource.data.userId &&
+                    isValidReport(request.resource.data);
+      // Only admins can update/delete reports (e.g., resolve)
+      allow update, delete: if isAdmin(request.auth.uid);
+    }
     
     // ================================
     // User Profiles
     // ================================
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+        // Per-user hidden posts for the community
+        match /hidden_posts/{postId} {
+          allow read: if request.auth != null && request.auth.uid == userId;
+          allow create, update: if request.auth != null && request.auth.uid == userId &&
+                                request.resource.data.keys().hasOnly(['hiddenAt']) &&
+                                request.resource.data.hiddenAt is timestamp;
+          allow delete: if request.auth != null && request.auth.uid == userId;
+        }
     }
     
     // ================================
@@ -126,10 +149,14 @@ service cloud.firestore {
   // Only the owner can update their post (admins may use delete for moderation)
   allow update: if request.auth != null &&
          request.auth.uid == resource.data.userId &&
-         isValidCommunityPost(request.resource.data);
+         isValidCommunityPost(request.resource.data) &&
+         (!request.resource.data.keys().hasAny(['pinned']) || request.resource.data.pinned == resource.data.pinned);
 
   // Allow safe likesCount-only updates by any authenticated user (for upvotes)
   allow update: if request.auth != null && isLikesCountOnlyUpdate();
+
+  // Admins can toggle only the 'pinned' flag
+  allow update: if request.auth != null && isAdmin(request.auth.uid) && isPinOnlyUpdate();
 
   // Delete: owner or admin can delete posts
   allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
@@ -220,11 +247,12 @@ service cloud.firestore {
     }
     
     function isAdmin(userId) {
-      return userId in [
-        'admin-uid-1',
-        'admin-uid-2',
-        'replace-with-your-admin-uid'
-      ];
+      return (request.auth != null && request.auth.token.admin == true) ||
+             userId in [
+               'admin-uid-1',
+               'admin-uid-2',
+               'replace-with-your-admin-uid'
+             ];
     }
     
     // Developer accounts allowed to moderate/reply to reviews
@@ -266,6 +294,22 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).changedKeys().hasOnly(['likesCount']) &&
              request.resource.data.likesCount is int &&
              request.resource.data.likesCount >= 0;
+    }
+
+    // Allow only 'pinned' to change (admin-controlled)
+    function isPinOnlyUpdate() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['pinned']) &&
+             request.resource.data.pinned is bool;
+    }
+
+    // Validate a moderation report document
+    function isValidReport(reportData) {
+      return reportData.keys().hasAll(['postId','userId','reason','status','createdAt']) &&
+             reportData.postId is string && reportData.postId.size() > 0 &&
+             reportData.userId is string && reportData.userId.size() > 0 &&
+             reportData.reason is string && reportData.reason.size() > 0 && reportData.reason.size() <= 500 &&
+             reportData.status in ['open','reviewing','resolved','rejected'] &&
+             reportData.createdAt is timestamp;
     }
   }
 }

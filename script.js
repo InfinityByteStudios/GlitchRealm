@@ -887,6 +887,7 @@ async function initializeAuth() {
     }    // Auth state observer with profile monitoring
     onAuthStateChanged(auth, (user) => {
         const notificationBell = document.getElementById('notification-bell');
+        const moderationMenuBtn = document.getElementById('moderation-menu-btn');
         
         if (user) {
             // User is signed in
@@ -894,6 +895,54 @@ async function initializeAuth() {
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
             if (notificationBell) notificationBell.style.display = 'flex';
+            // Toggle Moderation menu visibility for admins/devs
+            try {
+                const DEV_UIDS = new Set([
+                    '6iZDTXC78aVwX22qrY43BOxDRLt1',
+                    'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+                    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+                    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+                    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+                ]);
+                const applyModerationVisibility = async (isAdmin, isModerator) => {
+                    const isMod = !!isAdmin || !!isModerator || DEV_UIDS.has(user.uid);
+                    if (moderationMenuBtn) {
+                        // Replace to avoid duplicate listeners
+                        const newBtn = moderationMenuBtn.cloneNode(true);
+                        moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
+
+                        let show = isMod;
+                        // Capability-based fallback: try to read 1 report; if allowed by rules, enable.
+                        if (!show) {
+                            try {
+                                const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                                const { getFirestore, collection, query, orderBy, limit, getDocs } = mod;
+                                const db = getFirestore();
+                                const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(1));
+                                await getDocs(q); // will throw permission error if not allowed
+                                show = true;
+                            } catch (e) {
+                                // ignore permission errors
+                            }
+                        }
+
+                        newBtn.style.display = show ? 'flex' : 'none';
+                        if (show) {
+                            newBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                const onCommunity = /(^|\/)community\.html$/i.test(location.pathname);
+                                if (onCommunity && typeof window.openModPanel === 'function') {
+                                    window.openModPanel();
+                                } else {
+                                    window.location.href = 'community.html?mod=1';
+                                }
+                            });
+                        }
+                    }
+                };
+                user.getIdTokenResult().then(t => applyModerationVisibility(!!t.claims?.admin, !!t.claims?.moderator))
+                    .catch(() => applyModerationVisibility(false, false));
+            } catch (e) { /* non-fatal */ }
             
             // Store auth state for SSO
             if (window.sharedAuth) {
@@ -915,6 +964,7 @@ async function initializeAuth() {
             if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
             if (notificationBell) notificationBell.style.display = 'none';
+            if (moderationMenuBtn) moderationMenuBtn.style.display = 'none';
             
             // Clear auth state for SSO
             if (window.sharedAuth) {
@@ -3031,6 +3081,56 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                             initializeAuthElements();
                         }
+                        // Also wire Moderation menu based on current auth state
+                        try {
+                            const user = window.firebaseAuth.currentUser;
+                            const moderationMenuBtn = document.getElementById('moderation-menu-btn');
+                            if (moderationMenuBtn) {
+                                const DEV_UIDS = new Set([
+                                    '6iZDTXC78aVwX22qrY43BOxDRLt1',
+                                    'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+                                    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+                                    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+                                    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+                                ]);
+                                const applyBtn = async (isAdmin, isModerator) => {
+                                    const baseIsMod = !!isAdmin || !!isModerator || (user && DEV_UIDS.has(user?.uid));
+                                    // Reset listeners
+                                    const newBtn = moderationMenuBtn.cloneNode(true);
+                                    moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
+
+                                    let show = baseIsMod;
+                                    if (!show && user) {
+                                        try {
+                                            const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                                            const { getFirestore, collection, query, orderBy, limit, getDocs } = mod;
+                                            const db = getFirestore();
+                                            const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(1));
+                                            await getDocs(q);
+                                            show = true;
+                                        } catch(e) { /* permission denied -> not a mod */ }
+                                    }
+
+                                    newBtn.style.display = show ? 'flex' : 'none';
+                                    if (show) {
+                                        newBtn.addEventListener('click', (e) => {
+                                            e.preventDefault();
+                                            const onCommunity = /(^|\/)community\.html$/i.test(location.pathname);
+                                            if (onCommunity && typeof window.openModPanel === 'function') {
+                                                window.openModPanel();
+                                            } else {
+                                                window.location.href = 'community.html?mod=1';
+                                            }
+                                        });
+                                    }
+                                };
+                                if (user && user.getIdTokenResult) {
+                                    user.getIdTokenResult().then(t => applyBtn(!!t.claims?.admin, !!t.claims?.moderator)).catch(() => applyBtn(false, false));
+                                } else {
+                                    applyBtn(false, false);
+                                }
+                            }
+                        } catch (e) { /* non-fatal */ }
                     } else {
                         console.log('Firebase auth not ready, initializing basic auth elements...');
                         initializeAuthElements();

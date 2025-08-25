@@ -1,6 +1,9 @@
 // Community page logic: list posts, create post modal, basic filters
 (function(){
   const auth = window.firebaseAuth;
+  let currentUser = null;
+  let isAdmin = false;
+  let isMod = false; // admins or developer UIDs can access moderation panel
   // Role UIDs (keep in sync with firestore.rules isDeveloper + extend for artists as needed)
   const ROLE_UIDS = {
     developers: new Set([
@@ -39,6 +42,7 @@
     getDoc: null,
     setDoc: null,
     increment: null,
+    onSnapshot: null,
     Timestamp: null
   };
   let lastCursor = null;
@@ -49,11 +53,14 @@
   const createBtn = document.getElementById('create-post-btn');
   const filterTag = document.getElementById('filter-tag');
   const sortOrder = document.getElementById('sort-order');
+  // Track hidden posts for the signed-in user
+  const hiddenPosts = new Set();
+  let hiddenUnsub = null;
 
   async function ensureModFirestore(){
     if (mfs.db) return mfs;
     const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-  const { getFirestore, collection, query, where, orderBy, startAfter, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, Timestamp, getDoc, setDoc, increment } = mod;
+  const { getFirestore, collection, query, where, orderBy, startAfter, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, Timestamp, getDoc, setDoc, increment, onSnapshot } = mod;
     // Reuse default app initialized in page; getFirestore() will use it
     mfs.db = getFirestore();
     mfs.collection = collection;
@@ -70,12 +77,30 @@
   mfs.getDoc = getDoc;
   mfs.setDoc = setDoc;
   mfs.increment = increment;
+    mfs.onSnapshot = onSnapshot;
     mfs.Timestamp = Timestamp;
     return mfs;
   }
 
+  // Realtime management
+  const cardListeners = new Map(); // postId -> unsubscribe
+  let newPostsUnsub = null;
+  let latestTopCreatedAt = null; // Date
+
+  function clearCardListeners(){
+    for (const unsub of cardListeners.values()) {
+      try { unsub && unsub(); } catch(e) {}
+    }
+    cardListeners.clear();
+  }
+  function clearNewPostsListener(){
+    try { newPostsUnsub && newPostsUnsub(); } catch(e) {}
+    newPostsUnsub = null;
+  }
+
   function postCard(doc){
     const d = doc.data();
+  const pinned = !!d.pinned;
     const tags = (d.tags || []).map(t => `<span class="tag">#${escapeHtml(String(t))}</span>`).join(' ');
     const likes = d.likesCount || 0;
     const date = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date();
@@ -86,11 +111,21 @@
   const isTruncated = fullBody.length > truncLen;
   const truncated = fullBody.slice(0, truncLen);
     return `
-      <article class="game-card community-card" data-id="${doc.id}" data-owner="${escapeHtml(d.userId || '')}">
+      <article class="game-card community-card${pinned ? ' pinned' : ''}" data-id="${doc.id}" data-owner="${escapeHtml(d.userId || '')}" data-pinned="${pinned ? '1' : '0'}">
         <div class="card-content">
           <div class="post-header-row">
             <h3 class="card-title">${escapeHtml(d.title || 'Untitled')}</h3>
-            <div class="post-actions"></div>
+      <div class="post-actions">
+              ${pinned ? '<span class="pin-chip" title="Pinned">📌</span>' : ''}
+              <button class="post-menu-btn" aria-haspopup="menu" aria-expanded="false" title="Actions">⋯</button>
+              <div class="post-menu" role="menu" aria-hidden="true" style="display:none;">
+                <button class="menu-item report" role="menuitem">Report</button>
+                <button class="menu-item hide" role="menuitem">Hide</button>
+                <button class="menu-item pin admin-only" role="menuitem" style="display:none;">Pin</button>
+                <button class="menu-item unpin admin-only" role="menuitem" style="display:none;">Unpin</button>
+                <button class="menu-item delete admin-only" role="menuitem" style="display:none; color:#ff6b6b;">Delete</button>
+              </div>
+            </div>
           </div>
           <p class="card-description" data-trunc-len="${truncLen}" data-full-uri="${encodeURIComponent(fullBody)}" data-state="truncated">${escapeHtml(truncated)}${isTruncated ? '… <button class="read-toggle link" type="button" aria-expanded="false" aria-label="Read full post">Read more</button>' : ''}</p>
           <div class="card-tags">${tags}</div>
@@ -134,8 +169,8 @@
       if (!reset && lastCursor) q = f.query(q, f.startAfter(lastCursor));
       q = f.query(q, f.limit(pageSize));
 
-      const snap = await f.getDocs(q);
-      renderSnap(snap, reset);
+  const snap = await f.getDocs(q);
+  renderSnap(snap, reset);
     } catch (err) {
       console.warn('Primary Firestore query failed, falling back (likely missing indexes locally):', err && err.message ? err.message : err);
       await fallbackLoadPosts(reset, tag);
@@ -145,17 +180,32 @@
   }
 
   function renderSnap(snap, reset){
-    if (reset) postsList.innerHTML = '';
-    if (snap.empty && (reset || postsList.children.length === 0)) {
+    if (reset) {
+      postsList.innerHTML = '';
+      clearCardListeners();
+      clearNewPostsListener();
+    }
+  if (snap.empty && (reset || postsList.children.length === 0)) {
       emptyEl.style.display = 'block';
     } else {
       emptyEl.style.display = 'none';
     }
-    const items = [];
-    snap.forEach(doc => items.push(postCard(doc)));
+  // Build array, filter hidden posts, and sort pinned first (stable)
+  let docs = snap.docs.slice();
+  docs = docs.filter(d => !hiddenPosts.has(d.id));
+  docs.sort((a,b) => ((b.data().pinned?1:0) - (a.data().pinned?1:0)));
+  const items = docs.map(d => postCard(d));
     postsList.insertAdjacentHTML('beforeend', items.join(''));
     lastCursor = snap.docs[snap.docs.length - 1] || null;
     loadMoreBtn.style.display = snap.size === pageSize ? 'inline-flex' : 'none';
+
+    // Track latest top for new post listener (only on reset, use first doc)
+    if (reset && snap.docs.length > 0) {
+      const top = snap.docs[0];
+      const ts = top.data().createdAt?.toDate ? top.data().createdAt.toDate() : new Date();
+      latestTopCreatedAt = ts;
+      setupNewPostsListener();
+    }
 
     // Auto-load the latest comments so action buttons are visible
     requestAnimationFrame(() => {
@@ -168,6 +218,8 @@
         }
   // Mark upvote state for current user
   markUpvoteState(card, postId);
+        // Subscribe to realtime updates for likesCount for this post
+        ensurePostDocListener(card, postId);
       });
   refreshOwnerPostActions();
     });
@@ -186,11 +238,15 @@
       const snap = await f.getDocs(q);
 
       // Client-side filter/sort
-      let docs = snap.docs.map(d => ({ ref: d, data: d.data() }));
+  let docs = snap.docs.map(d => ({ ref: d, data: d.data() }));
       docs = docs.filter(x => (x.data.status === 'published'));
       if (tag) {
         docs = docs.filter(x => Array.isArray(x.data.tags) && x.data.tags.includes(tag));
       }
+  // Filter hidden posts
+  docs = docs.filter(x => !hiddenPosts.has(x.ref.id));
+  // Pinned first
+  docs.sort((a,b) => ((b.data.pinned?1:0) - (a.data.pinned?1:0)));
       if (sortOrder.value === 'top') {
         docs.sort((a,b) => {
           const la = a.data.likesCount || 0;
@@ -210,8 +266,8 @@
       } else {
         emptyEl.style.display = 'none';
       }
-      const html = pageDocs.map(x => postCard(x.ref)).join('');
-  postsList.insertAdjacentHTML('beforeend', html);
+  const html = pageDocs.map(x => postCard(x.ref)).join('');
+      postsList.insertAdjacentHTML('beforeend', html);
 
       // Update cursor from original snapshot order
       lastCursor = snap.docs[snap.docs.length - 1] || null;
@@ -222,15 +278,101 @@
         cards.forEach(card => {
           const postId = card.getAttribute('data-id');
           markUpvoteState(card, postId);
+          ensurePostDocListener(card, postId);
         });
         refreshOwnerPostActions();
       });
+
+      // Track latest top for new post listener (only on reset)
+      if (reset && snap.docs.length > 0) {
+        const top = snap.docs[0];
+        const ts = top.data().createdAt?.toDate ? top.data().createdAt.toDate() : new Date();
+        latestTopCreatedAt = ts;
+        setupNewPostsListener();
+      }
     } catch (e) {
       console.error('Fallback load failed:', e);
       if (reset) postsList.innerHTML = '';
       emptyEl.style.display = 'block';
       loadMoreBtn.style.display = 'none';
     }
+  }
+
+  function ensurePostDocListener(card, postId){
+    if (cardListeners.has(postId)) return;
+    (async () => {
+      try {
+        await ensureModFirestore();
+        const ref = mfs.doc(mfs.db, `community_posts/${postId}`);
+        const unsub = mfs.onSnapshot(ref, (docSnap) => {
+          if (!docSnap.exists()) return;
+          const data = docSnap.data();
+          const likeEl = card.querySelector('.meta-likes .like-count');
+          if (likeEl) {
+            const newCount = data.likesCount || 0;
+            if (String(likeEl.textContent) !== String(newCount)) likeEl.textContent = newCount;
+          }
+        });
+        cardListeners.set(postId, unsub);
+      } catch(e) { /* non-fatal */ }
+    })();
+  }
+
+  function setupNewPostsListener(){
+    if (!latestTopCreatedAt) return;
+    (async () => {
+      try {
+        const f = await ensureModFirestore();
+        // Listen only for newer posts matching current filter
+        let q = f.query(
+          f.collection(f.db, 'community_posts'),
+          f.where('status','==','published'),
+          f.where('createdAt','>', f.Timestamp.fromDate(latestTopCreatedAt)),
+          f.orderBy('createdAt','desc')
+        );
+        const tag = filterTag.value.trim();
+        if (tag) {
+          // Firestore requires where before orderBy; already done
+          q = f.query(q, f.where('tags','array-contains', tag));
+        }
+        clearNewPostsListener();
+        let pending = 0;
+        const banner = getOrCreateNewPostsBanner();
+        banner.style.display = 'none';
+        newPostsUnsub = f.onSnapshot(q, (snap) => {
+          snap.docChanges().forEach(ch => {
+            if (ch.type === 'added') pending++;
+          });
+          if (pending > 0) {
+            banner.querySelector('.np-label').textContent = `${pending} new post${pending>1?'s':''}`;
+            banner.style.display = 'inline-flex';
+          }
+        });
+      } catch(e) { /* ignore */ }
+    })();
+  }
+
+  function getOrCreateNewPostsBanner(){
+    let el = document.getElementById('new-posts-banner');
+    if (el) return el;
+    el = document.createElement('button');
+    el.id = 'new-posts-banner';
+    el.className = 'neural-button secondary';
+    el.style.cssText = 'display:none; margin: 0 0 12px 0;';
+    el.innerHTML = '<span class="np-label">New posts</span>';
+    el.addEventListener('click', () => {
+      // Reload to include new posts
+      latestTopCreatedAt = null;
+      clearNewPostsListener();
+      lastCursor = null;
+      loadPosts(true);
+      el.style.display = 'none';
+      el.querySelector('.np-label').textContent = 'New posts';
+    });
+    const toolbar = document.querySelector('.community-toolbar');
+    if (toolbar && toolbar.parentElement) toolbar.parentElement.insertBefore(el, toolbar.nextSibling);
+    else document.body.insertBefore(el, document.body.firstChild);
+    return el;
   }
 
   function openCreateModal(){
@@ -317,10 +459,64 @@
         closeCreateModal();
       }
     });
-    document.getElementById('create-post-form')?.addEventListener('submit', handleCreatePost);
+  document.getElementById('create-post-form')?.addEventListener('submit', handleCreatePost);
+  // Wire report modal controls
+    const reportModal = document.getElementById('report-post-modal');
+    const closeReportBtn = document.getElementById('close-report-post');
+    const cancelReportBtn = document.getElementById('cancel-report');
+    const reportForm = document.getElementById('report-post-form');
+    let reportTargetPostId = null;
+    function openReportModal(postId){
+      reportTargetPostId = postId;
+      if (reportModal) {
+        reportModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    function closeReportModal(){
+      if (!reportModal) return;
+      reportTargetPostId = null;
+      // reset selections
+      try {
+        reportForm?.reset();
+      } catch(e){}
+      reportModal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    closeReportBtn?.addEventListener('click', (e)=>{ e.preventDefault(); closeReportModal(); });
+    cancelReportBtn?.addEventListener('click', (e)=>{ e.preventDefault(); closeReportModal(); });
+    reportModal?.addEventListener('click', (e)=>{ if (e.target === reportModal) closeReportModal(); });
+    reportForm?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      if (!auth || !auth.currentUser) { alert('Please sign in to report.'); return; }
+      if (!reportTargetPostId) { alert('No post selected.'); return; }
+      try {
+        await ensureModFirestore();
+        const reason = (document.querySelector('input[name="report-reason"]:checked')?.value || 'Other').slice(0, 60);
+        const details = String(document.getElementById('report-details')?.value || '').slice(0, 500);
+        const owner = (postsList.querySelector(`article.game-card[data-id="${CSS.escape(reportTargetPostId)}"]`)?.getAttribute('data-owner')) || '';
+        await mfs.addDoc(mfs.collection(mfs.db, 'community_post_reports'), {
+          postId: reportTargetPostId,
+          userId: auth.currentUser.uid,
+          reason: reason + (details ? `: ${details}` : ''),
+          status: 'open',
+          createdAt: mfs.Timestamp.fromDate(new Date()),
+          // store extra but not required by rules (won't block):
+          postOwnerId: owner
+        });
+        closeReportModal();
+        alert('Report submitted.');
+      } catch (err) {
+        console.error('Submit report failed:', err);
+        alert('Failed to submit report.');
+      }
+    });
     filterTag && filterTag.addEventListener('change', ()=>loadPosts(true));
     sortOrder && sortOrder.addEventListener('change', ()=>loadPosts(true));
     loadMoreBtn && loadMoreBtn.addEventListener('click', ()=>loadPosts(false));
+  // Moderation toolbar button
+  const modBtn = document.getElementById('moderation-btn');
+  modBtn?.addEventListener('click', (e)=>{ e.preventDefault(); if (isMod) { window.openModPanel(); } });
   // Initial load
     loadPosts(true);
 
@@ -338,8 +534,35 @@
         if (createBtn) {
           createBtn.style.display = u ? 'inline-flex' : 'none';
         }
-    // Toggle post owner actions on auth change
-    refreshOwnerPostActions();
+        currentUser = u;
+        // Track hidden posts collection for this user
+        if (hiddenUnsub) { try { hiddenUnsub(); } catch(e){} hiddenUnsub = null; }
+        hiddenPosts.clear();
+        if (u) {
+          ensureModFirestore().then(() => {
+            const hp = mfs.collection(mfs.db, `users/${u.uid}/hidden_posts`);
+            hiddenUnsub = mfs.onSnapshot(hp, (snap) => {
+              hiddenPosts.clear();
+              snap.forEach(d => hiddenPosts.add(d.id));
+              // Refresh list to apply filtering
+              lastCursor = null; loadPosts(true);
+            });
+          });
+          // Determine admin via custom claims if available
+          try {
+            u.getIdTokenResult().then(t => {
+              isAdmin = !!t.claims?.admin;
+              isMod = isAdmin || ROLE_UIDS.developers.has(u.uid);
+              refreshAdminMenus();
+              try { const mb = document.getElementById('moderation-btn'); if (mb) mb.style.display = isMod ? 'inline-flex' : 'none'; } catch(e){}
+            }).catch(()=>{ isAdmin=false; isMod = ROLE_UIDS.developers.has(u.uid); refreshAdminMenus(); });
+          } catch(e) { isAdmin=false; refreshAdminMenus(); }
+        } else {
+          isAdmin = false; isMod = false; refreshAdminMenus();
+          try { const mb = document.getElementById('moderation-btn'); if (mb) mb.style.display = 'none'; } catch(e){}
+        }
+        // Toggle post owner actions on auth change
+        refreshOwnerPostActions();
   // no-op; index-builder UI removed
       });
     }
@@ -405,6 +628,47 @@
           }
         }
         return; // don't fall through to comment handlers
+      }
+
+      // Post menu open/close
+      const menuBtn = e.target.closest('.post-menu-btn');
+      if (menuBtn) {
+        const actions = menuBtn.closest('.post-actions');
+        const menu = actions?.querySelector('.post-menu');
+        if (menu) {
+          const open = menu.style.display !== 'block';
+          closeAllMenus();
+          menu.style.display = open ? 'block' : 'none';
+          menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+          // Gate admin items visibility
+          menu.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = isAdmin ? 'block' : 'none';
+          });
+          // Gate moderator items visibility (admins or developers)
+          menu.querySelectorAll('.mod-only').forEach(el => {
+            el.style.display = isMod ? 'block' : 'none';
+          });
+        }
+        return;
+      }
+
+      // Menu actions: report, hide, pin/unpin, delete
+      const reportBtn = e.target.closest('.menu-item.report');
+      const hideBtn = e.target.closest('.menu-item.hide');
+      const pinBtn = e.target.closest('.menu-item.pin');
+      const unpinBtn = e.target.closest('.menu-item.unpin');
+      const adminDeleteBtn = e.target.closest('.menu-item.delete');
+      if (reportBtn || hideBtn || pinBtn || unpinBtn || adminDeleteBtn) {
+        const card = e.target.closest('article.game-card');
+        const postId = card?.getAttribute('data-id');
+        if (!postId) return;
+        closeAllMenus();
+  if (reportBtn) { openReportModal(postId); return; }
+        if (hideBtn) { handleHide(postId, card); return; }
+        if (pinBtn) { handlePin(postId, card, true); return; }
+        if (unpinBtn) { handlePin(postId, card, false); return; }
+        if (adminDeleteBtn) { handleAdminDelete(postId, card); return; }
       }
 
       const btn = e.target.closest('.comment-send');
@@ -540,6 +804,11 @@
         await loadCommentsFor(postId, list);
       }
     });
+
+    // Close menus on outside click
+    document.addEventListener('click', (ev) => {
+      if (!ev.target.closest('.post-actions')) closeAllMenus();
+    });
   });
 
   // Show a dismissible toast announcing the community page
@@ -581,16 +850,82 @@
       const owner = card.getAttribute('data-owner');
       const ctr = card.querySelector('.post-actions');
       if (!ctr) return;
+      const menu = ctr.querySelector('.post-menu');
       if (uid && owner === uid) {
-        if (!ctr.dataset.bound) {
-          ctr.innerHTML = '<button class="post-edit">Edit</button><button class="post-delete">Delete</button>';
-          ctr.dataset.bound = '1';
+        if (menu && !menu.dataset.ownerBound) {
+          // Append owner actions into menu
+          const edit = document.createElement('button');
+          edit.className = 'menu-item post-edit';
+          edit.setAttribute('role','menuitem');
+          edit.textContent = 'Edit';
+          const del = document.createElement('button');
+          del.className = 'menu-item post-delete';
+          del.setAttribute('role','menuitem');
+          del.textContent = 'Delete';
+          menu.appendChild(edit);
+          menu.appendChild(del);
+          menu.dataset.ownerBound = '1';
         }
       } else {
-        ctr.innerHTML = '';
-        delete ctr.dataset.bound;
+        if (menu && menu.dataset.ownerBound) {
+          // Remove previously added owner items
+          menu.querySelectorAll('.menu-item.post-edit, .menu-item.post-delete').forEach(n => n.remove());
+          delete menu.dataset.ownerBound;
+        }
       }
     });
+  }
+
+  function refreshAdminMenus(){
+    try {
+      document.querySelectorAll('.post-menu').forEach(menu => {
+        menu.querySelectorAll('.admin-only').forEach(el => {
+          el.style.display = isAdmin ? 'block' : 'none';
+        });
+      });
+    } catch(e){}
+  }
+
+  function closeAllMenus(){
+    document.querySelectorAll('.post-menu').forEach(m => { m.style.display = 'none'; m.setAttribute('aria-hidden','true'); });
+    document.querySelectorAll('.post-menu-btn').forEach(b => b.setAttribute('aria-expanded','false'));
+  }
+
+  async function handleReport(postId, card){
+  // Legacy path unused; modal now handles reporting
+  }
+
+  async function handleHide(postId, card){
+    if (!auth || !auth.currentUser) { alert('Please sign in to hide posts.'); return; }
+    try {
+      await ensureModFirestore();
+      const ref = mfs.doc(mfs.db, `users/${auth.currentUser.uid}/hidden_posts/${postId}`);
+  await mfs.setDoc(ref, { hiddenAt: mfs.Timestamp.fromDate(new Date()) });
+      hiddenPosts.add(postId);
+      card.style.display = 'none';
+    } catch(e){ console.error('Hide failed', e); alert('Failed to hide.'); }
+  }
+
+  async function handlePin(postId, card, pinned){
+    if (!isAdmin) { alert('Admin only.'); return; }
+    try {
+      await ensureModFirestore();
+      const ref = mfs.doc(mfs.db, `community_posts/${postId}`);
+  // Admin may only toggle the 'pinned' field per rules
+  await mfs.updateDoc(ref, { pinned: !!pinned });
+      card.dataset.pinned = pinned ? '1' : '0';
+      if (pinned) card.classList.add('pinned'); else card.classList.remove('pinned');
+    } catch(e){ console.error('Pin failed', e); alert('Failed to update pin.'); }
+  }
+
+  async function handleAdminDelete(postId, card){
+    if (!isAdmin) { alert('Admin only.'); return; }
+    if (!confirm('Delete this post? This cannot be undone.')) return;
+    try {
+      await ensureModFirestore();
+      await mfs.deleteDoc(mfs.doc(mfs.db, `community_posts/${postId}`));
+      card.remove();
+    } catch(e){ console.error('Admin delete failed', e); alert('Failed to delete.'); }
   }
 
   async function markUpvoteState(card, postId){
@@ -689,4 +1024,115 @@
       console.error('Load comments failed:', e);
     }
   }
+})();
+
+// Moderation panel (reports list)
+(function(){
+  let reportsUnsub = null;
+  const listId = 'mod-reports-list';
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  }
+  function renderReportsList(snap){
+    const list = document.getElementById(listId);
+    if (!list) return;
+    if (!snap || snap.empty) { list.innerHTML = '<div style="opacity:.8; padding:8px;">No reports found.</div>'; return; }
+    const rows = [];
+    snap.forEach(d => {
+      const r = d.data();
+      const when = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : '';
+      const reason = (r.reason || '').toString();
+      const status = (r.status || 'open');
+      const postId = r.postId || '';
+      rows.push(`<div class="mod-report-row">
+        <div class="mrr-main">
+          <div class="mrr-title">${esc(reason)}</div>
+          <div class="mrr-meta">Status: <strong>${esc(status)}</strong> • Post: <code>${esc(postId)}</code> • ${esc(when)}</div>
+        </div>
+        <div class="mrr-actions">
+          <button class="neural-button secondary mrr-copy" data-pid="${esc(postId)}"><span class="button-text">Copy ID</span></button>
+          <button class="neural-button secondary mrr-open" data-pid="${esc(postId)}"><span class="button-text">View post</span></button>
+        </div>
+      </div>`);
+    });
+    list.innerHTML = rows.join('');
+  }
+
+  async function ensureReportsListener(){
+    try {
+      const auth = window.firebaseAuth;
+      if (!auth || !auth.currentUser) return;
+      const uid = auth.currentUser.uid;
+      // Only open if user is admin or dev (UI already gates, this is defense-in-depth)
+      const isDev = new Set([
+        '6iZDTXC78aVwX22qrY43BOxDRLt1',
+        'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+        'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+        '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+        'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+      ]).has(uid);
+      let isAdmin = false;
+      try { const t = await auth.currentUser.getIdTokenResult(); isAdmin = !!t.claims?.admin; } catch(e){}
+      if (!isDev && !isAdmin) return;
+      const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      const { getFirestore, collection, query, orderBy, limit, onSnapshot } = mod;
+      const db = getFirestore();
+      const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(50));
+      if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
+      reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
+    } catch(e){ /* no-op */ }
+  }
+
+  function tryFocusPost(pid){
+    if (!pid) return;
+    const el = document.querySelector(`article.game-card[data-id="${CSS.escape(pid)}"]`);
+    if (el) {
+      el.classList.add('mod-highlight');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(()=>{ try { el.classList.remove('mod-highlight'); } catch(e){} }, 1600);
+    } else {
+      alert('Post not on this page. Try Load more or change filters.');
+    }
+  }
+
+  function wireListActions(){
+    const host = document.getElementById('mod-reports-modal');
+    if (!host) return;
+    host.addEventListener('click', (e)=>{
+      const copy = e.target.closest('.mrr-copy');
+      const open = e.target.closest('.mrr-open');
+      if (copy) {
+        const pid = copy.getAttribute('data-pid') || '';
+        if (pid) { try { navigator.clipboard.writeText(pid); } catch(e){} }
+      }
+      if (open) {
+        const pid = open.getAttribute('data-pid') || '';
+        tryFocusPost(pid);
+      }
+    });
+  }
+
+  function closeModPanel(){
+    const modal = document.getElementById('mod-reports-modal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
+  }
+
+  window.openModPanel = function openModPanel(){
+    const modal = document.getElementById('mod-reports-modal');
+    if (!modal) { alert('Moderation panel not available.'); return; }
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    ensureReportsListener();
+    wireListActions();
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const modal = document.getElementById('mod-reports-modal');
+    const closeBtn = document.getElementById('close-mod-reports');
+    closeBtn?.addEventListener('click', (e)=>{ e.preventDefault(); closeModPanel(); });
+    modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModPanel(); });
+  });
 })();
