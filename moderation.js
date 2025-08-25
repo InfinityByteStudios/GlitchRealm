@@ -149,8 +149,14 @@
       'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
     ]);
 
+    // Dev-only access for moderation page
     let allow = DEV_UIDS.has(uid);
-    try { const t = await auth.currentUser.getIdTokenResult(); allow = allow || !!t.claims?.admin || !!t.claims?.moderator; } catch(e) {}
+    if (!allow) {
+      accessEl.textContent = 'Access denied.';
+      controlsEl.style.display = 'none';
+      renderEmpty('');
+      return;
+    }
 
     // Capability-based: try a read to confirm
     try {
@@ -159,7 +165,7 @@
       const db = getFirestore();
       const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(50));
 
-      if (!allow) { await getDocs(q); allow = true; }
+  // No capability fallback; this page is dev-only.
 
       controlsEl.style.display = 'flex';
       accessEl.textContent = 'Access granted.';

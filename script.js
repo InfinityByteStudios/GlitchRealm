@@ -895,7 +895,7 @@ async function initializeAuth() {
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
             if (notificationBell) notificationBell.style.display = 'flex';
-            // Toggle Moderation menu visibility for admins/devs
+            // Toggle Moderation menu visibility for dev UIDs only
             try {
                 const DEV_UIDS = new Set([
                     '6iZDTXC78aVwX22qrY43BOxDRLt1',
@@ -904,26 +904,10 @@ async function initializeAuth() {
                     '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
                     'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
                 ]);
-                const applyModerationVisibility = async (isAdmin, isModerator) => {
-                    const isModBase = !!isAdmin || !!isModerator || DEV_UIDS.has(user.uid);
-                    if (!moderationMenuBtn) return;
-                    // Replace to avoid duplicate listeners
+                if (moderationMenuBtn) {
                     const newBtn = moderationMenuBtn.cloneNode(true);
                     moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
-
-                    let show = isModBase;
-                    // Capability-based fallback: try to read 1 report; if allowed by rules, enable.
-                    if (!show) {
-                        try {
-                            const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                            const { getFirestore, collection, query, orderBy, limit, getDocs } = mod;
-                            const db = getFirestore();
-                            const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(1));
-                            await getDocs(q);
-                            show = true;
-                        } catch (e) { /* permission denied -> not a mod */ }
-                    }
-
+                    const show = DEV_UIDS.has(user.uid);
                     newBtn.style.display = show ? 'flex' : 'none';
                     if (show) {
                         newBtn.addEventListener('click', (e) => {
@@ -931,9 +915,7 @@ async function initializeAuth() {
                             window.location.href = 'moderation.html';
                         });
                     }
-                };
-                user.getIdTokenResult().then(t => applyModerationVisibility(!!t.claims?.admin, !!t.claims?.moderator))
-                    .catch(() => applyModerationVisibility(false, false));
+                }
             } catch (e) { /* non-fatal */ }
             
             // Store auth state for SSO
@@ -3073,7 +3055,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                             initializeAuthElements();
                         }
-                        // Also wire Moderation menu based on current auth state
+                        // Also wire Moderation menu based on current auth state (dev UIDs only)
                         try {
                             const user = window.firebaseAuth.currentUser;
                             const moderationMenuBtn = document.getElementById('moderation-menu-btn');
@@ -3085,36 +3067,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                     '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
                                     'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
                                 ]);
-                                const applyBtn = async (isAdmin, isModerator) => {
-                                    const baseIsMod = !!isAdmin || !!isModerator || (user && DEV_UIDS.has(user?.uid));
-                                    // Reset listeners
-                                    const newBtn = moderationMenuBtn.cloneNode(true);
-                                    moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
-
-                                    let show = baseIsMod;
-                                    if (!show && user) {
-                                        try {
-                                            const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                                            const { getFirestore, collection, query, orderBy, limit, getDocs } = mod;
-                                            const db = getFirestore();
-                                            const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(1));
-                                            await getDocs(q);
-                                            show = true;
-                                        } catch(e) { /* permission denied -> not a mod */ }
-                                    }
-
-                                    newBtn.style.display = show ? 'flex' : 'none';
-                                    if (show) {
-                                        newBtn.addEventListener('click', (e) => {
-                                            e.preventDefault();
-                                            window.location.href = 'moderation.html';
-                                        });
-                                    }
-                                };
-                                if (user && user.getIdTokenResult) {
-                                    user.getIdTokenResult().then(t => applyBtn(!!t.claims?.admin, !!t.claims?.moderator)).catch(() => applyBtn(false, false));
-                                } else {
-                                    applyBtn(false, false);
+                                const newBtn = moderationMenuBtn.cloneNode(true);
+                                moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
+                                const show = !!(user && DEV_UIDS.has(user.uid));
+                                newBtn.style.display = show ? 'flex' : 'none';
+                                if (show) {
+                                    newBtn.addEventListener('click', (e) => {
+                                        e.preventDefault();
+                                        window.location.href = 'moderation.html';
+                                    });
                                 }
                             }
                         } catch (e) { /* non-fatal */ }
