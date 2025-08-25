@@ -517,8 +517,28 @@
   // Moderation toolbar button
   const modBtn = document.getElementById('moderation-btn');
   modBtn?.addEventListener('click', (e)=>{ e.preventDefault(); if (isMod) { window.openModPanel(); } });
-  // Initial load
+    // Initial load
     loadPosts(true);
+    // If navigated with ?focus=<postId>, try to highlight that post once loaded
+    try {
+      const params = new URLSearchParams(location.search);
+      const focusId = params.get('focus');
+      if (focusId) {
+        const tryFocus = () => {
+          const el = document.querySelector(`article.game-card[data-id="${CSS.escape(focusId)}"]`);
+          if (el) {
+            el.classList.add('mod-highlight');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(()=>{ try { el.classList.remove('mod-highlight'); } catch(e){} }, 1600);
+            return true;
+          }
+          return false;
+        };
+        // Try immediately and again shortly after
+        setTimeout(tryFocus, 400);
+        setTimeout(tryFocus, 1000);
+      }
+    } catch(e) {}
 
     // One-time community announcement toast
     try {

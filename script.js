@@ -905,39 +905,31 @@ async function initializeAuth() {
                     'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
                 ]);
                 const applyModerationVisibility = async (isAdmin, isModerator) => {
-                    const isMod = !!isAdmin || !!isModerator || DEV_UIDS.has(user.uid);
-                    if (moderationMenuBtn) {
-                        // Replace to avoid duplicate listeners
-                        const newBtn = moderationMenuBtn.cloneNode(true);
-                        moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
+                    const isModBase = !!isAdmin || !!isModerator || DEV_UIDS.has(user.uid);
+                    if (!moderationMenuBtn) return;
+                    // Replace to avoid duplicate listeners
+                    const newBtn = moderationMenuBtn.cloneNode(true);
+                    moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
 
-                        let show = isMod;
-                        // Capability-based fallback: try to read 1 report; if allowed by rules, enable.
-                        if (!show) {
-                            try {
-                                const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                                const { getFirestore, collection, query, orderBy, limit, getDocs } = mod;
-                                const db = getFirestore();
-                                const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(1));
-                                await getDocs(q); // will throw permission error if not allowed
-                                show = true;
-                            } catch (e) {
-                                // ignore permission errors
-                            }
-                        }
+                    let show = isModBase;
+                    // Capability-based fallback: try to read 1 report; if allowed by rules, enable.
+                    if (!show) {
+                        try {
+                            const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                            const { getFirestore, collection, query, orderBy, limit, getDocs } = mod;
+                            const db = getFirestore();
+                            const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(1));
+                            await getDocs(q);
+                            show = true;
+                        } catch (e) { /* permission denied -> not a mod */ }
+                    }
 
-                        newBtn.style.display = show ? 'flex' : 'none';
-                        if (show) {
-                            newBtn.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                const onCommunity = /(^|\/)community\.html$/i.test(location.pathname);
-                                if (onCommunity && typeof window.openModPanel === 'function') {
-                                    window.openModPanel();
-                                } else {
-                                    window.location.href = 'community.html?mod=1';
-                                }
-                            });
-                        }
+                    newBtn.style.display = show ? 'flex' : 'none';
+                    if (show) {
+                        newBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            window.location.href = 'moderation.html';
+                        });
                     }
                 };
                 user.getIdTokenResult().then(t => applyModerationVisibility(!!t.claims?.admin, !!t.claims?.moderator))
@@ -3115,12 +3107,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     if (show) {
                                         newBtn.addEventListener('click', (e) => {
                                             e.preventDefault();
-                                            const onCommunity = /(^|\/)community\.html$/i.test(location.pathname);
-                                            if (onCommunity && typeof window.openModPanel === 'function') {
-                                                window.openModPanel();
-                                            } else {
-                                                window.location.href = 'community.html?mod=1';
-                                            }
+                                            window.location.href = 'moderation.html';
                                         });
                                     }
                                 };

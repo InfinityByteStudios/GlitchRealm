@@ -1,0 +1,231 @@
+// Moderation page logic: list recent reports for authorized users
+(function(){
+  const auth = window.firebaseAuth;
+  const accessEl = document.getElementById('mod-access');
+  const controlsEl = document.getElementById('mod-reports-controls');
+  const listEl = document.getElementById('mod-reports-list');
+  // Auto-delete window for closed reports (hours)
+  const AUTO_DELETE_TTL_HOURS = 168; // 7 days
+  let reportsUnsub = null;
+  let countdownInterval = null;
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  }
+
+  function renderEmpty(msg){
+    listEl.innerHTML = `<div style="opacity:.8; padding:8px;">${esc(msg)}</div>`;
+  }
+
+  function stopCountdowns(){
+    if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+  }
+
+  function startCountdowns(){
+    const els = listEl.querySelectorAll('.ttl-countdown[data-exp]');
+    if (!els.length) return;
+    const fmt = (ms) => {
+      if (ms <= 0) return 'Deleting soon…';
+      const totalSec = Math.floor(ms / 1000);
+      const d = Math.floor(totalSec / 86400);
+      const h = Math.floor((totalSec % 86400) / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      const pad = (n)=> String(n).padStart(2,'0');
+      return d > 0 ? `${d}d ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`;
+    };
+    // Initial tick
+    const tick = () => {
+      const now = Date.now();
+      els.forEach(el => {
+        const exp = Number(el.getAttribute('data-exp')) || 0;
+        const ms = exp - now;
+        el.textContent = `Auto-deletes in ${fmt(ms)}`;
+        if (ms <= 0) {
+          el.classList.add('expired');
+        }
+      });
+    };
+    tick();
+    countdownInterval = setInterval(tick, 1000);
+  }
+
+  function renderReportsList(snap){
+    if (!snap || snap.empty) { renderEmpty('No reports found.'); return; }
+    // Reset any existing countdown updater
+    stopCountdowns();
+    const rows = [];
+    const now = new Date();
+    const expiredIds = [];
+    const needsTTL = [];
+    snap.forEach(d => {
+      const r = d.data();
+      const when = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : '';
+      const reason = (r.reason || '').toString();
+      const status = (r.status || 'open');
+      const postId = r.postId || '';
+      const statusChipClass = status === 'pending' ? 'status-chip status-pending' : (status === 'closed' ? 'status-chip status-closed' : 'status-chip status-open');
+      let ttlNote = '';
+      if (status === 'closed') {
+        if (r.expiresAt?.toDate) {
+          const dt = r.expiresAt.toDate();
+          const ms = dt - now;
+          if (ms <= 0) {
+            expiredIds.push(d.id);
+          } else {
+            const expMs = dt.getTime();
+            // Pre-format an immediate readable countdown string
+            const totalSec = Math.floor(ms / 1000);
+            const d = Math.floor(totalSec / 86400);
+            const h = Math.floor((totalSec % 86400) / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+            const pad = (n)=> String(n).padStart(2,'0');
+            const initial = d > 0 ? `${d}d ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`;
+            const tooltip = dt.toLocaleString();
+            const tooltipEsc = esc(tooltip);
+            // Live countdown element (will be updated by interval)
+            ttlNote = ` • <span class="ttl-countdown" data-exp="${expMs}" title="Deletes at ${tooltipEsc}">Auto-deletes in ${initial}</span>`;
+          }
+        } else {
+          // Backfill TTL for older closed reports missing expiresAt
+          needsTTL.push(d.id);
+          ttlNote = ' • Scheduling auto-delete…';
+        }
+      }
+      rows.push(`<div class="mod-report-row" data-rid="${esc(d.id)}">
+        <div class="mrr-main">
+          <div class="mrr-title">${esc(reason)}</div>
+          <div class="mrr-meta">
+            <span class="${statusChipClass}">Status: <strong>${esc(status)}</strong></span>
+            • Post: <code>${esc(postId)}</code> • ${esc(when)}${ttlNote}
+          </div>
+          <div class="status-actions" style="margin-top:6px;">
+            <button class="neural-button secondary sa-open" data-status="open"><span class="button-text">Mark Open</span></button>
+            <button class="neural-button secondary sa-pending" data-status="pending"><span class="button-text">Mark Pending</span></button>
+            <button class="neural-button secondary sa-closed" data-status="closed"><span class="button-text">Mark Closed</span></button>
+          </div>
+        </div>
+        <div class="mrr-actions">
+          <button class="neural-button secondary mrr-copy" data-pid="${esc(postId)}"><span class="button-text">Copy ID</span></button>
+          <a class="neural-button secondary" href="community.html?focus=${encodeURIComponent(postId)}"><span class="button-text">View in Community</span></a>
+        </div>
+      </div>`);
+    });
+    listEl.innerHTML = rows.join('');
+    // Best-effort cleanup for expired closed reports (requires delete permission)
+    if (expiredIds.length) {
+      (async () => {
+        try {
+          const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const db = f.getFirestore();
+          await Promise.all(expiredIds.map(id => f.deleteDoc(f.doc(db, 'community_post_reports', id))));
+        } catch(err) { /* ignore */ }
+      })();
+    }
+    // Backfill TTL scheduling for closed reports missing expiresAt
+    if (needsTTL.length) {
+      (async () => {
+        try {
+          const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const db = f.getFirestore();
+          const expiresAt = f.Timestamp.fromMillis(Date.now() + AUTO_DELETE_TTL_HOURS*60*60*1000);
+          await Promise.all(needsTTL.map(id => f.updateDoc(f.doc(db, 'community_post_reports', id), { expiresAt })));
+        } catch(err) { /* ignore */ }
+      })();
+    }
+    // Start countdown updates if any
+    startCountdowns();
+  }
+
+  async function ensureReportsListener(){
+    if (!auth || !auth.currentUser) return;
+    const uid = auth.currentUser.uid;
+    const DEV_UIDS = new Set([
+      '6iZDTXC78aVwX22qrY43BOxDRLt1',
+      'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+    ]);
+
+    let allow = DEV_UIDS.has(uid);
+    try { const t = await auth.currentUser.getIdTokenResult(); allow = allow || !!t.claims?.admin || !!t.claims?.moderator; } catch(e) {}
+
+    // Capability-based: try a read to confirm
+    try {
+    const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+  const { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs, doc, updateDoc } = mod;
+      const db = getFirestore();
+      const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(50));
+
+      if (!allow) { await getDocs(q); allow = true; }
+
+      controlsEl.style.display = 'flex';
+      accessEl.textContent = 'Access granted.';
+      if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
+      reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
+
+      // Wire actions
+      document.getElementById('mod-refresh')?.addEventListener('click', async () => {
+        try { const snap = await getDocs(q); renderReportsList(snap); } catch(e) {}
+      });
+      listEl.addEventListener('click', (e) => {
+        const copy = e.target.closest('.mrr-copy');
+        if (copy) {
+          const pid = copy.getAttribute('data-pid') || '';
+          if (pid) { try { navigator.clipboard.writeText(pid); } catch(e){} }
+        }
+        const saBtn = e.target.closest('.status-actions .neural-button');
+        if (saBtn) {
+          const row = e.target.closest('.mod-report-row');
+          const rid = row?.getAttribute('data-rid');
+          const newStatus = saBtn.getAttribute('data-status');
+          if (!rid || !newStatus) return;
+          // Only allow admins/moderators/devs (already checked), backend rules enforce update perms
+      (async () => {
+            try {
+              const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+              const db = f.getFirestore();
+              const dref = f.doc(db, 'community_post_reports', rid);
+              if (newStatus === 'closed') {
+        const expiresAt = f.Timestamp.fromMillis(Date.now() + AUTO_DELETE_TTL_HOURS*60*60*1000);
+                await f.updateDoc(dref, { status: 'closed', closedAt: f.serverTimestamp(), expiresAt });
+              } else {
+        await f.updateDoc(dref, { status: newStatus, closedAt: f.deleteField?.() ?? null, expiresAt: f.deleteField?.() ?? null });
+              }
+            } catch(e) {
+              const msg = (e && e.code === 'permission-denied')
+                ? 'You do not have permission to update report status. Ask an admin to grant moderator rights.'
+                : 'Failed to update status.';
+              alert(msg);
+            }
+          })();
+        }
+      });
+    } catch (e) {
+      // Permission denied
+      accessEl.innerHTML = 'You do not have permission to view moderation reports.';
+      controlsEl.style.display = 'none';
+      renderEmpty('');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    // Auto-open behavior not needed here; this is the destination page
+    if (auth) {
+      auth.onAuthStateChanged((u) => {
+        if (!u) {
+          accessEl.textContent = 'Please sign in to access moderation.';
+          renderEmpty('');
+          return;
+        }
+        accessEl.textContent = 'Validating access…';
+        ensureReportsListener();
+      });
+    } else {
+      accessEl.textContent = 'Auth not available.';
+      renderEmpty('');
+    }
+  });
+})();

@@ -4175,3 +4175,52 @@ body {
     .community-intro-title { font-size: clamp(1.5rem, 5vw, 2rem); }
     .community-intro-actions .neural-button { padding: 12px 18px; }
 }
+
+/* Moderation page tweaks */
+.mod-page .neural-button {
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    margin-top: 0;
+    box-shadow: 0 4px 12px rgba(0, 255, 249, 0.12);
+    border-width: 1.5px;
+}
+.mod-page .neural-button.secondary {
+    background: rgba(0,0,0,0.25);
+    border-color: var(--primary-cyan);
+    color: var(--primary-cyan);
+}
+.mod-page .neural-button.secondary:hover {
+    background: linear-gradient(135deg, rgba(0,255,249,0.12), rgba(0,255,249,0.06));
+    box-shadow: 0 6px 16px rgba(0, 255, 249, 0.18);
+}
+.mod-page .status-actions .neural-button {
+    padding: 10px 16px;
+    border-width: 1.5px;
+}
+.mod-page .status-actions .sa-open { border-color: var(--primary-cyan); color: var(--primary-cyan); }
+.mod-page .status-actions .sa-pending { border-color: var(--warning); color: var(--warning); }
+.mod-page .status-actions .sa-closed { border-color: var(--danger); color: var(--danger); }
+.mod-page .status-actions .sa-open:hover { background: rgba(0,255,249,0.12); }
+.mod-page .status-actions .sa-pending:hover { background: rgba(255,184,0,0.12); }
+.mod-page .status-actions .sa-closed:hover { background: rgba(255,7,58,0.12); }
+
+/* Make toolbars/actions compact and tidy */
+.mod-page #mod-reports-controls .neural-button,
+.mod-page .mrr-actions .neural-button { min-height: 40px; line-height: 1; }
+.mod-page .mrr-actions { gap: 10px; }
+
+/* Status chips */
+.status-chip {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    border: 1px solid transparent;
+    margin-right: 6px;
+}
+.status-open { color: var(--primary-cyan); border-color: rgba(0,255,249,0.5); background: rgba(0,255,249,0.08); }
+.status-pending { color: var(--warning); border-color: rgba(255,184,0,0.6); background: rgba(255,184,0,0.08); }
+.status-closed { color: var(--danger); border-color: rgba(255,7,58,0.6); background: rgba(255,7,58,0.08); }

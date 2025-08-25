@@ -105,8 +105,11 @@ service cloud.firestore {
       allow create: if request.auth != null &&
                     request.auth.uid == request.resource.data.userId &&
                     isValidReport(request.resource.data);
-      // Only admins can update/delete reports (e.g., resolve)
-      allow update, delete: if isAdmin(request.auth.uid);
+  // Admins, moderators (via custom claim), and developers can update/delete reports
+  // Updates are restricted to status/closedAt/expiresAt with strict semantics
+  allow update: if (isAdmin(request.auth.uid) || isModerator(request.auth.uid) || isDeveloper(request.auth.uid)) &&
+                 isValidReportUpdate();
+  allow delete: if isAdmin(request.auth.uid) || isModerator(request.auth.uid) || isDeveloper(request.auth.uid);
     }
     
     // ================================
@@ -308,8 +311,43 @@ service cloud.firestore {
              reportData.postId is string && reportData.postId.size() > 0 &&
              reportData.userId is string && reportData.userId.size() > 0 &&
              reportData.reason is string && reportData.reason.size() > 0 && reportData.reason.size() <= 500 &&
-             reportData.status in ['open','reviewing','resolved','rejected'] &&
+             // Allow both legacy and new status labels used by the UI
+             reportData.status in ['open','pending','closed','reviewing','resolved','rejected'] &&
              reportData.createdAt is timestamp;
+    }
+
+    // Validate updates to moderation reports: only status/closedAt/expiresAt may change
+    function isValidReportUpdate() {
+      let d = request.resource.data.diff(resource.data);
+      let keysOk = d.changedKeys().hasOnly(['status','closedAt','expiresAt']) &&
+                   d.addedKeys().hasOnly(['closedAt','expiresAt']) &&
+                   d.removedKeys().hasOnly(['closedAt','expiresAt']);
+
+      // Immutable base fields must not change
+      let baseUnchanged = request.resource.data.postId == resource.data.postId &&
+                          request.resource.data.userId == resource.data.userId &&
+                          request.resource.data.reason == resource.data.reason &&
+                          request.resource.data.createdAt == resource.data.createdAt;
+
+      let newStatus = request.resource.data.status;
+
+      // If closed: requires a future expiresAt; closedAt may be added and must be a timestamp if present
+      let closedSemantics = newStatus == 'closed' &&
+                            (request.resource.data.expiresAt is timestamp) &&
+                            (request.resource.data.expiresAt > request.time) &&
+                            (!request.resource.data.keys().hasAny(['closedAt']) || request.resource.data.closedAt is timestamp);
+
+      // If not closed: expiresAt/closedAt must be removed or null (allow clearing when reopening)
+      let reopenSemantics = newStatus != 'closed' &&
+                            (!request.resource.data.keys().hasAny(['expiresAt']) || request.resource.data.expiresAt == null) &&
+                            (!request.resource.data.keys().hasAny(['closedAt']) || request.resource.data.closedAt == null);
+
+      return keysOk && baseUnchanged && (closedSemantics || reopenSemantics);
+    }
+
+    // Moderator via custom claim
+    function isModerator(userId) {
+      return request.auth != null && request.auth.token.moderator == true;
     }
   }
 }

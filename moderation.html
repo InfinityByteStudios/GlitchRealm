@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderation - GlitchRealm</title>
+    <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <style>
+        /* Page tweaks */
+        .logo .games-text { display: inline-block; margin-left: 8px; }
+        .nav-container { padding-top: 1.1rem; padding-bottom: 1.1rem; }
+        /* Reports list styling (reused from community) */
+        #mod-reports-list { display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+        .mod-report-row { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; border:1px solid var(--gray-700); background: rgba(255,255,255,0.02); padding:12px; border-radius:12px; }
+        .mrr-main { flex:1; min-width:0; }
+        .mrr-title { font-weight:800; letter-spacing:.3px; }
+        .mrr-meta { opacity:.85; font-size:.92rem; }
+        .mrr-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .access-note { opacity:.85; }
+    </style>
+
+    <!-- Firebase SDK init (module) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.firebasestorage.app",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        try { getAnalytics(app); } catch (e) {}
+        // Expose for global scripts
+        window.firebaseAuth = auth;
+        window.firebaseConfig = firebaseConfig;
+    </script>
+</head>
+<body class="mod-page">
+    <div class="background-animation"></div>
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Moderation">Moderation</span>
+                </h1>
+                <p class="page-subtitle">Review and manage community reports</p>
+            </div>
+        </section>
+
+        <section class="contact-content">
+            <div class="container">
+                <div id="mod-access" class="access-note">Checking access…</div>
+                <div id="mod-reports-controls" style="display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin:12px 0; display:none;">
+                    <div style="opacity:.85;">Latest reports</div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button id="mod-refresh" class="neural-button secondary"><span class="button-text">Refresh</span></button>
+                        <a href="community.html" class="neural-button secondary"><span class="button-text">Go to Community</span></a>
+                    </div>
+                </div>
+                <div id="mod-reports-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- Firebase compat libs (optional) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+    <script defer>
+        (function(){
+            function initCompat(){
+                try {
+                    if (window.firebase && window.firebaseConfig && (!window.firebase.apps || !window.firebase.apps.length)) {
+                        window.firebase.initializeApp(window.firebaseConfig);
+                        try { window.firebase.auth(); } catch(e) {}
+                    }
+                } catch(e) {}
+            }
+            if (document.readyState === 'complete' || document.readyState === 'interactive') initCompat();
+            else document.addEventListener('DOMContentLoaded', initCompat);
+        })();
+    </script>
+    <script src="script.js" defer></script>
+    <script src="moderation.js" defer></script>
+</body>
+</html>
