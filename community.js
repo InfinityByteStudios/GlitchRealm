@@ -441,6 +441,87 @@
     }
   }
 
+  // Hidden posts manager
+  function openHiddenPostsModal(){
+    const modal = document.getElementById('hidden-posts-modal');
+    const list = document.getElementById('hidden-posts-list');
+    if (!modal || !list) return;
+    // Render current hidden set
+    list.innerHTML = '';
+    if (hiddenPosts.size === 0) {
+      const empty = document.createElement('div');
+      empty.textContent = 'No hidden posts.';
+      empty.style.opacity = '.85';
+      list.appendChild(empty);
+    } else {
+      hiddenPosts.forEach(pid => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.justifyContent = 'space-between';
+        row.style.gap = '12px';
+
+        const id = document.createElement('code');
+        id.textContent = pid;
+        id.style.whiteSpace = 'nowrap';
+        id.style.overflow = 'hidden';
+        id.style.textOverflow = 'ellipsis';
+
+        const btn = document.createElement('button');
+        btn.className = 'neural-button';
+        btn.innerHTML = '<span class="button-text">Unhide</span>';
+        btn.addEventListener('click', () => handleUnhide(pid));
+
+        row.appendChild(id);
+        row.appendChild(btn);
+        list.appendChild(row);
+      });
+    }
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeHiddenPostsModal(){
+    const modal = document.getElementById('hidden-posts-modal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  async function handleUnhide(postId){
+    if (!auth || !auth.currentUser) { alert('Please sign in.'); return; }
+    try {
+      await ensureModFirestore();
+      await mfs.deleteDoc(mfs.doc(mfs.db, `users/${auth.currentUser.uid}/hidden_posts/${postId}`));
+      // Snapshot listener will refresh the list and feed
+      const list = document.getElementById('hidden-posts-list');
+      if (list) openHiddenPostsModal(); // re-render
+    } catch (e) {
+      console.error('Unhide failed', e);
+      alert('Failed to unhide.');
+    }
+  }
+
+  async function handleUnhideAll(){
+    if (!auth || !auth.currentUser) { alert('Please sign in.'); return; }
+    if (hiddenPosts.size === 0) { alert('No hidden posts.'); return; }
+    if (!confirm('Unhide all hidden posts?')) return;
+    try {
+      await ensureModFirestore();
+      const uid = auth.currentUser.uid;
+      const ops = [];
+      hiddenPosts.forEach(pid => {
+        ops.push(mfs.deleteDoc(mfs.doc(mfs.db, `users/${uid}/hidden_posts/${pid}`)));
+      });
+      await Promise.allSettled(ops);
+      const list = document.getElementById('hidden-posts-list');
+      if (list) openHiddenPostsModal();
+    } catch (e) {
+      console.error('Unhide all failed', e);
+      alert('Failed to unhide all.');
+    }
+  }
+
 
   document.addEventListener('DOMContentLoaded', function(){
     // Wire UI
@@ -514,6 +595,47 @@
     filterTag && filterTag.addEventListener('change', ()=>loadPosts(true));
     sortOrder && sortOrder.addEventListener('change', ()=>loadPosts(true));
     loadMoreBtn && loadMoreBtn.addEventListener('click', ()=>loadPosts(false));
+  // Hidden posts manager wiring
+  const manageHiddenBtn = document.getElementById('manage-hidden-btn');
+    const hiddenActions = document.getElementById('hidden-actions');
+    const hiddenBtn = document.getElementById('hidden-actions-btn');
+    const hiddenMenu = document.getElementById('hidden-actions-menu');
+    const hiddenModal = document.getElementById('hidden-posts-modal');
+    const closeHiddenBtn = document.getElementById('close-hidden-posts');
+
+    // Toggle dropdown
+    hiddenBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!hiddenMenu) return;
+      const open = hiddenMenu.style.display !== 'block';
+      hiddenMenu.style.display = open ? 'block' : 'none';
+      hiddenMenu.setAttribute('aria-hidden', open ? 'false' : 'true');
+      hiddenBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    // Close on outside click
+    document.addEventListener('click', (e)=>{
+      if (!hiddenActions) return;
+      if (!hiddenActions.contains(e.target)) {
+        if (hiddenMenu) { hiddenMenu.style.display = 'none'; hiddenMenu.setAttribute('aria-hidden','true'); }
+        if (hiddenBtn) hiddenBtn.setAttribute('aria-expanded','false');
+      }
+    });
+    // Menu actions
+    hiddenMenu?.addEventListener('click', (e) => {
+      const manage = e.target.closest('.ha-manage');
+      const unhideId = e.target.closest('.ha-unhide-id');
+      const unhideAll = e.target.closest('.ha-unhide-all');
+      if (manage) { hiddenMenu.style.display = 'none'; hiddenBtn?.setAttribute('aria-expanded','false'); openHiddenPostsModal(); }
+      if (unhideId) {
+        hiddenMenu.style.display = 'none'; hiddenBtn?.setAttribute('aria-expanded','false');
+        const pid = prompt('Enter post ID to unhide:');
+        if (pid) handleUnhide(String(pid).trim());
+      }
+      if (unhideAll) { hiddenMenu.style.display = 'none'; hiddenBtn?.setAttribute('aria-expanded','false'); handleUnhideAll(); }
+    });
+
+    closeHiddenBtn?.addEventListener('click', (e)=>{ e.preventDefault(); closeHiddenPostsModal(); });
+    hiddenModal?.addEventListener('click', (e)=>{ if (e.target === hiddenModal) closeHiddenPostsModal(); });
   // Moderation toolbar button
   const modBtn = document.getElementById('moderation-btn');
   modBtn?.addEventListener('click', (e)=>{ e.preventDefault(); if (isMod) { window.openModPanel(); } });
@@ -554,6 +676,7 @@
         if (createBtn) {
           createBtn.style.display = u ? 'inline-flex' : 'none';
         }
+  try { const c = document.getElementById('hidden-actions'); if (c) c.style.display = u ? 'inline-flex' : 'none'; } catch(e){}
         currentUser = u;
         // Track hidden posts collection for this user
         if (hiddenUnsub) { try { hiddenUnsub(); } catch(e){} hiddenUnsub = null; }
@@ -566,6 +689,11 @@
               snap.forEach(d => hiddenPosts.add(d.id));
               // Refresh list to apply filtering
               lastCursor = null; loadPosts(true);
+              // If modal is open, re-render list
+              const modal = document.getElementById('hidden-posts-modal');
+              if (modal && modal.style.display && modal.style.display !== 'none' && modal.style.display !== '') {
+                openHiddenPostsModal();
+              }
             });
           });
           // Determine admin via custom claims if available

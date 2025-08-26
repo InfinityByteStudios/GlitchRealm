@@ -217,8 +217,18 @@
                             <option value="top">Top (upvotes)</option>
                         </select>
                     </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
+                    <div style="display:flex; gap:8px; align-items:center; position:relative;">
                         <button id="create-post-btn" class="btn-portal" style="display:none;">Create Post</button>
+                        <div id="hidden-actions" style="display:none; position:relative;">
+                            <button id="hidden-actions-btn" class="neural-button secondary" aria-haspopup="menu" aria-expanded="false" aria-label="Hidden posts options" title="Hidden posts options" style="width:44px; height:44px; padding:0; display:inline-flex; align-items:center; justify-content:center;">
+                                <span aria-hidden="true" style="font-size:20px; letter-spacing:2px; line-height:1;">⋯</span>
+                            </button>
+                            <div id="hidden-actions-menu" role="menu" aria-hidden="true" style="display:none; position:absolute; right:0; top:calc(100% + 6px); min-width: 220px; background: rgba(7,16,24,0.96); border: 1px solid rgba(22,225,255,0.35); border-radius: 10px; box-shadow: 0 14px 40px rgba(0,0,0,0.45); padding: 6px; z-index: 50;">
+                                <button class="menu-item ha-manage" role="menuitem" style="display:block; width:100%; text-align:left; padding:10px 12px; color:#d9f7ff; background:transparent; border:none; border-radius:8px;">Manage hidden posts…</button>
+                                <button class="menu-item ha-unhide-id" role="menuitem" style="display:block; width:100%; text-align:left; padding:10px 12px; color:#d9f7ff; background:transparent; border:none; border-radius:8px;">Unhide by ID…</button>
+                                <button class="menu-item ha-unhide-all" role="menuitem" style="display:block; width:100%; text-align:left; padding:10px 12px; color:#ffb4c4; background:transparent; border:none; border-radius:8px;">Unhide all</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -470,6 +480,24 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Posts Manager Modal -->
+    <div id="hidden-posts-modal" class="auth-overlay" style="display:none;">
+        <div class="auth-panel" style="max-width:640px;">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <span class="glitch" data-text="HIDDEN POSTS">HIDDEN POSTS</span>
+                </div>
+                <button class="auth-close" id="close-hidden-posts">
+                    <span class="close-icon">×</span>
+                </button>
+            </div>
+            <div class="auth-content">
+                <div style="opacity:.9; margin-bottom:8px;">These posts are hidden only for your account. Unhide to show them again in your feed.</div>
+                <div id="hidden-posts-list" style="display:flex; flex-direction:column; gap:8px;"></div>
             </div>
         </div>
     </div>
