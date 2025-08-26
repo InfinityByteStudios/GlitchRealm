@@ -103,6 +103,7 @@
   const pinned = !!d.pinned;
     const tags = (d.tags || []).map(t => `<span class="tag">#${escapeHtml(String(t))}</span>`).join(' ');
     const likes = d.likesCount || 0;
+    const commentsCount = d.commentsCount || 0;
     const date = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date();
     const author = escapeHtml(d.userDisplayName || d.userName || d.authorName || 'Anonymous');
     const avatar = escapeHtml(d.authorPhotoUrl || 'assets/icons/anonymous.png');
@@ -138,8 +139,11 @@
             <span class="spacer"></span>
             <span class="meta-likes" role="button" tabindex="0" aria-pressed="false" title="Upvotes">▲ <span class="like-count">${likes}</span></span>
           </div>
+          <div class="comment-toolbar" style="display:flex; justify-content:flex-start; margin-top:8px;">
+            <button class="comment-toggle read-toggle link" data-state="hidden" data-count="${commentsCount}" style="display:${commentsCount>0 ? 'inline' : 'none'};">View comments (${commentsCount})</button>
+          </div>
           <div class="comments" id="comments-${doc.id}">
-            <div class="comments-list" data-loaded="0"></div>
+            <div class="comments-list" data-loaded="0" style="display:none;"></div>
             <div class="comment-compose">
               <input type="text" class="neural-input comment-input" placeholder="Write a reply..." />
               <button class="neural-button comment-send"><span class="button-text">Reply</span></button>
@@ -207,19 +211,17 @@
       setupNewPostsListener();
     }
 
-    // Auto-load the latest comments so action buttons are visible
-    requestAnimationFrame(() => {
+  // After initial render, wire realtime counters and owner actions
+  requestAnimationFrame(() => {
       const cards = postsList.querySelectorAll('article.game-card');
       cards.forEach(card => {
         const postId = card.getAttribute('data-id');
-        const list = card.querySelector(`#comments-${postId} .comments-list`);
-        if (list && list.dataset.loaded !== '1') {
-          loadCommentsFor(postId, list);
-        }
   // Mark upvote state for current user
   markUpvoteState(card, postId);
         // Subscribe to realtime updates for likesCount for this post
         ensurePostDocListener(card, postId);
+  // Ensure a comment toggle shows if comments exist even when count field is missing
+  ensureCommentTogglePresence(card, postId);
       });
   refreshOwnerPostActions();
     });
@@ -298,6 +300,27 @@
     }
   }
 
+  async function ensureCommentTogglePresence(card, postId){
+    try {
+      const btn = card.querySelector('.comment-toggle');
+      if (!btn) return;
+      const known = parseInt(btn.dataset.count || '0', 10) || 0;
+      if (known > 0) return; // already visible via count
+      await ensureModFirestore();
+      const q = mfs.query(
+        mfs.collection(mfs.db, `community_posts/${postId}/comments`),
+        mfs.orderBy('createdAt','desc'),
+        mfs.limit(1)
+      );
+      const snap = await mfs.getDocs(q);
+      if (!snap.empty) {
+        btn.style.display = 'inline-flex';
+        const t = btn.querySelector('.button-text');
+        if (t) t.textContent = 'View comments';
+      }
+    } catch(e) { /* non-fatal */ }
+  }
+
   function ensurePostDocListener(card, postId){
     if (cardListeners.has(postId)) return;
     (async () => {
@@ -311,6 +334,15 @@
           if (likeEl) {
             const newCount = data.likesCount || 0;
             if (String(likeEl.textContent) !== String(newCount)) likeEl.textContent = newCount;
+          }
+          // Update comment toggle count and visibility
+          const cToggle = card.querySelector('.comment-toggle');
+          if (cToggle) {
+            const cCount = data.commentsCount || 0;
+            cToggle.dataset.count = String(cCount);
+            cToggle.style.display = cCount > 0 ? 'inline-flex' : 'none';
+            const state = cToggle.getAttribute('data-state') || 'hidden';
+            if (state !== 'shown') { cToggle.textContent = `View comments (${cCount})`; }
           }
         });
         cardListeners.set(postId, unsub);
@@ -715,7 +747,7 @@
       });
     }
 
-    // Delegate upvote toggle, comment send and lazy-load comments on focus
+  // Delegate upvote toggle, comment toggle, comment send and lazy-load comments on focus
     postsList.addEventListener('click', async (e) => {
       // Upvote toggle
       const likeEl = e.target.closest('.meta-likes');
@@ -747,6 +779,31 @@
         } catch (err) {
           console.error('Toggle upvote failed:', err);
           alert('Failed to toggle upvote.');
+        }
+        return;
+      }
+
+      // Comments toggle show/hide
+      const cToggle = e.target.closest('.comment-toggle');
+      if (cToggle) {
+        const card = e.target.closest('article.game-card');
+        const postId = card?.getAttribute('data-id');
+        if (!postId) return;
+        const list = card.querySelector(`#comments-${postId} .comments-list`);
+        if (!list) return;
+        const state = cToggle.getAttribute('data-state') || 'hidden';
+        if (state === 'hidden') {
+          cToggle.setAttribute('data-state', 'shown');
+          cToggle.textContent = 'Hide comments';
+          list.style.display = 'flex';
+          if (list.dataset.loaded !== '1') {
+            await loadCommentsFor(postId, list);
+          }
+        } else {
+          cToggle.setAttribute('data-state', 'hidden');
+          const count = parseInt(cToggle.dataset.count || '0', 10) || 0;
+          cToggle.textContent = `View comments (${count})`;
+          list.style.display = 'none';
         }
         return;
       }
@@ -831,6 +888,7 @@
       if (!auth || !auth.currentUser) { alert('Please sign in to reply.'); return; }
       try {
         const f = await ensureModFirestore();
+        const postRef = mfs.doc(mfs.db, `community_posts/${postId}`);
         await mfs.addDoc(
           mfs.collection(mfs.db, `community_posts/${postId}/comments`),
           {
@@ -842,9 +900,21 @@
             likesCount: 0
           }
         );
+        // Increment comments count on the post
+        await mfs.updateDoc(postRef, { commentsCount: mfs.increment(1) });
         input.value = '';
-        // reload comments
-        await loadCommentsFor(postId, wrap.querySelector('.comments-list'));
+        // Ensure list is visible and reload comments
+        const list = wrap.querySelector('.comments-list');
+        const toggleBtn = card.querySelector('.comment-toggle');
+        if (toggleBtn) {
+          toggleBtn.style.display = 'inline';
+          toggleBtn.setAttribute('data-state', 'shown');
+          toggleBtn.textContent = 'Hide comments';
+        }
+        if (list) {
+          list.style.display = 'flex';
+          await loadCommentsFor(postId, list);
+        }
       } catch (err) {
         console.error('Add comment failed:', err);
         alert('Failed to add reply.');
@@ -873,9 +943,24 @@
       if (!commentId || !confirm(confirmMsg)) return;
       try {
         const f = await ensureModFirestore();
+        const postRef = mfs.doc(mfs.db, `community_posts/${postId}`);
         await mfs.deleteDoc(mfs.doc(mfs.db, `community_posts/${postId}/comments/${commentId}`));
+        // Decrement comments count on the post
+        try { await mfs.updateDoc(postRef, { commentsCount: mfs.increment(-1) }); } catch(_){}
         const list = card.querySelector(`#comments-${postId} .comments-list`);
         await loadCommentsFor(postId, list);
+        // Update toggle UI immediately
+        const toggleBtn = card.querySelector('.comment-toggle');
+        if (toggleBtn) {
+          let cnt = parseInt(toggleBtn.dataset.count || '1', 10) || 1;
+          cnt = Math.max(0, cnt - 1);
+          toggleBtn.dataset.count = String(cnt);
+          if (cnt === 0) {
+            toggleBtn.style.display = 'none';
+          } else if ((toggleBtn.getAttribute('data-state') || 'hidden') !== 'shown') {
+            toggleBtn.textContent = `View comments (${cnt})`;
+          }
+        }
       } catch (err) {
         console.error('Delete comment failed:', err);
         alert('Failed to delete comment.');
