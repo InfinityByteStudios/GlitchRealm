@@ -98,8 +98,40 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Assets: cache-first for images/fonts; stale-while-revalidate for CSS/JS
+  // Assets: images via Netlify Image Transformations when possible; fonts/images cache-first; CSS/JS SWR
   if (request.destination === 'image' || url.pathname.startsWith('/assets/')) {
+    // Only transform same-origin /assets/ images; skip SVG/ICO/GIF
+    const isSameOrigin = url.origin === self.location.origin;
+    const underAssets = url.pathname.startsWith('/assets/');
+    const ext = url.pathname.split('.').pop().toLowerCase();
+    const transformable = ['jpg','jpeg','png','bmp','tiff','webp','avif'].includes(ext);
+
+    if (isSameOrigin && underAssets && transformable) {
+      const accept = request.headers.get('Accept') || '';
+      const prefersAvif = accept.includes('image/avif');
+      const prefersWebp = accept.includes('image/webp');
+      const fm = prefersAvif ? 'avif' : (prefersWebp ? 'webp' : null);
+
+      if (fm) {
+        const transformURL = new URL('/.netlify/images', self.location.origin);
+        transformURL.searchParams.set('url', url.pathname);
+        transformURL.searchParams.set('fm', fm);
+        transformURL.searchParams.set('q', '75');
+        // Optionally set width based on device pixel ratio? Keep default to avoid over-processing.
+
+        const transformedRequest = new Request(transformURL.toString(), {
+          method: 'GET',
+          headers: request.headers,
+          credentials: request.credentials,
+          mode: 'cors'
+        });
+
+        event.respondWith(cacheFirst(transformedRequest));
+        return;
+      }
+    }
+
+    // Fallback: standard cache-first for images and /assets
     event.respondWith(cacheFirst(request));
     return;
   }

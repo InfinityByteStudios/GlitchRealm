@@ -31,6 +31,8 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     overflow-y: auto;
+    /* Reserve scrollbar space to prevent layout shift when overlays open */
+    scrollbar-gutter: stable both-edges;
 }
 
 /* Custom Scrollbar Styling */
@@ -904,6 +906,7 @@ html {
 
 /* Main Content */
 .main {
+    /* Reserve space for fixed header to prevent CLS */
     margin-top: 80px;
     min-height: calc(100vh - 80px);
 }

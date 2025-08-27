@@ -3027,10 +3027,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const termsVersion = '1.0'; // Update this when terms change
     const currentVersion = localStorage.getItem('glitchRealm_termsVersion');
     
-    // Show popup to every user unless they have specifically agreed
-    if (!hasAgreedToTerms || currentVersion !== termsVersion) {
-        termsPopup.style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    // If global scheduler is active, let it decide when to show to avoid stacking
+    const schedulerActive = !!window.GR_POPUP_SCHEDULER_ACTIVE;
+    if (!schedulerActive) {
+        // Show popup unless they specifically agreed to current version
+        if (!hasAgreedToTerms || currentVersion !== termsVersion) {
+            termsPopup.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } else {
+            termsPopup.style.display = 'none';
+        }
     } else {
         termsPopup.style.display = 'none';
     }
@@ -3113,8 +3119,8 @@ if (!document.querySelector('#fadeOutKeyframes')) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, starting header/footer loading...');
     
-    // Load header
-    fetch('header.html')
+    // Load header (defer to idle when available to reduce TBT)
+    const loadHeader = () => fetch('header.html')
         .then(response => {
             console.log('Header fetch response:', response.status);
             return response.text();
@@ -3202,6 +3208,12 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading header:', error);
         });
 
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => loadHeader());
+    } else {
+        setTimeout(loadHeader, 0);
+    }
+
     // Also try to initialize dropdowns independently after a delay
     setTimeout(() => {
         console.log('Independent dropdown initialization...');
@@ -3227,8 +3239,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 200);
     }, 500);
 
-    // Load footer
-    fetch('footer.html')
+    // Load footer (defer slightly)
+    const loadFooter = () => fetch('footer.html')
         .then(response => response.text())
         .then(data => {
             const footerPlaceholder = document.getElementById('footer-placeholder');
@@ -3240,6 +3252,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => console.error('Error loading footer:', error));
+
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => loadFooter());
+    } else {
+        setTimeout(loadFooter, 150);
+    }
 });
 
 // Function to initialize authentication elements after header is loaded
