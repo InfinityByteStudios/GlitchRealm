@@ -288,6 +288,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initParallaxEffect();
     initConsoleMessage();
     initBadgeAutoHide();
+    // Default lazy-load images without an explicit loading attribute
+    try {
+        document.querySelectorAll('img:not([loading])').forEach(img => {
+            img.setAttribute('loading', 'lazy');
+        });
+    } catch (e) { /* non-fatal */ }
     // Register service worker (skip on localhost/file to avoid dev caching issues)
     if ('serviceWorker' in navigator) {
         try {

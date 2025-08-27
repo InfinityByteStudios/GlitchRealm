@@ -1,5 +1,5 @@
 /* GlitchRealm Service Worker */
-const CACHE_PREFIX = 'gr-v1';
+const CACHE_PREFIX = 'gr-v2';
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 
@@ -7,6 +7,7 @@ const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/games.html',
+  '/community.html',
   '/about.html',
   '/contact.html',
   '/user-portal.html',
@@ -29,6 +30,10 @@ self.addEventListener('activate', (event) => {
     ))
   );
   self.clients.claim();
+  // Enable navigation preload for faster HTML fetch when supported
+  if ('navigationPreload' in self.registration) {
+    try { self.registration.navigationPreload.enable(); } catch(e) {}
+  }
 });
 
 // Strategy helpers
@@ -57,17 +62,38 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Bypass non-GET or cross-origin requests (Firebase, etc.)
-  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+  // Bypass non-GET requests
+  if (request.method !== 'GET') return;
+
+  // Cache Google Fonts aggressively (cross-origin allowed)
+  if (url.origin === 'https://fonts.gstatic.com') {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+  if (url.origin === 'https://fonts.googleapis.com') {
+    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  // Only handle same-origin for the rest
+  if (url.origin !== self.location.origin) return;
 
   // HTML: Network-first with fallback to cache for offline
   if (request.destination === 'document') {
     event.respondWith(
-      fetch(request).then((res) => {
-        const copy = res.clone();
-        caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
-        return res;
-      }).catch(() => caches.match(request).then((r) => r || caches.match('/index.html')))
+      (async () => {
+        try {
+          // Use navigation preload if available
+          const preload = event.preloadResponse ? await event.preloadResponse : null;
+          const response = preload || await fetch(request);
+          const copy = response.clone();
+          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+          return response;
+        } catch (e) {
+          const cached = await caches.match(request);
+          return cached || caches.match('/index.html');
+        }
+      })()
     );
     return;
   }

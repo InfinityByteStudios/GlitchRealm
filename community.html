@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community - GlitchRealm</title>
     <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="preload" as="style" href="styles.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="styles.css"></noscript>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -560,9 +561,24 @@
                 }
             })();
         </script>
-    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
-    <script src="script.js" defer></script>
-    <script src="community.js" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
+        <script src="script.js" defer></script>
+        <script src="community.js" defer></script>
+        <script>
+            // Ensure service worker is registered (skip on localhost/file for dev)
+            (function(){
+                if ('serviceWorker' in navigator) {
+                    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
+                    if (!isLocal) {
+                        try { navigator.serviceWorker.register('/sw.js'); } catch(e){}
+                    }
+                }
+                // Default lazy-loading for images not explicitly opted out
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.querySelectorAll('img:not([loading])').forEach(img => { img.loading = 'lazy'; });
+                });
+            })();
+        </script>
         <script>
             // If navigated with ?mod=1 and user is a mod, auto-open the moderation panel.
             (function(){
