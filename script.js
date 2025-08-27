@@ -294,6 +294,95 @@ document.addEventListener('DOMContentLoaded', function() {
             img.setAttribute('loading', 'lazy');
         });
     } catch (e) { /* non-fatal */ }
+
+    // Global daily popup scheduler
+    try {
+        window.GR_POPUP_SCHEDULER_ACTIVE = true;
+        const DAY_MS = 24 * 60 * 60 * 1000;
+        const lastKey = 'gr.popups.lastShownAt.v1';
+        const orderKey = 'gr.popups.rotationIndex.v1';
+        const now = Date.now();
+        const lastShownAt = parseInt(localStorage.getItem(lastKey) || '0', 10);
+        const canShow = !lastShownAt || (now - lastShownAt) >= DAY_MS;
+
+        // Define popup providers (non-intrusive checks only)
+        const providers = [
+            {
+                id: 'legal',
+                canShow: () => {
+                    // First visit must show legal notice
+                    const accepted = localStorage.getItem('gr.legal.accepted') === '1';
+                    const declined = localStorage.getItem('gr.legal.declined') === '1';
+                    const el = document.getElementById('terms-popup');
+                    return !!el && !accepted && !declined;
+                },
+                show: () => {
+                    const overlay = document.getElementById('terms-popup');
+                    if (!overlay) return false;
+                    overlay.style.display = 'flex';
+                    const accept = document.getElementById('accept-terms');
+                    const decline = document.getElementById('decline-terms');
+                    const finalize = (accepted) => {
+                        try { localStorage.setItem('gr.legal.' + (accepted ? 'accepted' : 'declined'), '1'); } catch {}
+                        overlay.style.display = 'none';
+                    };
+                    accept && accept.addEventListener('click', () => finalize(true), { once: true });
+                    decline && decline.addEventListener('click', () => finalize(false), { once: true });
+                    return true;
+                }
+            },
+            {
+                id: 'community-intro',
+                canShow: () => {
+                    const seen = localStorage.getItem('gr.community.intro.v1') === '1';
+                    const el = document.getElementById('community-intro');
+                    return !!el && !seen;
+                },
+                show: () => {
+                    const el = document.getElementById('community-intro');
+                    if (!el) return false;
+                    el.style.display = 'flex';
+                    const close = document.getElementById('community-intro-close');
+                    const dismiss = document.getElementById('community-intro-dismiss');
+                    const open = document.getElementById('community-intro-open');
+                    const hide = () => { el.style.display = 'none'; };
+                    const setSeen = () => { try { localStorage.setItem('gr.community.intro.v1', '1'); } catch {} };
+                    close && close.addEventListener('click', () => { hide(); setSeen(); }, { once: true });
+                    dismiss && dismiss.addEventListener('click', () => { hide(); setSeen(); }, { once: true });
+                    open && open.addEventListener('click', () => { setSeen(); }, { once: true });
+                    el.addEventListener('click', (e) => { if (e.target === el) { hide(); setSeen(); } }, { once: true });
+                    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { hide(); setSeen(); } }, { once: true });
+                    return true;
+                }
+            }
+            // Add more providers here safely without changing functionality
+        ];
+
+        function pickProvider() {
+            // If legal can show, always prioritize it (first-visit requirement)
+            const legal = providers.find(p => p.id === 'legal');
+            if (legal && legal.canShow()) return legal;
+
+            // Otherwise rotate through remaining eligible providers
+            const eligible = providers.filter(p => p.id !== 'legal' && p.canShow());
+            if (eligible.length === 0) return null;
+            let idx = parseInt(localStorage.getItem(orderKey) || '0', 10);
+            if (Number.isNaN(idx)) idx = 0;
+            const provider = eligible[idx % eligible.length];
+            localStorage.setItem(orderKey, ((idx + 1) % Math.max(eligible.length, 1)).toString());
+            return provider;
+        }
+
+        if (canShow) {
+            const p = pickProvider();
+            if (p && p.show()) {
+                try { localStorage.setItem(lastKey, String(now)); } catch {}
+            }
+        }
+    } catch (e) {
+        // Non-fatal: scheduler shouldn’t break the page
+        console.warn('Popup scheduler error:', e);
+    }
     // Register service worker (skip on localhost/file to avoid dev caching issues)
     if ('serviceWorker' in navigator) {
         try {

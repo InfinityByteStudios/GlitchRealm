@@ -505,32 +505,32 @@
 
     <script>
         (function(){
-        function showCommunityIntroOnce(){
+            function maybeRegisterCommunityIntro(){
+                // If global popup scheduler is active, don’t auto-show here.
+                if (window && window.GR_POPUP_SCHEDULER_ACTIVE) return;
                 try {
                     const key = 'gr.community.intro.v1';
                     if (localStorage.getItem(key)) return;
                     const el = document.getElementById('community-intro');
                     if (!el) return;
-            el.style.display = 'flex';
-            // mark as seen upon showing to ensure one-time display
-            try { localStorage.setItem(key, '1'); } catch(e){}
+                    // Fallback behavior if scheduler isn’t present: show once.
+                    el.style.display = 'flex';
                     const close = document.getElementById('community-intro-close');
                     const dismiss = document.getElementById('community-intro-dismiss');
-            const open = document.getElementById('community-intro-open');
+                    const open = document.getElementById('community-intro-open');
                     function hide(){ el.style.display = 'none'; }
                     close && close.addEventListener('click', hide);
                     dismiss && dismiss.addEventListener('click', hide);
                     el.addEventListener('click', (e) => { if (e.target === el) hide(); });
                     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
-                    // Set flag when user interacts with either button
                     const setSeen = () => { try { localStorage.setItem(key, '1'); } catch(e){} };
                     dismiss && dismiss.addEventListener('click', setSeen);
                     close && close.addEventListener('click', setSeen);
-            open && open.addEventListener('click', setSeen);
+                    open && open.addEventListener('click', setSeen);
                 } catch (e) {}
             }
-            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showCommunityIntroOnce);
-            else showCommunityIntroOnce();
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', maybeRegisterCommunityIntro);
+            else maybeRegisterCommunityIntro();
         })();
     </script>
     <!-- Delete Account Confirmation Modal -->
