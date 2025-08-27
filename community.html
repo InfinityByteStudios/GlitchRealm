@@ -121,6 +121,26 @@
             .post-actions .post-menu .menu-item:hover { background: rgba(0,255,249,0.10); color: #a7f7ff; }
             .post-actions .post-menu .menu-item.delete { color: #ff8b9b; }
             .post-actions .post-menu .menu-item.delete:hover { background: rgba(255,7,58,0.12); color: #ff6b6b; }
+            /* Mirror menu styles for comment actions */
+            .comment-actions { display:flex; gap:6px; align-items:center; position:relative; }
+            .comment-actions .post-menu {
+                position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; min-width: 160px;
+                background: linear-gradient(180deg, rgba(10,22,41,0.96), rgba(15,28,52,0.96));
+                border: 1px solid var(--gray-700); border-radius: 10px; padding: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 10px rgba(0,255,249,0.08);
+                backdrop-filter: blur(8px);
+            }
+            .comment-actions .post-menu::before {
+                content: ""; position: absolute; top: -6px; right: 10px; width: 10px; height: 10px; transform: rotate(45deg);
+                background: inherit; border-left: 1px solid var(--gray-700); border-top: 1px solid var(--gray-700);
+            }
+            .comment-actions .post-menu .menu-item {
+                appearance: none; background: transparent; border: none; width: 100%; display: flex; align-items: center;
+                gap: 8px; padding: 8px 10px; border-radius: 8px; color: #e6edf3; font: inherit; text-align: left; cursor: pointer;
+                transition: background .18s ease, color .18s ease;
+            }
+            .comment-actions .post-menu .menu-item:hover { background: rgba(0,255,249,0.10); color: #a7f7ff; }
+            .comment-actions .post-menu .menu-item.delete { color: #ff8b9b; }
+            .comment-actions .post-menu .menu-item.delete:hover { background: rgba(255,7,58,0.12); color: #ff6b6b; }
             .role-badge { display:inline-flex; align-items:center; justify-content:center; padding:0 6px; height:18px; border-radius:10px; font-size:0.7rem; font-weight:800; letter-spacing:0.4px; border:1px solid var(--gray-700); margin-left:4px; }
             .role-badge.dev { background: rgba(0,255,249,0.1); color: var(--primary-cyan); border-color: rgba(0,255,249,0.4); }
             .role-badge.artist { background: rgba(255,0,128,0.1); color: var(--primary-magenta); border-color: rgba(255,0,128,0.4); }
@@ -156,6 +176,19 @@
             .mrr-title { font-weight:700; }
             .mrr-meta { opacity:.8; font-size:.9rem; }
             .mod-highlight { outline: 2px dashed var(--primary-cyan); outline-offset: 4px; }
+            /* Community toolbar: unify button sizing/shape */
+            .community-toolbar .neural-button {
+                height: 44px;
+                padding: 0 16px;
+                border-radius: 12px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 1;
+                margin-top: 0;
+            }
+            /* Create Post text: keep normal case and tighter tracking */
+            #create-post-btn .button-text { text-transform: none; letter-spacing: 0.2px; font-weight: 600; }
         </style>
 
     <!-- Firebase SDK init (module) -->
@@ -218,7 +251,9 @@
                         </select>
                     </div>
                     <div style="display:flex; gap:8px; align-items:center; position:relative;">
-                        <button id="create-post-btn" class="btn-portal" style="display:none;">Create Post</button>
+                        <button id="create-post-btn" class="neural-button secondary" style="display:none; height:44px; padding:0 16px;">
+                            <span class="button-text">Create post</span>
+                        </button>
                         <div id="hidden-actions" style="display:none; position:relative;">
                             <button id="hidden-actions-btn" class="neural-button secondary" aria-haspopup="menu" aria-expanded="false" aria-label="Hidden posts options" title="Hidden posts options" style="width:44px; height:44px; padding:0; display:inline-flex; align-items:center; justify-content:center;">
                                 <span aria-hidden="true" style="font-size:20px; letter-spacing:2px; line-height:1;">⋯</span>

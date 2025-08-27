@@ -835,45 +835,64 @@
         return; // don't fall through to comment handlers
       }
 
-      // Post menu open/close
+      // Post menu open/close (only if button is within .post-actions)
       const menuBtn = e.target.closest('.post-menu-btn');
       if (menuBtn) {
         const actions = menuBtn.closest('.post-actions');
-        const menu = actions?.querySelector('.post-menu');
+        if (actions) {
+          const menu = actions.querySelector('.post-menu');
+          if (menu) {
+            const open = menu.style.display !== 'block';
+            closeAllMenus();
+            menu.style.display = open ? 'block' : 'none';
+            menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+            // Gate admin items visibility
+            menu.querySelectorAll('.admin-only').forEach(el => {
+              el.style.display = isAdmin ? 'block' : 'none';
+            });
+            // Gate moderator items visibility (admins or developers)
+            menu.querySelectorAll('.mod-only').forEach(el => {
+              el.style.display = isMod ? 'block' : 'none';
+            });
+          }
+          return;
+        }
+      }
+
+      // Comment menu open/close
+      const cMenuBtn = e.target.closest('.comment-menu-btn');
+      if (cMenuBtn) {
+        const actions = cMenuBtn.closest('.comment-actions');
+        const menu = actions?.querySelector('.comment-menu');
         if (menu) {
           const open = menu.style.display !== 'block';
           closeAllMenus();
           menu.style.display = open ? 'block' : 'none';
-          menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          cMenuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
           menu.setAttribute('aria-hidden', open ? 'false' : 'true');
-          // Gate admin items visibility
-          menu.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = isAdmin ? 'block' : 'none';
-          });
-          // Gate moderator items visibility (admins or developers)
-          menu.querySelectorAll('.mod-only').forEach(el => {
-            el.style.display = isMod ? 'block' : 'none';
-          });
         }
         return;
       }
 
-      // Menu actions: report, hide, pin/unpin, delete
-      const reportBtn = e.target.closest('.menu-item.report');
-      const hideBtn = e.target.closest('.menu-item.hide');
-      const pinBtn = e.target.closest('.menu-item.pin');
-      const unpinBtn = e.target.closest('.menu-item.unpin');
-      const adminDeleteBtn = e.target.closest('.menu-item.delete');
-      if (reportBtn || hideBtn || pinBtn || unpinBtn || adminDeleteBtn) {
-        const card = e.target.closest('article.game-card');
-        const postId = card?.getAttribute('data-id');
-        if (!postId) return;
-        closeAllMenus();
-  if (reportBtn) { openReportModal(postId); return; }
-        if (hideBtn) { handleHide(postId, card); return; }
-        if (pinBtn) { handlePin(postId, card, true); return; }
-        if (unpinBtn) { handlePin(postId, card, false); return; }
-        if (adminDeleteBtn) { handleAdminDelete(postId, card); return; }
+      // Post menu actions: report, hide, pin/unpin, delete (only for post menus)
+      if (e.target.closest('.post-actions')) {
+        const reportBtn = e.target.closest('.post-actions .menu-item.report');
+        const hideBtn = e.target.closest('.post-actions .menu-item.hide');
+        const pinBtn = e.target.closest('.post-actions .menu-item.pin');
+        const unpinBtn = e.target.closest('.post-actions .menu-item.unpin');
+        const adminDeleteBtn = e.target.closest('.post-actions .menu-item.delete');
+        if (reportBtn || hideBtn || pinBtn || unpinBtn || adminDeleteBtn) {
+          const card = e.target.closest('article.game-card');
+          const postId = card?.getAttribute('data-id');
+          if (!postId) return;
+          closeAllMenus();
+          if (reportBtn) { openReportModal(postId); return; }
+          if (hideBtn) { handleHide(postId, card); return; }
+          if (pinBtn) { handlePin(postId, card, true); return; }
+          if (unpinBtn) { handlePin(postId, card, false); return; }
+          if (adminDeleteBtn) { handleAdminDelete(postId, card); return; }
+        }
       }
 
       const btn = e.target.closest('.comment-send');
@@ -930,10 +949,11 @@
       likeEl.click();
     });
 
-    // Delegate comment delete
+  // Delegate comment delete (owner-only; menu only renders for owners)
     postsList.addEventListener('click', async (e) => {
       const del = e.target.closest('.comment-delete');
       if (!del) return;
+  closeAllMenus();
       const card = e.target.closest('article.game-card');
       if (!card) return;
       if (!auth || !auth.currentUser) { alert('You must be signed in.'); return; }
@@ -971,6 +991,7 @@
     postsList.addEventListener('click', async (e) => {
       const edit = e.target.closest('.comment-edit');
       if (!edit) return;
+  closeAllMenus();
       const item = e.target.closest('.comment-item');
       if (!item) return;
       const bodyEl = item.querySelector('.comment-body');
@@ -980,10 +1001,13 @@
       item.classList.add('editing');
       bodyEl.innerHTML = `<textarea class="comment-edit-input neural-input" rows="2">${escapeHtml(original)}</textarea>`;
       const actions = item.querySelector('.comment-actions');
-      if (actions) actions.innerHTML = `
+      if (actions) {
+        actions.dataset.restore = actions.innerHTML;
+        actions.innerHTML = `
         <button class="comment-save">Save</button>
         <button class="comment-cancel">Cancel</button>
-      `;
+        `;
+      }
     });
 
     // Delegate comment edit cancel
@@ -994,8 +1018,8 @@
       const bodyEl = item?.querySelector('.comment-body');
       if (!item || !bodyEl) return;
       bodyEl.textContent = item.dataset.original || '';
-      const actions = item.querySelector('.comment-actions');
-      if (actions) actions.innerHTML = actions.dataset.template || '';
+  const actions = item.querySelector('.comment-actions');
+  if (actions) actions.innerHTML = actions.dataset.restore || '';
       item.classList.remove('editing');
     });
 
@@ -1040,7 +1064,7 @@
 
     // Close menus on outside click
     document.addEventListener('click', (ev) => {
-      if (!ev.target.closest('.post-actions')) closeAllMenus();
+      if (!ev.target.closest('.post-actions') && !ev.target.closest('.comment-actions')) closeAllMenus();
     });
   });
 
@@ -1120,8 +1144,8 @@
   }
 
   function closeAllMenus(){
-    document.querySelectorAll('.post-menu').forEach(m => { m.style.display = 'none'; m.setAttribute('aria-hidden','true'); });
-    document.querySelectorAll('.post-menu-btn').forEach(b => b.setAttribute('aria-expanded','false'));
+  document.querySelectorAll('.post-menu, .comment-menu').forEach(m => { m.style.display = 'none'; m.setAttribute('aria-hidden','true'); });
+  document.querySelectorAll('.post-menu-btn, .comment-menu-btn').forEach(b => b.setAttribute('aria-expanded','false'));
   }
 
   async function handleReport(postId, card){
@@ -1241,8 +1265,16 @@
         const when = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : '';
     const who = escapeHtml(c.authorName || 'Anonymous');
         const canOwn = !!(auth && auth.currentUser && c.userId === auth.currentUser.uid);
-    const actionsTpl = canOwn ? `<div class="comment-actions" data-template="<div class=\"comment-actions\"><button class=\"comment-edit\" data-cid=\"${doc.id}\">Edit<\/button><button class=\"comment-delete\" data-cid=\"${doc.id}\">Delete<\/button><\/div>"><button class="comment-edit" data-cid="${doc.id}">Edit</button><button class="comment-delete" data-cid="${doc.id}">Delete</button></div>` : '<div class="comment-actions"></div>';
-        items.push(`<div class="comment-item" data-cid="${doc.id}">
+        const actionsTpl = canOwn ? `
+          <div class="comment-actions">
+            <button class="post-menu-btn comment-menu-btn" aria-haspopup="menu" aria-expanded="false" title="Comment actions">⋯</button>
+            <div class="post-menu comment-menu" role="menu" aria-hidden="true" style="display:none;">
+              <button class="menu-item comment-edit" role="menuitem" data-cid="${doc.id}">Edit</button>
+              <button class="menu-item delete comment-delete" role="menuitem" data-cid="${doc.id}">Delete</button>
+            </div>
+          </div>
+        ` : '<div class="comment-actions"></div>';
+        items.push(`<div class="comment-item" data-cid="${doc.id}" data-owner="${escapeHtml(c.userId || '')}">
           <img class="comment-avatar" src="${escapeHtml(c.authorPhotoUrl || '')}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'" />
           <div class="comment-main">
       <div class="comment-head"><strong>${who}</strong> ${roleBadgesFor(c.userId)} <span class="comment-when">${when}</span></div>
