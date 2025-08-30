@@ -45,6 +45,8 @@
     onSnapshot: null,
     Timestamp: null
   };
+  // Cache for verified users to avoid repeated lookups
+  const verifiedCache = new Map(); // uid -> boolean
   let lastCursor = null;
   const pageSize = 10;
   const postsList = document.getElementById('posts-list');
@@ -105,7 +107,7 @@
     const likes = d.likesCount || 0;
     const commentsCount = d.commentsCount || 0;
     const date = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date();
-    const author = escapeHtml(d.userDisplayName || d.userName || d.authorName || 'Anonymous');
+  const author = escapeHtml(d.userDisplayName || d.userName || d.authorName || 'Anonymous');
     const avatar = escapeHtml(d.authorPhotoUrl || 'assets/icons/anonymous.png');
   const fullBody = String(d.body || '');
   const truncLen = 220;
@@ -132,8 +134,9 @@
           <div class="card-tags">${tags}</div>
           <div class="card-meta community-meta">
             <img class="author-avatar" src="${avatar}" alt="" loading="lazy" decoding="async" onerror="this.src='assets/icons/anonymous.png'" />
-            <span class="author-name" title="Author">${author}</span>
+            <span class="author-name" title="Author" data-author-uid="${escapeHtml(d.userId || '')}">${author}</span>
             ${roleBadgesFor(d.userId)}
+            <span class="verified-badge-slot" aria-hidden="true"></span>
             <span class="meta-dot">•</span>
             <span class="meta-date" title="Date">${date.toLocaleDateString()}</span>
             <span class="spacer"></span>
@@ -222,6 +225,12 @@
         ensurePostDocListener(card, postId);
   // Ensure a comment toggle shows if comments exist even when count field is missing
   ensureCommentTogglePresence(card, postId);
+        // Render verified badge for post author
+        try {
+          const nameEl = card.querySelector('.author-name');
+          const uid = nameEl?.getAttribute('data-author-uid') || '';
+          if (uid) { renderVerifiedBadgeFor(nameEl, uid); }
+        } catch(e) {}
       });
   refreshOwnerPostActions();
     });
@@ -281,6 +290,12 @@
           const postId = card.getAttribute('data-id');
           markUpvoteState(card, postId);
           ensurePostDocListener(card, postId);
+          // Render verified badge for post author
+          try {
+            const nameEl = card.querySelector('.author-name');
+            const uid = nameEl?.getAttribute('data-author-uid') || '';
+            if (uid) { renderVerifiedBadgeFor(nameEl, uid); }
+          } catch(e) {}
         });
         refreshOwnerPostActions();
       });
@@ -1277,7 +1292,7 @@
         items.push(`<div class="comment-item" data-cid="${doc.id}" data-owner="${escapeHtml(c.userId || '')}">
           <img class="comment-avatar" src="${escapeHtml(c.authorPhotoUrl || '')}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'" />
           <div class="comment-main">
-      <div class="comment-head"><strong>${who}</strong> ${roleBadgesFor(c.userId)} <span class="comment-when">${when}</span></div>
+      <div class="comment-head"><strong class="comment-author" data-author-uid="${escapeHtml(c.userId || '')}">${who}</strong> ${roleBadgesFor(c.userId)} <span class="verified-badge-slot" aria-hidden="true"></span> <span class="comment-when">${when}</span></div>
             <div class="comment-body">${escapeHtml(c.body)}</div>
           </div>
           ${actionsTpl}
@@ -1285,9 +1300,61 @@
       });
       listEl.innerHTML = items.join('');
       listEl.dataset.loaded = '1';
+      // Render verified badges within the loaded comments
+      try { await renderVerifiedBadgesWithin(listEl); } catch(e) {}
     } catch (e) {
       console.error('Load comments failed:', e);
     }
+  }
+
+  async function ensureVerified(uid){
+    if (!uid) return false;
+    if (verifiedCache.has(uid)) return verifiedCache.get(uid);
+    try {
+      await ensureModFirestore();
+      const ref = mfs.doc(mfs.db, `verified_users/${uid}`);
+      const snap = await mfs.getDoc(ref);
+      const ok = !!(snap.exists() && snap.data()?.verified === true);
+      verifiedCache.set(uid, ok);
+      return ok;
+    } catch(e){ verifiedCache.set(uid, false); return false; }
+  }
+
+  function attachVerifiedBadge(afterEl){
+    if (!afterEl) return;
+    // Avoid duplicates
+    const parent = afterEl.parentElement;
+    if (!parent) return;
+    // If an immediate verified badge exists next to the name, skip
+    const existing = parent.querySelector('.verified-badge');
+    if (existing) return;
+    const badge = document.createElement('span');
+    badge.className = 'verified-badge';
+    badge.setAttribute('title','Verified');
+    badge.setAttribute('aria-label','Verified');
+    badge.textContent = '✔';
+    badge.style.cssText = 'display:inline-block;margin-left:6px;color:#16e1ff;font-weight:800;text-shadow:0 0 6px rgba(22,225,255,0.6)';
+    // Insert after the name element
+    if (afterEl.nextSibling) parent.insertBefore(badge, afterEl.nextSibling); else parent.appendChild(badge);
+  }
+
+  async function renderVerifiedBadgeFor(nameEl, uid){
+    try {
+      const ok = await ensureVerified(uid);
+      if (ok) attachVerifiedBadge(nameEl);
+    } catch(e) {}
+  }
+
+  async function renderVerifiedBadgesWithin(root){
+    const nodes = Array.from(root.querySelectorAll('[data-author-uid]'));
+    // Unique by uid
+    const pairs = nodes.map(n => [n, n.getAttribute('data-author-uid') || '']).filter(([,u]) => !!u);
+    const seen = new Set();
+    for (const [, uid] of pairs) seen.add(uid);
+    // Prime cache
+    await Promise.all(Array.from(seen).map(u => ensureVerified(u)));
+    // Attach badges
+    pairs.forEach(([el, uid]) => { if (verifiedCache.get(uid)) attachVerifiedBadge(el); });
   }
 })();
 

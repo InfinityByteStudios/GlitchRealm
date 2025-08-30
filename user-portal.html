@@ -665,6 +665,63 @@
         </div>
         
         <div id="portal-content" class="portal-sections" style="display: none;">
+            <!-- Verification -->
+            <div class="portal-section" id="verification-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24"><path d="M12,2L2,7V17L12,22L22,17V7L12,2M12,4.15L19.5,8L12,11.85L4.5,8L12,4.15M4,9.76L11,13.5V19.85L4,16.11V9.76M13,19.85V13.5L20,9.76V16.11L13,19.85Z"/></svg>
+                    Verification
+                </h2>
+                <div id="verif-status" class="form-help" style="margin-bottom:12px;">Loading verification status…</div>
+                <form id="verif-form" class="neural-form">
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" id="verif-name" class="form-control" maxlength="100" placeholder="How should we show your name?" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Bio (optional)</label>
+                        <textarea id="verif-bio" class="form-control" rows="3" maxlength="1000" placeholder="Tell us about your work and contributions."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Links (optional, up to 5)</label>
+                        <input type="url" id="verif-link-1" class="form-control" placeholder="Portfolio, YouTube, X/Twitter, etc." />
+                        <input type="url" id="verif-link-2" class="form-control" style="margin-top:8px;" />
+                        <input type="url" id="verif-link-3" class="form-control" style="margin-top:8px;" />
+                        <input type="url" id="verif-link-4" class="form-control" style="margin-top:8px;" />
+                        <input type="url" id="verif-link-5" class="form-control" style="margin-top:8px;" />
+                    </div>
+                    <button id="verif-submit" type="button" class="btn-portal">Submit Request</button>
+                </form>
+            </div>
+
+            <!-- Community Games Submission (for verified users) -->
+            <div class="portal-section" id="community-games-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 17.93c-2.83.48-5.59-.3-7.66-2.37-3.9-3.9-3.9-10.24 0-14.14 2.07-2.07 4.83-2.85 7.66-2.37V6h-2v2h2v2h2V8h2V6h-2V3.07c2.83-.48 5.59.3 7.66 2.37 3.9 3.9 3.9 10.24 0 14.14-2.07 2.07-4.83 2.85-7.66 2.37V18h2v-2h-2v-2h-2v2H9v2h2v1.93z"/></svg>
+                    Community Games
+                </h2>
+                <div id="cg-note" class="form-help" style="margin-bottom:12px;">Submit your game to be featured in the community list. Verified users only.</div>
+                <form id="cg-form" class="neural-form">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" id="cg-title" class="form-control" maxlength="120" placeholder="My Awesome Game" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Slug</label>
+                        <input type="text" id="cg-slug" class="form-control" maxlength="140" placeholder="awesome-game" />
+                        <div class="form-help">Lowercase letters, numbers, hyphens only.</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="cg-desc" class="form-control" rows="4" maxlength="5000" placeholder="Describe your game mechanics, genre, and where to play."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Links (optional)</label>
+                        <input type="url" id="cg-link-1" class="form-control" placeholder="Play URL, trailer, docs, etc." />
+                    </div>
+                    <button id="cg-submit" type="button" class="btn-portal">Create Game Entry</button>
+                </form>
+                <div id="cg-feedback" class="form-help" style="margin-top:8px;"></div>
+            </div>
             <div class="portal-section">
                 <h2 class="section-title">
                     <svg viewBox="0 0 24 24">
@@ -829,6 +886,11 @@
             
             // Load playtime data
             await loadPlaytimeData(user.uid);
+
+            // Load verification status and wire forms
+            try { await setupVerificationUI(user); } catch(e) { console.warn('verification UI', e); }
+            // Load Community Games UI
+            try { await setupCommunityGamesUI(user); } catch(e) { console.warn('cg UI', e); }
         }
         
         // Update user email
@@ -1112,6 +1174,120 @@
         document.addEventListener('DOMContentLoaded', function() {
             // initializeUserPortal will be called by the Firebase timeout
         });
+
+        async function isUserVerified(uid) {
+            try {
+                const db = window.firebaseFirestore;
+                const ref = window.firestoreDoc(db, 'verified_users', uid);
+                const snap = await window.firestoreGetDoc(ref);
+                return snap.exists() && snap.data().verified === true;
+            } catch(e) { return false; }
+        }
+
+        async function setupVerificationUI(user){
+            const statusEl = document.getElementById('verif-status');
+            const form = document.getElementById('verif-form');
+            const nameEl = document.getElementById('verif-name');
+            const bioEl = document.getElementById('verif-bio');
+            const linkEls = [1,2,3,4,5].map(i => document.getElementById('verif-link-'+i));
+            const btn = document.getElementById('verif-submit');
+            const db = window.firebaseFirestore;
+            const reqRef = window.firestoreDoc(db, 'verification_requests', user.uid);
+            const reqSnap = await window.firestoreGetDoc(reqRef);
+            const verified = await isUserVerified(user.uid);
+            if (verified) {
+                statusEl.textContent = 'You are verified. Thank you for being a trusted creator.';
+                form.style.display = 'none';
+                return;
+            }
+            if (reqSnap.exists()) {
+                const d = reqSnap.data();
+                nameEl.value = d.displayName || user.displayName || '';
+                bioEl.value = d.bio || '';
+                const links = Array.isArray(d.links) ? d.links : [];
+                links.forEach((v,i) => { if (linkEls[i]) linkEls[i].value = v; });
+                statusEl.textContent = 'Status: ' + (d.status || 'pending');
+            } else {
+                statusEl.textContent = 'Not verified. Submit a request below.';
+                nameEl.value = user.displayName || user.email?.split('@')[0] || '';
+            }
+            btn.addEventListener('click', async () => {
+                try {
+                    const displayName = (nameEl.value||'').trim().slice(0,100);
+                    if (!displayName) { alert('Display name is required.'); return; }
+                    const bio = (bioEl.value||'').trim().slice(0,1000);
+                    const links = linkEls.map(i => (i?.value||'').trim()).filter(Boolean).slice(0,5);
+                    const payload = {
+                        uid: user.uid,
+                        displayName,
+                        bio,
+                        links,
+                        status: 'pending',
+                        createdAt: new Date()
+                    };
+                    await window.firestoreSetDoc(reqRef, payload, { merge: true });
+                    statusEl.textContent = 'Status: pending (submitted)';
+                    showAuthMessage('Verification submitted', 'success');
+                } catch(e) {
+                    console.error('submit verification', e);
+                    showAuthMessage('Failed to submit verification', 'error');
+                }
+            });
+        }
+
+        function slugify(input){
+            return String(input||'').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,140);
+        }
+
+        async function setupCommunityGamesUI(user){
+            const note = document.getElementById('cg-note');
+            const form = document.getElementById('cg-form');
+            const titleEl = document.getElementById('cg-title');
+            const slugEl = document.getElementById('cg-slug');
+            const descEl = document.getElementById('cg-desc');
+            const link1 = document.getElementById('cg-link-1');
+            const btn = document.getElementById('cg-submit');
+            const feedback = document.getElementById('cg-feedback');
+            const verified = await isUserVerified(user.uid);
+            if (!verified) {
+                note.textContent = 'Only verified users can submit community games. Submit a verification request first.';
+                form.style.opacity = '0.6';
+                Array.from(form.elements).forEach(el => el.disabled = true);
+                return;
+            }
+            note.textContent = 'Verified! You can create a game entry visible to the community.';
+            btn.addEventListener('click', async () => {
+                try {
+                    const title = (titleEl.value||'').trim();
+                    const slug = slugify(slugEl.value||title);
+                    const description = (descEl.value||'').trim();
+                    const links = [(link1.value||'').trim()].filter(Boolean);
+                    if (!title || !slug || !description) { alert('Title, slug and description are required.'); return; }
+                    const db = window.firebaseFirestore;
+                    const now = new Date();
+                    const docRef = window.firestoreDoc(db, 'community_games', slug);
+                    await window.firestoreSetDoc(docRef, {
+                        title,
+                        slug,
+                        ownerId: user.uid,
+                        description,
+                        links,
+                        visibility: 'public',
+                        status: 'draft',
+                        createdAt: now,
+                        updatedAt: now
+                    });
+                    feedback.textContent = 'Game entry created. You can update or publish it later.';
+                    showAuthMessage('Game entry created', 'success');
+                    form.reset();
+                    slugEl.value = slug;
+                } catch(e) {
+                    console.error('cg create', e);
+                    feedback.textContent = 'Failed to create game entry: ' + (e?.message||e);
+                    showAuthMessage('Failed to create entry', 'error');
+                }
+            });
+        }
     </script>
     
     <!-- Auth Overlay Modal -->

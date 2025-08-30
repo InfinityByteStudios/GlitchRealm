@@ -4,10 +4,15 @@
   const accessEl = document.getElementById('mod-access');
   const controlsEl = document.getElementById('mod-reports-controls');
   const listEl = document.getElementById('mod-reports-list');
+  // Verification panel elements
+  const vControlsEl = document.getElementById('mod-verify-controls');
+  const vListEl = document.getElementById('mod-verify-list');
+  const vFilterEl = document.getElementById('mod-verify-filter');
   // Auto-delete window for closed reports (hours)
   const AUTO_DELETE_TTL_HOURS = 168; // 7 days
   let reportsUnsub = null;
   let countdownInterval = null;
+  let vUnsub = null;
 
   function esc(s){
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
@@ -138,6 +143,41 @@
     startCountdowns();
   }
 
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  }
+
+  function renderVerifyList(snap){
+    if (!snap || snap.empty) {
+      vListEl.innerHTML = '<div style="opacity:.8; padding:8px;">No requests.</div>';
+      return;
+    }
+    const rows = [];
+    snap.forEach(d => {
+      const r = d.data();
+      const when = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : '';
+      const status = r.status || 'pending';
+      const links = Array.isArray(r.links) ? r.links : [];
+      const bio = (r.bio || '').toString();
+      rows.push(`<div class="mod-report-row" data-vid="${esc(d.id)}">
+        <div class="mrr-main">
+          <div class="mrr-title">${esc(r.displayName || d.id)}</div>
+          <div class="mrr-meta">UID: <code>${esc(d.id)}</code> • ${esc(when)} • <span class="status-chip ${status === 'approved' ? 'status-closed' : (status === 'denied' ? 'status-pending' : 'status-open')}">Status: <strong>${esc(status)}</strong></span></div>
+          ${bio ? `<div style="margin-top:6px; white-space:pre-wrap;">${esc(bio)}</div>` : ''}
+          ${links.length ? `<div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">${links.map(u=>`<a class="neural-button secondary" href="${esc(u)}" target="_blank" rel="noopener">Link</a>`).join('')}</div>` : ''}
+          <div class="status-actions" style="margin-top:8px;">
+            <button class="neural-button secondary v-approve"><span class="button-text">Approve</span></button>
+            <button class="neural-button secondary v-deny"><span class="button-text">Deny</span></button>
+          </div>
+        </div>
+        <div class="mrr-actions">
+          <button class="neural-button secondary v-copy" data-uid="${esc(d.id)}"><span class="button-text">Copy UID</span></button>
+        </div>
+      </div>`);
+    });
+    vListEl.innerHTML = rows.join('');
+  }
+
   async function ensureReportsListener(){
     if (!auth || !auth.currentUser) return;
     const uid = auth.currentUser.uid;
@@ -168,6 +208,7 @@
   // No capability fallback; this page is dev-only.
 
       controlsEl.style.display = 'flex';
+      vControlsEl.style.display = 'flex';
       accessEl.textContent = 'Access granted.';
       if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
       reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
@@ -175,6 +216,75 @@
       // Wire actions
       document.getElementById('mod-refresh')?.addEventListener('click', async () => {
         try { const snap = await getDocs(q); renderReportsList(snap); } catch(e) {}
+      });
+
+      // Verification requests query + handlers
+      const vmod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      const vdb = vmod.getFirestore();
+      const buildVQuery = (filter) => {
+        const base = vmod.collection(vdb, 'verification_requests');
+        if (filter && filter !== 'all') {
+          return vmod.query(base, vmod.where('status','==', filter), vmod.orderBy('createdAt','desc'), vmod.limit(50));
+        }
+        return vmod.query(base, vmod.orderBy('createdAt','desc'), vmod.limit(50));
+      };
+      const refreshV = async () => {
+        try {
+          const snap = await vmod.getDocs(buildVQuery(vFilterEl?.value || 'pending'));
+          renderVerifyList(snap);
+        } catch(e) { vListEl.innerHTML = '<div style="opacity:.8; padding:8px;">Failed to load.</div>'; }
+      };
+      if (vUnsub) { try { vUnsub(); } catch(e){} vUnsub = null; }
+      vUnsub = vmod.onSnapshot(buildVQuery(vFilterEl?.value || 'pending'), (snap) => renderVerifyList(snap));
+      document.getElementById('mod-verify-refresh')?.addEventListener('click', refreshV);
+      vFilterEl?.addEventListener('change', () => {
+        if (vUnsub) { try { vUnsub(); } catch(e){} vUnsub = null; }
+        vUnsub = vmod.onSnapshot(buildVQuery(vFilterEl.value || 'pending'), (snap) => renderVerifyList(snap));
+      });
+
+      vListEl.addEventListener('click', (e) => {
+        const copy = e.target.closest('.v-copy');
+        if (copy) {
+          const uid = copy.getAttribute('data-uid') || '';
+          if (uid) { try { navigator.clipboard.writeText(uid); } catch(e){} }
+          return;
+        }
+        const approve = e.target.closest('.v-approve');
+        const deny = e.target.closest('.v-deny');
+        if (approve || deny) {
+          const row = e.target.closest('.mod-report-row');
+          const uid = row?.getAttribute('data-vid');
+          if (!uid) return;
+          (async () => {
+            try {
+              const now = Date.now();
+              const { getFirestore, doc, setDoc, updateDoc, serverTimestamp, Timestamp } = vmod;
+              const db = getFirestore();
+              if (approve) {
+                // Create verified_users doc and mark request approved
+                await setDoc(doc(db, 'verified_users', uid), {
+                  verified: true,
+                  verifiedAt: serverTimestamp(),
+                  reviewerId: auth?.currentUser?.uid || null
+                });
+                await updateDoc(doc(db, 'verification_requests', uid), {
+                  status: 'approved',
+                  decidedAt: serverTimestamp(),
+                  reviewerId: auth?.currentUser?.uid || null
+                });
+              } else if (deny) {
+                await updateDoc(doc(db, 'verification_requests', uid), {
+                  status: 'denied',
+                  decidedAt: serverTimestamp(),
+                  reviewerId: auth?.currentUser?.uid || null
+                });
+              }
+            } catch(e) {
+              const msg = (e && e.code === 'permission-denied') ? 'Permission denied. Ensure this account has admin/dev rights.' : 'Failed to update verification request.';
+              alert(msg);
+            }
+          })();
+        }
       });
       listEl.addEventListener('click', (e) => {
         const copy = e.target.closest('.mrr-copy');

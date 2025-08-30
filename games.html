@@ -1246,6 +1246,34 @@
                             <button class="btn btn-disabled card-btn" disabled>Under Development</button>
                         </div>
                     </div>
+
+                    <!-- Submit Your Game (Visible to Verified Users or Dev UIDs) -->
+                    <div id="submitGameCard" class="game-card" style="display:none" data-game="submit">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <span class="game-icon">
+                                    <svg class="icon-svg" viewBox="0 0 24 24">
+                                        <path d="M4,3H20A1,1 0 0,1 21,4V16A1,1 0 0,1 20,17H4A1,1 0 0,1 3,16V4A1,1 0 0,1 4,3M5,5V15H19V5H5M6,19H18V21H6V19Z"/>
+                                    </svg>
+                                    <svg class="icon-svg" viewBox="0 0 24 24">
+                                        <path d="M12,2A10,10 0 0,1 22,12C22,17.5 17.5,22 12,22A10,10 0 0,1 2,12C2,6.5 6.5,2 12,2M11,6V11H6V13H11V18H13V13H18V11H13V6H11Z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="card-overlay"></div>
+                            <div class="game-badge new">CREATOR</div>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Submit Your Game</h3>
+                            <p class="card-description">Verified creators or approved developers can submit a new game to appear on this page.</p>
+                            <div class="card-tags">
+                                <span class="tag">Indie</span>
+                                <span class="tag">Community</span>
+                                <span class="tag">Creator</span>
+                            </div>
+                            <button id="openSubmitGameModalBtn" class="btn btn-primary card-btn">Start Submission</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1529,6 +1557,59 @@
                 <button class="btn cancel-btn" onclick="closeGameRemovedModal()">Close</button>
                 <a class="btn submit-btn" href="contact.html">Contact Us</a>
             </div>
+        </div>
+    </div>
+
+    <!-- Submit Game Modal -->
+    <div id="submitGameModal" class="review-modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeSubmitGameModal()">&times;</span>
+            <h2 class="modal-title">SUBMIT YOUR GAME</h2>
+
+            <div id="submitGateNotice" class="warning-message" style="display:none;">
+                You must be a verified creator or approved developer to submit a game. <a href="verify.html">Get verified</a>.
+            </div>
+
+            <div class="game-info">
+                <strong>New Game Submission</strong>
+            </div>
+
+            <form id="submitGameForm">
+                <div class="input-container">
+                    <div class="input-label">Title</div>
+                    <input type="text" id="submissionTitle" class="neural-input" placeholder="Game Title" maxlength="120" required>
+                    <div class="input-line"></div>
+                </div>
+
+                <div class="input-container">
+                    <div class="input-label">Cover Image URL (optional)</div>
+                    <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://..." maxlength="2000">
+                    <div class="input-line"></div>
+                </div>
+
+                <div class="input-container">
+                    <div class="input-label">Description</div>
+                    <textarea id="submissionDescription" class="neural-input" placeholder="Tell players about your game... (Max 1000 characters)" maxlength="1000" style="min-height:120px"></textarea>
+                    <div class="input-line"></div>
+                </div>
+
+                <div class="input-container">
+                    <div class="input-label">Tags (up to 3)</div>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="tag1" class="neural-input" placeholder="Tag 1" maxlength="20" style="flex:1">
+                        <input type="text" id="tag2" class="neural-input" placeholder="Tag 2" maxlength="20" style="flex:1">
+                        <input type="text" id="tag3" class="neural-input" placeholder="Tag 3" maxlength="20" style="flex:1">
+                    </div>
+                    <div class="input-line"></div>
+                </div>
+
+                <div id="submissionMessage" style="margin:10px 0;"></div>
+
+                <div class="submit-section">
+                    <button type="button" class="btn cancel-btn" onclick="closeSubmitGameModal()">Cancel</button>
+                    <button id="submitGameBtn" type="submit" class="btn submit-btn">Submit</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2789,5 +2870,154 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+
+    <script>
+    // Submit Game UI gating and Firestore submission
+    (function() {
+        const DEV_UIDS = new Set([
+            '6iZDTXC78aVwX22qrY43BOxDRLt1',
+            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+        ]);
+
+        function $(id) { return document.getElementById(id); }
+
+        async function isVerifiedUser(uid) {
+            try {
+                const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const ref = doc(window.firebaseFirestore, 'verified_users', uid);
+                const snap = await getDoc(ref);
+                return snap.exists() && !!snap.data().verified;
+            } catch (e) {
+                console.warn('Verified check failed:', e);
+                return false;
+            }
+        }
+
+        function showSubmitCard(show) {
+            const card = $('submitGameCard');
+            if (card) card.style.display = show ? '' : 'none';
+        }
+
+        async function gateSubmitCard() {
+            try {
+                const auth = window.firebaseAuth;
+                if (!auth) return;
+                const user = auth.currentUser;
+                if (!user) { showSubmitCard(false); return; }
+                const isDev = DEV_UIDS.has(user.uid);
+                const isVerified = await isVerifiedUser(user.uid);
+                showSubmitCard(isDev || isVerified);
+            } catch (e) {
+                console.warn('Gate error:', e);
+                showSubmitCard(false);
+            }
+        }
+
+        // Modal helpers
+        window.openSubmitGameModal = async function() {
+            const auth = window.firebaseAuth;
+            const user = auth ? auth.currentUser : null;
+            const gate = $('submitGateNotice');
+            const isDev = user && DEV_UIDS.has(user.uid);
+            const isVerified = user ? await isVerifiedUser(user.uid) : false;
+            if (!user || (!isDev && !isVerified)) {
+                if (gate) gate.style.display = '';
+            } else {
+                if (gate) gate.style.display = 'none';
+            }
+            const modal = $('submitGameModal');
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        window.closeSubmitGameModal = function() {
+            const modal = $('submitGameModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wire button
+            const openBtn = $('openSubmitGameModalBtn');
+            if (openBtn) openBtn.addEventListener('click', openSubmitGameModal);
+
+            // Auth state reacts
+            if (window.firebaseAuth) {
+                import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js')
+                    .then(({ onAuthStateChanged }) => {
+                        try { onAuthStateChanged(window.firebaseAuth, () => gateSubmitCard()); } catch {}
+                    })
+                    .catch(() => {});
+            }
+            gateSubmitCard();
+
+            // Handle submit
+            const form = $('submitGameForm');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const auth = window.firebaseAuth;
+                    const user = auth ? auth.currentUser : null;
+                    const msg = $('submissionMessage');
+                    const btn = $('submitGameBtn');
+                    const gate = $('submitGateNotice');
+                    if (!user) {
+                        if (msg) msg.innerHTML = '<div class="error-message">Please sign in first.</div>';
+                        return;
+                    }
+                    // Gate again at submit time
+                    const isDev = DEV_UIDS.has(user.uid);
+                     </body>
+                     </html>
+                const isDev = DEV_UIDS.has(user.uid);
+                const isVerified = await isVerifiedUser(user.uid);
+                if (!isDev && !isVerified) {
+                    if (gate) gate.style.display = '';
+                    if (msg) msg.innerHTML = '<div class="error-message">You are not allowed to submit. Get verified or contact us.</div>';
+                    return;
+                } else if (gate) gate.style.display = 'none';
+
+                const title = $('submissionTitle').value.trim();
+                const description = $('submissionDescription').value.trim();
+                const coverImageUrl = $('submissionCoverUrl').value.trim();
+                const tags = [ $('tag1').value.trim(), $('tag2').value.trim(), $('tag3').value.trim() ].filter(Boolean).slice(0,3);
+
+                if (!title) { if (msg) msg.innerHTML = '<div class="error-message">Title is required.</div>'; return; }
+                if (!description) { if (msg) msg.innerHTML = '<div class="error-message">Description is required.</div>'; return; }
+
+                try {
+                    btn.disabled = true; btn.textContent = 'Submitting...';
+                    const { addDoc, collection, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                    const payload = {
+                        title,
+                        description,
+                        ownerId: user.uid,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        status: 'draft'
+                    };
+                    if (coverImageUrl) payload.coverImageUrl = coverImageUrl;
+                    if (tags.length) payload.tags = tags;
+
+                    await addDoc(collection(window.firebaseFirestore, 'game_submissions'), payload);
+                    if (msg) msg.innerHTML = '<div class="success-message">Submission saved as draft. We\'ll review it soon.</div>';
+                    form.reset();
+                    setTimeout(() => { window.closeSubmitGameModal(); }, 1200);
+                } catch (err) {
+                    console.error('Submit failed', err);
+                    const reason = (err && err.message) ? err.message : 'Unknown error';
+                    if (msg) msg.innerHTML = `<div class="error-message">Error: ${reason}</div>`;
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Submit';
+                }
+            });
+        }
+    });
+})();
+</script>
