@@ -1567,7 +1567,7 @@
             <h2 class="modal-title">SUBMIT YOUR GAME</h2>
 
             <div id="submitGateNotice" class="warning-message" style="display:none;">
-                You must be a verified creator or approved developer to submit a game. <a href="verify.html">Get verified</a>.
+                You must be a verified creator or approved developer to submit a game. <a href="user-portal.html#verification">Get verified</a>.
             </div>
 
             <div class="game-info">
@@ -2973,10 +2973,7 @@
                     }
                     // Gate again at submit time
                     const isDev = DEV_UIDS.has(user.uid);
-                     </body>
-                     </html>
-                const isDev = DEV_UIDS.has(user.uid);
-                const isVerified = await isVerifiedUser(user.uid);
+                    const isVerified = await isVerifiedUser(user.uid);
                 if (!isDev && !isVerified) {
                     if (gate) gate.style.display = '';
                     if (msg) msg.innerHTML = '<div class="error-message">You are not allowed to submit. Get verified or contact us.</div>';
@@ -2993,7 +2990,7 @@
 
                 try {
                     btn.disabled = true; btn.textContent = 'Submitting...';
-                    const { addDoc, collection, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                    const { addDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
                     const payload = {
                         title,
                         description,
@@ -3021,3 +3018,6 @@
     });
 })();
 </script>
+
+    </body>
+    </html>
