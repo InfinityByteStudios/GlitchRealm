@@ -1582,8 +1582,12 @@
                 </div>
 
                 <div class="input-container">
-                    <div class="input-label">Cover Image URL (optional)</div>
-                    <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://..." maxlength="2000">
+                    <div class="input-label">Cover Image</div>
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+                        <input type="file" id="submissionCoverFile" accept="image/*" style="flex:1; min-width:220px">
+                        <span style="opacity:.7; font-size:12px;">or</span>
+                        <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://... (optional)" maxlength="2000" style="flex:1; min-width:240px">
+                    </div>
                     <div class="input-line"></div>
                 </div>
 
@@ -1955,6 +1959,9 @@
             setTimeout(() => {
                 updateAllRatingDisplays();
             }, 1000); // Wait for Firebase to initialize
+
+            // After ratings init, load creator submissions onto the page
+            try { loadPublishedGameSubmissions(); } catch (e) { console.warn('Creator submissions load failed:', e); }
         });
 
         function updateStarDisplay() {
@@ -2872,7 +2879,7 @@
     </div>
 
     <script>
-    // Submit Game UI gating and Firestore submission
+    // Submit Game UI gating, Storage upload, and Firestore submission + render of published submissions
     (function() {
         const DEV_UIDS = new Set([
             '6iZDTXC78aVwX22qrY43BOxDRLt1',
@@ -2957,7 +2964,7 @@
             }
             gateSubmitCard();
 
-            // Handle submit
+            // Handle submit (supports optional image upload to Firebase Storage)
             const form = $('submitGameForm');
             if (form) {
                 form.addEventListener('submit', async (e) => {
@@ -2982,14 +2989,24 @@
 
                 const title = $('submissionTitle').value.trim();
                 const description = $('submissionDescription').value.trim();
-                const coverImageUrl = $('submissionCoverUrl').value.trim();
+                let coverImageUrl = $('submissionCoverUrl').value.trim();
                 const tags = [ $('tag1').value.trim(), $('tag2').value.trim(), $('tag3').value.trim() ].filter(Boolean).slice(0,3);
+                const file = $('submissionCoverFile')?.files?.[0] || null;
 
                 if (!title) { if (msg) msg.innerHTML = '<div class="error-message">Title is required.</div>'; return; }
                 if (!description) { if (msg) msg.innerHTML = '<div class="error-message">Description is required.</div>'; return; }
 
                 try {
                     btn.disabled = true; btn.textContent = 'Submitting...';
+                    // If a file is provided, upload to Firebase Storage and use its URL
+                    if (file) {
+                        if (!window.firebaseStorage) throw new Error('Storage unavailable');
+                        const { ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
+                        const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+                        const storageRef = ref(window.firebaseStorage, `game-covers/${user.uid}/${Date.now()}_${safeName}`);
+                        const snap = await uploadBytes(storageRef, file, { contentType: file.type });
+                        coverImageUrl = await getDownloadURL(snap.ref);
+                    }
                     const { addDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
                     const payload = {
                         title,
@@ -3016,6 +3033,72 @@
             });
         }
     });
+
+    // Load published game submissions and render as cards matching existing style
+    window.loadPublishedGameSubmissions = async function() {
+        try {
+            const container = document.querySelector('.game-cards');
+            if (!container || !window.firebaseFirestore) return;
+            const { collection, query, where, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const q = query(
+                collection(window.firebaseFirestore, 'game_submissions'),
+                where('status', '==', 'published'),
+                orderBy('createdAt', 'desc'),
+                limit(24)
+            );
+            const snap = await getDocs(q);
+            if (snap.empty) return;
+
+            // Insert creator cards before the Coming Soon card if present
+            const comingSoonCard = container.querySelector('.game-card.coming-soon');
+            const insertBeforeNode = comingSoonCard || document.getElementById('submitGameCard') || null;
+
+            const frag = document.createDocumentFragment();
+            snap.forEach(doc => {
+                const data = doc.data() || {};
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.setAttribute('data-game', `submission-${doc.id}`);
+                const cover = (typeof data.coverImageUrl === 'string' && data.coverImageUrl) ? data.coverImageUrl : 'assets/icons/anonymous.png';
+                const desc = (data.description || '').toString().substring(0, 240);
+                const title = (data.title || 'Untitled').toString();
+                const tags = Array.isArray(data.tags) ? data.tags.slice(0,3) : [];
+
+                card.innerHTML = `
+                    <div class="card-image">
+                        <img src="${cover}" alt="${title}" class="game-logo-image" loading="lazy" decoding="async">
+                        <div class="card-overlay"></div>
+                        <div class="game-badge new">CREATOR</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title"></h3>
+                        <p class="card-description"></p>
+                        <p class="card-developer">Made by <strong>Community Creator</strong> <button class="review-btn" disabled>⭐ Review</button></p>
+                        <div class="card-tags"></div>
+                        <button class="btn btn-disabled card-btn" disabled>Submitted Game</button>
+                    </div>
+                `;
+                card.querySelector('.card-title').textContent = title;
+                card.querySelector('.card-description').textContent = desc;
+                const tagsEl = card.querySelector('.card-tags');
+                tags.forEach(t => {
+                    const span = document.createElement('span');
+                    span.className = 'tag';
+                    span.textContent = t;
+                    tagsEl.appendChild(span);
+                });
+                frag.appendChild(card);
+            });
+
+            if (insertBeforeNode && insertBeforeNode.parentNode === container) {
+                container.insertBefore(frag, insertBeforeNode);
+            } else {
+                container.appendChild(frag);
+            }
+        } catch (e) {
+            console.warn('Failed to load published submissions:', e);
+        }
+    }
 })();
 </script>
 
