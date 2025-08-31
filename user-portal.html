@@ -665,63 +665,9 @@
         </div>
         
         <div id="portal-content" class="portal-sections" style="display: none;">
-            <!-- Verification -->
-            <div class="portal-section" id="verification-section">
-                <h2 class="section-title">
-                    <svg viewBox="0 0 24 24"><path d="M12,2L2,7V17L12,22L22,17V7L12,2M12,4.15L19.5,8L12,11.85L4.5,8L12,4.15M4,9.76L11,13.5V19.85L4,16.11V9.76M13,19.85V13.5L20,9.76V16.11L13,19.85Z"/></svg>
-                    Verification
-                </h2>
-                <div id="verif-status" class="form-help" style="margin-bottom:12px;">Loading verification status…</div>
-                <form id="verif-form" class="neural-form">
-                    <div class="form-group">
-                        <label class="form-label">Display Name</label>
-                        <input type="text" id="verif-name" class="form-control" maxlength="100" placeholder="How should we show your name?" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Bio (optional)</label>
-                        <textarea id="verif-bio" class="form-control" rows="3" maxlength="1000" placeholder="Tell us about your work and contributions."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Links (optional, up to 5)</label>
-                        <input type="url" id="verif-link-1" class="form-control" placeholder="Portfolio, YouTube, X/Twitter, etc." />
-                        <input type="url" id="verif-link-2" class="form-control" style="margin-top:8px;" />
-                        <input type="url" id="verif-link-3" class="form-control" style="margin-top:8px;" />
-                        <input type="url" id="verif-link-4" class="form-control" style="margin-top:8px;" />
-                        <input type="url" id="verif-link-5" class="form-control" style="margin-top:8px;" />
-                    </div>
-                    <button id="verif-submit" type="button" class="btn-portal">Submit Request</button>
-                </form>
-            </div>
+            
 
-            <!-- Community Games Submission (for verified users) -->
-            <div class="portal-section" id="community-games-section">
-                <h2 class="section-title">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 17.93c-2.83.48-5.59-.3-7.66-2.37-3.9-3.9-3.9-10.24 0-14.14 2.07-2.07 4.83-2.85 7.66-2.37V6h-2v2h2v2h2V8h2V6h-2V3.07c2.83-.48 5.59.3 7.66 2.37 3.9 3.9 3.9 10.24 0 14.14-2.07 2.07-4.83 2.85-7.66 2.37V18h2v-2h-2v-2h-2v2H9v2h2v1.93z"/></svg>
-                    Community Games
-                </h2>
-                <div id="cg-note" class="form-help" style="margin-bottom:12px;">Submit your game to be featured in the community list. Verified users only.</div>
-                <form id="cg-form" class="neural-form">
-                    <div class="form-group">
-                        <label class="form-label">Title</label>
-                        <input type="text" id="cg-title" class="form-control" maxlength="120" placeholder="My Awesome Game" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Slug</label>
-                        <input type="text" id="cg-slug" class="form-control" maxlength="140" placeholder="awesome-game" />
-                        <div class="form-help">Lowercase letters, numbers, hyphens only.</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea id="cg-desc" class="form-control" rows="4" maxlength="5000" placeholder="Describe your game mechanics, genre, and where to play."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Links (optional)</label>
-                        <input type="url" id="cg-link-1" class="form-control" placeholder="Play URL, trailer, docs, etc." />
-                    </div>
-                    <button id="cg-submit" type="button" class="btn-portal">Create Game Entry</button>
-                </form>
-                <div id="cg-feedback" class="form-help" style="margin-top:8px;"></div>
-            </div>
+            <!-- Community Games section moved to bottom -->
             <div class="portal-section">
                 <h2 class="section-title">
                     <svg viewBox="0 0 24 24">
@@ -812,6 +758,71 @@
 
                     <button type="submit" class="btn-portal">Send Support Request</button>
                 </form>
+            </div>
+
+            <!-- Verification Section (moved to bottom) -->
+            <div class="portal-section" id="verification-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.1 14.8,9.5V11C15.4,11 16,11.6 16,12.3V15.8C16,16.4 15.4,17 14.7,17H9.2C8.6,17 8,16.4 8,15.7V12.2C8,11.6 8.6,11 9.2,11V9.5C9.2,8.1 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V11H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z" />
+                    </svg>
+                    Creator Verification
+                </h2>
+                <p id="verif-status" class="form-help" style="margin-top:-6px; opacity:0.9;">Not verified. Submit a request below.</p>
+                <form id="verif-form" class="neural-form">
+                    <div class="form-group">
+                        <label class="form-label" for="verif-name">Display Name</label>
+                        <input type="text" id="verif-name" class="form-control" maxlength="100" placeholder="Your creator or studio name" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="verif-bio">Bio</label>
+                        <textarea id="verif-bio" class="form-control" rows="4" maxlength="1000" placeholder="Tell us about your work, games, and experience"></textarea>
+                        <div class="form-help">Max 1000 characters</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Links (optional, up to 5)</label>
+                        <input type="url" id="verif-link-1" class="form-control" placeholder="Portfolio, itch.io, Steam, GitHub, etc." />
+                        <div style="height:10px"></div>
+                        <input type="url" id="verif-link-2" class="form-control" placeholder="Additional link" />
+                        <div style="height:10px"></div>
+                        <input type="url" id="verif-link-3" class="form-control" placeholder="Additional link" />
+                        <div style="height:10px"></div>
+                        <input type="url" id="verif-link-4" class="form-control" placeholder="Additional link" />
+                        <div style="height:10px"></div>
+                        <input type="url" id="verif-link-5" class="form-control" placeholder="Additional link" />
+                    </div>
+                    <button id="verif-submit" type="button" class="btn-portal">Submit Verification</button>
+                </form>
+            </div>
+
+            <!-- Community Games Submission (moved to very bottom) -->
+            <div class="portal-section" id="community-games-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 17.93c-2.83.48-5.59-.3-7.66-2.37-3.9-3.9-3.9-10.24 0-14.14 2.07-2.07 4.83-2.85 7.66-2.37V6h-2v2h2v2h2V8h2V6h-2V3.07c2.83-.48 5.59.3 7.66 2.37 3.9 3.9 3.9 10.24 0 14.14-2.07 2.07-4.83 2.85-7.66 2.37V18h2v-2h-2v-2h-2v2H9v2h2v1.93z"/></svg>
+                    Community Games
+                </h2>
+                <div id="cg-note" class="form-help" style="margin-bottom:12px;">Submit your game to be featured in the community list. Verified users only.</div>
+                <form id="cg-form" class="neural-form">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" id="cg-title" class="form-control" maxlength="120" placeholder="My Awesome Game" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Slug</label>
+                        <input type="text" id="cg-slug" class="form-control" maxlength="140" placeholder="awesome-game" />
+                        <div class="form-help">Lowercase letters, numbers, hyphens only.</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="cg-desc" class="form-control" rows="4" maxlength="5000" placeholder="Describe your game mechanics, genre, and where to play."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Links (optional)</label>
+                        <input type="url" id="cg-link-1" class="form-control" placeholder="Play URL, trailer, docs, etc." />
+                    </div>
+                    <button id="cg-submit" type="button" class="btn-portal">Create Game Entry</button>
+                </form>
+                <div id="cg-feedback" class="form-help" style="margin-top:8px;"></div>
             </div>
         </div>
     </main>
@@ -1195,12 +1206,14 @@
             const reqRef = window.firestoreDoc(db, 'verification_requests', user.uid);
             const reqSnap = await window.firestoreGetDoc(reqRef);
             const verified = await isUserVerified(user.uid);
+            let existing = reqSnap.exists();
+            let existingStatus = existing ? (reqSnap.data().status || 'pending') : 'draft';
             if (verified) {
                 statusEl.textContent = 'You are verified. Thank you for being a trusted creator.';
                 form.style.display = 'none';
                 return;
             }
-            if (reqSnap.exists()) {
+            if (existing) {
                 const d = reqSnap.data();
                 nameEl.value = d.displayName || user.displayName || '';
                 bioEl.value = d.bio || '';
@@ -1217,16 +1230,38 @@
                     if (!displayName) { alert('Display name is required.'); return; }
                     const bio = (bioEl.value||'').trim().slice(0,1000);
                     const links = linkEls.map(i => (i?.value||'').trim()).filter(Boolean).slice(0,5);
-                    const payload = {
-                        uid: user.uid,
-                        displayName,
-                        bio,
-                        links,
-                        status: 'pending',
-                        createdAt: new Date()
-                    };
-                    await window.firestoreSetDoc(reqRef, payload, { merge: true });
-                    statusEl.textContent = 'Status: pending (submitted)';
+                    // If request already decided, block user-side to avoid rule failures
+                    if (existing && (existingStatus === 'approved' || existingStatus === 'denied')) {
+                        showAuthMessage('Your verification request has already been decided (' + existingStatus + '). Please contact support for changes.', 'error');
+                        return;
+                    }
+
+                    if (!existing) {
+                        // Create new request (must include createdAt & uid)
+                        const createPayload = {
+                            uid: user.uid,
+                            displayName,
+                            bio,
+                            links,
+                            status: 'pending',
+                            createdAt: new Date()
+                        };
+                        await window.firestoreSetDoc(reqRef, createPayload);
+                        statusEl.textContent = 'Status: pending (submitted)';
+                        existing = true;
+                        existingStatus = 'pending';
+                    } else {
+                        // Update allowed user fields only (no uid/createdAt)
+                        const updatePayload = {
+                            displayName,
+                            bio,
+                            links,
+                            status: 'pending'
+                        };
+                        await window.firestoreSetDoc(reqRef, updatePayload, { merge: true });
+                        statusEl.textContent = 'Status: pending (updated)';
+                        existingStatus = 'pending';
+                    }
                     showAuthMessage('Verification submitted', 'success');
                 } catch(e) {
                     console.error('submit verification', e);

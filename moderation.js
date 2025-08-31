@@ -8,8 +8,9 @@
   const vControlsEl = document.getElementById('mod-verify-controls');
   const vListEl = document.getElementById('mod-verify-list');
   const vFilterEl = document.getElementById('mod-verify-filter');
-  // Auto-delete window for closed reports (hours)
-  const AUTO_DELETE_TTL_HOURS = 168; // 7 days
+  // Auto-delete window for CLOSED community reports (hours)
+  // Requested behavior: delete after 24 hours when finalized/closed
+  const AUTO_DELETE_TTL_HOURS = 24; // 24 hours
   let reportsUnsub = null;
   let countdownInterval = null;
   let vUnsub = null;
@@ -223,10 +224,15 @@
       const vdb = vmod.getFirestore();
       const buildVQuery = (filter) => {
         const base = vmod.collection(vdb, 'verification_requests');
-        if (filter && filter !== 'all') {
-          return vmod.query(base, vmod.where('status','==', filter), vmod.orderBy('createdAt','desc'), vmod.limit(50));
+        const f = (filter || 'pending');
+        if (f === 'denied') {
+          // Show ALL denied requests (no limit), ordered by newest first
+          return vmod.query(base, vmod.where('status','==','denied'), vmod.orderBy('createdAt','desc'));
         }
-        return vmod.query(base, vmod.orderBy('createdAt','desc'), vmod.limit(50));
+        if (f === 'all') {
+          return vmod.query(base, vmod.orderBy('createdAt','desc'), vmod.limit(50));
+        }
+        return vmod.query(base, vmod.where('status','==', f), vmod.orderBy('createdAt','desc'), vmod.limit(50));
       };
       const refreshV = async () => {
         try {
