@@ -646,7 +646,7 @@
     
     <main class="portal-container">
         <div class="portal-header">
-            <h1 class="portal-title">User Portal</h1>
+            <h1 class="portal-title" id="portal-title">User Portal</h1>
             <p class="portal-subtitle">Manage your account, track playtime across GlitchRealm games, and get support—all in one place.</p>
         </div>
         
@@ -848,10 +848,23 @@
                 
                 if (user) {
                     console.log('User is signed in, showing portal content');
+                    // Personalize page title
+                    try {
+                        const titleEl = document.getElementById('portal-title');
+                        if (titleEl) {
+                            const name = (user.displayName && user.displayName.trim()) || (user.email ? user.email.split('@')[0] : '') || 'Player';
+                            titleEl.textContent = `Welcome, ${name}`;
+                        }
+                    } catch(e) {}
                     portalContent.style.display = 'grid';
                     loadUserData(user);
                 } else {
                     console.log('User is not signed in, showing auth required');
+                    // Reset title when signed out
+                    try {
+                        const titleEl = document.getElementById('portal-title');
+                        if (titleEl) titleEl.textContent = 'User Portal';
+                    } catch(e) {}
                     authRequired.style.display = 'block';
                 }
             });
