@@ -95,6 +95,24 @@
                     </div>
                 </div>
                 <div id="mod-verify-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+                <hr style="margin:24px 0; border-color: var(--gray-800);">
+
+                <div id="mod-gamesub-controls" style="display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin:12px 0; display:none;">
+                    <div style="opacity:.85;">Game submissions</div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <label style="display:flex; align-items:center; gap:6px; opacity:.85;">
+                            <span>Show:</span>
+                            <select id="mod-gamesub-filter" class="neural-input" style="min-width:140px;">
+                                <option value="draft">Draft</option>
+                                <option value="published">Published</option>
+                                <option value="all">All</option>
+                            </select>
+                        </label>
+                        <button id="mod-gamesub-refresh" class="neural-button secondary"><span class="button-text">Refresh</span></button>
+                    </div>
+                </div>
+                <div id="mod-gamesub-list" style="display:flex; flex-direction:column; gap:10px;"></div>
             </div>
         </section>
     </main>

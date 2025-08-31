@@ -8,12 +8,17 @@
   const vControlsEl = document.getElementById('mod-verify-controls');
   const vListEl = document.getElementById('mod-verify-list');
   const vFilterEl = document.getElementById('mod-verify-filter');
+  // Game submissions elements
+  const gsControlsEl = document.getElementById('mod-gamesub-controls');
+  const gsListEl = document.getElementById('mod-gamesub-list');
+  const gsFilterEl = document.getElementById('mod-gamesub-filter');
   // Auto-delete window for CLOSED community reports (hours)
   // Requested behavior: delete after 24 hours when finalized/closed
   const AUTO_DELETE_TTL_HOURS = 24; // 24 hours
   let reportsUnsub = null;
   let countdownInterval = null;
   let vUnsub = null;
+  let gsUnsub = null;
 
   function esc(s){
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
@@ -179,6 +184,40 @@
     vListEl.innerHTML = rows.join('');
   }
 
+  function renderGameSubmissionsList(snap){
+    if (!gsListEl) return;
+    if (!snap || snap.empty) {
+      gsListEl.innerHTML = '<div style="opacity:.8; padding:8px;">No submissions.</div>';
+      return;
+    }
+    const rows = [];
+    snap.forEach(d => {
+      const r = d.data();
+      const when = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : '';
+      const status = r.status || 'draft';
+      const title = (r.title || '').toString();
+      const owner = (r.ownerId || '').toString();
+      const desc = (r.description || '').toString();
+      const cover = (r.coverImageUrl || '');
+      const tags = Array.isArray(r.tags) ? r.tags : [];
+      rows.push(`<div class="mod-report-row" data-gsid="${esc(d.id)}">
+        <div class="mrr-main">
+          <div class="mrr-title">${esc(title)}</div>
+          <div class="mrr-meta">Owner: <code>${esc(owner)}</code> • ${esc(when)} • <span class="status-chip ${status === 'published' ? 'status-closed' : 'status-open'}">Status: <strong>${esc(status)}</strong></span></div>
+          ${cover ? `<div style="margin-top:6px;"><img src="${esc(cover)}" alt="cover" style="max-width:200px;border-radius:8px;border:1px solid rgba(255,255,255,.15)" loading="lazy"/></div>` : ''}
+          ${desc ? `<div style="margin-top:6px; white-space:pre-wrap; opacity:.9;">${esc(desc)}</div>` : ''}
+          ${tags.length ? `<div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">${tags.map(t=>`<span class="tag">#${esc(String(t))}</span>`).join('')}</div>` : ''}
+          <div class="status-actions" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="neural-button secondary gs-publish"><span class="button-text">Publish</span></button>
+            <button class="neural-button secondary gs-unpublish"><span class="button-text">Unpublish</span></button>
+            <button class="neural-button secondary gs-delete" style="color:#ff6b6b;"><span class="button-text">Delete</span></button>
+          </div>
+        </div>
+      </div>`);
+    });
+    gsListEl.innerHTML = rows.join('');
+  }
+
   async function ensureReportsListener(){
     if (!auth || !auth.currentUser) return;
     const uid = auth.currentUser.uid;
@@ -208,8 +247,9 @@
 
   // No capability fallback; this page is dev-only.
 
-      controlsEl.style.display = 'flex';
-      vControlsEl.style.display = 'flex';
+  controlsEl.style.display = 'flex';
+  vControlsEl.style.display = 'flex';
+  gsControlsEl.style.display = 'flex';
       accessEl.textContent = 'Access granted.';
       if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
       reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
@@ -219,7 +259,7 @@
         try { const snap = await getDocs(q); renderReportsList(snap); } catch(e) {}
       });
 
-      // Verification requests query + handlers
+  // Verification requests query + handlers
       const vmod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
       const vdb = vmod.getFirestore();
       const buildVQuery = (filter) => {
@@ -324,6 +364,52 @@
             }
           })();
         }
+      });
+
+      // Game submissions query + handlers
+      const gsmod = vmod; // reuse same module
+      const gsdb = gsmod.getFirestore();
+      const buildGSQuery = (filter) => {
+        const base = gsmod.collection(gsdb, 'game_submissions');
+        const f = filter || 'draft';
+        if (f === 'all') return gsmod.query(base, gsmod.orderBy('createdAt','desc'));
+        return gsmod.query(base, gsmod.where('status','==', f), gsmod.orderBy('createdAt','desc'));
+      };
+      const refreshGS = async () => {
+        try {
+          const snap = await gsmod.getDocs(buildGSQuery(gsFilterEl?.value || 'draft'));
+          renderGameSubmissionsList(snap);
+        } catch(e) { gsListEl.innerHTML = '<div style="opacity:.8; padding:8px;">Failed to load.</div>'; }
+      };
+      if (gsUnsub) { try { gsUnsub(); } catch(e){} gsUnsub = null; }
+      gsUnsub = gsmod.onSnapshot(buildGSQuery(gsFilterEl?.value || 'draft'), (snap) => renderGameSubmissionsList(snap));
+      document.getElementById('mod-gamesub-refresh')?.addEventListener('click', refreshGS);
+      gsFilterEl?.addEventListener('change', () => {
+        if (gsUnsub) { try { gsUnsub(); } catch(e){} gsUnsub = null; }
+        gsUnsub = gsmod.onSnapshot(buildGSQuery(gsFilterEl.value || 'draft'), (snap) => renderGameSubmissionsList(snap));
+      });
+      gsListEl?.addEventListener('click', (e) => {
+        const row = e.target.closest('.mod-report-row');
+        const id = row?.getAttribute('data-gsid');
+        if (!id) return;
+        (async () => {
+          try {
+            const { getFirestore, doc, updateDoc, deleteDoc, serverTimestamp } = gsmod;
+            const db = getFirestore();
+            const ref = doc(db, 'game_submissions', id);
+            if (e.target.closest('.gs-publish')) {
+              await updateDoc(ref, { status: 'published', updatedAt: serverTimestamp() });
+            } else if (e.target.closest('.gs-unpublish')) {
+              await updateDoc(ref, { status: 'draft', updatedAt: serverTimestamp() });
+            } else if (e.target.closest('.gs-delete')) {
+              if (!confirm('Delete this submission?')) return;
+              await deleteDoc(ref);
+            }
+          } catch (err) {
+            const msg = (err && err.code === 'permission-denied') ? 'Permission denied. Ensure this account has dev/admin rights.' : 'Failed to update submission.';
+            alert(msg);
+          }
+        })();
       });
     } catch (e) {
       // Permission denied
