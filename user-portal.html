@@ -847,13 +847,32 @@
                 loadingContainer.style.display = 'none';
                 
                 if (user) {
-                    console.log('User is signed in, showing portal content');
+                                        console.log('User is signed in, showing portal content');
                     // Personalize page title
                     try {
                         const titleEl = document.getElementById('portal-title');
                         if (titleEl) {
                             const name = (user.displayName && user.displayName.trim()) || (user.email ? user.email.split('@')[0] : '') || 'Player';
-                            titleEl.textContent = `Welcome, ${name}`;
+                                                        // Reset content then append badge conditionally
+                                                        titleEl.textContent = `Welcome, ${name}`;
+                                                        // Attach verified badge if applicable
+                                                        (async () => {
+                                                            try {
+                                                                const ok = await isUserVerified(user.uid);
+                                                                // Remove existing badge if present
+                                                                const existing = titleEl.querySelector('.verified-badge');
+                                                                if (existing) existing.remove();
+                                                                if (ok) {
+                                                                    const badge = document.createElement('span');
+                                                                    badge.className = 'verified-badge';
+                                                                    badge.title = 'Verified creator';
+                                                                    badge.ariaLabel = 'Verified';
+                                                                    badge.textContent = '✔';
+                                                                    badge.style.cssText = 'display:inline-block;margin-left:10px;color:#16e1ff;font-weight:800;text-shadow:0 0 6px rgba(22,225,255,0.6)';
+                                                                    titleEl.appendChild(badge);
+                                                                }
+                                                            } catch(e) {}
+                                                        })();
                         }
                     } catch(e) {}
                     portalContent.style.display = 'grid';
@@ -861,10 +880,14 @@
                 } else {
                     console.log('User is not signed in, showing auth required');
                     // Reset title when signed out
-                    try {
-                        const titleEl = document.getElementById('portal-title');
-                        if (titleEl) titleEl.textContent = 'User Portal';
-                    } catch(e) {}
+                                        try {
+                                                const titleEl = document.getElementById('portal-title');
+                                                if (titleEl) {
+                                                    titleEl.textContent = 'User Portal';
+                                                    const existing = titleEl.querySelector('.verified-badge');
+                                                    if (existing) existing.remove();
+                                                }
+                                        } catch(e) {}
                     authRequired.style.display = 'block';
                 }
             });
