@@ -8,7 +8,9 @@ const cors = require('cors');
 const crypto = require('crypto');
 
 try {
-	admin.initializeApp();
+	admin.initializeApp({
+		storageBucket: 'shared-sign-in.appspot.com'
+	});
 } catch (e) {
 	// no-op in emulator cold starts
 }
@@ -308,10 +310,16 @@ api.post('/uploads/covers:signedUrl', requireAuth, async (req, res) => {
 	const bucket = storage.bucket();
 	const file = bucket.file(`game-covers/${uid}/${Date.now()}_${fileName}`);
 	const contentType = req.body?.contentType || 'application/octet-stream';
-	const [url] = await file.getSignedUrl({ action: 'write', expires: Date.now() + 10 * 60 * 1000, contentType });
+	const [url] = await file.getSignedUrl({
+		action: 'write',
+		expires: Date.now() + 10 * 60 * 1000,
+		contentType,
+		version: 'v4'
+	});
 	const publicUrl = `https://storage.googleapis.com/${bucket.name}/${encodeURI(file.name)}`;
 	res.json({ url, objectPath: file.name, bucket: bucket.name, publicUrl, contentType });
 	} catch (e) {
+		functions.logger.error('Failed to create signed URL', e);
 		res.status(500).json({ error: 'Failed to create signed URL' });
 	}
 });
