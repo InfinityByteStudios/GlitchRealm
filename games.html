@@ -1598,6 +1598,12 @@
                 </div>
 
                 <div class="input-container">
+                    <div class="input-label">Play URL</div>
+                    <input type="url" id="submissionPlayUrl" class="neural-input" placeholder="https://yourgame.example.com" maxlength="2000" required>
+                    <div class="input-line"></div>
+                </div>
+
+                <div class="input-container">
                     <div class="input-label">Tags (up to 3)</div>
                     <div style="display:flex; gap:8px;">
                         <input type="text" id="tag1" class="neural-input" placeholder="Tag 1" maxlength="20" style="flex:1">
@@ -2987,12 +2993,14 @@
 
                 const title = $('submissionTitle').value.trim();
                 const description = $('submissionDescription').value.trim();
+                const playUrl = $('submissionPlayUrl').value.trim();
                 let coverImageUrl = $('submissionCoverUrl').value.trim();
                 const tags = [ $('tag1').value.trim(), $('tag2').value.trim(), $('tag3').value.trim() ].filter(Boolean).slice(0,3);
                 const file = $('submissionCoverFile')?.files?.[0] || null;
 
                 if (!title) { if (msg) msg.innerHTML = '<div class="error-message">Title is required.</div>'; return; }
                 if (!description) { if (msg) msg.innerHTML = '<div class="error-message">Description is required.</div>'; return; }
+                if (!playUrl || !/^https?:\/\//i.test(playUrl)) { if (msg) msg.innerHTML = '<div class="error-message">A valid Play URL is required (must start with http or https).</div>'; return; }
 
                 try {
                     btn.disabled = true; btn.textContent = 'Submitting...';
@@ -3012,7 +3020,7 @@
                         if (!putRes.ok) throw new Error('Upload failed');
                         coverImageUrl = publicUrl;
                     }
-                    const payload = { title, description, coverImageUrl, tags };
+                    const payload = { title, description, coverImageUrl, tags, playUrl };
                     const createRes = await fetch(`${API_BASE}/submissions`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -3057,6 +3065,7 @@
                 const desc = (data.description || '').toString().substring(0, 240);
                 const title = (data.title || 'Untitled').toString();
                 const tags = Array.isArray(data.tags) ? data.tags.slice(0,3) : [];
+                const playUrl = typeof data.playUrl === 'string' ? data.playUrl : '';
 
                 card.innerHTML = `
                     <div class="card-image">
@@ -3069,7 +3078,7 @@
                         <p class="card-description"></p>
                         <p class="card-developer">Made by <strong>Community Creator</strong> <button class="review-btn" disabled>⭐ Review</button></p>
                         <div class="card-tags"></div>
-                        <button class="btn btn-disabled card-btn" disabled>Submitted Game</button>
+                        ${playUrl ? `<a class="btn btn-primary card-btn" href="${playUrl}" target="_blank" rel="noopener">Play Now</a>` : `<button class="btn btn-disabled card-btn" disabled>Submitted Game</button>`}
                     </div>
                 `;
                 card.querySelector('.card-title').textContent = title;

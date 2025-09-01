@@ -223,14 +223,17 @@ api.post('/submissions', requireAuth, async (req, res) => {
 	try {
 		const uid = req.user.uid;
 		const body = req.body || {};
-		const { title, description, coverImageUrl, tags } = body;
+		const { title, description, coverImageUrl, tags, playUrl } = body;
 		if (!title || !description) return res.status(400).json({ error: 'title and description required' });
+		// Require a valid playUrl (http/https)
+		const validPlay = typeof playUrl === 'string' && /^https?:\/\//i.test(playUrl) && playUrl.length <= 2000;
+		if (!validPlay) return res.status(400).json({ error: 'playUrl required (must start with http or https)' });
 		// Verified or developer only: mirror of rules check
 		const verifiedDoc = await db.collection('verified_users').doc(uid).get();
 		const isVerified = verifiedDoc.exists && verifiedDoc.data().verified === true;
 		if (!(isVerified || isDeveloper(uid))) return res.status(403).json({ error: 'Not verified' });
 		const now = admin.firestore.FieldValue.serverTimestamp();
-		const payload = { title, description, ownerId: uid, status: 'draft', createdAt: now, updatedAt: now };
+		const payload = { title, description, ownerId: uid, status: 'draft', createdAt: now, updatedAt: now, playUrl };
 		if (typeof coverImageUrl === 'string' && coverImageUrl) payload.coverImageUrl = coverImageUrl;
 		if (Array.isArray(tags) && tags.length) payload.tags = tags.slice(0, 3);
 		const ref = await db.collection('game_submissions').add(payload);
@@ -251,11 +254,20 @@ api.patch('/submissions/:id', requireAuth, async (req, res) => {
 		const data = snap.data();
 		if (data.ownerId !== uid && !(isAdmin({ auth: { token: req.user } }) || isDeveloper(uid))) return res.status(403).json({ error: 'Forbidden' });
 		const patch = {};
-		const { title, description, coverImageUrl, tags, status } = req.body || {};
+		const { title, description, coverImageUrl, tags, status, playUrl } = req.body || {};
 		if (title) patch.title = title;
 		if (description) patch.description = description;
 		if (typeof coverImageUrl === 'string') patch.coverImageUrl = coverImageUrl;
 		if (Array.isArray(tags)) patch.tags = tags.slice(0, 3);
+		if (typeof playUrl === 'string') {
+			if (playUrl) {
+				const ok = /^https?:\/\//i.test(playUrl) && playUrl.length <= 2000;
+				if (!ok) return res.status(400).json({ error: 'Invalid playUrl' });
+				patch.playUrl = playUrl;
+			} else {
+				patch.playUrl = admin.firestore.FieldValue.delete();
+			}
+		}
 		// status change allowed only by owner to draft or moderator to publish/draft
 		if (status) {
 			const moderator = isDeveloper(uid) || req.user.admin === true;
