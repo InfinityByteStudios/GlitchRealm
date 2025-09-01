@@ -2879,28 +2879,28 @@
     </div>
 
     <script>
-    // Submit Game UI gating, Storage upload, and Firestore submission + render of published submissions
+    // Submit Game UI gating, backend uploads, backend submission + render of published submissions (no direct Firestore)
     (function() {
-        const DEV_UIDS = new Set([
-            '6iZDTXC78aVwX22qrY43BOxDRLt1',
-            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-        ]);
+        // Backend base (Firebase Functions). Adjust region/project if needed.
+        const API_BASE = 'https://us-central1-shared-sign-in.cloudfunctions.net/api';
 
         function $(id) { return document.getElementById(id); }
 
-        async function isVerifiedUser(uid) {
+        async function getIdToken() {
+            const auth = window.firebaseAuth;
+            const user = auth ? auth.currentUser : null;
+            if (!user) return null;
+            try { return await user.getIdToken(); } catch { return null; }
+        }
+
+        async function getMe() {
+            const token = await getIdToken();
+            if (!token) return null;
             try {
-                const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                const ref = doc(window.firebaseFirestore, 'verified_users', uid);
-                const snap = await getDoc(ref);
-                return snap.exists() && !!snap.data().verified;
-            } catch (e) {
-                console.warn('Verified check failed:', e);
-                return false;
-            }
+                const res = await fetch(`${API_BASE}/me`, { headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) return null;
+                return await res.json();
+            } catch { return null; }
         }
 
         function showSubmitCard(show) {
@@ -2914,9 +2914,8 @@
                 if (!auth) return;
                 const user = auth.currentUser;
                 if (!user) { showSubmitCard(false); return; }
-                const isDev = DEV_UIDS.has(user.uid);
-                const isVerified = await isVerifiedUser(user.uid);
-                showSubmitCard(isDev || isVerified);
+                const me = await getMe();
+                showSubmitCard(Boolean(me && (me.isDeveloper || me.isVerified)));
             } catch (e) {
                 console.warn('Gate error:', e);
                 showSubmitCard(false);
@@ -2928,9 +2927,9 @@
             const auth = window.firebaseAuth;
             const user = auth ? auth.currentUser : null;
             const gate = $('submitGateNotice');
-            const isDev = user && DEV_UIDS.has(user.uid);
-            const isVerified = user ? await isVerifiedUser(user.uid) : false;
-            if (!user || (!isDev && !isVerified)) {
+            const me = user ? await getMe() : null;
+            const allowed = Boolean(me && (me.isDeveloper || me.isVerified));
+            if (!user || !allowed) {
                 if (gate) gate.style.display = '';
             } else {
                 if (gate) gate.style.display = 'none';
@@ -2964,7 +2963,7 @@
             }
             gateSubmitCard();
 
-            // Handle submit (supports optional image upload to Firebase Storage)
+            // Handle submit (uses backend: signed URL upload + REST create)
             const form = $('submitGameForm');
             if (form) {
                 form.addEventListener('submit', async (e) => {
@@ -2978,14 +2977,13 @@
                         if (msg) msg.innerHTML = '<div class="error-message">Please sign in first.</div>';
                         return;
                     }
-                    // Gate again at submit time
-                    const isDev = DEV_UIDS.has(user.uid);
-                    const isVerified = await isVerifiedUser(user.uid);
-                if (!isDev && !isVerified) {
-                    if (gate) gate.style.display = '';
-                    if (msg) msg.innerHTML = '<div class="error-message">You are not allowed to submit. Get verified or contact us.</div>';
-                    return;
-                } else if (gate) gate.style.display = 'none';
+                    // Gate again at submit time via backend
+                    const me = await getMe();
+                    if (!me || (!me.isDeveloper && !me.isVerified)) {
+                        if (gate) gate.style.display = '';
+                        if (msg) msg.innerHTML = '<div class="error-message">You are not allowed to submit. Get verified or contact us.</div>';
+                        return;
+                    } else if (gate) gate.style.display = 'none';
 
                 const title = $('submissionTitle').value.trim();
                 const description = $('submissionDescription').value.trim();
@@ -2998,28 +2996,29 @@
 
                 try {
                     btn.disabled = true; btn.textContent = 'Submitting...';
-                    // If a file is provided, upload to Firebase Storage and use its URL
+                    const token = await getIdToken();
+                    if (!token) throw new Error('Auth token unavailable');
+                    // If a file is provided, request a signed URL then upload via PUT
                     if (file) {
-                        if (!window.firebaseStorage) throw new Error('Storage unavailable');
-                        const { ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
                         const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                        const storageRef = ref(window.firebaseStorage, `game-covers/${user.uid}/${Date.now()}_${safeName}`);
-                        const snap = await uploadBytes(storageRef, file, { contentType: file.type });
-                        coverImageUrl = await getDownloadURL(snap.ref);
+                        const signRes = await fetch(`${API_BASE}/uploads/covers:signedUrl`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                            body: JSON.stringify({ fileName: safeName, contentType: file.type || 'application/octet-stream' })
+                        });
+                        if (!signRes.ok) throw new Error('Failed to get upload URL');
+                        const { url, publicUrl, contentType } = await signRes.json();
+                        const putRes = await fetch(url, { method: 'PUT', headers: { 'Content-Type': contentType }, body: file });
+                        if (!putRes.ok) throw new Error('Upload failed');
+                        coverImageUrl = publicUrl;
                     }
-                    const { addDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                    const payload = {
-                        title,
-                        description,
-                        ownerId: user.uid,
-                        createdAt: new Date(),
-                        updatedAt: new Date(),
-                        status: 'draft'
-                    };
-                    if (coverImageUrl) payload.coverImageUrl = coverImageUrl;
-                    if (tags.length) payload.tags = tags;
-
-                    await addDoc(collection(window.firebaseFirestore, 'game_submissions'), payload);
+                    const payload = { title, description, coverImageUrl, tags };
+                    const createRes = await fetch(`${API_BASE}/submissions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!createRes.ok) throw new Error('Failed to create submission');
                     if (msg) msg.innerHTML = '<div class="success-message">Submission saved as draft. We\'ll review it soon.</div>';
                     form.reset();
                     setTimeout(() => { window.closeSubmitGameModal(); }, 1200);
@@ -3034,31 +3033,26 @@
         }
     });
 
-    // Load published game submissions and render as cards matching existing style
+    // Load published game submissions and render as cards matching existing style (backend GET)
     window.loadPublishedGameSubmissions = async function() {
         try {
             const container = document.querySelector('.game-cards');
-            if (!container || !window.firebaseFirestore) return;
-            const { collection, query, where, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const q = query(
-                collection(window.firebaseFirestore, 'game_submissions'),
-                where('status', '==', 'published'),
-                orderBy('createdAt', 'desc'),
-                limit(24)
-            );
-            const snap = await getDocs(q);
-            if (snap.empty) return;
+            if (!container) return;
+            const res = await fetch(`${API_BASE}/submissions?limit=24`);
+            if (!res.ok) return;
+            const items = await res.json();
+            if (!Array.isArray(items) || !items.length) return;
 
             // Insert creator cards before the Coming Soon card if present
             const comingSoonCard = container.querySelector('.game-card.coming-soon');
             const insertBeforeNode = comingSoonCard || document.getElementById('submitGameCard') || null;
 
             const frag = document.createDocumentFragment();
-            snap.forEach(doc => {
-                const data = doc.data() || {};
+            items.forEach(item => {
+                const data = item || {};
                 const card = document.createElement('div');
                 card.className = 'game-card';
-                card.setAttribute('data-game', `submission-${doc.id}`);
+                card.setAttribute('data-game', `submission-${data.id}`);
                 const cover = (typeof data.coverImageUrl === 'string' && data.coverImageUrl) ? data.coverImageUrl : 'assets/icons/anonymous.png';
                 const desc = (data.description || '').toString().substring(0, 240);
                 const title = (data.title || 'Untitled').toString();

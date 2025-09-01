@@ -5,6 +5,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const express = require('express');
 const cors = require('cors');
+const crypto = require('crypto');
 
 try {
 	admin.initializeApp();
@@ -114,23 +115,104 @@ function requireMod(req, res, next) {
 }
 
 const api = express();
-api.use(cors({ origin: true }));
+// Allow all origins during development; tighten as needed. Enable credentials for cookie-based auth in the future.
+api.use(cors({ origin: true, credentials: true }));
 api.use(express.json());
 api.use(decodeAuth);
 
+// Simple in-memory cache with TTL
+const memCache = new Map(); // key -> { data, etag, lastModified, expiresAt }
+function setCache(key, data, etag, lastModified, ttlMs = 60_000) {
+	memCache.set(key, { data, etag, lastModified, expiresAt: Date.now() + ttlMs });
+}
+function getCache(key) {
+	const entry = memCache.get(key);
+	if (!entry) return null;
+	if (Date.now() > entry.expiresAt) { memCache.delete(key); return null; }
+	return entry;
+}
+function invalidatePrefix(prefix) {
+	for (const k of memCache.keys()) if (k.startsWith(prefix)) memCache.delete(k);
+}
+function makeEtag(obj) {
+	const json = typeof obj === 'string' ? obj : JSON.stringify(obj);
+	return 'W/"' + crypto.createHash('sha1').update(json).digest('hex') + '"';
+}
+
 // Health
 api.get('/health', (_req, res) => res.json({ ok: true }));
+
+// Current user info (auth required)
+api.get('/me', requireAuth, async (req, res) => {
+	try {
+		const uid = req.user.uid;
+		const verifiedDoc = await db.collection('verified_users').doc(uid).get();
+		const isVerified = verifiedDoc.exists && verifiedDoc.data().verified === true;
+		const dev = isDeveloper(uid);
+		const adm = Boolean(req.user.admin);
+		res.json({ uid, isVerified, isDeveloper: dev, isAdmin: adm });
+	} catch (e) {
+		res.status(500).json({ error: 'Failed to load user' });
+	}
+});
 
 // Public: list published submissions
 api.get('/submissions', async (req, res) => {
 	try {
 		const pageSize = Math.min(parseInt(req.query.limit || '24', 10), 50);
-		const q = await db.collection('game_submissions')
-			.where('status', '==', 'published')
-			.orderBy('createdAt', 'desc')
-			.limit(pageSize)
-			.get();
-		res.json(q.docs.map(d => ({ id: d.id, ...d.data() })));
+		const status = (req.query.status || '').toString();
+		const authed = Boolean(req.user);
+		const uid = req.user?.uid;
+		const moderator = authed && (isDeveloper(uid) || Boolean(req.user.admin));
+
+		// If not moderator or no status provided, serve published list with caching
+		if (!moderator || !status || status === 'published') {
+			const cacheKey = `submissions?limit=${pageSize}`;
+			const cached = getCache(cacheKey);
+			if (cached) {
+				const inm = req.headers['if-none-match'];
+				const ims = req.headers['if-modified-since'];
+				if ((inm && inm === cached.etag) || (ims && new Date(ims).getTime() >= new Date(cached.lastModified).getTime())) {
+					res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=60, stale-if-error=600');
+					res.setHeader('ETag', cached.etag);
+					res.setHeader('Last-Modified', cached.lastModified);
+					return res.status(304).end();
+				}
+				res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=60, stale-if-error=600');
+				res.setHeader('ETag', cached.etag);
+				res.setHeader('Last-Modified', cached.lastModified);
+				return res.json(cached.data);
+			}
+
+			const q = await db.collection('game_submissions')
+				.where('status', '==', 'published')
+				.orderBy('createdAt', 'desc')
+				.limit(pageSize)
+				.get();
+			const data = q.docs.map(d => ({ id: d.id, ...d.data() }));
+			let latest = 0;
+			for (const doc of q.docs) {
+				const v = doc.get('updatedAt') || doc.get('createdAt');
+				const ts = v?.toMillis ? v.toMillis() : (v?.seconds ? v.seconds * 1000 : 0);
+				if (ts > latest) latest = ts;
+			}
+			const lastModified = new Date(latest || Date.now()).toUTCString();
+			const etag = makeEtag(data.map(d => `${d.id}:${d.updatedAt?.toMillis ? d.updatedAt.toMillis() : ''}`).join('|'));
+			setCache(cacheKey, data, etag, lastModified, 60_000);
+			res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=60, stale-if-error=600');
+			res.setHeader('ETag', etag);
+			res.setHeader('Last-Modified', lastModified);
+			return res.json(data);
+		}
+
+		// Moderator view: filter by status or all (no public caching)
+		let qRef = db.collection('game_submissions').orderBy('createdAt', 'desc');
+		if (status && status !== 'all') {
+			qRef = db.collection('game_submissions').where('status', '==', status).orderBy('createdAt', 'desc');
+		}
+		const q = await qRef.limit(pageSize).get();
+		const data = q.docs.map(d => ({ id: d.id, ...d.data() }));
+		res.json(data);
 	} catch (e) {
 		res.status(500).json({ error: 'Failed to list submissions' });
 	}
@@ -152,6 +234,7 @@ api.post('/submissions', requireAuth, async (req, res) => {
 		if (typeof coverImageUrl === 'string' && coverImageUrl) payload.coverImageUrl = coverImageUrl;
 		if (Array.isArray(tags) && tags.length) payload.tags = tags.slice(0, 3);
 		const ref = await db.collection('game_submissions').add(payload);
+		invalidatePrefix('submissions?');
 		res.status(201).json({ id: ref.id });
 	} catch (e) {
 		res.status(500).json({ error: 'Failed to create submission' });
@@ -181,6 +264,7 @@ api.patch('/submissions/:id', requireAuth, async (req, res) => {
 		}
 		patch.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 		await ref.update(patch);
+		invalidatePrefix('submissions?');
 		res.json({ ok: true });
 	} catch (e) {
 		res.status(500).json({ error: 'Failed to update submission' });
@@ -190,14 +274,17 @@ api.patch('/submissions/:id', requireAuth, async (req, res) => {
 // Moderator: publish/unpublish/delete
 api.post('/submissions/:id/publish', requireAuth, requireMod, async (req, res) => {
 	await db.collection('game_submissions').doc(req.params.id).update({ status: 'published', updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+	invalidatePrefix('submissions?');
 	res.json({ ok: true });
 });
 api.post('/submissions/:id/unpublish', requireAuth, requireMod, async (req, res) => {
 	await db.collection('game_submissions').doc(req.params.id).update({ status: 'draft', updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+	invalidatePrefix('submissions?');
 	res.json({ ok: true });
 });
 api.delete('/submissions/:id', requireAuth, requireMod, async (req, res) => {
 	await db.collection('game_submissions').doc(req.params.id).delete();
+	invalidatePrefix('submissions?');
 	res.json({ ok: true });
 });
 
@@ -206,10 +293,12 @@ api.post('/uploads/covers:signedUrl', requireAuth, async (req, res) => {
 	try {
 		const uid = req.user.uid;
 		const fileName = (req.body?.fileName || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_');
-		const bucket = storage.bucket();
-		const file = bucket.file(`game-covers/${uid}/${Date.now()}_${fileName}`);
-		const [url] = await file.getSignedUrl({ action: 'write', expires: Date.now() + 10 * 60 * 1000, contentType: req.body?.contentType || 'application/octet-stream' });
-		res.json({ url, objectPath: file.name });
+	const bucket = storage.bucket();
+	const file = bucket.file(`game-covers/${uid}/${Date.now()}_${fileName}`);
+	const contentType = req.body?.contentType || 'application/octet-stream';
+	const [url] = await file.getSignedUrl({ action: 'write', expires: Date.now() + 10 * 60 * 1000, contentType });
+	const publicUrl = `https://storage.googleapis.com/${bucket.name}/${encodeURI(file.name)}`;
+	res.json({ url, objectPath: file.name, bucket: bucket.name, publicUrl, contentType });
 	} catch (e) {
 		res.status(500).json({ error: 'Failed to create signed URL' });
 	}

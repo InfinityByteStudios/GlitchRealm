@@ -1,5 +1,6 @@
 // Moderation page logic: list recent reports for authorized users
 (function(){
+  const API_BASE = 'https://us-central1-shared-sign-in.cloudfunctions.net/api';
   const auth = window.firebaseAuth;
   const accessEl = document.getElementById('mod-access');
   const controlsEl = document.getElementById('mod-reports-controls');
@@ -218,6 +219,40 @@
     gsListEl.innerHTML = rows.join('');
   }
 
+  function renderGameSubmissionsListFromArray(items){
+    if (!gsListEl) return;
+    if (!items || !items.length) {
+      gsListEl.innerHTML = '<div style="opacity:.8; padding:8px;">No submissions.</div>';
+      return;
+    }
+    const rows = [];
+    items.forEach(it => {
+      const r = it || {};
+      const when = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : '';
+      const status = r.status || 'draft';
+      const title = (r.title || '').toString();
+      const owner = (r.ownerId || '').toString();
+      const desc = (r.description || '').toString();
+      const cover = (r.coverImageUrl || '');
+      const tags = Array.isArray(r.tags) ? r.tags : [];
+      rows.push(`<div class="mod-report-row" data-gsid="${esc(r.id)}">
+        <div class="mrr-main">
+          <div class="mrr-title">${esc(title)}</div>
+          <div class="mrr-meta">Owner: <code>${esc(owner)}</code> • ${esc(when)} • <span class="status-chip ${status === 'published' ? 'status-closed' : 'status-open'}">Status: <strong>${esc(status)}</strong></span></div>
+          ${cover ? `<div style="margin-top:6px;"><img src="${esc(cover)}" alt="cover" style="max-width:200px;border-radius:8px;border:1px solid rgba(255,255,255,.15)" loading="lazy"/></div>` : ''}
+          ${desc ? `<div style=\"margin-top:6px; white-space:pre-wrap; opacity:.9;\">${esc(desc)}</div>` : ''}
+          ${tags.length ? `<div style=\"margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;\">${tags.map(t=>`<span class=\"tag\">#${esc(String(t))}</span>`).join('')}</div>` : ''}
+          <div class="status-actions" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="neural-button secondary gs-publish"><span class="button-text">Publish</span></button>
+            <button class="neural-button secondary gs-unpublish"><span class="button-text">Unpublish</span></button>
+            <button class="neural-button secondary gs-delete" style="color:#ff6b6b;"><span class="button-text">Delete</span></button>
+          </div>
+        </div>
+      </div>`);
+    });
+    gsListEl.innerHTML = rows.join('');
+  }
+
   async function ensureReportsListener(){
     if (!auth || !auth.currentUser) return;
     const uid = auth.currentUser.uid;
@@ -366,50 +401,41 @@
         }
       });
 
-      // Game submissions query + handlers
-      const gsmod = vmod; // reuse same module
-      const gsdb = gsmod.getFirestore();
-      const buildGSQuery = (filter) => {
-        const base = gsmod.collection(gsdb, 'game_submissions');
-        const f = filter || 'draft';
-        if (f === 'all') return gsmod.query(base, gsmod.orderBy('createdAt','desc'));
-        return gsmod.query(base, gsmod.where('status','==', f), gsmod.orderBy('createdAt','desc'));
-      };
-      const refreshGS = async () => {
+      // Game submissions via backend API
+      async function getIdToken(){ try { return await (auth?.currentUser?.getIdToken?.()); } catch { return null; } }
+      async function loadSubmissions(){
         try {
-          const snap = await gsmod.getDocs(buildGSQuery(gsFilterEl?.value || 'draft'));
-          renderGameSubmissionsList(snap);
+          const token = await getIdToken();
+          const status = gsFilterEl?.value || 'draft';
+          const url = `${API_BASE}/submissions?limit=50&status=${encodeURIComponent(status)}`;
+          const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+          if (!res.ok) throw new Error('Failed');
+          const items = await res.json();
+          renderGameSubmissionsListFromArray(Array.isArray(items) ? items : []);
         } catch(e) { gsListEl.innerHTML = '<div style="opacity:.8; padding:8px;">Failed to load.</div>'; }
-      };
-      if (gsUnsub) { try { gsUnsub(); } catch(e){} gsUnsub = null; }
-      gsUnsub = gsmod.onSnapshot(buildGSQuery(gsFilterEl?.value || 'draft'), (snap) => renderGameSubmissionsList(snap));
-      document.getElementById('mod-gamesub-refresh')?.addEventListener('click', refreshGS);
-      gsFilterEl?.addEventListener('change', () => {
-        if (gsUnsub) { try { gsUnsub(); } catch(e){} gsUnsub = null; }
-        gsUnsub = gsmod.onSnapshot(buildGSQuery(gsFilterEl.value || 'draft'), (snap) => renderGameSubmissionsList(snap));
-      });
-      gsListEl?.addEventListener('click', (e) => {
+      }
+      await loadSubmissions();
+      document.getElementById('mod-gamesub-refresh')?.addEventListener('click', loadSubmissions);
+      gsFilterEl?.addEventListener('change', loadSubmissions);
+      gsListEl?.addEventListener('click', async (e) => {
         const row = e.target.closest('.mod-report-row');
         const id = row?.getAttribute('data-gsid');
         if (!id) return;
-        (async () => {
-          try {
-            const { getFirestore, doc, updateDoc, deleteDoc, serverTimestamp } = gsmod;
-            const db = getFirestore();
-            const ref = doc(db, 'game_submissions', id);
-            if (e.target.closest('.gs-publish')) {
-              await updateDoc(ref, { status: 'published', updatedAt: serverTimestamp() });
-            } else if (e.target.closest('.gs-unpublish')) {
-              await updateDoc(ref, { status: 'draft', updatedAt: serverTimestamp() });
-            } else if (e.target.closest('.gs-delete')) {
-              if (!confirm('Delete this submission?')) return;
-              await deleteDoc(ref);
-            }
-          } catch (err) {
-            const msg = (err && err.code === 'permission-denied') ? 'Permission denied. Ensure this account has dev/admin rights.' : 'Failed to update submission.';
-            alert(msg);
+        try {
+          const token = await getIdToken();
+          if (!token) throw new Error('No token');
+          if (e.target.closest('.gs-publish')) {
+            await fetch(`${API_BASE}/submissions/${id}/publish`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+          } else if (e.target.closest('.gs-unpublish')) {
+            await fetch(`${API_BASE}/submissions/${id}/unpublish`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+          } else if (e.target.closest('.gs-delete')) {
+            if (!confirm('Delete this submission?')) return;
+            await fetch(`${API_BASE}/submissions/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
           }
-        })();
+          await loadSubmissions();
+        } catch (err) {
+          alert('Failed to update submission.');
+        }
       });
     } catch (e) {
       // Permission denied

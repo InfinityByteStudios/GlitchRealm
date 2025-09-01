@@ -795,35 +795,7 @@
                 </form>
             </div>
 
-            <!-- Community Games Submission (moved to very bottom) -->
-            <div class="portal-section" id="community-games-section">
-                <h2 class="section-title">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 17.93c-2.83.48-5.59-.3-7.66-2.37-3.9-3.9-3.9-10.24 0-14.14 2.07-2.07 4.83-2.85 7.66-2.37V6h-2v2h2v2h2V8h2V6h-2V3.07c2.83-.48 5.59.3 7.66 2.37 3.9 3.9 3.9 10.24 0 14.14-2.07 2.07-4.83 2.85-7.66 2.37V18h2v-2h-2v-2h-2v2H9v2h2v1.93z"/></svg>
-                    Community Games
-                </h2>
-                <div id="cg-note" class="form-help" style="margin-bottom:12px;">Submit your game to be featured in the community list. Verified users only.</div>
-                <form id="cg-form" class="neural-form">
-                    <div class="form-group">
-                        <label class="form-label">Title</label>
-                        <input type="text" id="cg-title" class="form-control" maxlength="120" placeholder="My Awesome Game" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Slug</label>
-                        <input type="text" id="cg-slug" class="form-control" maxlength="140" placeholder="awesome-game" />
-                        <div class="form-help">Lowercase letters, numbers, hyphens only.</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea id="cg-desc" class="form-control" rows="4" maxlength="5000" placeholder="Describe your game mechanics, genre, and where to play."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Links (optional)</label>
-                        <input type="url" id="cg-link-1" class="form-control" placeholder="Play URL, trailer, docs, etc." />
-                    </div>
-                    <button id="cg-submit" type="button" class="btn-portal">Create Game Entry</button>
-                </form>
-                <div id="cg-feedback" class="form-help" style="margin-top:8px;"></div>
-            </div>
+            
         </div>
     </main>
     
@@ -936,8 +908,7 @@
 
             // Load verification status and wire forms
             try { await setupVerificationUI(user); } catch(e) { console.warn('verification UI', e); }
-            // Load Community Games UI
-            try { await setupCommunityGamesUI(user); } catch(e) { console.warn('cg UI', e); }
+            // Community Games removed
         }
         
         // Update user email
@@ -1306,59 +1277,7 @@
             });
         }
 
-        function slugify(input){
-            return String(input||'').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,140);
-        }
-
-        async function setupCommunityGamesUI(user){
-            const note = document.getElementById('cg-note');
-            const form = document.getElementById('cg-form');
-            const titleEl = document.getElementById('cg-title');
-            const slugEl = document.getElementById('cg-slug');
-            const descEl = document.getElementById('cg-desc');
-            const link1 = document.getElementById('cg-link-1');
-            const btn = document.getElementById('cg-submit');
-            const feedback = document.getElementById('cg-feedback');
-            const verified = await isUserVerified(user.uid);
-            if (!verified) {
-                note.textContent = 'Only verified users can submit community games. Submit a verification request first.';
-                form.style.opacity = '0.6';
-                Array.from(form.elements).forEach(el => el.disabled = true);
-                return;
-            }
-            note.textContent = 'Verified! You can create a game entry visible to the community.';
-            btn.addEventListener('click', async () => {
-                try {
-                    const title = (titleEl.value||'').trim();
-                    const slug = slugify(slugEl.value||title);
-                    const description = (descEl.value||'').trim();
-                    const links = [(link1.value||'').trim()].filter(Boolean);
-                    if (!title || !slug || !description) { alert('Title, slug and description are required.'); return; }
-                    const db = window.firebaseFirestore;
-                    const now = new Date();
-                    const docRef = window.firestoreDoc(db, 'community_games', slug);
-                    await window.firestoreSetDoc(docRef, {
-                        title,
-                        slug,
-                        ownerId: user.uid,
-                        description,
-                        links,
-                        visibility: 'public',
-                        status: 'draft',
-                        createdAt: now,
-                        updatedAt: now
-                    });
-                    feedback.textContent = 'Game entry created. You can update or publish it later.';
-                    showAuthMessage('Game entry created', 'success');
-                    form.reset();
-                    slugEl.value = slug;
-                } catch(e) {
-                    console.error('cg create', e);
-                    feedback.textContent = 'Failed to create game entry: ' + (e?.message||e);
-                    showAuthMessage('Failed to create entry', 'error');
-                }
-            });
-        }
+    // Community Games removed
     </script>
     
     <!-- Auth Overlay Modal -->

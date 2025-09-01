@@ -1,3 +1,7 @@
 # Netlify Redirects Configuration
 # Portal subdomain rewrite - serve the User Portal for portal.glitchrealm.ca
 https://portal.glitchrealm.ca/*  /user-portal.html  200
+
+# Retire legacy Community Games page -> send to main Games
+/community-games        /games.html   301
+/community-games.html   /games.html   301
