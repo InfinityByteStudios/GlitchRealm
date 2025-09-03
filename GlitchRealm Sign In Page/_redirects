@@ -1,0 +1,2 @@
+# Redirect root URL to sign-in.html
+/    /sign-in.html    200
