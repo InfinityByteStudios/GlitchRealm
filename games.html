@@ -1848,8 +1848,9 @@
                 if (headerSignInBtn) {
                     headerSignInBtn.click();
                 } else {
-                    // Last resort fallback to direct navigation
-                    window.location.href = 'signin.html';
+                    // Last resort fallback to direct navigation with redirect
+                    try { sessionStorage.setItem('gr.returnTo', window.location.href); } catch {}
+                    window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}`;
                 }
             }
         }
@@ -2888,28 +2889,33 @@
     </div>
 
     <script>
-    // Submit Game UI gating, backend uploads, backend submission + render of published submissions (no direct Firestore)
+    // Submit Game UI gating, Storage upload, direct Firestore submission + Firestore render of published submissions
     (function() {
-        // Backend base (Firebase Functions). Adjust region/project if needed.
-        const API_BASE = 'https://us-central1-shared-sign-in.cloudfunctions.net/api';
+        // Developer UIDs (for creator privileges in UI gating)
+        const DEV_UIDS = new Set([
+            '6iZDTXC78aVwX22qrY43BOxDRLt1',
+            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+        ]);
 
         function $(id) { return document.getElementById(id); }
 
-        async function getIdToken() {
+        async function getMe() {
             const auth = window.firebaseAuth;
             const user = auth ? auth.currentUser : null;
             if (!user) return null;
-            try { return await user.getIdToken(); } catch { return null; }
-        }
-
-        async function getMe() {
-            const token = await getIdToken();
-            if (!token) return null;
             try {
-                const res = await fetch(`${API_BASE}/me`, { headers: { Authorization: `Bearer ${token}` } });
-                if (!res.ok) return null;
-                return await res.json();
-            } catch { return null; }
+                const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const db = f.getFirestore();
+                const snap = await f.getDoc(f.doc(db, 'verified_users', user.uid));
+                const isVerified = snap.exists() && !!(snap.data()?.verified === true);
+                const isDeveloper = DEV_UIDS.has(user.uid);
+                return { uid: user.uid, isVerified, isDeveloper };
+            } catch {
+                return { uid: user.uid, isVerified: false, isDeveloper: DEV_UIDS.has(user.uid) };
+            }
         }
 
     function showSubmitCard(show) {
@@ -2979,7 +2985,7 @@
             }
             gateSubmitCard();
 
-            // Handle submit (uses backend: signed URL upload + REST create)
+            // Handle submit (direct Firestore create)
             const form = $('submitGameForm');
             if (form) {
                 // Instant preview: file
@@ -3037,8 +3043,6 @@
 
                 try {
                     btn.disabled = true; btn.textContent = 'Submitting...';
-                    const token = await getIdToken();
-                    if (!token) throw new Error('Auth token unavailable');
                     // If a file is provided, upload via Firebase Storage client SDK (rules enforce ownership)
                     if (file) {
                         const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
@@ -3052,71 +3056,118 @@
                         const storageRef = ref(storage, objectPath);
                         const metadata = { contentType: file.type || 'application/octet-stream' };
                         console.log('Uploading cover to', objectPath, 'type:', file.type, 'size:', file.size);
-                        const task = uploadBytesResumable(storageRef, file, metadata);
-                        // Show progress
-                        if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 0%</div>';
-                        // Timeout after 180s of overall time + 15s stall watchdog
-                        let lastBytes = 0;
-                        let stallTimer = null;
-                        const stallReset = () => {
-                            if (stallTimer) clearTimeout(stallTimer);
-                            stallTimer = setTimeout(() => {
-                                try { task.cancel(); } catch(e) {}
-                            }, 15000);
-                        };
-                        await new Promise((resolve, reject) => {
-                            const timer = setTimeout(() => {
-                                try { task.cancel(); } catch(e) {}
-                                reject(new Error('Upload timed out'));
-                            }, 180000);
-                            stallReset();
-                            task.on('state_changed',
-                                (snapshot) => {
-                                    const pct = Math.floor((snapshot.bytesTransferred / Math.max(snapshot.totalBytes || 1, 1)) * 100);
-                                    const transferred = snapshot.bytesTransferred;
-                                    const total = snapshot.totalBytes;
-                                    const st = snapshot.state;
-                                    if (transferred !== lastBytes) { lastBytes = transferred; stallReset(); }
-                                    console.log(`Upload state: ${st}, ${transferred}/${total} (${pct}%)`);
-                                    if (msg) msg.innerHTML = `<div class=\"info-message\">Uploading cover... ${pct}% (${(transferred/1024).toFixed(1)} KB / ${(Math.max(total,1)/1024).toFixed(1)} KB)</div>`;
-                                },
-                                (error) => {
-                                    if (stallTimer) clearTimeout(stallTimer);
-                                    clearTimeout(timer);
-                                    console.error('Upload error:', error?.code || error?.message || error);
-                                    reject(error);
-                                },
-                                () => {
-                                    if (stallTimer) clearTimeout(stallTimer);
-                                    clearTimeout(timer);
-                                    resolve();
-                                }
-                            );
-                        }).catch(async (err) => {
-                            // Fallback: try non-resumable single-shot upload
-                            console.warn('Resumable upload failed/stalled, trying fallback uploadBytes:', err?.message || err);
-                            if (msg) msg.innerHTML = '<div class=\"warning-message\">Upload stalled, retrying…</div>';
-                            const snap = await uploadBytes(storageRef, file, metadata);
-                            task.snapshot = snap; // normalize for getDownloadURL usage below
+                        const SMALL_UPLOAD_LIMIT = 4 * 1024 * 1024; // 4MB
+                        let uploadedRef = null;
+                        // Helper to add a timeout to any promise
+                        const withTimeout = (promise, ms, label) => new Promise((resolve, reject) => {
+                            const timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+                            promise.then((v) => { clearTimeout(timer); resolve(v); }, (e) => { clearTimeout(timer); reject(e); });
                         });
-                        coverImageUrl = await getDownloadURL((task.snapshot && task.snapshot.ref) ? task.snapshot.ref : storageRef);
+                        // Try fast single-shot for small files, with a timeout; fallback to resumable if it stalls
+                        if (file.size <= SMALL_UPLOAD_LIMIT) {
+                            if (msg) msg.innerHTML = '<div class="info-message">Uploading cover…</div>';
+                            try {
+                                const snap = await withTimeout(uploadBytes(storageRef, file, metadata), 45000, 'Upload');
+                                uploadedRef = snap.ref;
+                                if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 100%</div>';
+                            } catch (smallErr) {
+                                console.warn('Small upload stalled/failed, switching to resumable:', smallErr?.message || smallErr);
+                                // Fall back to resumable path below
+                                const task = uploadBytesResumable(storageRef, file, metadata);
+                                if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 0%</div>';
+                                let lastBytes = 0; let stallTimer = null;
+                                const stallReset = () => { if (stallTimer) clearTimeout(stallTimer); stallTimer = setTimeout(() => { try { task.cancel(); } catch(e) {} }, 30000); };
+                                await new Promise((resolve, reject) => {
+                                    const timer = setTimeout(() => { try { task.cancel(); } catch(e) {} reject(new Error('Upload timed out')); }, 300000);
+                                    stallReset();
+                                    task.on('state_changed',
+                                        (snapshot) => {
+                                            const pct = Math.floor((snapshot.bytesTransferred / Math.max(snapshot.totalBytes || 1, 1)) * 100);
+                                            const transferred = snapshot.bytesTransferred; const total = snapshot.totalBytes; const st = snapshot.state;
+                                            if (transferred !== lastBytes) { lastBytes = transferred; stallReset(); }
+                                            console.log(`Upload state: ${st}, ${transferred}/${total} (${pct}%)`);
+                                            if (msg) msg.innerHTML = `<div class=\"info-message\">Uploading cover... ${pct}% (${(transferred/1024).toFixed(1)} KB / ${(Math.max(total,1)/1024).toFixed(1)} KB)</div>`;
+                                        },
+                                        (error) => { if (stallTimer) clearTimeout(stallTimer); clearTimeout(timer); reject(error); },
+                                        () => { if (stallTimer) clearTimeout(stallTimer); clearTimeout(timer); resolve(); }
+                                    );
+                                }).catch(async (err) => {
+                                    console.warn('Resumable fallback also failed, trying single-shot again:', err?.message || err);
+                                    const snap = await uploadBytes(storageRef, file, metadata);
+                                    uploadedRef = snap.ref;
+                                });
+                                if (!uploadedRef) uploadedRef = task.snapshot?.ref || storageRef;
+                            }
+                        } else {
+                            const task = uploadBytesResumable(storageRef, file, metadata);
+                            // Show progress
+                            if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 0%</div>';
+                            // Timeout after 300s of overall time + 30s stall watchdog
+                            let lastBytes = 0;
+                            let stallTimer = null;
+                            const stallReset = () => {
+                                if (stallTimer) clearTimeout(stallTimer);
+                                stallTimer = setTimeout(() => {
+                                    try { task.cancel(); } catch(e) {}
+                                }, 30000);
+                            };
+                            await new Promise((resolve, reject) => {
+                                const timer = setTimeout(() => {
+                                    try { task.cancel(); } catch(e) {}
+                                    reject(new Error('Upload timed out'));
+                                }, 300000);
+                                stallReset();
+                                task.on('state_changed',
+                                    (snapshot) => {
+                                        const pct = Math.floor((snapshot.bytesTransferred / Math.max(snapshot.totalBytes || 1, 1)) * 100);
+                                        const transferred = snapshot.bytesTransferred;
+                                        const total = snapshot.totalBytes;
+                                        const st = snapshot.state;
+                                        if (transferred !== lastBytes) { lastBytes = transferred; stallReset(); }
+                                        console.log(`Upload state: ${st}, ${transferred}/${total} (${pct}%)`);
+                                        if (msg) msg.innerHTML = `<div class=\"info-message\">Uploading cover... ${pct}% (${(transferred/1024).toFixed(1)} KB / ${(Math.max(total,1)/1024).toFixed(1)} KB)</div>`;
+                                    },
+                                    (error) => {
+                                        if (stallTimer) clearTimeout(stallTimer);
+                                        clearTimeout(timer);
+                                        console.error('Upload error:', error?.code || error?.message || error);
+                                        reject(error);
+                                    },
+                                    () => {
+                                        if (stallTimer) clearTimeout(stallTimer);
+                                        clearTimeout(timer);
+                                        resolve();
+                                    }
+                                );
+                            }).catch(async (err) => {
+                                // Fallback: try non-resumable single-shot upload
+                                console.warn('Resumable upload failed/stalled, trying fallback uploadBytes:', err?.message || err);
+                                if (msg) msg.innerHTML = '<div class=\"warning-message\">Upload stalled, retrying…</div>';
+                                const snap = await uploadBytes(storageRef, file, metadata);
+                                uploadedRef = snap.ref;
+                            });
+                            if (!uploadedRef) uploadedRef = task.snapshot?.ref || storageRef;
+                        }
+                        // Guard getDownloadURL to avoid rare hangs
+                        coverImageUrl = await withTimeout(getDownloadURL(uploadedRef || storageRef), 30000, 'getDownloadURL');
                         console.log('Cover uploaded, URL:', coverImageUrl);
                     }
-                    const payload = { title, description, coverImageUrl, tags, playUrl };
-                    // Add abort/timeout for fetch to avoid hanging
-                    const controller = new AbortController();
-                    const fetchTimeout = setTimeout(() => controller.abort(), 30000);
-                    const createRes = await fetch(`${API_BASE}/submissions`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify(payload),
-                        signal: controller.signal
-                    });
-                    clearTimeout(fetchTimeout);
-                    if (!createRes.ok) {
-                        const errBody = await createRes.text().catch(()=> '');
-                        throw new Error(`Failed to create submission (${createRes.status}): ${errBody}`);
-                    }
+                    // Write submission directly to Firestore
+                    const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                    const db = f.getFirestore();
+                    const uid = window.firebaseAuth?.currentUser?.uid;
+                    const payloadDoc = {
+                        title,
+                        ownerId: uid,
+                        description,
+                        status: 'draft',
+                        createdAt: f.serverTimestamp(),
+                        updatedAt: f.serverTimestamp(),
+                        coverImageUrl: coverImageUrl || '',
+                        tags,
+                        playUrl
+                    };
+                    await f.addDoc(f.collection(db, 'game_submissions'), payloadDoc);
                     if (msg) msg.innerHTML = '<div class="success-message">Submission saved as draft. We\'ll review it soon.</div>';
                     form.reset();
                     setTimeout(() => { window.closeSubmitGameModal(); }, 1200);
@@ -3131,15 +3182,22 @@
         }
     });
 
-    // Load published game submissions and render as cards matching existing style (backend GET)
+    // Load published game submissions and render as cards (Firestore query)
     window.loadPublishedGameSubmissions = async function() {
         try {
             const container = document.querySelector('.game-cards');
             if (!container) return;
-            const res = await fetch(`${API_BASE}/submissions?limit=24`);
-            if (!res.ok) return;
-            const items = await res.json();
-            if (!Array.isArray(items) || !items.length) return;
+            const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const db = f.getFirestore();
+            const q = f.query(
+                f.collection(db, 'game_submissions'),
+                f.where('status','==','published'),
+                f.orderBy('createdAt','desc'),
+                f.limit(24)
+            );
+            const snap = await f.getDocs(q);
+            if (!snap || snap.empty) return;
+            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
             // Insert creator cards before the Coming Soon card if present
             const comingSoonCard = container.querySelector('.game-card.coming-soon');

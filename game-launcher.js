@@ -132,8 +132,9 @@ class GameLauncher {
             if (proceed) {
                 this.openGameWindow(game);
             } else {
-                // Redirect to sign in page
-                window.location.href = 'signin.html';
+                // Redirect to standalone sign in with redirect back
+                try { sessionStorage.setItem('gr.returnTo', window.location.href); } catch {}
+                window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}`;
             }
         }
     }

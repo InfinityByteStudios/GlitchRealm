@@ -662,7 +662,7 @@
             </svg>
             <h2>Sign In Required</h2>
             <p>Please sign in to access your user portal and game statistics.</p>
-            <button class="btn-portal" onclick="location.href='signin.html'">Sign In Now</button>
+            <button class="btn-portal" onclick="(function(){try{sessionStorage.setItem('gr.returnTo', window.location.href);}catch(e){};window.location.href=`Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}`;})()">Sign In Now</button>
         </div>
         
         <div id="portal-content" class="portal-sections" style="display: none;">

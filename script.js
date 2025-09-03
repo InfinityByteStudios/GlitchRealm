@@ -2979,13 +2979,15 @@ window.saveSettings = function() {
                         
                         // Redirect to sign in page after a brief delay
                         setTimeout(() => {
-                            window.location.href = 'signin.html?message=Please sign in again to delete your account&type=info';
+                            try { sessionStorage.setItem('gr.returnTo', window.location.href); } catch {}
+                            window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}&message=${encodeURIComponent('Please sign in again to delete your account')}&type=info`;
                         }, 2000);
                     } catch (signOutError) {
                         console.error('Sign out error:', signOutError);
                         // Still redirect to sign in page
                         setTimeout(() => {
-                            window.location.href = 'signin.html?message=Please sign in again to delete your account&type=info';
+                            try { sessionStorage.setItem('gr.returnTo', window.location.href); } catch {}
+                            window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}&message=${encodeURIComponent('Please sign in again to delete your account')}&type=info`;
                         }, 2000);
                     }
                     return; // Exit early since we're redirecting
@@ -3283,7 +3285,27 @@ function initializeAuthElements() {
             e.preventDefault();
             console.log('Sign in button clicked!');
             
-            // Check if we're on the signin.html page
+            // Check if we're already on a sign-in page
+            try {
+                const p = decodeURIComponent(window.location.pathname.toLowerCase());
+                if (p.endsWith('/signin.html') || p.includes('/sign in/index.html')) {
+                    console.log('Already on standalone sign-in page');
+                    return;
+                }
+            } catch {}
+            
+            // Check if an inline auth overlay exists on this page
+            // Prefer standalone page with redirect for consistency
+            const currentUrl = window.location.href;
+            try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
+
+            // Always prefer navigating to the standalone Sign In page with redirect parameter
+            const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+            console.log('Redirecting to standalone sign-in:', target);
+            window.location.href = target;
+            return;
+            
+            // (Kept for reference) Legacy inline modal fallback if needed:
             if (window.location.pathname.includes('signin.html')) {
                 console.log('Already on signin page');
                 return;
@@ -3297,7 +3319,7 @@ function initializeAuthElements() {
                 document.body.style.overflow = 'hidden';
             } else {
                 console.log('Auth overlay not found, redirecting to signin page');
-                window.location.href = 'signin.html';
+                window.location.href = 'Sign In/index.html';
             }
         });
         

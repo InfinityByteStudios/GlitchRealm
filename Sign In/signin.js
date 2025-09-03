@@ -2,6 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
 import {
     getAuth, onAuthStateChanged,
+    setPersistence, browserLocalPersistence,
     signInWithEmailAndPassword, createUserWithEmailAndPassword, 
     sendPasswordResetEmail,
     GoogleAuthProvider, GithubAuthProvider, signInWithPopup
@@ -20,6 +21,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+// Persist auth across tabs and reloads
+try {
+    // Ensure tokens and user session persist when navigating back/around the site
+    setPersistence(auth, browserLocalPersistence).catch((e) => {
+        // Non-fatal: fallback to default persistence
+        console.warn('Auth persistence setup warning:', e?.message || e);
+    });
+} catch (e) {
+    console.warn('Auth persistence not set:', e?.message || e);
+}
 
 // DOM elements (match original modal structure)
 const tabs = Array.from(document.querySelectorAll('.auth-tab'));
