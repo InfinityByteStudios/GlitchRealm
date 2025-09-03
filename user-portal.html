@@ -647,6 +647,7 @@
     <main class="portal-container">
         <div class="portal-header">
             <h1 class="portal-title" id="portal-title">User Portal</h1>
+            <p id="portal-user-id" class="portal-uid" style="display:none; margin-top:-6px; margin-bottom:10px; font-size:0.9rem; color: var(--text-lighter);"></p>
             <p class="portal-subtitle">Manage your account, track playtime across GlitchRealm games, and get support—all in one place.</p>
         </div>
         
@@ -823,10 +824,13 @@
                     // Personalize page title
                     try {
                         const titleEl = document.getElementById('portal-title');
+                        const uidEl = document.getElementById('portal-user-id');
                         if (titleEl) {
                             const name = (user.displayName && user.displayName.trim()) || (user.email ? user.email.split('@')[0] : '') || 'Player';
                                                         // Reset content then append badge conditionally
                                                         titleEl.textContent = `Welcome, ${name}`;
+                                                        // Show UID below title in smaller text
+                                                        if (uidEl) { uidEl.textContent = `User ID: ${user.uid}`; uidEl.style.display = ''; }
                                                         // Attach verified badge if applicable
                                                         (async () => {
                                                             try {
@@ -854,11 +858,13 @@
                     // Reset title when signed out
                                         try {
                                                 const titleEl = document.getElementById('portal-title');
+                                                const uidEl = document.getElementById('portal-user-id');
                                                 if (titleEl) {
                                                     titleEl.textContent = 'User Portal';
                                                     const existing = titleEl.querySelector('.verified-badge');
                                                     if (existing) existing.remove();
                                                 }
+                                                if (uidEl) { uidEl.textContent = ''; uidEl.style.display = 'none'; }
                                         } catch(e) {}
                     authRequired.style.display = 'block';
                 }

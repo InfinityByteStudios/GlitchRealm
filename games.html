@@ -1588,6 +1588,9 @@
                         <span style="opacity:.7; font-size:12px;">or</span>
                         <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://... (optional)" maxlength="2000" style="flex:1; min-width:240px">
                     </div>
+                    <div id="submissionCoverPreviewWrap" style="margin-top:8px; display:none;">
+                        <img id="submissionCoverPreview" alt="Cover preview" style="max-width:100%; max-height:180px; border-radius:8px; box-shadow: 0 0 12px rgba(0, 255, 249, 0.25);" />
+                    </div>
                     <div class="input-line"></div>
                 </div>
 
@@ -2909,7 +2912,7 @@
             } catch { return null; }
         }
 
-        function showSubmitCard(show) {
+    function showSubmitCard(show) {
             const card = $('submitGameCard');
             if (card) card.style.display = show ? '' : 'none';
         }
@@ -2921,7 +2924,8 @@
                 const user = auth.currentUser;
                 if (!user) { showSubmitCard(false); return; }
                 const me = await getMe();
-                showSubmitCard(Boolean(me && (me.isDeveloper || me.isVerified)));
+                const allowed = me && (me.isVerified || me.isDeveloper);
+                showSubmitCard(Boolean(allowed));
             } catch (e) {
                 console.warn('Gate error:', e);
                 showSubmitCard(false);
@@ -2933,13 +2937,12 @@
             const auth = window.firebaseAuth;
             const user = auth ? auth.currentUser : null;
             const gate = $('submitGateNotice');
-            const me = user ? await getMe() : null;
-            const allowed = Boolean(me && (me.isDeveloper || me.isVerified));
-            if (!user || !allowed) {
-                if (gate) gate.style.display = '';
-            } else {
-                if (gate) gate.style.display = 'none';
+            let allowed = false;
+            if (user) {
+                try { const me = await getMe(); allowed = Boolean(me && (me.isVerified || me.isDeveloper)); } catch {}
             }
+            if (!user || !allowed) { if (gate) gate.style.display = ''; } else { if (gate) gate.style.display = 'none'; }
+            if (!user || !allowed) return; // block opening if not allowed
             const modal = $('submitGameModal');
             if (modal) {
                 modal.style.display = 'block';
@@ -2951,6 +2954,13 @@
             if (modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
+                // Clear preview when closing
+                try {
+                    const wrap = $('submissionCoverPreviewWrap');
+                    const img = $('submissionCoverPreview');
+                    if (wrap) wrap.style.display = 'none';
+                    if (img) img.src = '';
+                } catch {}
             }
         }
 
@@ -2972,6 +2982,25 @@
             // Handle submit (uses backend: signed URL upload + REST create)
             const form = $('submitGameForm');
             if (form) {
+                // Instant preview: file
+                const fileInput = $('submissionCoverFile');
+                const urlInput = $('submissionCoverUrl');
+                const wrap = $('submissionCoverPreviewWrap');
+                const img = $('submissionCoverPreview');
+                function showPreviewFromBlob(blobUrl){ if (img && wrap) { img.src = blobUrl; wrap.style.display = ''; } }
+                function clearPreview(){ if (img && wrap) { img.src = ''; wrap.style.display = 'none'; } }
+                fileInput?.addEventListener('change', () => {
+                    if (fileInput.files && fileInput.files[0]) {
+                        const url = URL.createObjectURL(fileInput.files[0]);
+                        showPreviewFromBlob(url);
+                    } else { clearPreview(); }
+                });
+                urlInput?.addEventListener('input', () => {
+                    const val = urlInput.value.trim();
+                    if (/^https?:\/\//i.test(val)) { if (img && wrap) { img.src = val; wrap.style.display = ''; } }
+                    else { if (!fileInput?.files?.length) clearPreview(); }
+                });
+                form.addEventListener('reset', clearPreview);
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const auth = window.firebaseAuth;
@@ -2983,13 +3012,17 @@
                         if (msg) msg.innerHTML = '<div class="error-message">Please sign in first.</div>';
                         return;
                     }
-                    // Gate again at submit time via backend
-                    const me = await getMe();
-                    if (!me || (!me.isDeveloper && !me.isVerified)) {
-                        if (gate) gate.style.display = '';
-                        if (msg) msg.innerHTML = '<div class="error-message">You are not allowed to submit. Get verified or contact us.</div>';
-                        return;
-                    } else if (gate) gate.style.display = 'none';
+                    // Require verified creator or developer
+                    try {
+                        const me = await getMe();
+                        const allowed = me && (me.isVerified || me.isDeveloper);
+                        if (!allowed) {
+                            if (gate) gate.style.display = '';
+                            if (msg) msg.innerHTML = '<div class="error-message">Only verified creators or developers can submit games. <a href="user-portal.html#verification-section">Request verification</a>.</div>';
+                            return;
+                        }
+                        if (gate) gate.style.display = 'none';
+                    } catch {}
 
                 const title = $('submissionTitle').value.trim();
                 const description = $('submissionDescription').value.trim();
@@ -3006,46 +3039,84 @@
                     btn.disabled = true; btn.textContent = 'Submitting...';
                     const token = await getIdToken();
                     if (!token) throw new Error('Auth token unavailable');
-                    // If a file is provided, try signed URL upload first; fallback to Firebase Storage client upload
+                    // If a file is provided, upload via Firebase Storage client SDK (rules enforce ownership)
                     if (file) {
                         const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                        try {
-                            const signRes = await fetch(`${API_BASE}/uploads/covers:signedUrl`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                                body: JSON.stringify({ fileName: safeName, contentType: file.type || 'application/octet-stream' })
-                            });
-                            if (!signRes.ok) {
-                                const errText = await signRes.text().catch(()=> '');
-                                throw new Error(`Failed to get upload URL (${signRes.status}) ${errText}`.trim());
-                            }
-                            const { url, publicUrl, contentType } = await signRes.json();
-                            const putRes = await fetch(url, { method: 'PUT', headers: { 'Content-Type': contentType }, body: file });
-                            if (!putRes.ok) throw new Error(`Upload failed (${putRes.status})`);
-                            coverImageUrl = publicUrl;
-                        } catch (uploadErr) {
-                            console.warn('Signed URL upload failed, falling back to Firebase Storage client upload:', uploadErr);
-                            try {
-                                const uid = window.firebaseAuth?.currentUser?.uid;
-                                if (!uid) throw new Error('No user uid for storage path');
-                                const { getStorage, ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
-                                const storage = getStorage();
-                                const objectPath = `game-covers/${uid}/${Date.now()}_${safeName}`;
-                                const storageRef = ref(storage, objectPath);
-                                await uploadBytes(storageRef, file, { contentType: file.type || 'application/octet-stream' });
-                                coverImageUrl = await getDownloadURL(storageRef);
-                            } catch (fallbackErr) {
-                                throw new Error(`Upload failed: ${fallbackErr?.message || fallbackErr}`);
-                            }
-                        }
+                        const uid = window.firebaseAuth?.currentUser?.uid;
+                        if (!uid) throw new Error('No user uid for storage path');
+                        const { ref, uploadBytesResumable, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
+                        const storage = window.firebaseStorage; // use the initialized instance
+                        if (!storage) throw new Error('Firebase Storage not initialized');
+                        if (navigator && navigator.onLine === false) throw new Error('You appear to be offline.');
+                        const objectPath = `game-covers/${uid}/${Date.now()}_${safeName}`;
+                        const storageRef = ref(storage, objectPath);
+                        const metadata = { contentType: file.type || 'application/octet-stream' };
+                        console.log('Uploading cover to', objectPath, 'type:', file.type, 'size:', file.size);
+                        const task = uploadBytesResumable(storageRef, file, metadata);
+                        // Show progress
+                        if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 0%</div>';
+                        // Timeout after 180s of overall time + 15s stall watchdog
+                        let lastBytes = 0;
+                        let stallTimer = null;
+                        const stallReset = () => {
+                            if (stallTimer) clearTimeout(stallTimer);
+                            stallTimer = setTimeout(() => {
+                                try { task.cancel(); } catch(e) {}
+                            }, 15000);
+                        };
+                        await new Promise((resolve, reject) => {
+                            const timer = setTimeout(() => {
+                                try { task.cancel(); } catch(e) {}
+                                reject(new Error('Upload timed out'));
+                            }, 180000);
+                            stallReset();
+                            task.on('state_changed',
+                                (snapshot) => {
+                                    const pct = Math.floor((snapshot.bytesTransferred / Math.max(snapshot.totalBytes || 1, 1)) * 100);
+                                    const transferred = snapshot.bytesTransferred;
+                                    const total = snapshot.totalBytes;
+                                    const st = snapshot.state;
+                                    if (transferred !== lastBytes) { lastBytes = transferred; stallReset(); }
+                                    console.log(`Upload state: ${st}, ${transferred}/${total} (${pct}%)`);
+                                    if (msg) msg.innerHTML = `<div class=\"info-message\">Uploading cover... ${pct}% (${(transferred/1024).toFixed(1)} KB / ${(Math.max(total,1)/1024).toFixed(1)} KB)</div>`;
+                                },
+                                (error) => {
+                                    if (stallTimer) clearTimeout(stallTimer);
+                                    clearTimeout(timer);
+                                    console.error('Upload error:', error?.code || error?.message || error);
+                                    reject(error);
+                                },
+                                () => {
+                                    if (stallTimer) clearTimeout(stallTimer);
+                                    clearTimeout(timer);
+                                    resolve();
+                                }
+                            );
+                        }).catch(async (err) => {
+                            // Fallback: try non-resumable single-shot upload
+                            console.warn('Resumable upload failed/stalled, trying fallback uploadBytes:', err?.message || err);
+                            if (msg) msg.innerHTML = '<div class=\"warning-message\">Upload stalled, retrying…</div>';
+                            const snap = await uploadBytes(storageRef, file, metadata);
+                            task.snapshot = snap; // normalize for getDownloadURL usage below
+                        });
+                        coverImageUrl = await getDownloadURL((task.snapshot && task.snapshot.ref) ? task.snapshot.ref : storageRef);
+                        console.log('Cover uploaded, URL:', coverImageUrl);
                     }
                     const payload = { title, description, coverImageUrl, tags, playUrl };
+                    // Add abort/timeout for fetch to avoid hanging
+                    const controller = new AbortController();
+                    const fetchTimeout = setTimeout(() => controller.abort(), 30000);
                     const createRes = await fetch(`${API_BASE}/submissions`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(payload),
+                        signal: controller.signal
                     });
-                    if (!createRes.ok) throw new Error('Failed to create submission');
+                    clearTimeout(fetchTimeout);
+                    if (!createRes.ok) {
+                        const errBody = await createRes.text().catch(()=> '');
+                        throw new Error(`Failed to create submission (${createRes.status}): ${errBody}`);
+                    }
                     if (msg) msg.innerHTML = '<div class="success-message">Submission saved as draft. We\'ll review it soon.</div>';
                     form.reset();
                     setTimeout(() => { window.closeSubmitGameModal(); }, 1200);

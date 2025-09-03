@@ -521,14 +521,15 @@ service cloud.firestore {
              data.status in ['draft','published'] &&
              data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
              (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
-             (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && data.tags[0] is string));
+        (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && data.tags[0] is string)) &&
+        (!data.keys().hasAny(['playUrl']) || (data.playUrl is string && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://')));
     }
 
     function isValidGameSubmissionUpdate() {
       let d = request.resource.data.diff(resource.data);
-      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','coverImageUrl','tags','status']) &&
-                    d.addedKeys().hasOnly(['coverImageUrl','tags']) &&
-                    d.removedKeys().hasOnly(['coverImageUrl','tags']);
+      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','coverImageUrl','tags','status','playUrl']) &&
+          d.addedKeys().hasOnly(['coverImageUrl','tags','playUrl']) &&
+          d.removedKeys().hasOnly(['coverImageUrl','tags','playUrl']);
       let immutableOk = request.resource.data.ownerId == resource.data.ownerId &&
                         request.resource.data.createdAt == resource.data.createdAt;
       return allowed && immutableOk &&
@@ -537,7 +538,8 @@ service cloud.firestore {
              request.resource.data.status in ['draft','published'] &&
              request.resource.data.description is string && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 5000 &&
              (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
-             (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 3 && request.resource.data.tags[0] is string));
+        (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 3 && request.resource.data.tags[0] is string)) &&
+        (!request.resource.data.keys().hasAny(['playUrl']) || (request.resource.data.playUrl is string && request.resource.data.playUrl.size() <= 2000 && request.resource.data.playUrl.matches('^https?://')));
     }
   }
 }

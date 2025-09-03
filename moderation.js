@@ -201,6 +201,7 @@
       const desc = (r.description || '').toString();
       const cover = (r.coverImageUrl || '');
       const tags = Array.isArray(r.tags) ? r.tags : [];
+  const playUrl = (r.playUrl || '').toString();
       rows.push(`<div class="mod-report-row" data-gsid="${esc(d.id)}">
         <div class="mrr-main">
           <div class="mrr-title">${esc(title)}</div>
@@ -209,6 +210,7 @@
           ${desc ? `<div style="margin-top:6px; white-space:pre-wrap; opacity:.9;">${esc(desc)}</div>` : ''}
           ${tags.length ? `<div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">${tags.map(t=>`<span class="tag">#${esc(String(t))}</span>`).join('')}</div>` : ''}
           <div class="status-actions" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+    ${playUrl ? `<a class="neural-button secondary" href="${esc(playUrl)}" target="_blank" rel="noopener"><span class="button-text">Test Play</span></a>` : ''}
             <button class="neural-button secondary gs-publish"><span class="button-text">Publish</span></button>
             <button class="neural-button secondary gs-unpublish"><span class="button-text">Unpublish</span></button>
             <button class="neural-button secondary gs-delete" style="color:#ff6b6b;"><span class="button-text">Delete</span></button>
@@ -235,6 +237,7 @@
       const desc = (r.description || '').toString();
       const cover = (r.coverImageUrl || '');
       const tags = Array.isArray(r.tags) ? r.tags : [];
+  const playUrl = (r.playUrl || '').toString();
       rows.push(`<div class="mod-report-row" data-gsid="${esc(r.id)}">
         <div class="mrr-main">
           <div class="mrr-title">${esc(title)}</div>
@@ -243,6 +246,7 @@
           ${desc ? `<div style=\"margin-top:6px; white-space:pre-wrap; opacity:.9;\">${esc(desc)}</div>` : ''}
           ${tags.length ? `<div style=\"margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;\">${tags.map(t=>`<span class=\"tag\">#${esc(String(t))}</span>`).join('')}</div>` : ''}
           <div class="status-actions" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+    ${playUrl ? `<a class="neural-button secondary" href="${esc(playUrl)}" target="_blank" rel="noopener"><span class="button-text">Test Play</span></a>` : ''}
             <button class="neural-button secondary gs-publish"><span class="button-text">Publish</span></button>
             <button class="neural-button secondary gs-unpublish"><span class="button-text">Unpublish</span></button>
             <button class="neural-button secondary gs-delete" style="color:#ff6b6b;"><span class="button-text">Delete</span></button>

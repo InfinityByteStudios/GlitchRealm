@@ -230,9 +230,9 @@ api.post('/submissions', requireAuth, async (req, res) => {
 		// Require a valid playUrl (http/https)
 		const validPlay = typeof playUrl === 'string' && /^https?:\/\//i.test(playUrl) && playUrl.length <= 2000;
 		if (!validPlay) return res.status(400).json({ error: 'playUrl required (must start with http or https)' });
-		// Verified or developer only: mirror of rules check
-		const verifiedDoc = await db.collection('verified_users').doc(uid).get();
-		const isVerified = verifiedDoc.exists && verifiedDoc.data().verified === true;
+		// Verified or developer only may create submissions
+		const vSnap = await db.collection('verified_users').doc(uid).get();
+		const isVerified = vSnap.exists && vSnap.data().verified === true;
 		if (!(isVerified || isDeveloper(uid))) return res.status(403).json({ error: 'Not verified' });
 		const now = admin.firestore.FieldValue.serverTimestamp();
 		const payload = { title, description, ownerId: uid, status: 'draft', createdAt: now, updatedAt: now, playUrl };
