@@ -1587,24 +1587,24 @@
                     <div class="input-label">Cover Image</div>
                     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
                         <input type="file" id="submissionCoverFile" accept="image/*" style="flex:1; min-width:220px">
-                        <span style="opacity:.7; font-size:12px;">or</span>
-                        <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://... (optional)" maxlength="2000" style="flex:1; min-width:240px">
-                        <span style="
-                            margin-left:auto;
+                        <span id="submissionPreReleaseTag" style="
+                            display:none;
                             background: linear-gradient(135deg, rgba(255,165,0,0.95), rgba(255,99,71,0.95));
                             color:#0b0e14;
                             font-family: 'Orbitron', monospace;
                             font-weight:800;
-                            letter-spacing:.6px;
-                            font-size:10px;
-                            padding:3px 8px;
-                            border-radius:6px;
+                            letter-spacing:.4px;
+                            font-size:9px;
+                            padding:2px 6px;
+                            border-radius:5px;
                             text-transform:uppercase;
-                            box-shadow: 0 2px 8px rgba(255,140,0,0.3);
-                            border:1px solid rgba(0,0,0,0.15);
+                            box-shadow: 0 1px 4px rgba(255,140,0,0.25);
+                            border:1px solid rgba(0,0,0,0.12);
                             user-select:none;
                             white-space:nowrap;
                         ">PRE‑RELEASE</span>
+                        <span style="opacity:.7; font-size:12px;">or</span>
+                        <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://... (optional)" maxlength="2000" style="flex:1; min-width:240px">
                     </div>
                     <div id="submissionCoverPreviewWrap" style="margin-top:8px; display:none;">
                         <img id="submissionCoverPreview" alt="Cover preview" style="max-width:100%; max-height:180px; border-radius:8px; box-shadow: 0 0 12px rgba(0, 255, 249, 0.25);" />
@@ -3011,8 +3011,9 @@
                 const urlInput = $('submissionCoverUrl');
                 const wrap = $('submissionCoverPreviewWrap');
                 const img = $('submissionCoverPreview');
-                function showPreviewFromBlob(blobUrl){ if (img && wrap) { img.src = blobUrl; wrap.style.display = ''; } }
-                function clearPreview(){ if (img && wrap) { img.src = ''; wrap.style.display = 'none'; } }
+                const preTag = $('submissionPreReleaseTag');
+                function showPreviewFromBlob(blobUrl){ if (img && wrap) { img.src = blobUrl; wrap.style.display = ''; } if (preTag) preTag.style.display = 'inline-block'; }
+                function clearPreview(){ if (img && wrap) { img.src = ''; wrap.style.display = 'none'; } if (preTag) preTag.style.display = 'none'; }
                 fileInput?.addEventListener('change', () => {
                     if (fileInput.files && fileInput.files[0]) {
                         const url = URL.createObjectURL(fileInput.files[0]);
@@ -3021,8 +3022,12 @@
                 });
                 urlInput?.addEventListener('input', () => {
                     const val = urlInput.value.trim();
-                    if (/^https?:\/\//i.test(val)) { if (img && wrap) { img.src = val; wrap.style.display = ''; } }
-                    else { if (!fileInput?.files?.length) clearPreview(); }
+                    if (/^https?:\/\//i.test(val)) {
+                        if (img && wrap) { img.src = val; wrap.style.display = ''; }
+                        if (preTag) preTag.style.display = 'none';
+                    } else {
+                        if (!fileInput?.files?.length) clearPreview();
+                    }
                 });
                 form.addEventListener('reset', clearPreview);
                 form.addEventListener('submit', async (e) => {
