@@ -38,12 +38,14 @@
             measurementId: "G-KK5XVVLMVN"
         };
           const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const storage = getStorage(app);
-        const firestore = getFirestore(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+    const firestore = getFirestore(app);
         const analytics = getAnalytics(app);
         
-        window.firebaseAuth = auth;
+    window.firebaseApp = app;
+    window.firebaseConfig = firebaseConfig;
+    window.firebaseAuth = auth;
         window.firebaseStorage = storage;
         window.firebaseFirestore = firestore;
         window.firestoreCollection = collection;
@@ -1587,6 +1589,22 @@
                         <input type="file" id="submissionCoverFile" accept="image/*" style="flex:1; min-width:220px">
                         <span style="opacity:.7; font-size:12px;">or</span>
                         <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://... (optional)" maxlength="2000" style="flex:1; min-width:240px">
+                        <span style="
+                            margin-left:auto;
+                            background: linear-gradient(135deg, rgba(255,165,0,0.95), rgba(255,99,71,0.95));
+                            color:#0b0e14;
+                            font-family: 'Orbitron', monospace;
+                            font-weight:800;
+                            letter-spacing:.6px;
+                            font-size:10px;
+                            padding:3px 8px;
+                            border-radius:6px;
+                            text-transform:uppercase;
+                            box-shadow: 0 2px 8px rgba(255,140,0,0.3);
+                            border:1px solid rgba(0,0,0,0.15);
+                            user-select:none;
+                            white-space:nowrap;
+                        ">PRE‑RELEASE</span>
                     </div>
                     <div id="submissionCoverPreviewWrap" style="margin-top:8px; display:none;">
                         <img id="submissionCoverPreview" alt="Cover preview" style="max-width:100%; max-height:180px; border-radius:8px; box-shadow: 0 0 12px rgba(0, 255, 249, 0.25);" />
@@ -3048,9 +3066,26 @@
                         const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
                         const uid = window.firebaseAuth?.currentUser?.uid;
                         if (!uid) throw new Error('No user uid for storage path');
-                        const { ref, uploadBytesResumable, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
-                        const storage = window.firebaseStorage; // use the initialized instance
-                        if (!storage) throw new Error('Firebase Storage not initialized');
+                        const { ref, uploadBytesResumable, uploadBytes, getDownloadURL, getStorage } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
+                        let storage = window.firebaseStorage; // prefer the initialized instance
+                        if (!storage) {
+                            try {
+                                // Try to build from existing app
+                                if (window.firebaseApp) {
+                                    storage = getStorage(window.firebaseApp);
+                                } else {
+                                    // Last-resort: get or create a default app from window.firebaseConfig
+                                    const appMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                                    const apps = appMod.getApps ? appMod.getApps() : [];
+                                    const app = apps.length ? apps[0] : appMod.initializeApp(window.firebaseConfig || {});
+                                    storage = getStorage(app);
+                                    window.firebaseApp = app;
+                                }
+                                window.firebaseStorage = storage;
+                            } catch (e) {
+                                throw new Error('Firebase Storage not initialized: ' + (e?.message || e));
+                            }
+                        }
                         if (navigator && navigator.onLine === false) throw new Error('You appear to be offline.');
                         const objectPath = `game-covers/${uid}/${Date.now()}_${safeName}`;
                         const storageRef = ref(storage, objectPath);
