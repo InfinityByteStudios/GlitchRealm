@@ -438,23 +438,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     overlay.style.display = 'flex';
                     const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
                     const dismiss = document.getElementById('dismiss-terms-update');
-                    const view = document.getElementById('view-terms-update');
-                    const viewPrivacy = document.getElementById('view-privacy-update');
+                    const accept = document.getElementById('accept-terms-update');
                     const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-                    const finalize = () => {
-                        try { localStorage.setItem(seenKey, '1'); } catch {}
+                    const closeOnly = () => {
                         overlay.style.display = 'none';
-                        // Restore background scroll
                         document.body.style.overflow = overlay.dataset.prevOverflow || '';
                         delete overlay.dataset.prevOverflow;
                     };
-                    dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
-                    view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
-                    viewPrivacy && viewPrivacy.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+                    const acknowledge = () => {
+                        try { localStorage.setItem(seenKey, '1'); } catch {}
+                        closeOnly();
+                    };
+                    dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); closeOnly(); }, { once: true });
+                    accept && accept.addEventListener('click', () => acknowledge(), { once: true });
                     inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
                     // Dismiss on backdrop click or Escape
-                    overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
-                    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
+                    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOnly(); }, { once: true });
+                    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOnly(); }, { once: true });
                     return true;
                 }
             },
@@ -524,23 +524,23 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.style.overflow = 'hidden';
             overlay.style.display = 'flex';
             const dismiss = document.getElementById('dismiss-terms-update');
-            const view = document.getElementById('view-terms-update');
-            const viewPrivacy = document.getElementById('view-privacy-update');
+            const accept = document.getElementById('accept-terms-update');
             const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
             const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
-            const finalize = () => { 
-                try { localStorage.setItem(seenKey, '1'); } catch {}
+            const closeOnly = () => { 
                 overlay.style.display = 'none';
-                // Restore background scroll
                 document.body.style.overflow = overlay.dataset.prevOverflow || '';
                 delete overlay.dataset.prevOverflow;
             };
-            dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
-            view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
-            viewPrivacy && viewPrivacy.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+            const acknowledge = () => {
+                try { localStorage.setItem(seenKey, '1'); } catch {}
+                closeOnly();
+            };
+            dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); closeOnly(); }, { once: true });
+            accept && accept.addEventListener('click', () => acknowledge(), { once: true });
             inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOnly(); }, { once: true });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOnly(); }, { once: true });
         };
 
         // Helpers for the original Legal Notice popup
