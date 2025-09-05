@@ -97,6 +97,8 @@ body {
     padding: 0.25rem 1.25rem 1rem;
     color: var(--gray-200);
     text-align: center;
+    position: relative;
+    z-index: 1;
 }
 
 .terms-popup-content .popup-inline-link {
@@ -114,6 +116,8 @@ body {
     justify-content: center;
     padding: 0 1.25rem 1.25rem;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
 }
 
 .terms-popup-actions .btn {

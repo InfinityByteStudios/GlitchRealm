@@ -449,7 +449,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         try { localStorage.setItem(seenKey, '1'); } catch {}
                         closeOnly();
                     };
-                    dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); closeOnly(); }, { once: true });
+                    dismiss && dismiss.addEventListener('click', (e) => { 
+                        try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
+                        closeOnly(); 
+                    }, { once: true });
                     accept && accept.addEventListener('click', () => acknowledge(), { once: true });
                     inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
                     // Dismiss on backdrop click or Escape
@@ -536,7 +539,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem(seenKey, '1'); } catch {}
                 closeOnly();
             };
-            dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); closeOnly(); }, { once: true });
+            dismiss && dismiss.addEventListener('click', (e) => { 
+                try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
+                closeOnly(); 
+            }, { once: true });
             accept && accept.addEventListener('click', () => acknowledge(), { once: true });
             inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
             overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOnly(); }, { once: true });
