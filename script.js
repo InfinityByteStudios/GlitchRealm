@@ -1,5 +1,79 @@
 // GlitchRealm Games - Interactive Effects
 
+// --- Global helpers: define early so they're callable from the console anytime ---
+;(function(){
+    // Accessor for the Terms Update version used in localStorage keys
+    function getTermsUpdateVersion() {
+        return (typeof window.GR_TERMS_UPDATE_VERSION !== 'undefined' && window.GR_TERMS_UPDATE_VERSION) ? window.GR_TERMS_UPDATE_VERSION : '2025-09-05';
+    }
+
+    // Legal notice helpers
+    if (typeof window.grResetLegalNotice !== 'function') {
+        window.grResetLegalNotice = function() {
+            try {
+                localStorage.removeItem('gr.legal.accepted');
+                localStorage.removeItem('gr.legal.declined');
+            } catch {}
+        };
+    }
+    if (typeof window.grShowLegalNoticeNow !== 'function') {
+        window.grShowLegalNoticeNow = function() {
+            const overlay = document.getElementById('terms-popup');
+            if (!overlay) { console.warn('Legal Notice overlay not found on this page'); return; }
+            overlay.style.display = 'flex';
+            const accept = document.getElementById('accept-terms');
+            const decline = document.getElementById('decline-terms');
+            const finalize = (didAccept) => {
+                try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
+                overlay.style.display = 'none';
+                if (!didAccept) {
+                    try { alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.'); } catch {}
+                    try { window.close(); } catch {}
+                    setTimeout(() => {
+                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
+                    }, 50);
+                }
+            };
+            accept && accept.addEventListener('click', () => finalize(true), { once: true });
+            decline && decline.addEventListener('click', () => finalize(false), { once: true });
+        };
+    }
+
+    // Terms updated helpers (guarded to avoid overwriting later definitions)
+    if (typeof window.grResetTermsUpdateSeen !== 'function') {
+        window.grResetTermsUpdateSeen = function() {
+            try { localStorage.removeItem('gr.terms.updated.seen.v' + getTermsUpdateVersion()); } catch {}
+        };
+    }
+    if (typeof window.grShowTermsUpdateNow !== 'function') {
+        window.grShowTermsUpdateNow = function() {
+            const overlay = document.getElementById('terms-update-popup');
+            if (!overlay) { console.warn('Terms Update overlay not found on this page'); return; }
+            // Lock background scroll while visible
+            overlay.dataset.prevOverflow = document.body.style.overflow || '';
+            document.body.style.overflow = 'hidden';
+            overlay.style.display = 'flex';
+            const dismiss = document.getElementById('dismiss-terms-update');
+            const view = document.getElementById('view-terms-update');
+            const viewPrivacy = document.getElementById('view-privacy-update');
+            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
+            const seenKey = 'gr.terms.updated.seen.v' + getTermsUpdateVersion();
+            const finalize = () => {
+                try { localStorage.setItem(seenKey, '1'); } catch {}
+                overlay.style.display = 'none';
+                document.body.style.overflow = overlay.dataset.prevOverflow || '';
+                delete overlay.dataset.prevOverflow;
+            };
+            dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
+            view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+            viewPrivacy && viewPrivacy.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
+        };
+    }
+})();
+
 // Auth message display function - must be available early
 function showAuthMessage(message, type) {
     // Remove existing messages
@@ -325,9 +399,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     overlay.style.display = 'flex';
                     const accept = document.getElementById('accept-terms');
                     const decline = document.getElementById('decline-terms');
-                    const finalize = (accepted) => {
-                        try { localStorage.setItem('gr.legal.' + (accepted ? 'accepted' : 'declined'), '1'); } catch {}
+                    const finalize = (didAccept) => {
+                        try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
                         overlay.style.display = 'none';
+                        if (!didAccept) {
+                            // Inform user and attempt to close; fallback to about:blank
+                            try {
+                                alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
+                            } catch {}
+                            try { window.close(); } catch {}
+                            // Always ensure the user is navigated away
+                            setTimeout(() => {
+                                try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
+                            }, 50);
+                        }
                     };
                     accept && accept.addEventListener('click', () => finalize(true), { once: true });
                     decline && decline.addEventListener('click', () => finalize(false), { once: true });
@@ -354,6 +439,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
                     const dismiss = document.getElementById('dismiss-terms-update');
                     const view = document.getElementById('view-terms-update');
+                    const viewPrivacy = document.getElementById('view-privacy-update');
+                    const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
                     const finalize = () => {
                         try { localStorage.setItem(seenKey, '1'); } catch {}
                         overlay.style.display = 'none';
@@ -363,6 +450,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
                     view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+                    viewPrivacy && viewPrivacy.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+                    inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
                     // Dismiss on backdrop click or Escape
                     overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
                     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
@@ -436,6 +525,8 @@ document.addEventListener('DOMContentLoaded', function() {
             overlay.style.display = 'flex';
             const dismiss = document.getElementById('dismiss-terms-update');
             const view = document.getElementById('view-terms-update');
+            const viewPrivacy = document.getElementById('view-privacy-update');
+            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
             const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
             const finalize = () => { 
                 try { localStorage.setItem(seenKey, '1'); } catch {}
@@ -446,8 +537,38 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
             view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+            viewPrivacy && viewPrivacy.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
             overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
+        };
+
+        // Helpers for the original Legal Notice popup
+        window.grResetLegalNotice = function() {
+            try { localStorage.removeItem('gr.legal.accepted'); localStorage.removeItem('gr.legal.declined'); } catch {}
+        };
+        window.grShowLegalNoticeNow = function() {
+            const overlay = document.getElementById('terms-popup');
+            if (!overlay) { console.warn('Legal Notice overlay not found'); return; }
+            overlay.style.display = 'flex';
+            const accept = document.getElementById('accept-terms');
+            const decline = document.getElementById('decline-terms');
+            const finalize = (didAccept) => {
+                try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
+                overlay.style.display = 'none';
+                if (!didAccept) {
+                    try {
+                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
+                    } catch {}
+                    try { window.close(); } catch {}
+                    setTimeout(() => {
+                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
+                    }, 50);
+                }
+            };
+            // Re-bind with once:true to avoid duplicates
+            accept && accept.addEventListener('click', () => finalize(true), { once: true });
+            decline && decline.addEventListener('click', () => finalize(false), { once: true });
         };
     } catch (e) {
         // Non-fatal: scheduler shouldn’t break the page
