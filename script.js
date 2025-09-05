@@ -449,10 +449,33 @@ document.addEventListener('DOMContentLoaded', function() {
                         try { localStorage.setItem(seenKey, '1'); } catch {}
                         closeOnly();
                     };
-                    dismiss && dismiss.addEventListener('click', (e) => { 
+                    const goBlank = () => {
+                        // Multiple fallbacks to ensure navigation occurs
+                        try { window.location.replace('about:blank'); return; } catch {}
+                        try { window.open('about:blank', '_self'); return; } catch {}
+                        try { window.location.href = 'about:blank'; return; } catch {}
+                        // As a final fallback, just close overlay
+                        closeOnly();
+                    };
+                    const dismissHandler = (e) => {
                         try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                        // Navigate away per request
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
+                        // Defer to let any ripple effects complete
+                        setTimeout(goBlank, 0);
+                    };
+                    dismiss && dismiss.addEventListener('click', dismissHandler, { once: true });
+                    // Also bind pointerdown for environments that block click
+                    dismiss && dismiss.addEventListener('pointerdown', dismissHandler, { once: true });
+                    // Keyboard activation
+                    dismiss && dismiss.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            dismissHandler(e);
+                        }
+                    }, { once: true });
+                    // Delegation safety net
+                    overlay.addEventListener('click', (e) => {
+                        if ((e.target && e.target.id === 'dismiss-terms-update') || (e.target && e.target.closest && e.target.closest('#dismiss-terms-update'))) {
+                            dismissHandler(e);
+                        }
                     }, { once: true });
                     accept && accept.addEventListener('click', () => acknowledge(), { once: true });
                     inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
@@ -540,9 +563,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem(seenKey, '1'); } catch {}
                 closeOnly();
             };
-            dismiss && dismiss.addEventListener('click', (e) => { 
+            const goBlankNow = () => {
+                try { window.location.replace('about:blank'); return; } catch {}
+                try { window.open('about:blank', '_self'); return; } catch {}
+                try { window.location.href = 'about:blank'; return; } catch {}
+                closeOnly();
+            };
+            const dismissHandler2 = (e) => {
                 try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
+                setTimeout(goBlankNow, 0);
+            };
+            dismiss && dismiss.addEventListener('click', dismissHandler2, { once: true });
+            dismiss && dismiss.addEventListener('pointerdown', dismissHandler2, { once: true });
+            dismiss && dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') dismissHandler2(e); }, { once: true });
+            overlay.addEventListener('click', (e) => {
+                if ((e.target && e.target.id === 'dismiss-terms-update') || (e.target && e.target.closest && e.target.closest('#dismiss-terms-update'))) {
+                    dismissHandler2(e);
+                }
             }, { once: true });
             accept && accept.addEventListener('click', () => acknowledge(), { once: true });
             inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
