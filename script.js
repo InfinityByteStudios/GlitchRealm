@@ -306,7 +306,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const canShow = !lastShownAt || (now - lastShownAt) >= DAY_MS;
 
         // Define popup providers (non-intrusive checks only)
-        const providers = [
+    // Single source of truth for the Terms update version (override by setting window.GR_TERMS_UPDATE_VERSION before this script runs)
+    const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
+
+    const providers = [
             {
                 id: 'legal',
                 canShow: () => {
@@ -328,6 +331,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     accept && accept.addEventListener('click', () => finalize(true), { once: true });
                     decline && decline.addEventListener('click', () => finalize(false), { once: true });
+                    return true;
+                }
+            },
+            {
+                id: 'terms-updated',
+                canShow: () => {
+                    // Show when a new terms version exists and not yet acknowledged
+                    const el = document.getElementById('terms-update-popup');
+                    if (!el) return false;
+                    const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
+                    const seen = localStorage.getItem(seenKey) === '1';
+                    return !seen;
+                },
+                show: () => {
+                    const overlay = document.getElementById('terms-update-popup');
+                    if (!overlay) return false;
+                    overlay.style.display = 'flex';
+                    const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
+                    const dismiss = document.getElementById('dismiss-terms-update');
+                    const view = document.getElementById('view-terms-update');
+                    const finalize = () => {
+                        try { localStorage.setItem(seenKey, '1'); } catch {}
+                        overlay.style.display = 'none';
+                    };
+                    dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
+                    view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+                    // Dismiss on backdrop click or Escape
+                    overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
+                    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
                     return true;
                 }
             },
@@ -363,8 +395,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const legal = providers.find(p => p.id === 'legal');
             if (legal && legal.canShow()) return legal;
 
+            // Prioritize terms update next
+            const termsUpdated = providers.find(p => p.id === 'terms-updated');
+            if (termsUpdated && termsUpdated.canShow()) return termsUpdated;
+
             // Otherwise rotate through remaining eligible providers
-            const eligible = providers.filter(p => p.id !== 'legal' && p.canShow());
+            const eligible = providers.filter(p => p.id !== 'legal' && p.id !== 'terms-updated' && p.canShow());
             if (eligible.length === 0) return null;
             let idx = parseInt(localStorage.getItem(orderKey) || '0', 10);
             if (Number.isNaN(idx)) idx = 0;
@@ -379,6 +415,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem(lastKey, String(now)); } catch {}
             }
         }
+
+        // Expose helpers to manually reset or show the Terms Updated popup
+        window.grResetTermsUpdateSeen = function() {
+            try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
+        };
+        window.grShowTermsUpdateNow = function() {
+            const overlay = document.getElementById('terms-update-popup');
+            if (!overlay) { console.warn('Terms Update overlay not found'); return; }
+            try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
+            overlay.style.display = 'flex';
+            const dismiss = document.getElementById('dismiss-terms-update');
+            const view = document.getElementById('view-terms-update');
+            const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
+            const finalize = () => { try { localStorage.setItem(seenKey, '1'); } catch {} overlay.style.display = 'none'; };
+            dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
+            view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
+        };
     } catch (e) {
         // Non-fatal: scheduler shouldn’t break the page
         console.warn('Popup scheduler error:', e);
@@ -3137,6 +3192,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add a visual indicator that header was loaded
                 console.log('Header loaded successfully!');
+
+        // After header injection, try to show the Terms Updated popup once per version
+                try {
+                    const overlay = document.getElementById('terms-update-popup');
+                    if (overlay) {
+            const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
+            const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
+                        const seen = localStorage.getItem(seenKey) === '1';
+                        if (!seen) {
+                            overlay.style.display = 'flex';
+                            const dismiss = document.getElementById('dismiss-terms-update');
+                            const view = document.getElementById('view-terms-update');
+                            const finalize = () => { try { localStorage.setItem(seenKey, '1'); } catch {} overlay.style.display = 'none'; };
+                            dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
+                            view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+                            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
+                            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
+                        }
+                    }
+                } catch (e) { /* non-fatal */ }
                 
                 // Update active nav link based on current page
                 const currentPage = window.location.pathname.split('/').pop() || 'index.html';

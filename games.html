@@ -2943,15 +2943,15 @@
             if (card) card.style.display = show ? '' : 'none';
         }
 
-        async function gateSubmitCard() {
+    async function gateSubmitCard() {
             try {
                 const auth = window.firebaseAuth;
                 if (!auth) return;
                 const user = auth.currentUser;
-                if (!user) { showSubmitCard(false); return; }
-                const me = await getMe();
-                const allowed = me && (me.isVerified || me.isDeveloper);
-                showSubmitCard(Boolean(allowed));
+        if (!user) { showSubmitCard(false); return; }
+        const me = await getMe();
+        const allowed = me && (me.isVerified || me.isDeveloper);
+        showSubmitCard(Boolean(allowed));
             } catch (e) {
                 console.warn('Gate error:', e);
                 showSubmitCard(false);

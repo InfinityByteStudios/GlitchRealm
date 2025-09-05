@@ -3,6 +3,8 @@
 <head>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - GlitchRealm Games</title>
+    <!-- Google CMP + Consent Mode v2: load early -->
+    <script src="cmp-consent.js"></script>
     <link rel="icon" type="image/png" href="assets/Glitch Realm FaviCon Image.png">    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -519,6 +521,33 @@
                 max-width: 80px !important;
             }
         }
+        
+        /* High-contrast link styles for policy content */
+        .privacy-content a,
+        .privacy-document a,
+        .privacy-section a {
+            color: #00FFF9 !important; /* bright cyan for dark bg */
+            text-decoration: underline !important;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 2px;
+        }
+        .privacy-content a:hover,
+        .privacy-document a:hover,
+        .privacy-section a:hover,
+        .privacy-content a:focus,
+        .privacy-document a:focus,
+        .privacy-section a:focus,
+        .privacy-content a:focus-visible,
+        .privacy-document a:focus-visible,
+        .privacy-section a:focus-visible {
+            color: #7AF8FF !important; /* lighter on hover/focus */
+            outline: none;
+        }
+        .privacy-content a:visited,
+        .privacy-document a:visited,
+        .privacy-section a:visited {
+            color: #35E9FF !important; /* subtle visited distinction */
+        }
     </style>
     
     <!-- Firebase SDK -->
@@ -556,7 +585,7 @@
                     <h1 class="privacy-title">
                         <span class="glitch" data-text="PRIVACY POLICY">PRIVACY POLICY</span>
                     </h1>
-                    <p class="privacy-subtitle">GlitchRealm Games — Last updated: June 15, 2025</p>
+                    <p class="privacy-subtitle">GlitchRealm Games — Last updated: September 5, 2025</p>
                 </div>
             </div>
         </section>
@@ -598,13 +627,15 @@
 
                     <div class="privacy-section">
                         <h2 class="section-title">3. Information Sharing</h2>
-                        <p>We do not sell, trade, or otherwise transfer your personal information to outside parties except in the following circumstances:</p>
+                        <p>GlitchRealm does not sell your personal data. We share limited information only in the situations below:</p>
                         <ul>
                             <li>With your explicit consent</li>
+                            <li>With service providers that process data on our behalf (e.g., Google for ads/analytics, Firebase, Netlify) according to their own privacy policies and your consent choices</li>
                             <li>To comply with legal obligations</li>
-                            <li>To protect our rights and safety</li>
-                            <li>Anonymous analytics data may be shared with service providers</li>
+                            <li>To protect our rights, users, and the security of our services</li>
+                            <li>Aggregated or de-identified analytics may be shared</li>
                         </ul>
+                        <p>Note: Certain third parties (such as Google) may process data under their own policies and, depending on your region and consent, may use identifiers for advertising or measurement. See Section 5 and the <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google Partner Sites</a> notice.</p>
                     </div>
 
                     <div class="privacy-section">
@@ -632,6 +663,14 @@
                         <ul>
                             <li><strong>Firebase:</strong> For authentication and data storage</li>
                             <li><strong>Netlify:</strong> For website hosting</li>
+                        </ul>
+
+                        <h3 class="subsection-title">5.3 Advertising and Analytics</h3>
+                        <ul>
+                            <li><strong>Google AdSense/Ads:</strong> We show ads to support our service. Depending on your consent and region, ads may be personalized using cookies and identifiers. Our authorized sellers are listed in <a href="/ads.txt">ads.txt</a>.</li>
+                            <li><strong>Consent Mode v2 & CMP:</strong> In the EEA/UK/CH, we present a Google‑certified consent dialog (Funding Choices) and honor your choices across tags.</li>
+                            <li><strong>Analytics:</strong> We may use Google Analytics with consent‑aware configuration to measure usage. Data is aggregated; IP and identifiers may be processed depending on consent.</li>
+                            <li>You can learn how Google uses data at <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google Partner Sites</a>.</li>
                         </ul>
                     </div>
 
@@ -817,6 +856,16 @@
             <!-- Background Effects -->
             <div class="auth-bg-effect"></div>
             <div class="auth-scanlines"></div>
+        </div>
+
+        <div class="privacy-section">
+            <h2 class="section-title">11. Cookies and Consent Controls</h2>
+            <ul>
+                <li>We use cookies and similar technologies for authentication, security, preferences, performance, and advertising.</li>
+                <li>In regions where required, we request consent for advertising and analytics categories before setting related cookies.</li>
+                <li>You can update your preferences anytime by clicking “Manage consent” in the site footer (reopens the CMP).</li>
+                <li>Blocking or rejecting certain cookies may limit features or personalization.</li>
+            </ul>
         </div>
     </div>
 
