@@ -35,6 +35,63 @@ body {
     scrollbar-gutter: stable both-edges;
 }
 
+/* Terms Update / Legal Popups (global) */
+.terms-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none; /* toggled to flex when shown */
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(6px);
+    z-index: 2100; /* above header (1000) and modals (2000) */
+    padding: 16px;
+}
+
+.terms-popup {
+    background: linear-gradient(135deg, #0a1629 0%, #041018 100%);
+    border: 2px solid var(--primary-cyan);
+    border-radius: 14px;
+    width: 92vw;
+    max-width: 520px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 24px rgba(0,255,249,0.25);
+    overflow: hidden;
+    animation: modalSlideUp 0.35s ease-out;
+}
+
+.terms-popup-header {
+    padding: 1.25rem 1.25rem 0.5rem;
+    text-align: center;
+}
+
+.terms-popup-title {
+    font-family: 'Orbitron', monospace;
+    color: var(--primary-cyan);
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.terms-popup-content {
+    padding: 0.25rem 1.25rem 1rem;
+    color: var(--gray-200);
+    text-align: center;
+}
+
+.terms-popup-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    padding: 0 1.25rem 1.25rem;
+}
+
+.terms-popup-actions .btn {
+    min-width: 140px;
+}
+
 /* Custom Scrollbar Styling */
 ::-webkit-scrollbar {
     width: 12px;
