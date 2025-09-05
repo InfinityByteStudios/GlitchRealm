@@ -451,7 +451,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     dismiss && dismiss.addEventListener('click', (e) => { 
                         try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                        closeOnly(); 
+                        // Navigate away per request
+                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
                     }, { once: true });
                     accept && accept.addEventListener('click', () => acknowledge(), { once: true });
                     inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
@@ -541,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             dismiss && dismiss.addEventListener('click', (e) => { 
                 try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                closeOnly(); 
+                try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
             }, { once: true });
             accept && accept.addEventListener('click', () => acknowledge(), { once: true });
             inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
