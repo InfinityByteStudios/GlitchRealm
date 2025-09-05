@@ -449,7 +449,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         try { localStorage.setItem(seenKey, '1'); } catch {}
                         closeOnly();
                     };
-                    // For anchor-based Dismiss, let native navigation handle it (no preventDefault)
+                    // Force navigation to about:blank on Dismiss (target top in case of iframes)
+                    if (dismiss) {
+                        const navigateBlank = () => {
+                            // Prefer local blank.html, then fall back to about:blank
+                            try { (window.top || window).location.replace('blank.html'); return; } catch {}
+                            try { window.location.href = 'blank.html'; return; } catch {}
+                            try { (window.top || window).location.replace('about:blank'); return; } catch {}
+                            try { (window.top || window).location.assign('about:blank'); return; } catch {}
+                            try { window.open('about:blank', '_top'); return; } catch {}
+                            try { window.location.href = 'about:blank'; return; } catch {}
+                            // Last resort
+                            try { window.close(); } catch {}
+                            closeOnly();
+                        };
+                        const onDismiss = (e) => { try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {} setTimeout(navigateBlank, 0); };
+                        dismiss.addEventListener('click', onDismiss, { once: true });
+                        dismiss.addEventListener('pointerdown', onDismiss, { once: true });
+                        dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
+                    }
                     accept && accept.addEventListener('click', () => acknowledge(), { once: true });
                     inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
                     // Dismiss on backdrop click or Escape
@@ -536,7 +554,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem(seenKey, '1'); } catch {}
                 closeOnly();
             };
-            // For anchor-based Dismiss, let native navigation handle it
+            // Force navigation to about:blank on Dismiss (target top in case of iframes)
+            if (dismiss) {
+                const navigateBlank2 = () => {
+                    try { (window.top || window).location.replace('blank.html'); return; } catch {}
+                    try { window.location.href = 'blank.html'; return; } catch {}
+                    try { (window.top || window).location.replace('about:blank'); return; } catch {}
+                    try { (window.top || window).location.assign('about:blank'); return; } catch {}
+                    try { window.open('about:blank', '_top'); return; } catch {}
+                    try { window.location.href = 'about:blank'; return; } catch {}
+                    try { window.close(); } catch {}
+                    closeOnly();
+                };
+                const onDismiss2 = (e) => { try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {} setTimeout(navigateBlank2, 0); };
+                dismiss.addEventListener('click', onDismiss2, { once: true });
+                dismiss.addEventListener('pointerdown', onDismiss2, { once: true });
+                dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss2(e); }, { once: true });
+            }
             accept && accept.addEventListener('click', () => acknowledge(), { once: true });
             inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
             overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOnly(); }, { once: true });
