@@ -45,10 +45,22 @@ body {
     display: none; /* toggled to flex when shown */
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.92);
     backdrop-filter: blur(6px);
-    z-index: 2100; /* above header (1000) and modals (2000) */
-    padding: 16px;
+    z-index: 2500; /* above header (1000), modals (2000), chatbot (2200) */
+    padding: 80px 16px 20px; /* leave room for fixed header line and ensure bottom spacing */
+    overflow: auto;
+}
+
+.terms-popup-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px; /* cover fixed header area and its border */
+    background: rgba(0, 0, 0, 0.98);
+    pointer-events: none;
 }
 
 .terms-popup {
@@ -60,6 +72,12 @@ body {
     box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 24px rgba(0,255,249,0.25);
     overflow: hidden;
     animation: modalSlideUp 0.35s ease-out;
+}
+
+@media (max-height: 600px) {
+    .terms-popup-overlay {
+        align-items: flex-start;
+    }
 }
 
 .terms-popup-header {

@@ -347,6 +347,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 show: () => {
                     const overlay = document.getElementById('terms-update-popup');
                     if (!overlay) return false;
+                    // Lock background scroll while visible
+                    overlay.dataset.prevOverflow = document.body.style.overflow || '';
+                    document.body.style.overflow = 'hidden';
                     overlay.style.display = 'flex';
                     const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
                     const dismiss = document.getElementById('dismiss-terms-update');
@@ -354,6 +357,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     const finalize = () => {
                         try { localStorage.setItem(seenKey, '1'); } catch {}
                         overlay.style.display = 'none';
+                        // Restore background scroll
+                        document.body.style.overflow = overlay.dataset.prevOverflow || '';
+                        delete overlay.dataset.prevOverflow;
                     };
                     dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
                     view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
@@ -424,11 +430,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const overlay = document.getElementById('terms-update-popup');
             if (!overlay) { console.warn('Terms Update overlay not found'); return; }
             try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
+            // Lock background scroll while visible
+            overlay.dataset.prevOverflow = document.body.style.overflow || '';
+            document.body.style.overflow = 'hidden';
             overlay.style.display = 'flex';
             const dismiss = document.getElementById('dismiss-terms-update');
             const view = document.getElementById('view-terms-update');
             const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
-            const finalize = () => { try { localStorage.setItem(seenKey, '1'); } catch {} overlay.style.display = 'none'; };
+            const finalize = () => { 
+                try { localStorage.setItem(seenKey, '1'); } catch {}
+                overlay.style.display = 'none';
+                // Restore background scroll
+                document.body.style.overflow = overlay.dataset.prevOverflow || '';
+                delete overlay.dataset.prevOverflow;
+            };
             dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
             view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
             overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
