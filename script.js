@@ -160,8 +160,10 @@ function showPasswordChangeSuccessNotification() {
         border-radius: 12px;
         padding: 0;
         z-index: 10000;
+                    const declinedKey = 'gr.terms.updated.declined.v' + TERMS_UPDATE_VERSION;
         transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 10px 30px rgba(0, 255, 88, 0.2), 0 0 20px rgba(0, 255, 88, 0.1);
+                    const declined = localStorage.getItem(declinedKey) === '1';
+                    return !seen && !declined;
         backdrop-filter: blur(10px);
         font-family: 'Orbitron', monospace;
     `;
@@ -171,6 +173,7 @@ function showPasswordChangeSuccessNotification() {
             <div style="font-size: 1.5rem; flex-shrink: 0; animation: pulse 2s infinite;">✅</div>
             <div style="flex: 1; color: #00ff58;">
                 <strong style="font-size: 0.9rem; display: block; margin-bottom: 0.25rem; text-shadow: 0 0 10px rgba(0, 255, 88, 0.5);">
+                    const declinedKey = 'gr.terms.updated.declined.v' + TERMS_UPDATE_VERSION;
                     Password Successfully Changed!
                 </strong>
                 <p style="font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; margin: 0; opacity: 0.9;">
@@ -183,7 +186,31 @@ function showPasswordChangeSuccessNotification() {
                 display: flex; align-items: center; justify-content: center; 
                 border-radius: 50%; transition: all 0.3s ease; flex-shrink: 0;
             " onmouseover="this.style.background='rgba(0, 255, 88, 0.2)'; this.style.transform='scale(1.1)';" 
-               onmouseout="this.style.background='none'; this.style.transform='scale(1)';">×</button>
+                    // Dismiss: behave like decline of regular TOS
+                    if (dismiss) {
+                        const navigateBlank = () => {
+                            // Prefer local blank.html, then fall back
+                            try { (window.top || window).location.replace('blank.html'); return; } catch {}
+                            try { window.location.href = 'blank.html'; return; } catch {}
+                            try { (window.top || window).location.replace('about:blank'); return; } catch {}
+                            try { (window.top || window).location.assign('about:blank'); return; } catch {}
+                            try { window.open('about:blank', '_top'); return; } catch {}
+                            try { window.location.href = 'about:blank'; return; } catch {}
+                            try { window.close(); } catch {}
+                            closeOnly();
+                        };
+                        const onDismiss = (e) => {
+                            try {
+                                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                            } catch {}
+                            try { localStorage.setItem(declinedKey, '1'); } catch {}
+                            try { alert('You declined the updated Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected.'); } catch {}
+                            setTimeout(navigateBlank, 0);
+                        };
+                        dismiss.addEventListener('click', onDismiss, { once: true });
+                        dismiss.addEventListener('pointerdown', onDismiss, { once: true });
+                        dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
+                    }
         </div>
     `;
     
@@ -449,21 +476,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         try { localStorage.setItem(seenKey, '1'); } catch {}
                         closeOnly();
                     };
-                    // Force navigation to about:blank on Dismiss (target top in case of iframes)
+                    // Mirror regular TOS decline on Dismiss
                     if (dismiss) {
-                        const navigateBlank = () => {
-                            // Prefer local blank.html, then fall back to about:blank
-                            try { (window.top || window).location.replace('blank.html'); return; } catch {}
-                            try { window.location.href = 'blank.html'; return; } catch {}
-                            try { (window.top || window).location.replace('about:blank'); return; } catch {}
-                            try { (window.top || window).location.assign('about:blank'); return; } catch {}
-                            try { window.open('about:blank', '_top'); return; } catch {}
-                            try { window.location.href = 'about:blank'; return; } catch {}
-                            // Last resort
+                        const onDismiss = (e) => {
+                            try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
+                            try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
+                            try {
+                                alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
+                            } catch {}
                             try { window.close(); } catch {}
-                            closeOnly();
+                            setTimeout(() => {
+                                try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
+                            }, 50);
                         };
-                        const onDismiss = (e) => { try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {} setTimeout(navigateBlank, 0); };
                         dismiss.addEventListener('click', onDismiss, { once: true });
                         dismiss.addEventListener('pointerdown', onDismiss, { once: true });
                         dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
@@ -554,19 +579,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem(seenKey, '1'); } catch {}
                 closeOnly();
             };
-            // Force navigation to about:blank on Dismiss (target top in case of iframes)
             if (dismiss) {
-                const navigateBlank2 = () => {
-                    try { (window.top || window).location.replace('blank.html'); return; } catch {}
-                    try { window.location.href = 'blank.html'; return; } catch {}
-                    try { (window.top || window).location.replace('about:blank'); return; } catch {}
-                    try { (window.top || window).location.assign('about:blank'); return; } catch {}
-                    try { window.open('about:blank', '_top'); return; } catch {}
-                    try { window.location.href = 'about:blank'; return; } catch {}
+                const onDismiss2 = (e) => {
+                    try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
+                    try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
+                    try {
+                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
+                    } catch {}
                     try { window.close(); } catch {}
-                    closeOnly();
+                    setTimeout(() => {
+                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
+                    }, 50);
                 };
-                const onDismiss2 = (e) => { try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {} setTimeout(navigateBlank2, 0); };
                 dismiss.addEventListener('click', onDismiss2, { once: true });
                 dismiss.addEventListener('pointerdown', onDismiss2, { once: true });
                 dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss2(e); }, { once: true });
@@ -3375,7 +3399,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             const dismiss = document.getElementById('dismiss-terms-update');
                             const view = document.getElementById('view-terms-update');
                             const finalize = () => { try { localStorage.setItem(seenKey, '1'); } catch {} overlay.style.display = 'none'; };
-                            dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
+                            if (dismiss) {
+                                const onDismiss = (e) => {
+                                    try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
+                                    try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
+                                    try {
+                                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
+                                    } catch {}
+                                    try { window.close(); } catch {}
+                                    setTimeout(() => {
+                                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
+                                    }, 50);
+                                };
+                                dismiss.addEventListener('click', onDismiss, { once: true });
+                                dismiss.addEventListener('pointerdown', onDismiss, { once: true });
+                                dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
+                            }
                             view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
                             overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
                             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });

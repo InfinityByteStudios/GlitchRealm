@@ -3737,6 +3737,14 @@ body {
     transform: translateY(-2px);
 }
 
+/* Ensure DISMISS text is perfectly centered */
+#dismiss-terms-update {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
