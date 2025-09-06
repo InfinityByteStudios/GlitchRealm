@@ -3068,142 +3068,50 @@
 
                 try {
                     btn.disabled = true; btn.textContent = 'Submitting...';
-                    // If a file is provided, upload via Firebase Storage client SDK (rules enforce ownership)
+                    // If a file is provided, upload via Supabase Storage (game-covers bucket)
                     if (file) {
                         try {
                             const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
                             const uid = window.firebaseAuth?.currentUser?.uid;
                             if (!uid) throw new Error('No user uid for storage path');
-                            const { ref, uploadBytesResumable, uploadBytes, getDownloadURL, getStorage } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
-                            let storage = window.firebaseStorage; // prefer the initialized instance
-                            if (!storage) {
-                                try {
-                                    // Try to build from existing app
-                                    if (window.firebaseApp) {
-                                        storage = getStorage(window.firebaseApp);
-                                    } else {
-                                        // Last-resort: get or create a default app from window.firebaseConfig
-                                        const appMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-                                        const apps = appMod.getApps ? appMod.getApps() : [];
-                                        const app = apps.length ? apps[0] : appMod.initializeApp(window.firebaseConfig || {});
-                                        storage = getStorage(app);
-                                        window.firebaseApp = app;
-                                    }
-                                    window.firebaseStorage = storage;
-                                } catch (e) {
-                                    throw new Error('Firebase Storage not initialized: ' + (e?.message || e));
-                                }
-                            }
                             if (navigator && navigator.onLine === false) throw new Error('You appear to be offline.');
-                            const objectPath = `game-covers/${uid}/${Date.now()}_${safeName}`;
-                            const storageRef = ref(storage, objectPath);
-                            const metadata = { contentType: file.type || 'application/octet-stream' };
-                            console.log('Uploading cover to', objectPath, 'type:', file.type, 'size:', file.size, 'bucket:', storageRef.bucket);
-                            const SMALL_UPLOAD_LIMIT = 4 * 1024 * 1024; // 4MB
-                            let uploadedRef = null;
-                            // Helper to add a timeout to any promise
-                            const withTimeout = (promise, ms, label) => new Promise((resolve, reject) => {
-                                const timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms);
-                                promise.then((v) => { clearTimeout(timer); resolve(v); }, (e) => { clearTimeout(timer); reject(e); });
-                            });
-                            // Try fast single-shot for small files, with a timeout; fallback to resumable if it stalls
-                            if (file.size <= SMALL_UPLOAD_LIMIT) {
-                                if (msg) msg.innerHTML = '<div class="info-message">Uploading cover…</div>';
-                                try {
-                                    const snap = await withTimeout(uploadBytes(storageRef, file, metadata), 45000, 'Upload');
-                                    uploadedRef = snap.ref;
-                                    if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 100%</div>';
-                                } catch (smallErr) {
-                                    console.warn('Small upload stalled/failed, switching to resumable:', smallErr?.message || smallErr);
-                                    // Fall back to resumable path below
-                                    const task = uploadBytesResumable(storageRef, file, metadata);
-                                    if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 0%</div>';
-                                    let lastBytes = 0; let stallTimer = null;
-                                    const stallReset = () => { if (stallTimer) clearTimeout(stallTimer); stallTimer = setTimeout(() => { try { task.cancel(); } catch(e) {} }, 30000); };
-                                    await new Promise((resolve, reject) => {
-                                        const timer = setTimeout(() => { try { task.cancel(); } catch(e) {} reject(new Error('Upload timed out')); }, 300000);
-                                        stallReset();
-                                        task.on('state_changed',
-                                            (snapshot) => {
-                                                const pct = Math.floor((snapshot.bytesTransferred / Math.max(snapshot.totalBytes || 1, 1)) * 100);
-                                                const transferred = snapshot.bytesTransferred; const total = snapshot.totalBytes; const st = snapshot.state;
-                                                if (transferred !== lastBytes) { lastBytes = transferred; stallReset(); }
-                                                console.log(`Upload state: ${st}, ${transferred}/${total} (${pct}%)`);
-                                                if (msg) msg.innerHTML = `<div class=\"info-message\">Uploading cover... ${pct}% (${(transferred/1024).toFixed(1)} KB / ${(Math.max(total,1)/1024).toFixed(1)} KB)</div>`;
-                                            },
-                                            (error) => { if (stallTimer) clearTimeout(stallTimer); clearTimeout(timer); reject(error); },
-                                            () => { if (stallTimer) clearTimeout(stallTimer); clearTimeout(timer); resolve(); }
-                                        );
-                                    }).catch(async (err) => {
-                                        console.warn('Resumable fallback also failed, trying single-shot again:', err?.message || err);
-                                        const snap = await uploadBytes(storageRef, file, metadata);
-                                        uploadedRef = snap.ref;
-                                    });
-                                    if (!uploadedRef) uploadedRef = task.snapshot?.ref || storageRef;
-                                }
-                            } else {
-                                const task = uploadBytesResumable(storageRef, file, metadata);
-                                // Show progress
-                                if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 0%</div>';
-                                // Timeout after 300s of overall time + 30s stall watchdog
-                                let lastBytes = 0;
-                                let stallTimer = null;
-                                const stallReset = () => {
-                                    if (stallTimer) clearTimeout(stallTimer);
-                                    stallTimer = setTimeout(() => {
-                                        try { task.cancel(); } catch(e) {}
-                                    }, 30000);
-                                };
-                                await new Promise((resolve, reject) => {
-                                    const timer = setTimeout(() => {
-                                        try { task.cancel(); } catch(e) {}
-                                        reject(new Error('Upload timed out'));
-                                    }, 300000);
-                                    stallReset();
-                                    task.on('state_changed',
-                                        (snapshot) => {
-                                            const pct = Math.floor((snapshot.bytesTransferred / Math.max(snapshot.totalBytes || 1, 1)) * 100);
-                                            const transferred = snapshot.bytesTransferred;
-                                            const total = snapshot.totalBytes;
-                                            const st = snapshot.state;
-                                            if (transferred !== lastBytes) { lastBytes = transferred; stallReset(); }
-                                            console.log(`Upload state: ${st}, ${transferred}/${total} (${pct}%)`);
-                                            if (msg) msg.innerHTML = `<div class=\"info-message\">Uploading cover... ${pct}% (${(transferred/1024).toFixed(1)} KB / ${(Math.max(total,1)/1024).toFixed(1)} KB)</div>`;
-                                        },
-                                        (error) => {
-                                            if (stallTimer) clearTimeout(stallTimer);
-                                            clearTimeout(timer);
-                                            console.error('Upload error:', error?.code || error?.message || error);
-                                            reject(error);
-                                        },
-                                        () => {
-                                            if (stallTimer) clearTimeout(stallTimer);
-                                            clearTimeout(timer);
-                                            resolve();
-                                        }
-                                    );
-                                }).catch(async (err) => {
-                                    // Fallback: try non-resumable single-shot upload
-                                    console.warn('Resumable upload failed/stalled, trying fallback uploadBytes:', err?.message || err);
-                                    if (msg) msg.innerHTML = '<div class=\"warning-message\">Upload stalled, retrying…</div>';
-                                    const snap = await uploadBytes(storageRef, file, metadata);
-                                    uploadedRef = snap.ref;
-                                });
-                                if (!uploadedRef) uploadedRef = task.snapshot?.ref || storageRef;
+
+                            // Ensure Supabase client
+                            async function ensureSupabase() {
+                                if (window.grSupabase) return window.grSupabase;
+                                const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm');
+                                const createClient = mod.createClient || mod.default?.createClient;
+                                const SUPABASE_URL = window.GR_SUPABASE_URL || 'https://hkogcnxmrrkxggwcrqyh.supabase.co';
+                                const SUPABASE_ANON_KEY = window.GR_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrb2djbnhtcnJreGdnd2NycXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA5MDQsImV4cCI6MjA3Mjc2NjkwNH0.mOrnXNJBQLgMg1oq4zW1ySvCMXAbo-ZNAMwx59NJyxM';
+                                window.grSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                                return window.grSupabase;
                             }
-                            // Guard getDownloadURL to avoid rare hangs
-                            coverImageUrl = await withTimeout(getDownloadURL(uploadedRef || storageRef), 30000, 'getDownloadURL');
+                            const supabase = await ensureSupabase();
+                            const bucket = 'game-covers';
+                            const objectPath = `${uid}/${Date.now()}_${safeName}`;
+                            const contentType = file.type || 'application/octet-stream';
+                            console.log('Uploading cover to Supabase', { bucket, objectPath, type: contentType, size: file.size });
+
+                            if (msg) msg.innerHTML = '<div class="info-message">Uploading cover…</div>';
+                            const { data: upData, error: upErr } = await supabase
+                                .storage
+                                .from(bucket)
+                                .upload(objectPath, file, { cacheControl: '3600', upsert: true, contentType });
+                            if (upErr) throw upErr;
+
+                            const { data: pub, error: pubErr } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+                            if (pubErr) throw pubErr;
+                            coverImageUrl = pub.publicUrl;
                             console.log('Cover uploaded, URL:', coverImageUrl);
+                            if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 100%</div>';
                         } catch (uploadErr) {
-                            const code = uploadErr?.code || 'unknown';
+                            const code = uploadErr?.status || uploadErr?.code || 'unknown';
                             const msgText = uploadErr?.message || String(uploadErr);
-                            console.error('Storage upload failed:', code, msgText);
+                            console.error('Supabase Storage upload failed:', code, msgText);
                             if (msg) {
-                                const hint = code.includes('unauthorized') || code.includes('permission') ? `
-                                    <br><small>Hint: Make sure you are signed in and the path is game-covers/&lt;your uid&gt;/**. Rules require request.auth.uid to match the path segment.</small>` : '';
-                                msg.innerHTML = `<div class="error-message">Storage upload failed (${code}). ${msgText}${hint}</div>`;
+                                msg.innerHTML = `<div class="error-message">Storage upload failed (${code}). ${msgText}<br><small>Hint: Ensure you are signed in and the game-covers bucket policies allow uploads.</small></div>`;
                             }
-                            throw uploadErr; // propagate to outer catch
+                            throw uploadErr;
                         }
                     }
                     // Write submission directly to Firestore

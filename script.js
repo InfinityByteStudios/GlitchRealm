@@ -54,8 +54,7 @@
             document.body.style.overflow = 'hidden';
             overlay.style.display = 'flex';
             const dismiss = document.getElementById('dismiss-terms-update');
-            const view = document.getElementById('view-terms-update');
-            const viewPrivacy = document.getElementById('view-privacy-update');
+            const accept = document.getElementById('accept-terms-update');
             const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
             const seenKey = 'gr.terms.updated.seen.v' + getTermsUpdateVersion();
             const finalize = () => {
@@ -64,9 +63,11 @@
                 document.body.style.overflow = overlay.dataset.prevOverflow || '';
                 delete overlay.dataset.prevOverflow;
             };
-            dismiss && dismiss.addEventListener('click', (e) => { e.preventDefault(); finalize(); }, { once: true });
-            view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
-            viewPrivacy && viewPrivacy.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+            // Dismiss just closes (the decline-equivalent behavior is handled elsewhere when scheduled)
+            dismiss && dismiss.addEventListener('click', (e) => { try { e.preventDefault(); } catch {}; finalize(); }, { once: true });
+            // Accept acknowledges and closes
+            accept && accept.addEventListener('click', finalize, { once: true });
+            // Inline links count as seen
             inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
             overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
@@ -1425,51 +1426,68 @@ async function initializeAuth() {
         });
     }
     
-    // Upload profile picture function
+    // Upload profile picture function (Supabase Storage)
     async function uploadProfilePicture(file) {
         const user = auth.currentUser;
         if (!user) {
             showAuthMessage('❌ You must be signed in to change your profile picture.', 'error');
             return;
         }
-        
-        if (!window.firebaseStorage) {
-            showAuthMessage('❌ Firebase Storage not available.', 'error');
-            return;
-        }
 
         try {
-            // Show loading state
             showAuthMessage('📷 Uploading profile picture...', 'info');
-            
-            // Import Firebase Storage functions
-            const { ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
-            
-            // Create a storage reference
-            const storageRef = ref(window.firebaseStorage, `profile-pictures/${user.uid}/${Date.now()}_${file.name}`);
-            
-            // Upload the file
-            const snapshot = await uploadBytes(storageRef, file);
-            
-            // Get the download URL
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            
-            // Update user profile with new photo URL
+
+            // Initialize Supabase client once
+            async function ensureSupabase() {
+                if (window.grSupabase) return window.grSupabase;
+                const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm');
+                const createClient = mod.createClient || mod.default?.createClient;
+                const SUPABASE_URL = window.GR_SUPABASE_URL || 'https://hkogcnxmrrkxggwcrqyh.supabase.co';
+                const SUPABASE_ANON_KEY = window.GR_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrb2djbnhtcnJreGdnd2NycXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA5MDQsImV4cCI6MjA3Mjc2NjkwNH0.mOrnXNJBQLgMg1oq4zW1ySvCMXAbo-ZNAMwx59NJyxM';
+                window.grSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                return window.grSupabase;
+            }
+
+            const supabase = await ensureSupabase();
+            const bucket = 'profile-pictures'; // Assumes this bucket exists and is public or policies allow access
+            const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+            const path = `${user.uid}/${Date.now()}_${safeName}`;
+
+            // Upload with upsert to avoid conflicts when retrying
+            const { data: upData, error: upErr } = await supabase
+                .storage
+                .from(bucket)
+                .upload(path, file, { cacheControl: '3600', upsert: true, contentType: file.type || 'image/jpeg' });
+
+            if (upErr) {
+                console.error('Supabase upload error:', upErr);
+                showAuthMessage('❌ Failed to upload to storage.', 'error');
+                return;
+            }
+
+            // Get a public URL (requires bucket to be public). Otherwise, consider generating a signed URL.
+            const { data: pub, error: pubErr } = supabase.storage.from(bucket).getPublicUrl(path);
+            if (pubErr) {
+                console.error('Supabase getPublicUrl error:', pubErr);
+                showAuthMessage('❌ Failed to obtain file URL.', 'error');
+                return;
+            }
+            const publicUrl = pub.publicUrl;
+
+            // Update Firebase user profile with new photo URL
             const { updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-            await updateProfile(user, {
-                photoURL: downloadURL
-            });
-            
+            await updateProfile(user, { photoURL: publicUrl });
+
             // Update UI immediately
             updateUserProfile(user);
-            
+
             showAuthMessage('✅ Profile picture updated successfully!', 'success');
-            
+
             // Store auth state for SSO
             if (window.sharedAuth) {
                 window.sharedAuth.storeAuthState(user);
             }
-            
+
         } catch (error) {
             console.error('Profile update error:', error);
             showAuthMessage('❌ Failed to update profile picture.', 'error');
@@ -3397,8 +3415,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (!seen) {
                             overlay.style.display = 'flex';
                             const dismiss = document.getElementById('dismiss-terms-update');
-                            const view = document.getElementById('view-terms-update');
-                            const finalize = () => { try { localStorage.setItem(seenKey, '1'); } catch {} overlay.style.display = 'none'; };
+                            const accept = document.getElementById('accept-terms-update');
+                            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
+                            const finalize = () => {
+                                try { localStorage.setItem(seenKey, '1'); } catch {}
+                                overlay.style.display = 'none';
+                                // In case any scroll lock was set elsewhere, restore it safely
+                                try {
+                                    if (overlay.dataset && 'prevOverflow' in overlay.dataset) {
+                                        document.body.style.overflow = overlay.dataset.prevOverflow || '';
+                                        delete overlay.dataset.prevOverflow;
+                                    }
+                                } catch {}
+                            };
                             if (dismiss) {
                                 const onDismiss = (e) => {
                                     try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
@@ -3415,7 +3444,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 dismiss.addEventListener('pointerdown', onDismiss, { once: true });
                                 dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
                             }
-                            view && view.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true });
+                            // Accept should acknowledge and close
+                            accept && accept.addEventListener('click', finalize, { once: true });
+                            // Inline links also acknowledge once clicked
+                            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
                             overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
                             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
                         }
