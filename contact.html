@@ -307,7 +307,7 @@
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const storage = getStorage(app);
+    const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
         window.firebaseAuth = auth;
         window.firebaseStorage = storage;
     </script>
@@ -329,7 +329,10 @@
             <div class="container">
                 <div class="contact-grid">                    <div class="contact-info">
                         <h2 class="section-title">Get in Touch</h2>
-                        <p>Ready to dive deeper into the digital realm? We'd love to hear from you. Whether you have feedback, questions, just want to chat about cyberpunk games, or are interested in joining GlitchRealm as a developer or artist, don't hesitate to reach out. To join our team, email glitchrealm@outlook.com or fill out the form.</p><div class="social-links">
+                        <p>Ready to dive deeper into the digital realm? We'd love to hear from you. Whether you have feedback, questions, just want to chat about cyberpunk games, or are interested in joining GlitchRealm as a developer or artist, don't hesitate to reach out. To join our team, email <a href="mailto:contact@glitchrealm.ca">contact@glitchrealm.ca</a> or fill out the form.</p>
+
+                        <h3 class="section-title" style="font-size:1.2rem;margin-top:18px;">Developer Contacts (.dev / outlook)</h3>
+                        <div class="social-links">
                 <a href="mailto:infinitybyte.dev@gmail.com" class="social-link">
                                 <span class="social-icon">
                     <img src="assets/Logos/InfinityByte.png" alt="InfinityByte" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
@@ -359,12 +362,29 @@
                                 </span>
                                 <span>pixelpunk.dev@outlook.com</span>
                             </a>
-                            <a href="mailto:glitchrealm@outlook.com" class="social-link">
+                        </div>
+
+                        <h3 class="section-title" style="font-size:1.2rem;margin-top:18px;">Official Contacts (@glitchrealm.ca)</h3>
+                        <div class="social-links" style="margin-bottom:12px;">
+                            <a href="mailto:support@glitchrealm.ca" class="social-link">
                                 <span class="social-icon">
-                    <img src="assets/glitch realm favicon image.png" alt="GlitchRealm" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
+                                    <img src="assets/glitch realm favicon image.png" alt="Support" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
                                 </span>
-                                <span>glitchrealm@outlook.com</span>
-                            </a>                        </div>
+                                <span>support@glitchrealm.ca — Player support, bug reports, general</span>
+                            </a>
+                            <a href="mailto:contact@glitchrealm.ca" class="social-link">
+                                <span class="social-icon">
+                                    <img src="assets/glitch realm favicon image.png" alt="Contact" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
+                                </span>
+                                <span>contact@glitchrealm.ca — General inquiries, partnerships, careers</span>
+                            </a>
+                            <a href="mailto:legal@glitchrealm.ca" class="social-link">
+                                <span class="social-icon">
+                                    <img src="assets/glitch realm favicon image.png" alt="Legal" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
+                                </span>
+                                <span>legal@glitchrealm.ca — Privacy Policy, Terms, legal/compliance</span>
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Netlify Contact Form -->

@@ -309,7 +309,7 @@
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const storage = getStorage(app);
+    const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
         window.firebaseAuth = auth;
         window.firebaseStorage = storage;
     </script>

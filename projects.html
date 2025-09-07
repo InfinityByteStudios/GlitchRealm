@@ -44,6 +44,9 @@
         
         window.firebaseAuth = auth;
         window.deleteUser = deleteUser;
+        const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
+        // Ensure the correct storage bucket is used
+        console.log('Storage initialized with bucket:', storage);
     </script>
     <style>
         /* Force proper styling for profile dropdown */

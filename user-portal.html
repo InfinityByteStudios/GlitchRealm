@@ -11,7 +11,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, updateEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         const firebaseConfig = {
@@ -33,6 +33,8 @@
         window.updateEmail = updateEmail;
         window.reauthenticateWithCredential = reauthenticateWithCredential;
         window.EmailAuthProvider = EmailAuthProvider;
+    window.updatePassword = updatePassword;
+    window.sendPasswordResetEmail = sendPasswordResetEmail;
         window.onAuthStateChanged = onAuthStateChanged;
         window.firestoreDoc = doc;
         window.firestoreGetDoc = getDoc;
@@ -637,6 +639,26 @@
             border: 1px solid #ff0000;
             color: #ff0000;
         }
+
+        /* Password management messages */
+        .pwd-messages,
+        .reset-messages {
+            width: 100%;
+            word-wrap: break-word;
+            margin-top: 15px;
+            display: block;
+        }
+        #password-success, #password-error, #reset-success, #reset-error {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 6px;
+            display: none;
+            box-sizing: border-box;
+        }
+        #password-success { background: rgba(0, 255, 0, 0.1); border: 1px solid #00cc00; color: #00cc00; }
+        #password-error   { background: rgba(255, 0, 0, 0.1); border: 1px solid #ff0000; color: #ff0000; }
+        #reset-success    { background: rgba(0, 255, 255, 0.1); border: 1px solid #00ffff; color: #00ffff; }
+        #reset-error      { background: rgba(255, 0, 0, 0.1); border: 1px solid #ff0000; color: #ff0000; }
     </style>
 </head>
 <body>
@@ -666,6 +688,43 @@
         </div>
         
         <div id="portal-content" class="portal-sections" style="display: none;">
+            <!-- Password Management -->
+            <div class="portal-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12,17A2,2 0 0,1 10,15V12A2,2 0 0,1 12,10A2,2 0 0,1 14,12V15A2,2 0 0,1 12,17M17,8H7V6A5,5 0 0,1 17,6V8M12,2A8,8 0 0,0 4,10V20H20V10A8,8 0 0,0 12,2Z" />
+                    </svg>
+                    Password Management
+                </h2>
+                <div class="form-group">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" id="current-password-pwd" class="form-control" placeholder="Enter current password">
+                    <p class="form-help">Required to confirm password change</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <input type="password" id="new-password" class="form-control" placeholder="At least 6 characters">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm New Password</label>
+                    <input type="password" id="confirm-new-password" class="form-control" placeholder="Repeat new password">
+                </div>
+                <button id="change-password-btn" class="btn-portal">Change Password</button>
+                <div class="pwd-messages">
+                    <div id="password-success">Password updated successfully.</div>
+                    <div id="password-error">Error updating password. Please try again.</div>
+                </div>
+                <hr style="margin:20px 0; border-color: rgba(0,255,249,0.2);">
+                <div class="form-group">
+                    <label class="form-label">Send Password Reset Email</label>
+                    <p class="form-help">We’ll send a password reset link to your account email.</p>
+                    <button id="send-reset-email-btn" class="btn-portal" type="button">Send Reset Email</button>
+                </div>
+                <div class="reset-messages">
+                    <div id="reset-success">Reset email sent. Check your inbox.</div>
+                    <div id="reset-error">Error sending reset email.</div>
+                </div>
+            </div>
             
 
             <!-- Community Games section moved to bottom -->
@@ -875,6 +934,12 @@
             if (updateEmailBtn) {
                 updateEmailBtn.addEventListener('click', updateUserEmail);
             }
+
+            // Password management wiring
+            const changePwdBtn = document.getElementById('change-password-btn');
+            const sendResetBtn = document.getElementById('send-reset-email-btn');
+            if (changePwdBtn) changePwdBtn.addEventListener('click', changeUserPassword);
+            if (sendResetBtn) sendResetBtn.addEventListener('click', sendResetEmailForUser);
         }
         
         // Update header text for portal-specific branding
@@ -987,6 +1052,87 @@
                 }
                 
                 errorMessage.style.display = 'block';
+            }
+        }
+
+        // Change password for signed-in user
+        async function changeUserPassword() {
+            const cur = document.getElementById('current-password-pwd');
+            const np = document.getElementById('new-password');
+            const cp = document.getElementById('confirm-new-password');
+            const ok = document.getElementById('password-success');
+            const err = document.getElementById('password-error');
+            ok.style.display = 'none'; err.style.display = 'none';
+
+            const currentPassword = cur.value.trim();
+            const newPassword = np.value.trim();
+            const confirmPassword = cp.value.trim();
+
+            if (!newPassword || newPassword.length < 6) {
+                err.textContent = 'New password must be at least 6 characters.';
+                err.style.display = 'block';
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                err.textContent = 'New password and confirmation do not match.';
+                err.style.display = 'block';
+                return;
+            }
+
+            try {
+                const user = window.firebaseAuth.currentUser;
+                if (!user || !user.email) throw new Error('Not signed in.');
+
+                // Re-authenticate with current password (required by Firebase)
+                if (!currentPassword) {
+                    err.textContent = 'Please enter your current password.';
+                    err.style.display = 'block';
+                    return;
+                }
+                const credential = window.EmailAuthProvider.credential(user.email, currentPassword);
+                await window.reauthenticateWithCredential(user, credential);
+
+                // Update password
+                await window.updatePassword(user, newPassword);
+
+                // Clear inputs and show success
+                cur.value = np.value = cp.value = '';
+                ok.style.display = 'block';
+                showAuthMessage('Password updated', 'success');
+            } catch (e) {
+                console.error('change password', e);
+                const code = e && e.code;
+                let msg = 'Error updating password.';
+                if (code === 'auth/wrong-password') msg = 'Incorrect current password.';
+                else if (code === 'auth/weak-password') msg = 'New password is too weak.';
+                else if (code === 'auth/requires-recent-login') msg = 'Please sign in again and retry.';
+                else if (code === 'auth/user-mismatch' || code === 'auth/user-not-found') msg = 'Account issue. Sign out/in and retry.';
+                err.textContent = msg;
+                err.style.display = 'block';
+                showAuthMessage(msg, 'error');
+            }
+        }
+
+        // Send password reset email to the current user's email
+        async function sendResetEmailForUser() {
+            const ok = document.getElementById('reset-success');
+            const err = document.getElementById('reset-error');
+            ok.style.display = 'none'; err.style.display = 'none';
+            try {
+                const user = window.firebaseAuth.currentUser;
+                if (!user || !user.email) throw new Error('Not signed in.');
+                await window.sendPasswordResetEmail(window.firebaseAuth, user.email);
+                ok.style.display = 'block';
+                showAuthMessage('Reset email sent', 'success');
+            } catch (e) {
+                console.error('send reset email', e);
+                const code = e && e.code;
+                let msg = 'Error sending reset email.';
+                if (code === 'auth/invalid-email') msg = 'Invalid email on account.';
+                else if (code === 'auth/user-not-found') msg = 'Password reset not available for this sign-in method.';
+                err.textContent = msg;
+                err.style.display = 'block';
+                showAuthMessage(msg, 'error');
             }
         }
         
