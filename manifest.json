@@ -1,0 +1,36 @@
+{
+  "name": "GlitchRealm Games",
+  "short_name": "GlitchRealm",
+  "description": "Cyberpunk gaming hub: play, track, and explore the Digital Realm.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#030a14",
+  "theme_color": "#00fff9",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "assets/glitch realm favicon image.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Play Games",
+      "short_name": "Games",
+      "url": "/games.html",
+      "icons": [{ "src": "assets/game logos/bytesurge.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Community",
+      "short_name": "Community",
+      "url": "/community.html",
+      "icons": [{ "src": "assets/icons/anonymous.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": []
+}
