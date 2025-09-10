@@ -305,6 +305,53 @@
   </main>
   <div id="footer-placeholder"></div>
 
+  <!-- Static Netlify Support Request Form (hidden modal so Netlify can index it) -->
+  <div id="support-form-modal" class="support-form-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="support-form-title" style="display:none;">
+    <div class="support-form-backdrop" data-close></div>
+    <div class="support-form-dialog">
+      <button class="support-form-close" id="close-support-form" aria-label="Close">&times;</button>
+      <h3 id="support-form-title">Submit a Support Request</h3>
+      <form name="support-request" method="POST" data-netlify="true" netlify data-netlify-honeypot="bot-field" class="support-form" autocomplete="on" action="thank-you.html">
+        <input type="hidden" name="form-name" value="support-request" />
+        <p class="sr-only" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+          <label>Don’t fill this out: <input name="bot-field" /></label>
+        </p>
+        <label class="sf-field">
+          <span>Name</span>
+          <input required name="name" type="text" maxlength="80" />
+        </label>
+        <label class="sf-field">
+          <span>Email</span>
+            <input required name="email" type="email" maxlength="120" />
+        </label>
+        <label class="sf-field">
+          <span>Category</span>
+          <select name="category" required>
+            <option value="Account">Account</option>
+            <option value="Playtime">Playtime</option>
+            <option value="Bug">Bug Report</option>
+            <option value="Verification">Verification</option>
+            <option value="Submission">Game Submission</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+        <label class="sf-field">
+          <span>Subject</span>
+          <input required name="subject" type="text" maxlength="140" />
+        </label>
+        <label class="sf-field">
+          <span>Message</span>
+          <textarea required name="message" rows="6" maxlength="4000" placeholder="Describe the issue, steps to reproduce, expected vs actual behavior..."></textarea>
+        </label>
+        <div class="sf-actions">
+          <button type="submit" class="btn btn-primary">Send</button>
+          <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+        </div>
+        <p class="sf-note">Files or screenshots? Paste image links (GitHub, Imgur, etc.) into the message body.</p>
+      </form>
+    </div>
+  </div>
+
   <!-- Chatbot widget only on this page -->
   <script id="doai-chatbot-loader" async
     src="https://kcur57gey4euhzpupakvb43g.agents.do-ai.run/static/chatbot/widget.js"
@@ -317,21 +364,13 @@
     data-starting-message="Hello! How can I help you today?"
     data-logo="assets/glitch realm favicon image.png"></script>
   <script>
-    // Support Request Modal (Netlify form)
+    // Support Request Modal open/close (static Netlify form present in DOM)
     (function(){
-      const modalHtml = `\n<div id="support-form-modal" class="support-form-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="support-form-title" style="display:none;">\n  <div class="support-form-backdrop" data-close></div>\n  <div class="support-form-dialog">\n    <button class="support-form-close" id="close-support-form" aria-label="Close">&times;</button>\n    <h3 id="support-form-title">Submit a Support Request</h3>\n    <form name="support-request" method="POST" data-netlify="true" netlify action="thank-you.html" class="support-form" autocomplete="on">\n      <input type="hidden" name="form-name" value="support-request"/>\n      <p class="sr-only" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">\n        <label>Don’t fill this out: <input name="bot-field" /></label>\n      </p>\n      <label class="sf-field">\n        <span>Name</span>\n        <input required name="name" type="text" maxlength="80" />\n      </label>\n      <label class="sf-field">\n        <span>Email</span>\n        <input required name="email" type="email" maxlength="120" />\n      </label>\n      <label class="sf-field">\n        <span>Category</span>\n        <select name="category" required>\n          <option value="Account">Account</option>\n          <option value="Playtime">Playtime</option>\n          <option value="Bug">Bug Report</option>\n          <option value="Verification">Verification</option>\n          <option value="Submission">Game Submission</option>\n          <option value="Other">Other</option>\n        </select>\n      </label>\n      <label class="sf-field">\n        <span>Subject</span>\n        <input required name="subject" type="text" maxlength="140" />\n      </label>\n      <label class="sf-field">\n        <span>Message</span>\n        <textarea required name="message" rows="6" maxlength="4000" placeholder="Describe the issue, steps to reproduce, expected vs actual behavior..."></textarea>\n      </label>\n      <div class="sf-actions">\n        <button type="submit" class="btn btn-primary">Send</button>\n        <button type="button" class="btn btn-secondary" data-close>Cancel</button>\n      </div>\n      <p class="sf-note">Files or screenshots? Paste image links (GitHub, Imgur, etc.) into the message body.</p>\n    </form>\n  </div>\n</div>`;
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
       const openBtn = document.getElementById('open-support-form');
       const modal = document.getElementById('support-form-modal');
       if(!openBtn || !modal) return;
-      const dialog = modal.querySelector('.support-form-dialog');
-      function open(){ modal.style.display='block'; modal.setAttribute('aria-hidden','false'); setTimeout(()=> modal.classList.add('visible'), 10); trapFocus(); }
-      function close(){ modal.classList.remove('visible'); setTimeout(()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }, 180); releaseFocus(); }
-      openBtn.addEventListener('click', open);
-      modal.addEventListener('click', e=>{ if(e.target===modal || e.target.hasAttribute('data-close')) close(); });
-      modal.querySelector('#close-support-form')?.addEventListener('click', close);
-      document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.classList.contains('visible')) close(); });
       let lastFocused = null;
+      const dialog = modal.querySelector('.support-form-dialog');
       function trapFocus(){
         lastFocused = document.activeElement;
         const focusables = modal.querySelectorAll('button, [href], input, select, textarea');
@@ -342,6 +381,12 @@
         modal._loop = loop;
       }
       function releaseFocus(){ if(lastFocused) try{ lastFocused.focus(); }catch{} if(modal._loop) modal.removeEventListener('keydown', modal._loop); }
+      function open(){ modal.style.display='block'; modal.setAttribute('aria-hidden','false'); setTimeout(()=> modal.classList.add('visible'), 10); trapFocus(); }
+      function close(){ modal.classList.remove('visible'); setTimeout(()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); releaseFocus(); }, 180); }
+      openBtn.addEventListener('click', open);
+      modal.addEventListener('click', e=>{ if(e.target===modal || e.target.hasAttribute('data-close')) close(); });
+      document.getElementById('close-support-form')?.addEventListener('click', close);
+      document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.classList.contains('visible')) close(); });
     })();
   </script>
   <script>
