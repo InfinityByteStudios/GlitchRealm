@@ -1337,11 +1337,45 @@
     // Insert after the name element
     if (afterEl.nextSibling) parent.insertBefore(badge, afterEl.nextSibling); else parent.appendChild(badge);
   }
+  
+  // Optimistic (non-lazy) badge: show immediately, remove if later determined not verified
+  function ensureImmediateBadge(nameEl){
+    if (!nameEl) return;
+    const parent = nameEl.parentElement;
+    if (!parent) return;
+    if (parent.querySelector('.verified-badge')) return; // already present
+    const badge = document.createElement('span');
+    badge.className = 'verified-badge pending';
+    badge.setAttribute('title','Verified');
+    badge.setAttribute('aria-label','Verified');
+    badge.dataset.pending = '1';
+    badge.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z" fill="#00ffc3"/></svg>';
+    badge.style.cssText = 'display:inline-flex;margin-left:6px;width:16px;height:16px;align-items:center;justify-content:center;opacity:.35;filter:grayscale(1);';
+    if (nameEl.nextSibling) parent.insertBefore(badge, nameEl.nextSibling); else parent.appendChild(badge);
+  }
 
   async function renderVerifiedBadgeFor(nameEl, uid){
     try {
+      // Insert an immediate placeholder so there's no perceived lazy load
+      ensureImmediateBadge(nameEl);
       const ok = await ensureVerified(uid);
-      if (ok) attachVerifiedBadge(nameEl);
+      const parent = nameEl.parentElement;
+      const badge = parent ? parent.querySelector('.verified-badge') : null;
+      if (ok) {
+        if (badge) {
+          badge.classList.remove('pending');
+          badge.style.opacity = '1';
+          badge.style.filter = 'none';
+          delete badge.dataset.pending;
+        } else {
+          attachVerifiedBadge(nameEl);
+        }
+      } else {
+        // Not verified: remove optimistic badge
+        if (badge && badge.dataset.pending === '1') {
+          badge.remove();
+        }
+      }
     } catch(e) {}
   }
 
