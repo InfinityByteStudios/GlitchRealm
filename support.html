@@ -400,12 +400,10 @@
       window.addEventListener('keydown',e=>{ if(e.key==='/' && (e.metaKey||e.ctrlKey)){ if(openFn) try{openFn();}catch(e){} }});
     })();
 
-    // Lazy load Buy Me a Coffee widget after idle
-    (function(){
-      function loadBMC(){ if(document.getElementById('bmc-script')) return; const s=document.createElement('script'); s.id='bmc-script'; s.src='https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js'; s.dataset.name='BMC-Widget'; s.dataset.id='glitchrealmdevs'; s.dataset.description='Support me on Buy me a coffee!'; s.dataset.message='Contribute to the development of GlitchRealm.'; s.dataset.color='#5F7FFF'; s.dataset.position='Right'; s.dataset.x_margin='18'; s.dataset.y_margin='18'; document.body.appendChild(s); }
-      if('requestIdleCallback' in window) requestIdleCallback(loadBMC); else setTimeout(loadBMC,600);
-    })();
+    // Buy Me a Coffee widget (static inclusion)
+    // Replaced lazy loader with direct script tag for clarity / reliability
   </script>
+  <!-- BMC widget intentionally omitted on support page (present on all other pages) -->
   <script>
     // Smooth scroll with highlight effect
     (function(){
