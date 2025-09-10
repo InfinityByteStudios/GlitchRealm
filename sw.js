@@ -16,6 +16,9 @@ const PRECACHE_URLS = [
   '/assets/glitch realm favicon image.png'
 ];
 
+// External resources we want to cache-fast-path (opaque responses ok)
+const BMC_WIDGET_URL = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js';
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
@@ -72,6 +75,12 @@ self.addEventListener('fetch', (event) => {
   }
   if (url.origin === 'https://fonts.googleapis.com') {
     event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  // Buy Me a Coffee widget script: cache-first after first fetch to remove repeat lag
+  if (request.url === BMC_WIDGET_URL) {
+    event.respondWith(cacheFirst(request));
     return;
   }
 
