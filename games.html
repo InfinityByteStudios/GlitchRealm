@@ -33,13 +33,50 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="//www.gstatic.com">
-        <!-- Modular Firebase (core + firestore) to reduce inline blocking JS -->
-        <script type="module" src="firebase-core.js"></script>
-        <script type="module" src="firebase-firestore.js"></script>
-        <script type="module">
-            // Post-init hook: ratings after Firestore ready
-            setTimeout(() => { if (typeof updateAllRatingDisplays === 'function') updateAllRatingDisplays(); }, 1500);
-        </script>
+      <!-- Firebase SDK -->
+    <script type="module">        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.appspot.com",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+          const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    // Explicitly target the default bucket using gs:// URL
+    const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
+    const firestore = getFirestore(app);
+        const analytics = getAnalytics(app);
+        
+    window.firebaseApp = app;
+    window.firebaseConfig = firebaseConfig;
+    window.firebaseAuth = auth;
+        window.firebaseStorage = storage;
+        window.firebaseFirestore = firestore;
+        window.firestoreCollection = collection;
+        window.firestoreAddDoc = addDoc;
+        window.firestoreQuery = query;
+        window.firestoreWhere = where;
+        window.firestoreOrderBy = orderBy;
+        window.firestoreLimit = limit;
+        window.firestoreGetDocs = getDocs;
+        window.deleteUser = deleteUser;
+        
+        // Load initial rating displays after Firebase is ready
+        setTimeout(() => {
+            if (typeof updateAllRatingDisplays === 'function') {
+                updateAllRatingDisplays();
+            }
+        }, 2000);
+    </script>
     <style>
     /* Performance: avoid rendering offscreen cards until scrolled into view */
     .game-card { content-visibility: auto; contain-intrinsic-size: 400px 1px; }
