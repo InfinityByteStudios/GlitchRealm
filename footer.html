@@ -13,119 +13,20 @@
     </div>
 </footer>
 
-<!-- Chatbot FAB is now provided by the widget; custom FAB removed to avoid duplicates -->
+<!-- Chatbot removed from global footer; now only on support.html -->
 
-<!-- Chatbot widget loader (placed outside the button so it reliably initializes) -->
-<script id="doai-chatbot-loader" async
-    src="https://kcur57gey4euhzpupakvb43g.agents.do-ai.run/static/chatbot/widget.js"
-    data-agent-id="bd55ebc0-7b86-11f0-b074-4e013e2ddde4"
-    data-chatbot-id="iLcsXT380jITKSw3t6GQxi14J3z3bc64"
-    data-name="GlitchRealm Bot"
-    data-primary-color="#00FFF9"
-    data-secondary-color="#E5E8ED"
-    data-button-background-color="#0A1629"
-    data-starting-message="Hello! How can I help you today?"
-    data-logo="assets/glitch realm favicon image.png"></script>
-
-<!-- Open handler: resilient detection + retry -->
-<script>
-    (function () {
-        let openFn = null;
-        const loader = document.getElementById('doai-chatbot-loader');
-
-        function resolveOpenFn() {
-            const g = window;
-            const namespaces = [
-                g.DOAIChatbot, g.DoAIChatbot, g.doAIChatbot, g.doaiChatbot,
-                g.DOAI, g.DoAI, g.doAI, g.doai
-            ].filter(Boolean);
-
-            // Also try to discover any window keys that look like doai
-            try {
-                for (const k of Object.keys(g)) {
-                    if (/doai|DoAI|DOAI/i.test(k)) {
-                        try { namespaces.push(g[k]); } catch (e) {}
-                    }
-                }
-            } catch (e) {}
-
-            const methodNames = ['open', 'toggle', 'show', 'start', 'expand', 'openChat', 'openWidget', 'openChatbot'];
-            for (const ns of namespaces) {
-                if (!ns) continue;
-                for (const m of methodNames) {
-                    try { if (typeof ns[m] === 'function') return () => ns[m](); } catch (e) {}
-                }
-                // Nested widget object
-                try {
-                    if (ns.widget) {
-                        for (const m of methodNames) {
-                            if (typeof ns.widget[m] === 'function') return () => ns.widget[m]();
-                        }
-                    }
-                } catch (e) {}
-            }
-            return null;
-        }
-
-        function showHint(msg, isError) {
-            const el = document.createElement('div');
-            el.textContent = msg;
-            el.style.position = 'fixed';
-            el.style.right = '90px';
-            el.style.bottom = '26px';
-            el.style.padding = '8px 12px';
-            el.style.border = '1px solid var(--primary-cyan)';
-            el.style.background = 'rgba(0,0,0,0.85)';
-            el.style.color = isError ? 'var(--danger)' : 'var(--primary-cyan)';
-            el.style.borderRadius = '6px';
-            el.style.zIndex = '2300';
-            el.style.fontFamily = 'Rajdhani, sans-serif';
-            el.style.fontSize = '0.9rem';
-            document.body.appendChild(el);
-            setTimeout(() => { el.remove(); }, 2000);
-        }
-
-        function tryOpen() {
-            if (!openFn) openFn = resolveOpenFn();
-            if (openFn) {
-                try { openFn(); return true; } catch (e) {}
-            }
-            try { window.dispatchEvent(new CustomEvent('doai:open')); } catch (e) {}
-            try { window.dispatchEvent(new Event('doai-open')); } catch (e) {}
-            // Also try a postMessage hint in case the widget listens for it
-            try { window.postMessage({ type: 'doai:open' }, '*'); } catch (e) {}
-            return false;
-        }
-
-        // Listen for ready signals
-        ['doai:ready', 'doai-ready', 'DoAI:ready', 'DOMContentLoaded', 'load'].forEach(evt => {
-            window.addEventListener(evt, () => { openFn = resolveOpenFn(); });
-        });
-
-        // Also detect readiness via postMessage origin
-        window.addEventListener('message', (ev) => {
-            try {
-                if (typeof ev.origin === 'string' && ev.origin.includes('agents.do-ai.run')) {
-                    openFn = resolveOpenFn();
-                }
-            } catch (e) {}
-        });
-
-        if (loader) {
-            loader.addEventListener('load', () => { openFn = resolveOpenFn(); });
-            loader.addEventListener('error', () => { showHint('Chatbot failed to load', true); });
-        }
-
-        const btn = document.getElementById('chatbot-fab');
-        if (btn) {
-            btn.addEventListener('click', function () {
-                showHint('Opening chat…');
-                if (tryOpen()) return;
-                setTimeout(() => { if (!tryOpen()) showHint('Chatbot still loading…'); }, 600);
-                setTimeout(() => { if (!tryOpen()) showHint('Chatbot not ready', true); }, 2000);
-            });
-        }
-    })();
+<!-- Support Widget: Buy Me a Coffee -->
+<script
+    data-name="BMC-Widget"
+    data-cfasync="false"
+    src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+    data-id="glitchrealmdevs"
+    data-description="Support me on Buy me a coffee!"
+    data-message="Contribute to the development of GlitchRealm."
+    data-color="#5F7FFF"
+    data-position="Right"
+    data-x_margin="18"
+    data-y_margin="18">
 </script>
 
 <!-- Structured Data: inject JSON-LD into <head> on every page -->

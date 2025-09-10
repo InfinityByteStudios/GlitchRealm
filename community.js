@@ -1332,8 +1332,8 @@
     badge.className = 'verified-badge';
     badge.setAttribute('title','Verified');
     badge.setAttribute('aria-label','Verified');
-    badge.textContent = '✔';
-    badge.style.cssText = 'display:inline-block;margin-left:6px;color:#16e1ff;font-weight:800;text-shadow:0 0 6px rgba(22,225,255,0.6)';
+  badge.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z" fill="#00ffc3"/></svg>';
+  badge.style.cssText = 'display:inline-flex;margin-left:6px;width:16px;height:16px;align-items:center;justify-content:center;';
     // Insert after the name element
     if (afterEl.nextSibling) parent.insertBefore(badge, afterEl.nextSibling); else parent.appendChild(badge);
   }

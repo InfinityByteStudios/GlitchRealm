@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Your Game - GlitchRealm</title>
+  <link rel="icon" type="image/png" href="assets/glitch realm favicon image.png">
+  <link rel="preload" as="style" href="styles.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="styles.css"></noscript>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="//www.gstatic.com">
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  </noscript>
+  <style>
+    .submit-wrapper { max-width: 960px; margin: 120px auto 60px; padding: 0 20px; }
+    .submit-header { text-align: center; margin-bottom: 32px; }
+    .submit-header h1 { font-family: 'Orbitron', monospace; letter-spacing: 1px; font-size: 2.1rem; margin: 0 0 12px; }
+    .submit-header p { opacity:.8; line-height:1.5; }
+    .game-submit-card { background: linear-gradient(145deg, rgba(0,10,20,.85), rgba(0,40,55,.55)); border:1px solid rgba(0,255,249,.15); backdrop-filter: blur(10px); padding:32px 28px 36px; border-radius:18px; box-shadow:0 4px 22px -4px rgba(0,0,0,.55), 0 0 0 1px rgba(0,255,249,.05) inset; position:relative; }
+    .game-submit-card:before { content:""; position:absolute; inset:0; pointer-events:none; border-radius:18px; background: radial-gradient(circle at 30% 20%, rgba(0,255,249,.12), transparent 70%), radial-gradient(circle at 85% 65%, rgba(0,140,255,.15), transparent 75%); mix-blend-mode:screen; opacity:.8; }
+    form#submitGameForm { display:flex; flex-direction:column; gap:22px; }
+    .input-container { position:relative; }
+    .input-label { font-size:.75rem; letter-spacing:1px; text-transform:uppercase; opacity:.75; font-weight:600; margin-bottom:6px; font-family:'Orbitron', monospace; }
+    .neural-input, .neural-input[type=file], textarea.neural-input { width:100%; background:rgba(0,8,12,.5); border:1px solid rgba(0,255,249,.25); border-radius:10px; padding:12px 14px; color:#fff; font-family:'Rajdhani', sans-serif; font-size:.95rem; box-shadow:0 0 0 0 rgba(0,255,249,.35) inset, 0 0 0 1px rgba(0,255,249,.08); transition:.25s; }
+    .neural-input:focus { outline:none; border-color:var(--primary-cyan,#0ff); box-shadow:0 0 0 2px rgba(0,255,249,.25); }
+    textarea.neural-input { resize:vertical; min-height:140px; }
+    .tag-row { display:flex; gap:10px; }
+    .tag-row input { flex:1; }
+    #submissionCoverPreviewWrap { margin-top:8px; display:none; }
+    #submissionCoverPreview { max-width:100%; max-height:220px; border-radius:14px; box-shadow:0 0 22px -4px rgba(0,255,249,.4); border:1px solid rgba(0,255,249,.25); }
+    .submit-actions { display:flex; gap:14px; justify-content:flex-end; margin-top:10px; }
+    .btn { font-family:'Orbitron', monospace; letter-spacing:.75px; font-size:.7rem; padding:12px 22px; border-radius:10px; cursor:pointer; border:1px solid var(--primary-cyan,#0ff); background:linear-gradient(135deg, rgba(0,255,249,.15), rgba(0,140,255,.15)); color:#fff; text-transform:uppercase; font-weight:700; transition:.25s; }
+    .btn:hover:not([disabled]) { background:linear-gradient(135deg, rgba(0,255,249,.25), rgba(0,140,255,.25)); box-shadow:0 0 12px -2px rgba(0,255,249,.4); }
+    .btn[disabled] { opacity:.55; cursor:not-allowed; }
+    .btn-secondary { background:rgba(255,255,255,.07); border-color:rgba(0,255,249,.35); }
+    .info-message, .success-message, .error-message { font-size:.8rem; padding:10px 14px; border-radius:8px; line-height:1.4; }
+    .info-message { background:rgba(0,140,255,.16); border:1px solid rgba(0,140,255,.4); }
+    .success-message { background:rgba(0,255,170,.16); border:1px solid rgba(0,255,170,.4); }
+    .error-message { background:rgba(255,40,60,.16); border:1px solid rgba(255,40,60,.4); }
+    .warning-message { background:rgba(255,165,0,.1); border:1px solid rgba(255,165,0,.5); padding:12px 14px; font-size:.8rem; border-radius:10px; margin-bottom:12px; }
+    .pre-badge { display:none; background:linear-gradient(135deg, rgba(255,165,0,.95), rgba(255,99,71,.95)); color:#0b0e14; font-family:'Orbitron', monospace; font-weight:800; letter-spacing:.4px; font-size:9px; padding:2px 6px; border-radius:5px; text-transform:uppercase; box-shadow:0 1px 4px rgba(255,140,0,.25); border:1px solid rgba(0,0,0,.12); user-select:none; white-space:nowrap; }
+    .gate-block { margin:0 0 18px; }
+    .auth-redirect { text-align:center; margin-top:24px; font-size:.85rem; opacity:.75; }
+    @media (max-width:680px){ .submit-wrapper { margin-top:100px; } }
+  </style>
+</head>
+<body>
+  <div class="background-animation"></div>
+  <div id="header-placeholder"></div>
+  <div class="submit-wrapper">
+    <div class="submit-header">
+      <h1>Submit Your Game</h1>
+      <p>Share your creation with the GlitchRealm community. Verified creators and approved developers can submit games for review. Drafts start in <strong>draft</strong> status until published by staff.</p>
+    </div>
+    <div id="gateNotice" class="warning-message gate-block" style="display:none;">You must be a verified creator or approved developer to submit a game. <a href="user-portal.html#verification-section">Get verified</a>.</div>
+    <div id="authNotice" class="warning-message gate-block" style="display:none;">Please sign in to submit a game. <a href="signin.html">Sign In</a></div>
+    <div class="game-submit-card" id="submitCard" style="display:none;">
+      <form id="submitGameForm">
+        <div class="input-container">
+          <div class="input-label">Title</div>
+          <input type="text" id="submissionTitle" class="neural-input" placeholder="Game Title" maxlength="120" required>
+        </div>
+        <div class="input-container">
+          <div class="input-label">Cover Image</div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+            <input type="file" id="submissionCoverFile" accept="image/*" style="flex:1; min-width:220px">
+            <span id="submissionPreReleaseTag" class="pre-badge">PRE-RELEASE</span>
+            <span style="opacity:.7; font-size:12px;">or</span>
+            <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://... (optional)" maxlength="2000" style="flex:1; min-width:240px">
+          </div>
+          <div id="submissionCoverPreviewWrap"><img id="submissionCoverPreview" alt="Cover preview" /></div>
+        </div>
+        <div class="input-container">
+          <div class="input-label">Description</div>
+          <textarea id="submissionDescription" class="neural-input" placeholder="Tell players about your game... (Max 1000 characters)" maxlength="1000" required></textarea>
+        </div>
+        <div class="input-container">
+          <div class="input-label">Play URL</div>
+            <input type="url" id="submissionPlayUrl" class="neural-input" placeholder="https://yourgame.example.com" maxlength="2000" required>
+        </div>
+        <div class="input-container">
+          <div class="input-label">Tags (up to 3)</div>
+          <div class="tag-row">
+            <input type="text" id="tag1" class="neural-input" placeholder="Tag 1" maxlength="20">
+            <input type="text" id="tag2" class="neural-input" placeholder="Tag 2" maxlength="20">
+            <input type="text" id="tag3" class="neural-input" placeholder="Tag 3" maxlength="20">
+          </div>
+        </div>
+        <div id="submissionMessage" style="margin:2px 0 6px;"></div>
+        <div class="submit-actions">
+          <button type="reset" class="btn btn-secondary">Reset</button>
+          <button id="submitGameBtn" type="submit" class="btn">Submit</button>
+        </div>
+      </form>
+    </div>
+    <div class="auth-redirect" id="postSubmitHint" style="display:none;">Return to the <a href="games.html">Games Library</a>.</div>
+  </div>
+  <div id="footer-placeholder"></div>
+  <script src="script.js" defer></script>
+  <script>
+  (function(){
+    const DEV_UIDS = new Set([
+      '6iZDTXC78aVwX22qrY43BOxDRLt1',
+      'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+    ]);
+    function $(id){ return document.getElementById(id); }
+    async function getMe(){
+      const auth = window.firebaseAuth; const user = auth?auth.currentUser:null; if(!user) return null;
+      try { const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'); const db = f.getFirestore(); const snap = await f.getDoc(f.doc(db,'verified_users',user.uid)); const isVerified = snap.exists() && !!(snap.data()?.verified===true); const isDeveloper = DEV_UIDS.has(user.uid); return {uid:user.uid,isVerified,isDeveloper}; } catch { return {uid:user?.uid,isVerified:false,isDeveloper:DEV_UIDS.has(user?.uid)}; }
+    }
+    function show(el,flag){ if(!el) return; el.style.display = flag?'' : 'none'; }
+    async function gate(){
+      const auth = window.firebaseAuth; const user = auth?auth.currentUser:null;
+      const submitCard = $('submitCard'); const gateNotice = $('gateNotice'); const authNotice = $('authNotice');
+      if(!user){ show(submitCard,false); show(authNotice,true); show(gateNotice,false); return; }
+      show(authNotice,false);
+      try{ const me = await getMe(); const allowed = me && (me.isVerified || me.isDeveloper); show(submitCard, allowed); show(gateNotice, !allowed); } catch { show(submitCard,false); show(gateNotice,true); }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      if(window.firebaseAuth){ import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js').then(({onAuthStateChanged})=>{ try { onAuthStateChanged(window.firebaseAuth, gate); } catch{} }); }
+      gate();
+      const form = $('submitGameForm'); if(!form) return;
+      const fileInput = $('submissionCoverFile'); const urlInput = $('submissionCoverUrl'); const wrap = $('submissionCoverPreviewWrap'); const img = $('submissionCoverPreview'); const preTag = $('submissionPreReleaseTag');
+      function showPreviewFromBlob(blobUrl){ if(img&&wrap){ img.src=blobUrl; wrap.style.display=''; } if(preTag) preTag.style.display='inline-block'; }
+      function clearPreview(){ if(img&&wrap){ img.src=''; wrap.style.display='none'; } if(preTag) preTag.style.display='none'; }
+      fileInput?.addEventListener('change', ()=>{ if(fileInput.files&&fileInput.files[0]){ const url = URL.createObjectURL(fileInput.files[0]); showPreviewFromBlob(url); } else { clearPreview(); } });
+      urlInput?.addEventListener('input', ()=>{ const val=urlInput.value.trim(); if(/^https?:\/\//i.test(val)){ if(img&&wrap){ img.src=val; wrap.style.display=''; } if(preTag) preTag.style.display='none'; } else { if(!fileInput?.files?.length) clearPreview(); } });
+      form.addEventListener('reset', clearPreview);
+      form.addEventListener('submit', async (e)=>{
+        e.preventDefault(); const auth = window.firebaseAuth; const user = auth?auth.currentUser:null; const msg = $('submissionMessage'); const btn=$('submitGameBtn');
+        if(!user){ if(msg) msg.innerHTML='<div class="error-message">Please sign in first.</div>'; return; }
+        // verify privilege
+        try { const me = await getMe(); const allowed = me && (me.isVerified || me.isDeveloper); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch {}
+        const title=$('submissionTitle').value.trim(); const description=$('submissionDescription').value.trim(); const playUrl=$('submissionPlayUrl').value.trim(); let coverImageUrl=$('submissionCoverUrl').value.trim(); const tags=[ $('tag1').value.trim(), $('tag2').value.trim(), $('tag3').value.trim() ].filter(Boolean).slice(0,3); const file=fileInput?.files?.[0]||null;
+        if(!title){ if(msg) msg.innerHTML='<div class="error-message">Title is required.</div>'; return; }
+        if(!description){ if(msg) msg.innerHTML='<div class="error-message">Description is required.</div>'; return; }
+        if(!playUrl || !/^https?:\/\//i.test(playUrl)){ if(msg) msg.innerHTML='<div class="error-message">Valid Play URL required (http/https)</div>'; return; }
+        try { btn.disabled=true; btn.textContent='Submitting...';
+          if(file){ try { const safeName=file.name.replace(/[^a-zA-Z0-9_.-]/g,'_'); const uid=user.uid; if(!uid) throw new Error('No UID'); if(navigator && navigator.onLine===false) throw new Error('Offline');
+            async function ensureSupabase(){ if(window.grSupabase) return window.grSupabase; const mod= await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm'); const createClient = mod.createClient || mod.default?.createClient; const SUPABASE_URL = window.GR_SUPABASE_URL || 'https://hkogcnxmrrkxggwcrqyh.supabase.co'; const SUPABASE_ANON_KEY = window.GR_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrb2djbnhtcnJreGdnd2NycXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA5MDQsImV4cCI6MjA3Mjc2NjkwNH0.mOrnXNJBQLgMg1oq4zW1ySvCMXAbo-ZNAMwx59NJyxM'; window.grSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); return window.grSupabase; }
+            const supabase = await ensureSupabase(); const bucket='game-covers'; const objectPath=`${uid}/${Date.now()}_${safeName}`; const contentType=file.type||'application/octet-stream'; if(msg) msg.innerHTML='<div class="info-message">Uploading cover…</div>'; const {data:upData,error:upErr}= await supabase.storage.from(bucket).upload(objectPath,file,{cacheControl:'3600',upsert:true,contentType}); if(upErr) throw upErr; const {data:pub,error:pubErr}= supabase.storage.from(bucket).getPublicUrl(objectPath); if(pubErr) throw pubErr; coverImageUrl = pub.publicUrl; if(msg) msg.innerHTML='<div class="info-message">Uploading cover... 100%</div>'; } catch(uploadErr){ const code=uploadErr?.status||uploadErr?.code||'unknown'; const msgText=uploadErr?.message||String(uploadErr); if(msg) msg.innerHTML=`<div class=\"error-message\">Upload failed (${code}). ${msgText}</div>`; throw uploadErr; } }
+          const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'); const db=f.getFirestore(); const payloadDoc={ title, ownerId:user.uid, description, status:'draft', createdAt:f.serverTimestamp(), updatedAt:f.serverTimestamp(), coverImageUrl:coverImageUrl||'', tags, playUrl };
+          await f.addDoc(f.collection(db,'game_submissions'), payloadDoc); if(msg) msg.innerHTML='<div class="success-message">Draft created. We\'ll review it soon.</div>'; form.reset(); clearPreview(); $('postSubmitHint').style.display=''; setTimeout(()=>{ window.scrollTo({top:0,behavior:'smooth'}); },200);
+        } catch(err){ const reason= err?.message || 'Unknown error'; if(msg) msg.innerHTML=`<div class=\"error-message\">Error: ${reason}</div>`; } finally { btn.disabled=false; btn.textContent='Submit'; }
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -165,11 +165,19 @@
         }
 
         .review-item {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid rgba(0, 245, 255, 0.1);
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
+            background: linear-gradient(135deg, rgba(5,15,22,0.85), rgba(10,45,55,0.55));
+            border: 1px solid rgba(0, 245, 255, 0.18);
+            border-radius: 14px;
+            padding: 16px 18px 18px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .review-item:before {
+            content:"";
+            position:absolute; inset:0; pointer-events:none;
+            background: radial-gradient(circle at 12% 18%, rgba(0,255,249,0.12), transparent 60%), radial-gradient(circle at 85% 80%, rgba(0,140,255,0.12), transparent 65%);
+            mix-blend-mode:screen; opacity:.9;
         }
 
         .review-item:last-child {
@@ -177,11 +185,30 @@
         }
 
         .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
+            display:flex; align-items:flex-start; gap:14px; margin-bottom:10px;
         }
+    .review-avatar-wrap { width:32px; min-width:32px; height:32px; border-radius:50%; position:relative; overflow:hidden; box-shadow:0 0 0 1px rgba(0,255,249,0.35),0 0 6px -1px rgba(0,255,249,0.35); background:rgba(255,255,255,0.05); }
+        .review-avatar { width:100%; height:100%; object-fit:cover; display:block; }
+        .review-body { flex:1; display:flex; flex-direction:column; gap:6px; }
+        .review-meta-line { display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:12px; }
+    .review-author { display:inline-flex; align-items:center; font-size:13px; font-weight:600; color:#fff; line-height:1; }
+    .review-author strong { font-size:13px; letter-spacing:.3px; font-weight:600; color:#fff; }
+    .review-verification { display:inline-flex; width:16px; height:16px; align-items:center; justify-content:center; background:none; padding:0; border-radius:50%; box-shadow:none; }
+    .review-verification svg { width:14px; height:14px; fill:#00ffc3; filter:drop-shadow(0 0 4px rgba(0,255,249,0.6)); }
+    .review-rating { font-size:13px; background:linear-gradient(90deg,#ffd700,#ffae00); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:700; letter-spacing:.5px; }
+        .review-rating small { color:#ffd700; opacity:.85; margin-left:4px; font-weight:600; }
+        .review-date { color:#6d7f89; font-size:11px; letter-spacing:.4px; }
+        .review-comment { font-size:13.5px; line-height:1.5; color:#d4dde0; background:rgba(255,255,255,0.03); padding:10px 12px 11px; border:1px solid rgba(0,255,249,0.08); border-radius:10px; box-shadow:0 0 0 1px rgba(0,255,249,0.05) inset; }
+    .review-badges { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .review-badges > .review-author { margin-right:2px; }
+    .review-verification, .user-badge, .review-moderation { display:inline-flex; align-items:center; line-height:1; }
+        .user-badge { font-size:9px; letter-spacing:.6px; padding:3px 7px 3px; border-radius:20px; font-weight:700; background:linear-gradient(135deg,#0ff,#008cff); color:#031b21; box-shadow:0 0 0 1px rgba(0,255,249,0.35),0 2px 6px -2px rgba(0,255,249,0.5); text-transform:uppercase; }
+        .artist-badge { background:linear-gradient(135deg,#ff68f9,#a600ff); color:#190323; box-shadow:0 0 0 1px rgba(255,0,200,0.4),0 2px 6px -2px rgba(255,0,200,0.4); }
+        .developer-badge { background:linear-gradient(135deg,#00ffbf,#00b8ff); }
+        .review-moderation { font-size:9px; padding:3px 6px 3px; border-radius:16px; letter-spacing:.5px; font-weight:600; }
+        .review-pending { background:rgba(255,170,0,0.15); border:1px solid rgba(255,170,0,0.5); color:#ffb347; }
+        .review-approved { background:rgba(0,255,170,0.15); border:1px solid rgba(0,255,170,0.45); color:#4dffc1; }
+    @media (max-width:620px){ .review-header { flex-direction:row; } .review-meta-line { flex-direction:row; gap:6px; } .review-avatar-wrap { width:30px; height:30px; min-width:30px; } }
 
         .review-rating {
             color: #ffd700;
@@ -1276,7 +1303,7 @@
                                 <span class="tag">Community</span>
                                 <span class="tag">Creator</span>
                             </div>
-                            <button id="openSubmitGameModalBtn" class="btn btn-primary card-btn">Start Submission</button>
+                            <a href="submit-game.html" class="btn btn-primary card-btn">Start Submission</a>
                         </div>
                     </div>
                 </div>
@@ -1565,87 +1592,7 @@
         </div>
     </div>
 
-    <!-- Submit Game Modal -->
-    <div id="submitGameModal" class="review-modal" style="display:none;">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeSubmitGameModal()">&times;</span>
-            <h2 class="modal-title">SUBMIT YOUR GAME</h2>
-
-            <div id="submitGateNotice" class="warning-message" style="display:none;">
-                You must be a verified creator or approved developer to submit a game. <a href="user-portal.html#verification-section">Get verified</a>.
-            </div>
-
-            <div class="game-info">
-                <strong>New Game Submission</strong>
-            </div>
-
-            <form id="submitGameForm">
-                <div class="input-container">
-                    <div class="input-label">Title</div>
-                    <input type="text" id="submissionTitle" class="neural-input" placeholder="Game Title" maxlength="120" required>
-                    <div class="input-line"></div>
-                </div>
-
-                <div class="input-container">
-                    <div class="input-label">Cover Image</div>
-                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
-                        <input type="file" id="submissionCoverFile" accept="image/*" style="flex:1; min-width:220px">
-                        <span id="submissionPreReleaseTag" style="
-                            display:none;
-                            background: linear-gradient(135deg, rgba(255,165,0,0.95), rgba(255,99,71,0.95));
-                            color:#0b0e14;
-                            font-family: 'Orbitron', monospace;
-                            font-weight:800;
-                            letter-spacing:.4px;
-                            font-size:9px;
-                            padding:2px 6px;
-                            border-radius:5px;
-                            text-transform:uppercase;
-                            box-shadow: 0 1px 4px rgba(255,140,0,0.25);
-                            border:1px solid rgba(0,0,0,0.12);
-                            user-select:none;
-                            white-space:nowrap;
-                        ">PRE‑RELEASE</span>
-                        <span style="opacity:.7; font-size:12px;">or</span>
-                        <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://... (optional)" maxlength="2000" style="flex:1; min-width:240px">
-                    </div>
-                    <div id="submissionCoverPreviewWrap" style="margin-top:8px; display:none;">
-                        <img id="submissionCoverPreview" alt="Cover preview" style="max-width:100%; max-height:180px; border-radius:8px; box-shadow: 0 0 12px rgba(0, 255, 249, 0.25);" />
-                    </div>
-                    <div class="input-line"></div>
-                </div>
-
-                <div class="input-container">
-                    <div class="input-label">Description</div>
-                    <textarea id="submissionDescription" class="neural-input" placeholder="Tell players about your game... (Max 1000 characters)" maxlength="1000" style="min-height:120px"></textarea>
-                    <div class="input-line"></div>
-                </div>
-
-                <div class="input-container">
-                    <div class="input-label">Play URL</div>
-                    <input type="url" id="submissionPlayUrl" class="neural-input" placeholder="https://yourgame.example.com" maxlength="2000" required>
-                    <div class="input-line"></div>
-                </div>
-
-                <div class="input-container">
-                    <div class="input-label">Tags (up to 3)</div>
-                    <div style="display:flex; gap:8px;">
-                        <input type="text" id="tag1" class="neural-input" placeholder="Tag 1" maxlength="20" style="flex:1">
-                        <input type="text" id="tag2" class="neural-input" placeholder="Tag 2" maxlength="20" style="flex:1">
-                        <input type="text" id="tag3" class="neural-input" placeholder="Tag 3" maxlength="20" style="flex:1">
-                    </div>
-                    <div class="input-line"></div>
-                </div>
-
-                <div id="submissionMessage" style="margin:10px 0;"></div>
-
-                <div class="submit-section">
-                    <button type="button" class="btn cancel-btn" onclick="closeSubmitGameModal()">Cancel</button>
-                    <button id="submitGameBtn" type="submit" class="btn submit-btn">Submit</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Submit Game Modal removed: feature moved to standalone submit-game.html -->
 
     <!-- Review Modal -->
     <div id="reviewModal" class="review-modal">
@@ -1992,7 +1939,7 @@
             }, 1000); // Wait for Firebase to initialize
 
             // After ratings init, load creator submissions onto the page
-            try { loadPublishedGameSubmissions(); } catch (e) { console.warn('Creator submissions load failed:', e); }
+            /* loadPublishedGameSubmissions removed with modal extraction */
         });
 
         function updateStarDisplay() {
@@ -2195,15 +2142,23 @@
             const contentCheck = checkContent(comment);
             console.log('🔍 Content check result:', contentCheck);
             
+            const authUser = window.firebaseAuth.currentUser;
+            const derivedDisplayName = authUser.displayName || (authUser.email ? authUser.email.split('@')[0] : 'Anonymous User');
+            const derivedPhoto = authUser.photoURL || 'assets/icons/anonymous.png';
+            // Firestore rules require: rating int 1-5, timestamp is timestamp (use serverTimestamp), moderationStatus value in list
+            // We'll map blocked -> 'blocked', pending->'pending', approved->'approved'.
+            const normalizedStatus = (contentCheck.status === 'blocked') ? 'blocked' : (contentCheck.status === 'pending' ? 'pending' : 'approved');
             const review = {
                 gameId: currentGameId,
-                gameName: currentGameName,
-                rating: currentRating,
-                comment: comment,
-                moderationStatus: contentCheck.status,
-                timestamp: new Date().toISOString(),
-                userId: window.firebaseAuth.currentUser.uid, // Real user ID
-                reason: contentCheck.reason
+                gameName: currentGameName.substring(0,100),
+                rating: Math.min(5, Math.max(1, Math.round(currentRating))),
+                comment: comment.substring(0,500),
+                moderationStatus: normalizedStatus,
+                timestamp: window.firestoreServerTimestamp ? window.firestoreServerTimestamp() : new Date(),
+                userId: authUser.uid,
+                userDisplayName: derivedDisplayName.substring(0,50),
+                authorPhotoUrl: derivedPhoto.substring(0,2000),
+                reason: contentCheck.reason.substring(0,200)
             };
 
             console.log('📋 Review object created:', review);
@@ -2687,20 +2642,100 @@
             // Generate replies HTML
             const repliesHTML = generateRepliesHTML(review.replies || []);
             
+            // Reviewer identity: resolve display name similarly to updateUserProfile logic.
+            const reviewerId = typeof review.userId === 'string' ? review.userId : 'unknown';
+            const baseFallback = review.userDisplayName || (reviewerId === 'unknown' ? 'Anonymous User' : (reviewerId.length > 10 ? reviewerId.slice(0,6) + '...' + reviewerId.slice(-4) : reviewerId));
+            // Placeholder span we'll fill asynchronously if we can fetch user profile.
+            const identityId = `rev-ident-${review.id}`;
+            const identityHTML = `<span class="review-author" id="${identityId}" title="User ID: ${reviewerId}"><strong>${escapeHtml(baseFallback)}</strong></span>`;
+
+            // Initial avatar placeholder (will attempt to fetch from users/{uid} profile or fallback)
+            const avatarId = `rev-av-${review.id}`;
+            const verifiedBadgeId = `rev-ver-${review.id}`;
             reviewDiv.innerHTML = `
                 <div class="review-header">
-                    <div class="review-rating">${stars} (${review.rating}/5)</div>
-                    <div>
-                        <span class="review-date">${reviewDate}</span>
-                        ${userBadge}
-                        ${moderationBadge}
+                    <div class="review-avatar-wrap">
+                        <img id="${avatarId}" class="review-avatar" src="${escapeHtml(review.authorPhotoUrl || 'assets/icons/anonymous.png')}" alt="User Avatar" loading="lazy" decoding="async" />
+                    </div>
+                    <div class="review-body">
+                        <div class="review-meta-line">
+                            <div class="review-badges">
+                                ${identityHTML}
+                                <span id="${verifiedBadgeId}" style="display:none" class="review-verification" title="Verified Creator" aria-label="Verified">
+                                    <svg viewBox="0 0 24 24"><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z"/></svg>
+                                </span>
+                                ${userBadge}
+                                ${moderationBadge}
+                            </div>
+                            <div class="review-rating">${stars} <small>${review.rating}/5</small></div>
+                            <span class="review-date">${reviewDate}</span>
+                        </div>
+                        <p class="review-comment">${escapeHtml(review.comment || 'No comment provided.')}</p>
+                        ${repliesHTML}
+                        ${getDeveloperReplyButton(review.id)}
                     </div>
                 </div>
-                <p class="review-comment">${escapeHtml(review.comment || 'No comment provided.')}</p>
-                ${repliesHTML}
-                ${getDeveloperReplyButton(review.id)}
             `;
             
+            // Attempt to enrich with live user displayName (one fetch per unique UID cached in memory)
+            try {
+                if (!window.__grUserCache) window.__grUserCache = new Map();
+                const cache = window.__grUserCache;
+                if (reviewerId !== 'unknown') {
+                    if (cache.has(reviewerId)) {
+                        const name = cache.get(reviewerId);
+                        const el = reviewDiv.querySelector('#' + identityId + ' strong');
+                        if (el && name) el.textContent = name;
+                    } else if (window.firebaseAuth) {
+                        // Use Auth reload pattern only for current user; for others attempt Firestore profile doc if exists
+                        (async () => {
+                            try {
+                                const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                                const db = f.getFirestore();
+                                // Assume optional profile doc at users/{uid}
+                                const docRef = f.doc(db, 'users', reviewerId);
+                                const snap = await f.getDoc(docRef);
+                                let name = null;
+                                let photo = null;
+                                if (snap.exists() && typeof snap.data().displayName === 'string') {
+                                    name = snap.data().displayName;
+                                } else {
+                                    // Fallback: email prefix if stored
+                                    if (snap.exists() && typeof snap.data().email === 'string') {
+                                        name = snap.data().displayName || snap.data().email.split('@')[0];
+                                    }
+                                }
+                                if (snap.exists() && typeof snap.data().photoURL === 'string') {
+                                    photo = snap.data().photoURL;
+                                }
+                                // Check verified flag in separate verified_users collection
+                                try {
+                                    const verifiedSnap = await f.getDoc(f.doc(db, 'verified_users', reviewerId));
+                                    if (verifiedSnap.exists() && verifiedSnap.data().verified === true) {
+                                        const vb = reviewDiv.querySelector('#' + verifiedBadgeId);
+                                        if (vb) vb.style.display = 'inline-flex';
+                                    }
+                                } catch {}
+                                if (!name && reviewerId === window.firebaseAuth.currentUser?.uid) {
+                                    const u = window.firebaseAuth.currentUser;
+                                    name = u.displayName || (u.email ? u.email.split('@')[0] : null);
+                                    if (u && u.photoURL) photo = u.photoURL;
+                                }
+                                if (name) {
+                                    cache.set(reviewerId, name);
+                                    const el = reviewDiv.querySelector('#' + identityId + ' strong');
+                                    if (el) el.textContent = name;
+                                }
+                                if (photo) {
+                                    const av = reviewDiv.querySelector('#' + avatarId);
+                                    if (av) av.src = photo;
+                                }
+                            } catch (e) { /* silent */ }
+                        })();
+                    }
+                }
+            } catch {}
+
             return reviewDiv;
         }
 
@@ -2909,312 +2944,7 @@
         </div>
     </div>
 
-    <script>
-    // Submit Game UI gating, Storage upload, direct Firestore submission + Firestore render of published submissions
-    (function() {
-        // Developer UIDs (for creator privileges in UI gating)
-        const DEV_UIDS = new Set([
-            '6iZDTXC78aVwX22qrY43BOxDRLt1',
-            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-        ]);
-
-        function $(id) { return document.getElementById(id); }
-
-        async function getMe() {
-            const auth = window.firebaseAuth;
-            const user = auth ? auth.currentUser : null;
-            if (!user) return null;
-            try {
-                const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                const db = f.getFirestore();
-                const snap = await f.getDoc(f.doc(db, 'verified_users', user.uid));
-                const isVerified = snap.exists() && !!(snap.data()?.verified === true);
-                const isDeveloper = DEV_UIDS.has(user.uid);
-                return { uid: user.uid, isVerified, isDeveloper };
-            } catch {
-                return { uid: user.uid, isVerified: false, isDeveloper: DEV_UIDS.has(user.uid) };
-            }
-        }
-
-    function showSubmitCard(show) {
-            const card = $('submitGameCard');
-            if (card) card.style.display = show ? '' : 'none';
-        }
-
-    async function gateSubmitCard() {
-            try {
-                const auth = window.firebaseAuth;
-                if (!auth) return;
-                const user = auth.currentUser;
-        if (!user) { showSubmitCard(false); return; }
-        const me = await getMe();
-        const allowed = me && (me.isVerified || me.isDeveloper);
-        showSubmitCard(Boolean(allowed));
-            } catch (e) {
-                console.warn('Gate error:', e);
-                showSubmitCard(false);
-            }
-        }
-
-        // Modal helpers
-        window.openSubmitGameModal = async function() {
-            const auth = window.firebaseAuth;
-            const user = auth ? auth.currentUser : null;
-            const gate = $('submitGateNotice');
-            let allowed = false;
-            if (user) {
-                try { const me = await getMe(); allowed = Boolean(me && (me.isVerified || me.isDeveloper)); } catch {}
-            }
-            if (!user || !allowed) { if (gate) gate.style.display = ''; } else { if (gate) gate.style.display = 'none'; }
-            if (!user || !allowed) return; // block opening if not allowed
-            const modal = $('submitGameModal');
-            if (modal) {
-                modal.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        window.closeSubmitGameModal = function() {
-            const modal = $('submitGameModal');
-            if (modal) {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                // Clear preview when closing
-                try {
-                    const wrap = $('submissionCoverPreviewWrap');
-                    const img = $('submissionCoverPreview');
-                    if (wrap) wrap.style.display = 'none';
-                    if (img) img.src = '';
-                } catch {}
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Wire button
-            const openBtn = $('openSubmitGameModalBtn');
-            if (openBtn) openBtn.addEventListener('click', openSubmitGameModal);
-
-            // Auth state reacts
-            if (window.firebaseAuth) {
-                import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js')
-                    .then(({ onAuthStateChanged }) => {
-                        try { onAuthStateChanged(window.firebaseAuth, () => gateSubmitCard()); } catch {}
-                    })
-                    .catch(() => {});
-            }
-            gateSubmitCard();
-
-            // Handle submit (direct Firestore create)
-            const form = $('submitGameForm');
-            if (form) {
-                // Instant preview: file
-                const fileInput = $('submissionCoverFile');
-                const urlInput = $('submissionCoverUrl');
-                const wrap = $('submissionCoverPreviewWrap');
-                const img = $('submissionCoverPreview');
-                const preTag = $('submissionPreReleaseTag');
-                function showPreviewFromBlob(blobUrl){ if (img && wrap) { img.src = blobUrl; wrap.style.display = ''; } if (preTag) preTag.style.display = 'inline-block'; }
-                function clearPreview(){ if (img && wrap) { img.src = ''; wrap.style.display = 'none'; } if (preTag) preTag.style.display = 'none'; }
-                fileInput?.addEventListener('change', () => {
-                    if (fileInput.files && fileInput.files[0]) {
-                        const url = URL.createObjectURL(fileInput.files[0]);
-                        showPreviewFromBlob(url);
-                    } else { clearPreview(); }
-                });
-                urlInput?.addEventListener('input', () => {
-                    const val = urlInput.value.trim();
-                    if (/^https?:\/\//i.test(val)) {
-                        if (img && wrap) { img.src = val; wrap.style.display = ''; }
-                        if (preTag) preTag.style.display = 'none';
-                    } else {
-                        if (!fileInput?.files?.length) clearPreview();
-                    }
-                });
-                form.addEventListener('reset', clearPreview);
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const auth = window.firebaseAuth;
-                    const user = auth ? auth.currentUser : null;
-                    const msg = $('submissionMessage');
-                    const btn = $('submitGameBtn');
-                    const gate = $('submitGateNotice');
-                    if (!user) {
-                        if (msg) msg.innerHTML = '<div class="error-message">Please sign in first.</div>';
-                        return;
-                    }
-                    // Require verified creator or developer
-                    try {
-                        const me = await getMe();
-                        const allowed = me && (me.isVerified || me.isDeveloper);
-                        if (!allowed) {
-                            if (gate) gate.style.display = '';
-                            if (msg) msg.innerHTML = '<div class="error-message">Only verified creators or developers can submit games. <a href="user-portal.html#verification-section">Request verification</a>.</div>';
-                            return;
-                        }
-                        if (gate) gate.style.display = 'none';
-                    } catch {}
-
-                const title = $('submissionTitle').value.trim();
-                const description = $('submissionDescription').value.trim();
-                const playUrl = $('submissionPlayUrl').value.trim();
-                let coverImageUrl = $('submissionCoverUrl').value.trim();
-                const tags = [ $('tag1').value.trim(), $('tag2').value.trim(), $('tag3').value.trim() ].filter(Boolean).slice(0,3);
-                const file = $('submissionCoverFile')?.files?.[0] || null;
-
-                if (!title) { if (msg) msg.innerHTML = '<div class="error-message">Title is required.</div>'; return; }
-                if (!description) { if (msg) msg.innerHTML = '<div class="error-message">Description is required.</div>'; return; }
-                if (!playUrl || !/^https?:\/\//i.test(playUrl)) { if (msg) msg.innerHTML = '<div class="error-message">A valid Play URL is required (must start with http or https).</div>'; return; }
-
-                try {
-                    btn.disabled = true; btn.textContent = 'Submitting...';
-                    // If a file is provided, upload via Supabase Storage (game-covers bucket)
-                    if (file) {
-                        try {
-                            const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                            const uid = window.firebaseAuth?.currentUser?.uid;
-                            if (!uid) throw new Error('No user uid for storage path');
-                            if (navigator && navigator.onLine === false) throw new Error('You appear to be offline.');
-
-                            // Ensure Supabase client
-                            async function ensureSupabase() {
-                                if (window.grSupabase) return window.grSupabase;
-                                const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm');
-                                const createClient = mod.createClient || mod.default?.createClient;
-                                const SUPABASE_URL = window.GR_SUPABASE_URL || 'https://hkogcnxmrrkxggwcrqyh.supabase.co';
-                                const SUPABASE_ANON_KEY = window.GR_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrb2djbnhtcnJreGdnd2NycXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA5MDQsImV4cCI6MjA3Mjc2NjkwNH0.mOrnXNJBQLgMg1oq4zW1ySvCMXAbo-ZNAMwx59NJyxM';
-                                window.grSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                                return window.grSupabase;
-                            }
-                            const supabase = await ensureSupabase();
-                            const bucket = 'game-covers';
-                            const objectPath = `${uid}/${Date.now()}_${safeName}`;
-                            const contentType = file.type || 'application/octet-stream';
-                            console.log('Uploading cover to Supabase', { bucket, objectPath, type: contentType, size: file.size });
-
-                            if (msg) msg.innerHTML = '<div class="info-message">Uploading cover…</div>';
-                            const { data: upData, error: upErr } = await supabase
-                                .storage
-                                .from(bucket)
-                                .upload(objectPath, file, { cacheControl: '3600', upsert: true, contentType });
-                            if (upErr) throw upErr;
-
-                            const { data: pub, error: pubErr } = supabase.storage.from(bucket).getPublicUrl(objectPath);
-                            if (pubErr) throw pubErr;
-                            coverImageUrl = pub.publicUrl;
-                            console.log('Cover uploaded, URL:', coverImageUrl);
-                            if (msg) msg.innerHTML = '<div class="info-message">Uploading cover... 100%</div>';
-                        } catch (uploadErr) {
-                            const code = uploadErr?.status || uploadErr?.code || 'unknown';
-                            const msgText = uploadErr?.message || String(uploadErr);
-                            console.error('Supabase Storage upload failed:', code, msgText);
-                            if (msg) {
-                                msg.innerHTML = `<div class="error-message">Storage upload failed (${code}). ${msgText}<br><small>Hint: Ensure you are signed in and the game-covers bucket policies allow uploads.</small></div>`;
-                            }
-                            throw uploadErr;
-                        }
-                    }
-                    // Write submission directly to Firestore
-                    const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                    const db = f.getFirestore();
-                    const uid = window.firebaseAuth?.currentUser?.uid;
-                    const payloadDoc = {
-                        title,
-                        ownerId: uid,
-                        description,
-                        status: 'draft',
-                        createdAt: f.serverTimestamp(),
-                        updatedAt: f.serverTimestamp(),
-                        coverImageUrl: coverImageUrl || '',
-                        tags,
-                        playUrl
-                    };
-                    await f.addDoc(f.collection(db, 'game_submissions'), payloadDoc);
-                    if (msg) msg.innerHTML = '<div class="success-message">Submission saved as draft. We\'ll review it soon.</div>';
-                    form.reset();
-                    setTimeout(() => { window.closeSubmitGameModal(); }, 1200);
-                } catch (err) {
-                    console.error('Submit failed', err);
-                    const reason = (err && err.message) ? err.message : 'Unknown error';
-                    if (msg) msg.innerHTML = `<div class="error-message">Error: ${reason}</div>`;
-                } finally {
-                    btn.disabled = false; btn.textContent = 'Submit';
-                }
-            });
-        }
-    });
-
-    // Load published game submissions and render as cards (Firestore query)
-    window.loadPublishedGameSubmissions = async function() {
-        try {
-            const container = document.querySelector('.game-cards');
-            if (!container) return;
-            const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const db = f.getFirestore();
-            const q = f.query(
-                f.collection(db, 'game_submissions'),
-                f.where('status','==','published'),
-                f.orderBy('createdAt','desc'),
-                f.limit(24)
-            );
-            const snap = await f.getDocs(q);
-            if (!snap || snap.empty) return;
-            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-            // Insert creator cards before the Coming Soon card if present
-            const comingSoonCard = container.querySelector('.game-card.coming-soon');
-            const insertBeforeNode = comingSoonCard || document.getElementById('submitGameCard') || null;
-
-            const frag = document.createDocumentFragment();
-            items.forEach(item => {
-                const data = item || {};
-                const card = document.createElement('div');
-                card.className = 'game-card';
-                card.setAttribute('data-game', `submission-${data.id}`);
-                const cover = (typeof data.coverImageUrl === 'string' && data.coverImageUrl) ? data.coverImageUrl : 'assets/icons/anonymous.png';
-                const desc = (data.description || '').toString().substring(0, 240);
-                const title = (data.title || 'Untitled').toString();
-                const tags = Array.isArray(data.tags) ? data.tags.slice(0,3) : [];
-                const playUrl = typeof data.playUrl === 'string' ? data.playUrl : '';
-
-                card.innerHTML = `
-                    <div class="card-image">
-                        <img src="${cover}" alt="${title}" class="game-logo-image" loading="lazy" decoding="async">
-                        <div class="card-overlay"></div>
-                        <div class="game-badge new">CREATOR</div>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title"></h3>
-                        <p class="card-description"></p>
-                        <p class="card-developer">Made by <strong>Community Creator</strong> <button class="review-btn" disabled>⭐ Review</button></p>
-                        <div class="card-tags"></div>
-                        ${playUrl ? `<a class="btn btn-primary card-btn" href="${playUrl}" target="_blank" rel="noopener">Play Now</a>` : `<button class="btn btn-disabled card-btn" disabled>Submitted Game</button>`}
-                    </div>
-                `;
-                card.querySelector('.card-title').textContent = title;
-                card.querySelector('.card-description').textContent = desc;
-                const tagsEl = card.querySelector('.card-tags');
-                tags.forEach(t => {
-                    const span = document.createElement('span');
-                    span.className = 'tag';
-                    span.textContent = t;
-                    tagsEl.appendChild(span);
-                });
-                frag.appendChild(card);
-            });
-
-            if (insertBeforeNode && insertBeforeNode.parentNode === container) {
-                container.insertBefore(frag, insertBeforeNode);
-            } else {
-                container.appendChild(frag);
-            }
-        } catch (e) {
-            console.warn('Failed to load published submissions:', e);
-        }
-    }
-})();
-</script>
+    <!-- Submission feature JS removed (now in submit-game.html). loadPublishedGameSubmissions also removed. -->
 
     </body>
     </html>

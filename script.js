@@ -1236,6 +1236,7 @@ async function initializeAuth() {
         
         if (user) {
             // User is signed in
+            try { console.log('[Auth] User signed in:', { uid: user.uid, email: user.email }); } catch {}
             updateUserProfile(user);
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
@@ -1283,6 +1284,7 @@ async function initializeAuth() {
             }
         } else {
             // User is signed out
+            try { console.log('[Auth] User signed out'); } catch {}
             if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
             if (notificationBell) notificationBell.style.display = 'none';
@@ -2396,7 +2398,9 @@ function styleDoAIWidgetLauncher() {
 }
 
 // Try to preload chatbot script early and bind when FAB appears
+// Chatbot auto-loader now restricted to support page only
 (function primeChatbotInit() {
+    if (!/\/support\.html$/i.test(location.pathname)) return; // Do not load chatbot off support page
     function ensureLoaderPresent() {
         if (!document.getElementById('doai-chatbot-loader')) {
             const s = document.createElement('script');
@@ -2414,13 +2418,11 @@ function styleDoAIWidgetLauncher() {
             document.body.appendChild(s);
         }
     }
-    // Preload quickly after DOM is interactive
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         try { ensureLoaderPresent(); } catch {}
     } else {
         document.addEventListener('DOMContentLoaded', () => { try { ensureLoaderPresent(); } catch {} });
     }
-    // Bind when FAB shows up
     function tryBind() {
         if (document.getElementById('chatbot-fab')) {
             try { setupChatbotFab(); } catch {}
@@ -2431,18 +2433,18 @@ function styleDoAIWidgetLauncher() {
     if (!tryBind()) {
         const obs = new MutationObserver(() => { if (tryBind()) { obs.disconnect(); } });
         obs.observe(document.documentElement, { childList: true, subtree: true });
-        // Stop observing after 10s
         setTimeout(() => { try { obs.disconnect(); } catch {} }, 10000);
     }
-    // Independently attempt to style the widget launcher for a short time window
     let tries = 0;
     const t = setInterval(() => { tries++; if (styleDoAIWidgetLauncher() || tries > 40) clearInterval(t); }, 250);
 })();
 
 // If the widget posts any messages, attempt styling immediately
-window.addEventListener('message', (ev) => {
-    try { if (typeof ev.origin === 'string' && ev.origin.includes('agents.do-ai.run')) { styleDoAIWidgetLauncher(); } } catch {}
-});
+if (/\/support\.html$/i.test(location.pathname)) {
+    window.addEventListener('message', (ev) => {
+        try { if (typeof ev.origin === 'string' && ev.origin.includes('agents.do-ai.run')) { styleDoAIWidgetLauncher(); } } catch {}
+    });
+}
 
 // One-time coachmark bubble above chat button
 function maybeShowChatCoachmark() {
@@ -2480,10 +2482,15 @@ function maybeShowChatCoachmark() {
 }
 
 // Trigger coachmark after minimal delay
-setTimeout(maybeShowChatCoachmark, 1200);
+// Only show/chat coachmark if chatbot allowed (support page only now)
+if (/\/support\.html$/i.test(location.pathname)) {
+    setTimeout(maybeShowChatCoachmark, 1200);
+}
 
 // Chatbot FAB initializer (works even when footer scripts don't run)
 function setupChatbotFab() {
+    // Restrict chatbot to support page only
+    if (!/\/support\.html$/i.test(location.pathname)) return;
     const btn = document.getElementById('chatbot-fab');
     if (!btn) return; // No FAB on this page
 
@@ -3564,9 +3571,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const footerPlaceholder = document.getElementById('footer-placeholder');
             if (footerPlaceholder) {
                 footerPlaceholder.innerHTML = data;
-                // After injecting footer via innerHTML, inline <script> tags won't execute.
-                // Ensure the chatbot FAB is initialized here.
-                try { setupChatbotFab(); } catch (e) { console.warn('setupChatbotFab failed:', e); }
+                // After injecting footer via innerHTML, inline <script> tags don't auto-execute.
+                // Re-run any script tags (e.g., chatbot loader, Buy Me a Coffee widget) safely.
+                try {
+                    const footerScripts = footerPlaceholder.querySelectorAll('script');
+                    footerScripts.forEach(orig => {
+                        // Skip if already executed
+                        if (orig.dataset.executed === '1') return;
+                        const clone = document.createElement('script');
+                        // Copy attributes
+                        for (const attr of orig.attributes) {
+                            // Avoid duplicate IDs colliding (e.g., chatbot loader) by keeping the same id only if not already in DOM
+                            if (attr.name === 'id' && document.getElementById(attr.value)) continue;
+                            clone.setAttribute(attr.name, attr.value);
+                        }
+                        // Mark provenance
+                        clone.dataset.fromFooter = '1';
+                        // Inline script content
+                        if (!orig.src) clone.textContent = orig.textContent || '';
+                        // Append to body to execute
+                        document.body.appendChild(clone);
+                        orig.dataset.executed = '1';
+                    });
+                } catch (e) { console.warn('Footer script execution issue:', e); }
+
+                // Initialize chatbot FAB only on support page after attempting to (re)load scripts
+                if (/\/support\.html$/i.test(location.pathname)) {
+                    try { setupChatbotFab(); } catch (e) { console.warn('setupChatbotFab failed:', e); }
+                }
             }
         })
         .catch(error => console.error('Error loading footer:', error));

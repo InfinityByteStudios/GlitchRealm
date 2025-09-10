@@ -267,6 +267,8 @@ service cloud.firestore {
               (reviewData.comment is string && reviewData.comment.size() <= 500)) &&
              (!reviewData.keys().hasAny(['userDisplayName']) ||
               (reviewData.userDisplayName is string && reviewData.userDisplayName.size() <= 50)) &&
+             (!reviewData.keys().hasAny(['authorPhotoUrl']) ||
+              (reviewData.authorPhotoUrl is string && reviewData.authorPhotoUrl.size() <= 2000)) &&
              (!reviewData.keys().hasAny(['gameName']) ||
               (reviewData.gameName is string && reviewData.gameName.size() <= 100)) &&
              (!reviewData.keys().hasAny(['reason']) ||
