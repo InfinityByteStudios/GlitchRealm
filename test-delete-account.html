@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Delete Account - GlitchRealm</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
+            color: #00ff88;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(0, 255, 136, 0.05);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: rgba(0, 255, 136, 0.2); }
+        .error { background: rgba(255, 0, 136, 0.2); color: #ff0088; }
+        .info { background: rgba(0, 136, 255, 0.2); color: #0088ff; }
+        button {
+            background: linear-gradient(45deg, #00ff88, #00cc88);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #00cc88, #009955);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Delete Account Test</h1>
+        <p>This is a test page to verify the delete account functionality works correctly.</p>
+        
+        <div id="user-info" class="status info">
+            <p>Loading user information...</p>
+        </div>
+        
+        <div class="actions">
+            <button id="export-data-btn">Export My Data</button>
+            <button id="delete-account-btn" style="background: linear-gradient(45deg, #ff0088, #cc0066);">Delete Account</button>
+        </div>
+        
+        <div id="result" class="status" style="display: none;"></div>
+        
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Sign in to your account first</li>
+            <li>Click "Export My Data" to test data export (optional)</li>
+            <li>Click "Delete Account" to test the deletion process</li>
+            <li>Confirm when prompted</li>
+        </ol>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4Bi4F_30MYD8YhIBOJxn8Fz1bpHnA5Ok",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.appspot.com",
+            messagingSenderId: "528847488084",
+            appId: "1:528847488084:web:26b5e1eb76e24e8df9b56e",
+            measurementId: "G-3Z4H1QJM1L"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const functions = getFunctions(app);
+
+        const userInfoDiv = document.getElementById('user-info');
+        const exportBtn = document.getElementById('export-data-btn');
+        const deleteBtn = document.getElementById('delete-account-btn');
+        const resultDiv = document.getElementById('result');
+
+        function showResult(message, type) {
+            resultDiv.style.display = 'block';
+            resultDiv.className = `status ${type}`;
+            resultDiv.innerHTML = `<p>${message}</p>`;
+        }
+
+        // Monitor auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userInfoDiv.innerHTML = `
+                    <p><strong>Signed in as:</strong> ${user.email}</p>
+                    <p><strong>User ID:</strong> ${user.uid}</p>
+                    <p><strong>Account created:</strong> ${new Date(user.metadata.creationTime).toLocaleString()}</p>
+                `;
+                exportBtn.disabled = false;
+                deleteBtn.disabled = false;
+            } else {
+                userInfoDiv.innerHTML = `
+                    <p>You are not signed in. Please <a href="/signin.html" style="color: #00ff88;">sign in</a> first.</p>
+                `;
+                exportBtn.disabled = true;
+                deleteBtn.disabled = true;
+            }
+        });
+
+        // Export data functionality
+        exportBtn.addEventListener('click', async () => {
+            if (!auth.currentUser) {
+                showResult('Please sign in first', 'error');
+                return;
+            }
+
+            exportBtn.disabled = true;
+            showResult('Exporting your data...', 'info');
+
+            try {
+                const exportUserData = httpsCallable(functions, 'exportUserData');
+                const result = await exportUserData();
+                
+                // Create downloadable file
+                const dataBlob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `glitchrealm-data-export-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showResult('Data export completed successfully! Download should start automatically.', 'success');
+            } catch (error) {
+                console.error('Export failed:', error);
+                showResult(`Export failed: ${error.message}`, 'error');
+            } finally {
+                exportBtn.disabled = false;
+            }
+        });
+
+        // Delete account functionality
+        deleteBtn.addEventListener('click', async () => {
+            if (!auth.currentUser) {
+                showResult('Please sign in first', 'error');
+                return;
+            }
+
+            const confirmed = confirm(`WARNING: This will permanently delete your account and ALL associated data including:
+
+• Your user profile and settings
+• Game submissions and uploads
+• Playtime records and statistics
+• All files and images you've uploaded
+• Your authentication credentials
+
+This action is IRREVERSIBLE and cannot be undone.
+
+Type "DELETE" (all caps) to confirm:`);
+
+            if (!confirmed || confirmed !== 'DELETE') {
+                showResult('Account deletion cancelled', 'info');
+                return;
+            }
+
+            deleteBtn.disabled = true;
+            showResult('Deleting your account and all data... This may take a few moments.', 'info');
+
+            try {
+                const deleteUserAccount = httpsCallable(functions, 'deleteUserAccount');
+                const result = await deleteUserAccount();
+                
+                showResult(`Account deletion completed successfully! ${result.data.message}`, 'success');
+                
+                // Sign out and redirect after a delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Delete failed:', error);
+                showResult(`Account deletion failed: ${error.message}`, 'error');
+            } finally {
+                deleteBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

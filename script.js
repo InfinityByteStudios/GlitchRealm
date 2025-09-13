@@ -178,7 +178,7 @@ function showPasswordChangeSuccessNotification() {
                     Password Successfully Changed!
                 </strong>
                 <p style="font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; margin: 0; opacity: 0.9;">
-                    Your neural link credentials have been updated.
+                    Your account credentials have been updated.
                 </p>
             </div>
             <button onclick="this.parentElement.parentElement.remove()" style="
@@ -355,7 +355,7 @@ function resetAuthButtonsText() {
         emailSignupBtn.disabled = false;
         emailSignupBtn.classList.remove('loading');
         const defaultText = emailSignupBtn.querySelector('.button-text');
-        if (defaultText) defaultText.textContent = 'CREATE NEURAL LINK';
+    if (defaultText) defaultText.textContent = 'CREATE ACCOUNT';
         delete emailSignupBtn.dataset.originalText;
     }
     
@@ -408,7 +408,183 @@ document.addEventListener('DOMContentLoaded', function() {
         const canShow = !lastShownAt || (now - lastShownAt) >= DAY_MS;
 
         // Define popup providers (non-intrusive checks only)
-    // Single source of truth for the Terms update version (override by setting window.GR_TERMS_UPDATE_VERSION before this script runs)
+        // Single source of truth for the Terms update version (override by setting window.GR_TERMS_UPDATE_VERSION before this script runs)
+        // Game Card Menu Button Logic
+        function setupGameCardMenus() {
+            const gameCards = document.querySelectorAll('.game-card');
+            const currentUser = window.firebaseAuth?.currentUser;
+            // Example: games submitted by user (replace with real logic)
+            // For demo, assume user UID 'demo-user-uid' submitted ByteSurge and CodeRunner
+            const userSubmittedGames = {
+                'demo-user-uid': ['bytesurge', 'coderunner']
+            };
+            let userUID = currentUser?.uid || '';
+            gameCards.forEach(card => {
+                const gameId = card.getAttribute('data-game');
+                const menu = card.querySelector('.game-card-menu');
+                if (!menu) return;
+                // Hide all buttons by default
+                menu.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
+                // Show owner buttons when applicable
+                if (userSubmittedGames[userUID]?.includes(gameId)) {
+                    // Owner: show edit, delete, report
+                    menu.querySelector('.edit-btn')?.setAttribute('style', 'display:inline-block;');
+                    menu.querySelector('.delete-btn')?.setAttribute('style', 'display:inline-block;');
+                    menu.querySelector('.report-btn')?.setAttribute('style', 'display:inline-block;');
+                }
+                // Always show the three-dot dropdown for everyone (owners and non-owners)
+                menu.querySelector('.three-dot-btn')?.setAttribute('style', 'display:inline-block;');
+            });
+        }
+
+        // Run setup on DOMContentLoaded and on auth state change
+        setupGameCardMenus();
+        if (window.firebaseAuth && typeof window.firebaseAuth.onAuthStateChanged === 'function') {
+            window.firebaseAuth.onAuthStateChanged(() => {
+                setTimeout(setupGameCardMenus, 300);
+            });
+        }
+
+        // Report modal wiring (games)
+        let reportTargetGameId = null;
+        function openReportGameModal(gameId){
+            reportTargetGameId = gameId || null;
+            const modal = document.getElementById('report-game-modal');
+            if (!modal) { alert('Report UI not available.'); return; }
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeReportGameModal(){
+            const modal = document.getElementById('report-game-modal');
+            if (!modal) return;
+            reportTargetGameId = null;
+            try { document.getElementById('report-game-form')?.reset(); } catch {}
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        // Close handlers
+        document.getElementById('close-report-game')?.addEventListener('click', (e)=>{ e.preventDefault(); closeReportGameModal(); });
+        document.getElementById('cancel-report-game')?.addEventListener('click', (e)=>{ e.preventDefault(); closeReportGameModal(); });
+        document.getElementById('report-game-modal')?.addEventListener('click', (e)=>{ const m = document.getElementById('report-game-modal'); if (e.target === m) closeReportGameModal(); });
+
+        // Favorites helpers
+        function favKey(){
+            const uid = window.firebaseAuth?.currentUser?.uid || 'guest';
+            return 'gr.favorites.v1.' + uid;
+        }
+        function getFavorites(){
+            try { return JSON.parse(localStorage.getItem(favKey())||'[]'); } catch { return []; }
+        }
+        function setFavorites(list){
+            try { localStorage.setItem(favKey(), JSON.stringify(list)); } catch {}
+        }
+        function isFavorite(gameId){
+            return getFavorites().includes(gameId);
+        }
+        function toggleFavorite(gameId){
+            const list = getFavorites();
+            const idx = list.indexOf(gameId);
+            if (idx === -1) { list.push(gameId); setFavorites(list); showAuthMessage('Saved to favorites', 'success'); }
+            else { list.splice(idx,1); setFavorites(list); showAuthMessage('Removed from favorites', 'info'); }
+        }
+
+        // Ensure a dropdown menu exists per card for the three-dot action (Report + Star)
+        function ensureGameOptionsMenu(card){
+            if (!card) return;
+            let menu = card.querySelector('.game-options-menu');
+            if (!menu) {
+                const imgWrap = card.querySelector('.card-image');
+                if (!imgWrap) return;
+                menu = document.createElement('div');
+                menu.className = 'game-options-menu';
+                menu.setAttribute('role','menu');
+                menu.setAttribute('aria-hidden','true');
+                menu.style.display = 'none';
+                menu.innerHTML = `
+                    <button class="menu-item star" role="menuitem">Star</button>
+                    <button class="menu-item report" role="menuitem">Report</button>
+                `;
+                imgWrap.appendChild(menu);
+            }
+            // Sync Star/Unstar label
+            const gameId = card.getAttribute('data-game') || '';
+            const starBtn = menu.querySelector('.menu-item.star');
+            if (starBtn) starBtn.textContent = isFavorite(gameId) ? 'Unstar' : 'Star';
+            return menu;
+        }
+
+        function closeAllGameMenus(){
+            document.querySelectorAll('.game-options-menu').forEach(m => { m.style.display='none'; m.setAttribute('aria-hidden','true'); });
+            document.querySelectorAll('.three-dot-btn[aria-expanded="true"]').forEach(btn => btn.setAttribute('aria-expanded','false'));
+        }
+
+        // Open/close dropdowns and handle actions
+        document.body.addEventListener('click', function(e) {
+            // Open/close when clicking three-dot
+            const dot = e.target.closest('.three-dot-btn');
+            if (dot) {
+                const card = dot.closest('.game-card');
+                const menu = ensureGameOptionsMenu(card);
+                if (menu) {
+                    const open = menu.style.display !== 'block';
+                    closeAllGameMenus();
+                    menu.style.display = open ? 'block' : 'none';
+                    dot.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+                }
+                return;
+            }
+
+            // Menu actions
+            const menu = e.target.closest('.game-options-menu');
+            if (menu) {
+                const card = menu.closest('.game-card');
+                const gameId = card?.getAttribute('data-game');
+                if (e.target.closest('.menu-item.report')) {
+                    closeAllGameMenus();
+                    openReportGameModal(gameId);
+                    return;
+                }
+                if (e.target.closest('.menu-item.star')) {
+                    toggleFavorite(gameId);
+                    // Update label immediately
+                    const starBtn = menu.querySelector('.menu-item.star');
+                    if (starBtn) starBtn.textContent = isFavorite(gameId) ? 'Unstar' : 'Star';
+                    closeAllGameMenus();
+                    return;
+                }
+            }
+
+            // Existing owner action buttons
+            const btn = e.target.closest('.menu-btn');
+            if (btn && !btn.classList.contains('three-dot-btn')) {
+                const action = btn.getAttribute('data-action');
+                const card = btn.closest('.game-card');
+                const gameId = card?.getAttribute('data-game');
+                switch (action) {
+                    case 'edit':
+                        alert('Edit game: ' + gameId);
+                        break;
+                    case 'delete':
+                        if (confirm('Are you sure you want to delete this game?')) {
+                            alert('Game deleted: ' + gameId);
+                        }
+                        break;
+                    case 'report':
+                        openReportGameModal(gameId);
+                        break;
+                }
+            }
+        });
+
+        // Close menus on outside click
+        document.addEventListener('click', function(ev){
+            if (!ev.target.closest('.game-options-menu') && !ev.target.closest('.three-dot-btn')) {
+                closeAllGameMenus();
+            }
+        });
+        // Close on Escape
+        document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape') closeAllGameMenus(); });
     const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
 
     const providers = [
@@ -633,6 +809,69 @@ document.addEventListener('DOMContentLoaded', function() {
         // Non-fatal: scheduler shouldn’t break the page
         console.warn('Popup scheduler error:', e);
     }
+
+    // Submit Report Game form -> Firestore
+    (function(){
+        const form = document.getElementById('report-game-form');
+        if (!form) return;
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const auth = window.firebaseAuth;
+                if (!auth || !auth.currentUser) { alert('Please sign in to report.'); return; }
+                if (!reportTargetGameId) { alert('No game selected.'); return; }
+
+                // Ensure Firestore (reuse globals if available)
+                let db, addDoc, collection, Timestamp;
+                try {
+                    if (window.firebaseFirestore && window.firestoreAddDoc && window.firestoreCollection) {
+                        db = window.firebaseFirestore;
+                        addDoc = window.firestoreAddDoc;
+                        collection = window.firestoreCollection;
+                    } else {
+                        const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                        db = mod.getFirestore();
+                        addDoc = mod.addDoc;
+                        collection = mod.collection;
+                    }
+                    // Timestamp may be absent; use Date now if not available
+                    try { Timestamp = (await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js')).Timestamp; } catch(_) { Timestamp = null; }
+                } catch (err) {
+                    console.error('Firestore init failed for report:', err);
+                    alert('Reporting is unavailable right now.');
+                    return;
+                }
+
+                const baseReason = (document.querySelector('input[name="report-game-reason"]:checked')?.value || 'Other').slice(0, 60);
+                let details = String(document.getElementById('report-game-details')?.value || '').trim();
+                // Build combined reason while enforcing total length <= 500 (rules requirement)
+                let combinedReason = baseReason;
+                if (details) {
+                    // Reserve space for ": " separator
+                    const maxDetailsLen = Math.max(0, 500 - (baseReason.length + 2));
+                    details = details.slice(0, maxDetailsLen);
+                    combinedReason = `${baseReason}: ${details}`;
+                }
+                // Double-check cap at 500 just in case
+                combinedReason = combinedReason.slice(0, 500);
+
+                const payload = {
+                    gameId: String(reportTargetGameId),
+                    userId: auth.currentUser.uid,
+                    reason: combinedReason,
+                    createdAt: Timestamp && Timestamp.fromDate ? Timestamp.fromDate(new Date()) : new Date(),
+                    status: 'open'
+                };
+
+                await addDoc(collection(db, 'game_reports'), payload);
+                closeReportGameModal();
+                showAuthMessage('Report submitted. Thank you!', 'success');
+            } catch (err) {
+                console.error('Submit game report failed:', err);
+                alert('Failed to submit report.');
+            }
+        });
+    })();
     // Register service worker (skip on localhost/file to avoid dev caching issues)
     if ('serviceWorker' in navigator) {
         try {
@@ -648,6 +887,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize modal functionality immediately
+    document.body.addEventListener('click', function(e) {
+        const closeModal = document.getElementById('close-modal');
+        const signInModal = document.getElementById('signin-modal');
+        if (closeModal && signInModal && (e.target === closeModal || closeModal.contains(e.target))) {
+            e.preventDefault();
+            signInModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            if (typeof resetAuthButtonsText === 'function') resetAuthButtonsText();
+        }
+    });
     initializeBasicModal();
     
     // Initialize shared authentication system for SSO
@@ -928,13 +1177,19 @@ function initializeBasicModal() {
         }
     });
 
-    closeModal?.addEventListener('click', () => {
-        if (signInModal) {
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            resetAuthButtonsText();
-        }
-    });
+    if (closeModal) {
+        // Remove all previous click listeners to avoid duplicate/conflicting handlers
+        const newCloseModal = closeModal.cloneNode(true);
+        closeModal.parentNode.replaceChild(newCloseModal, closeModal);
+        newCloseModal.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (signInModal) {
+                signInModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                resetAuthButtonsText();
+            }
+        });
+    }
 
     signInModal?.addEventListener('click', (e) => {
         if (e.target === signInModal) {
@@ -1175,12 +1430,12 @@ async function initializeAuth() {
             await createUserWithEmailAndPassword(auth, email, password);
             signInModal.style.display = 'none';
             document.body.style.overflow = 'auto';
-            showAuthMessage('Neural link established!', 'success');
+            showAuthMessage('Account established!', 'success');
         } catch (error) {
             console.error('Account creation error:', error);
             showAuthMessage('Link creation failed: ' + getErrorMessage(error.code), 'error');
         } finally {
-            hideAuthLoading(submitBtn, 'CREATE NEURAL LINK');
+            hideAuthLoading(submitBtn, 'CREATE ACCOUNT');
         }
     });
 
@@ -1188,7 +1443,7 @@ async function initializeAuth() {
     signOutBtn?.addEventListener('click', async () => {
         try {
             await signOut(auth);
-            showAuthMessage('Neural link severed.', 'info');
+            showAuthMessage('Account deleted.', 'info');
         } catch (error) {
             console.error('Sign-out error:', error);        }
     });
@@ -1214,14 +1469,14 @@ async function initializeAuth() {
             };
             if (typeof window.updateUIForUser === 'function') {
                 window.updateUIForUser(mockUser);
-                showAuthMessage('Synced with existing neural link.', 'info');
+                showAuthMessage('Synced with existing account.', 'info');
             }
         } else {
             // If no localStorage auth, actively check other games
             console.log('No localStorage auth found, checking other games...');
             window.sharedAuth.checkOtherGamesForAuth().then(foundAuth => {
                 if (foundAuth) {
-                    showAuthMessage('Connected via cross-game neural link.', 'success');
+                    showAuthMessage('Connected via cross-game account.', 'success');
                 } else {
                     console.log('No existing authentication found in other games');
                 }
@@ -2209,7 +2464,7 @@ class SharedAuthSystem {
                 
                 // Show notification that we synced from another game
                 if (typeof showAuthMessage === 'function') {
-                    showAuthMessage('Synced from existing neural link.', 'info');
+                    showAuthMessage('Synced from existing account.', 'info');
                 }
             }
         } catch (error) {
@@ -2824,71 +3079,20 @@ function initializeProfileActions() {
         });
     }
 
-    // Delete account functionality
+    // Delete account functionality - redirect to dedicated page
     const deleteAccountBtn = document.getElementById('delete-account-btn');
-    const deleteAccountModal = document.getElementById('delete-account-modal');
-    const cancelDeleteBtn = document.getElementById('cancel-delete');
-    const confirmDeleteBtn = document.getElementById('confirm-delete');
-    const deleteConfirmationInput = document.getElementById('delete-confirmation-input');
 
-    if (deleteAccountBtn && deleteAccountModal) {
-        // Open delete account modal
+    if (deleteAccountBtn) {
+        // Redirect to delete account page
         deleteAccountBtn.addEventListener('click', () => {
             const profileDropdown = document.querySelector('.profile-dropdown');
             if (profileDropdown) {
                 profileDropdown.classList.remove('open');
             }
-            deleteAccountModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            if (deleteConfirmationInput) {
-                deleteConfirmationInput.value = '';
-                               deleteConfirmationInput.disabled = false;
-                deleteConfirmationInput.readOnly = false;
-                deleteConfirmationInput.style.pointerEvents = 'auto';
-                setTimeout(() => {
-                    deleteConfirmationInput.focus();
-                    deleteConfirmationInput.click();
-                }, 100);
-            }
+            // Redirect to dedicated delete account page
+            window.location.href = '/delete-account.html';
         });
 
-        // Cancel deletion
-        cancelDeleteBtn?.addEventListener('click', () => {
-            deleteAccountModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('Account termination cancelled.', 'info');
-        });
-
-        // Close modal when clicking outside of it
-        deleteAccountModal.addEventListener('click', (e) => {
-            if (e.target === deleteAccountModal) {
-                deleteAccountModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                showAuthMessage('Account termination cancelled.', 'info');
-            }
-        });
-
-        // Handle confirmation input and delete button
-        if (confirmDeleteBtn && deleteConfirmationInput) {
-            const updateDeleteButton = () => {
-                if (deleteConfirmationInput.value.trim() === 'DELETE MY ACCOUNT') {
-                    confirmDeleteBtn.disabled = false;
-                } else {
-                    confirmDeleteBtn.disabled = true;
-                }
-            };
-
-            deleteConfirmationInput.addEventListener('input', updateDeleteButton);
-            deleteConfirmationInput.addEventListener('keyup', updateDeleteButton);
-
-            confirmDeleteBtn.addEventListener('click', () => {
-                if (deleteConfirmationInput.value.trim() === 'DELETE MY ACCOUNT') {
-                    deleteUserAccount();
-                    deleteAccountModal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                }
-            });
-        }
     }
 
     // Settings button functionality
@@ -3217,11 +3421,11 @@ window.saveSettings = function() {
                 cancelDeleteBtn.disabled = true;
                   const user = window.firebaseAuth.currentUser;
                 if (!user) {
-                    throw new Error('No active neural link found');
+                    throw new Error('No active account found');
                 }
 
                 // Start deletion process
-                showAuthMessage('Initiating neural link termination...', 'info');
+                showAuthMessage('Initiating account deletion...', 'info');
                 
                 // Delete the user from Firebase
                 await window.deleteUser(user);
@@ -3270,13 +3474,13 @@ window.saveSettings = function() {
                 } else if (error.code === 'auth/internal-error') {
                     showAuthMessage('Internal system error. Please try again in a few moments.', 'error');
                 } else {
-                    showAuthMessage('Neural link termination failed: ' + getErrorMessage(error.code), 'error');
+                    showAuthMessage('Account deletion failed: ' + getErrorMessage(error.code), 'error');
                 }
                 
                 deleteConfirmationInput.disabled = false;
                 cancelDeleteBtn.disabled = false;
             } finally {
-                hideAuthLoading(confirmDeleteBtn, 'TERMINATE NEURAL LINK');
+                hideAuthLoading(confirmDeleteBtn, 'DELETE ACCOUNT');
             }
         });        // Handle Escape key
         document.addEventListener('keydown', (e) => {
@@ -3547,11 +3751,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Also force sign-in button if it exists
         const signInBtn = document.getElementById('sign-in-btn');
         const signInModal = document.getElementById('signin-modal');
-        if (signInBtn && signInModal) {
+        if (signInBtn) {
             signInBtn.onclick = function(e) {
                 e.preventDefault();
                 console.log('Sign in clicked (backup handler)');
-                signInModal.style.display = 'flex';
+                const overlay = document.getElementById('signin-modal');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    const currentUrl = window.location.href;
+                    try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
+                    window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+                }
             };
         }
         
@@ -3632,43 +3844,22 @@ function initializeAuthElements() {
         newSignInBtn.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('Sign in button clicked!');
-            
-            // Check if we're already on a sign-in page
-            try {
-                const p = decodeURIComponent(window.location.pathname.toLowerCase());
-                if (p.endsWith('/signin.html') || p.includes('/sign in/index.html')) {
-                    console.log('Already on standalone sign-in page');
-                    return;
-                }
-            } catch {}
-            
-            // Check if an inline auth overlay exists on this page
-            // Prefer standalone page with redirect for consistency
-            const currentUrl = window.location.href;
-            try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
 
-            // Always prefer navigating to the standalone Sign In page with redirect parameter
-            const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
-            console.log('Redirecting to standalone sign-in:', target);
-            window.location.href = target;
-            return;
-            
-            // (Kept for reference) Legacy inline modal fallback if needed:
-            if (window.location.pathname.includes('signin.html')) {
-                console.log('Already on signin page');
-                return;
-            }
-            
-            // Get the sign-in auth overlay explicitly by id
+            // If the centralized header modal exists, open it inline
             const authOverlay = document.getElementById('signin-modal');
             if (authOverlay) {
-                console.log('Auth overlay found, displaying it');
+                console.log('Opening centralized sign-in modal');
                 authOverlay.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
-            } else {
-                console.log('Auth overlay not found, redirecting to signin page');
-                window.location.href = 'Sign In/index.html';
+                return;
             }
+
+            // Fallback: navigate to the standalone Sign In page with redirect parameter
+            const currentUrl = window.location.href;
+            try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
+            const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+            console.log('Modal not found, redirecting to standalone sign-in:', target);
+            window.location.href = target;
         });
         
         console.log('Auth event listeners attached');

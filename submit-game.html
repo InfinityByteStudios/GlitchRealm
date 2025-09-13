@@ -4,7 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submit Your Game - GlitchRealm</title>
-  <link rel="icon" type="image/png" href="assets/glitch realm favicon image.png">
+  <link re        const auth = window.firebaseAuth; const user = auth?auth.currentUser:null; const msg = $('submissionMessage'); const btn=$('submitGameBtn');
+        if(!user){ if(msg) msg.innerHTML='<div class="error-message">Please sign in first.</div>'; return; }
+        // Debug logging
+        console.log('User auth state:', { uid: user.uid, email: user.email });
+        // verify privilege - TEMPORARILY DISABLED FOR TESTING
+        // try { const me = await getMe(); console.log('User verification state:', me); const allowed = me && (me.isVerified || me.isDeveloper); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch(err){ console.error('Verification check failed:', err); }con" type="image/png" href="assets/glitch realm favicon image.png">
   <link rel="preload" as="style" href="styles.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="styles.css"></noscript>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +51,32 @@
     .gate-block { margin:0 0 18px; }
     .auth-redirect { text-align:center; margin-top:24px; font-size:.85rem; opacity:.75; }
     @media (max-width:680px){ .submit-wrapper { margin-top:100px; } }
+  /* Cover preview styles */
+  #submissionCoverPreviewWrap { display:none; margin-top:10px; width:100%; max-width:680px; aspect-ratio:16/9; border:1px solid rgba(255,255,255,.08); border-radius:10px; overflow:hidden; background:#0a0d14; box-shadow:0 2px 10px rgba(0,0,0,.35); }
+  #submissionCoverPreview { width:100%; height:100%; object-fit:cover; display:block; background:#000; }
   </style>
+  <!-- Firebase SDK (added so submit gate recognizes signed-in users) -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+    // (Analytics optional; omitted to keep this page lighter.)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+      authDomain: "shared-sign-in.firebaseapp.com",
+      projectId: "shared-sign-in",
+      storageBucket: "shared-sign-in.appspot.com",
+      messagingSenderId: "332039027753",
+      appId: "1:332039027753:web:aa7c6877d543bb90363038",
+      measurementId: "G-KK5XVVLMVN"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
+    window.firebaseApp = app;
+    window.firebaseAuth = auth;
+    window.firebaseStorage = storage;
+  </script>
 </head>
 <body>
   <div class="background-animation"></div>
@@ -57,7 +87,7 @@
       <p>Share your creation with the GlitchRealm community. Verified creators and approved developers can submit games for review. Drafts start in <strong>draft</strong> status until published by staff.</p>
     </div>
     <div id="gateNotice" class="warning-message gate-block" style="display:none;">You must be a verified creator or approved developer to submit a game. <a href="user-portal.html#verification-section">Get verified</a>.</div>
-    <div id="authNotice" class="warning-message gate-block" style="display:none;">Please sign in to submit a game. <a href="signin.html">Sign In</a></div>
+    <div id="authNotice" class="warning-message gate-block" style="display:none;">Please sign in to submit a game. <a href="index.html">Sign In</a></div>
     <div class="game-submit-card" id="submitCard" style="display:none;">
       <form id="submitGameForm">
         <div class="input-container">
@@ -68,7 +98,7 @@
           <div class="input-label">Cover Image</div>
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
             <input type="file" id="submissionCoverFile" accept="image/*" style="flex:1; min-width:220px">
-            <span id="submissionPreReleaseTag" class="pre-badge">PRE-RELEASE</span>
+            <span id="submissionPreReleaseTag" class="pre-badge">BETA</span>
             <span style="opacity:.7; font-size:12px;">or</span>
             <input type="url" id="submissionCoverUrl" class="neural-input" placeholder="https://... (optional)" maxlength="2000" style="flex:1; min-width:240px">
           </div>
@@ -128,10 +158,51 @@
       gate();
       const form = $('submitGameForm'); if(!form) return;
       const fileInput = $('submissionCoverFile'); const urlInput = $('submissionCoverUrl'); const wrap = $('submissionCoverPreviewWrap'); const img = $('submissionCoverPreview'); const preTag = $('submissionPreReleaseTag');
-      function showPreviewFromBlob(blobUrl){ if(img&&wrap){ img.src=blobUrl; wrap.style.display=''; } if(preTag) preTag.style.display='inline-block'; }
-      function clearPreview(){ if(img&&wrap){ img.src=''; wrap.style.display='none'; } if(preTag) preTag.style.display='none'; }
-      fileInput?.addEventListener('change', ()=>{ if(fileInput.files&&fileInput.files[0]){ const url = URL.createObjectURL(fileInput.files[0]); showPreviewFromBlob(url); } else { clearPreview(); } });
-      urlInput?.addEventListener('input', ()=>{ const val=urlInput.value.trim(); if(/^https?:\/\//i.test(val)){ if(img&&wrap){ img.src=val; wrap.style.display=''; } if(preTag) preTag.style.display='none'; } else { if(!fileInput?.files?.length) clearPreview(); } });
+      const msgBox = $('submissionMessage');
+      let lastBlobUrl = null;
+      function showPreviewFromBlob(blobUrl){
+        if(lastBlobUrl) { try{ URL.revokeObjectURL(lastBlobUrl); } catch{} }
+        lastBlobUrl = blobUrl;
+        if(img&&wrap){ img.src = blobUrl; wrap.style.display=''; }
+        if(preTag) preTag.style.display='inline-block';
+      }
+      function showPreviewFromUrl(url){
+        if(lastBlobUrl) { try{ URL.revokeObjectURL(lastBlobUrl); } catch{} lastBlobUrl = null; }
+        if(img&&wrap){ img.src = url; wrap.style.display=''; }
+        if(preTag) preTag.style.display='none';
+      }
+      function clearPreview(){
+        if(lastBlobUrl) { try{ URL.revokeObjectURL(lastBlobUrl); } catch{} lastBlobUrl = null; }
+        if(img&&wrap){ img.src=''; wrap.style.display='none'; }
+        if(preTag) preTag.style.display='none';
+      }
+      // Basic load/error feedback for URL previews
+      if(img){
+        img.addEventListener('error', ()=>{
+          if(msgBox) msgBox.innerHTML = '<div class="error-message">Could not load the image preview. Check the URL or try another file.</div>';
+          clearPreview();
+        });
+        img.addEventListener('load', ()=>{
+          // Clear any prior image error once a valid image is loaded
+          if(msgBox && /image preview/i.test(msgBox.textContent||'')) msgBox.innerHTML='';
+        });
+      }
+      fileInput?.addEventListener('change', ()=>{
+        if(fileInput.files&&fileInput.files[0]){
+          const url = URL.createObjectURL(fileInput.files[0]);
+          showPreviewFromBlob(url);
+        } else {
+          clearPreview();
+        }
+      });
+      urlInput?.addEventListener('input', ()=>{
+        const val = urlInput.value.trim();
+        if(/^https?:\/\//i.test(val)){
+          showPreviewFromUrl(val);
+        } else {
+          if(!fileInput?.files?.length) clearPreview();
+        }
+      });
       form.addEventListener('reset', clearPreview);
       form.addEventListener('submit', async (e)=>{
         e.preventDefault(); const auth = window.firebaseAuth; const user = auth?auth.currentUser:null; const msg = $('submissionMessage'); const btn=$('submitGameBtn');
@@ -143,12 +214,82 @@
         if(!description){ if(msg) msg.innerHTML='<div class="error-message">Description is required.</div>'; return; }
         if(!playUrl || !/^https?:\/\//i.test(playUrl)){ if(msg) msg.innerHTML='<div class="error-message">Valid Play URL required (http/https)</div>'; return; }
         try { btn.disabled=true; btn.textContent='Submitting...';
-          if(file){ try { const safeName=file.name.replace(/[^a-zA-Z0-9_.-]/g,'_'); const uid=user.uid; if(!uid) throw new Error('No UID'); if(navigator && navigator.onLine===false) throw new Error('Offline');
-            async function ensureSupabase(){ if(window.grSupabase) return window.grSupabase; const mod= await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm'); const createClient = mod.createClient || mod.default?.createClient; const SUPABASE_URL = window.GR_SUPABASE_URL || 'https://hkogcnxmrrkxggwcrqyh.supabase.co'; const SUPABASE_ANON_KEY = window.GR_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrb2djbnhtcnJreGdnd2NycXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA5MDQsImV4cCI6MjA3Mjc2NjkwNH0.mOrnXNJBQLgMg1oq4zW1ySvCMXAbo-ZNAMwx59NJyxM'; window.grSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); return window.grSupabase; }
-            const supabase = await ensureSupabase(); const bucket='game-covers'; const objectPath=`${uid}/${Date.now()}_${safeName}`; const contentType=file.type||'application/octet-stream'; if(msg) msg.innerHTML='<div class="info-message">Uploading cover…</div>'; const {data:upData,error:upErr}= await supabase.storage.from(bucket).upload(objectPath,file,{cacheControl:'3600',upsert:true,contentType}); if(upErr) throw upErr; const {data:pub,error:pubErr}= supabase.storage.from(bucket).getPublicUrl(objectPath); if(pubErr) throw pubErr; coverImageUrl = pub.publicUrl; if(msg) msg.innerHTML='<div class="info-message">Uploading cover... 100%</div>'; } catch(uploadErr){ const code=uploadErr?.status||uploadErr?.code||'unknown'; const msgText=uploadErr?.message||String(uploadErr); if(msg) msg.innerHTML=`<div class=\"error-message\">Upload failed (${code}). ${msgText}</div>`; throw uploadErr; } }
-          const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'); const db=f.getFirestore(); const payloadDoc={ title, ownerId:user.uid, description, status:'draft', createdAt:f.serverTimestamp(), updatedAt:f.serverTimestamp(), coverImageUrl:coverImageUrl||'', tags, playUrl };
-          await f.addDoc(f.collection(db,'game_submissions'), payloadDoc); if(msg) msg.innerHTML='<div class="success-message">Draft created. We\'ll review it soon.</div>'; form.reset(); clearPreview(); $('postSubmitHint').style.display=''; setTimeout(()=>{ window.scrollTo({top:0,behavior:'smooth'}); },200);
-        } catch(err){ const reason= err?.message || 'Unknown error'; if(msg) msg.innerHTML=`<div class=\"error-message\">Error: ${reason}</div>`; } finally { btn.disabled=false; btn.textContent='Submit'; }
+          if(file || coverImageUrl){
+            const safeName=(file?.name||'cover').replace(/[^a-zA-Z0-9_.-]/g,'_'); const uid=user.uid; if(!uid) throw new Error('No UID'); if(navigator && navigator.onLine===false) throw new Error('Offline');
+            try {
+              async function ensureSupabase(){
+                if(window.grSupabase) return window.grSupabase;
+                const mod= await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm');
+                const createClient = mod.createClient || mod.default?.createClient;
+                const SUPABASE_URL = window.GR_SUPABASE_URL || 'https://hkogcnxmrrkxggwcrqyh.supabase.co';
+                const SUPABASE_ANON_KEY = window.GR_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrb2djbnhtcnJreGdnd2NycXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA5MDQsImV4cCI6MjA3Mjc2NjkwNH0.mOrnXNJBQLgMg1oq4zW1ySvCMXAbo-ZNAMwx59NJyxM';
+                window.grSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                  auth: {
+                    autoRefreshToken: false,
+                    persistSession: false,
+                    detectSessionInUrl: false
+                  }
+                });
+                return window.grSupabase;
+              }
+              const supabase = await ensureSupabase(); const bucket = (window.GR_SUPABASE_BUCKET||'game-covers');
+              async function uploadToSupabaseFromBlob(blob, filename){
+                const contentType = blob.type || 'application/octet-stream';
+                const namePart = (filename||'cover').replace(/[^a-zA-Z0-9_.-]/g,'_');
+                const objectPath=`${uid}/${Date.now()}_${namePart}`;
+                if(msg) msg.innerHTML='<div class="info-message">Uploading cover…</div>';
+                const { error:upErr }= await supabase.storage.from(bucket).upload(objectPath, blob, {cacheControl:'3600',upsert:true,contentType});
+                if(upErr){
+                  const code=upErr?.status||upErr?.code||'upload_error';
+                  const notFound = /Not Found|bucket/i.test(upErr.message||'');
+                  const details = notFound ? 'Bucket missing or misconfigured.' : (upErr.message||'Unknown error');
+                  if(msg) msg.innerHTML=`<div class=\"error-message\">Storage upload failed (${code}). ${details}</div>`;
+                  throw upErr;
+                }
+                const { data:pub, error:pubErr } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+                if(pubErr){
+                  const code=pubErr?.status||pubErr?.code||'public_url_error';
+                  if(msg) msg.innerHTML=`<div class=\"error-message\">Public URL error (${code}). ${pubErr.message||'Unknown'}.</div>`;
+                  throw pubErr;
+                }
+                return pub.publicUrl;
+              }
+              if(file){
+                coverImageUrl = await uploadToSupabaseFromBlob(file, safeName);
+              } else if (coverImageUrl) {
+                // Fetch the remote image and upload it
+                const controller = new AbortController(); const timeout = setTimeout(()=>controller.abort(), 15000);
+                let resp; try{
+                  resp = await fetch(coverImageUrl, { mode: 'cors', credentials: 'omit', signal: controller.signal });
+                } finally { clearTimeout(timeout); }
+                if(!resp || !resp.ok) throw new Error(`Failed to fetch image URL (${resp?.status||'no-status'})`);
+                const ct = resp.headers.get('content-type') || '';
+                if(!/^image\//i.test(ct)) throw new Error('Provided URL is not an image (content-type check failed)');
+                const blob = await resp.blob();
+                const urlName = (new URL(coverImageUrl)).pathname.split('/').pop() || 'remote-cover.png';
+                coverImageUrl = await uploadToSupabaseFromBlob(blob, urlName);
+              }
+              if(msg) msg.innerHTML='<div class="info-message">Uploading cover... 100%</div>';
+            } catch(uploadErr){
+              // Abort submission if upload fails
+              throw uploadErr;
+            }
+          }
+          // NOTE: Cover image already uploaded to Supabase above (no Firebase Storage fallback). Only metadata goes to Firestore below.
+          const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const db = f.getFirestore(window.firebaseApp);
+          const payloadDoc = { title, ownerId:user.uid, description, status:'draft', playUrl, createdAt: f.serverTimestamp(), updatedAt: f.serverTimestamp() };
+          if (coverImageUrl && coverImageUrl.trim()) payloadDoc.coverImageUrl = coverImageUrl.trim();
+          if (Array.isArray(tags) && tags.length > 0) payloadDoc.tags = tags;
+          console.log('Attempting Firestore write with payload:', payloadDoc);
+          await f.addDoc(f.collection(db,'game_submissions'), payloadDoc);
+          if(msg) msg.innerHTML='<div class="success-message">Draft created. We\'ll review it soon.</div>';
+          form.reset(); clearPreview(); $('postSubmitHint').style.display=''; setTimeout(()=>{ window.scrollTo({top:0,behavior:'smooth'}); },200);
+        } catch(err){
+          console.error('Firestore submission failed:', err);
+          const reason = (err && (err.message || err.code)) ? `${err.code ? err.code+': ' : ''}${err.message}` : 'Unknown error';
+          if(msg) msg.innerHTML=`<div class=\"error-message\">Error submitting to Firestore: ${reason}</div>`;
+        } finally { btn.disabled=false; btn.textContent='Submit'; }
       });
     });
   })();

@@ -1073,26 +1073,48 @@
             }
         }
 
-        // Send password reset email to the current user's email
+        // Send password reset email; works when signed in or via current-email field
         async function sendResetEmailForUser() {
             const ok = document.getElementById('reset-success');
             const err = document.getElementById('reset-error');
+            const btn = document.getElementById('send-reset-email-btn');
             ok.style.display = 'none'; err.style.display = 'none';
             try {
-                const user = window.firebaseAuth.currentUser;
-                if (!user || !user.email) throw new Error('Not signed in.');
-                await window.sendPasswordResetEmail(window.firebaseAuth, user.email);
+                // Derive target email: prefer signed-in user's email; fallback to current-email field if present
+                const user = window.firebaseAuth && window.firebaseAuth.currentUser;
+                let email = (user && user.email) ? user.email : '';
+                if (!email) {
+                    const field = document.getElementById('current-email');
+                    if (field && field.value && /.+@.+\..+/.test(field.value)) {
+                        email = field.value.trim();
+                    }
+                }
+
+                if (!email) {
+                    // If we can't determine an email, route to the dedicated Forgot Password page
+                    showAuthMessage('Please use the Forgot Password page to request a reset.', 'info');
+                    setTimeout(() => { window.location.href = 'forgot-password.html'; }, 250);
+                    return;
+                }
+
+                // Prevent rapid double-clicks
+                if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+                await window.sendPasswordResetEmail(window.firebaseAuth, email);
                 ok.style.display = 'block';
                 showAuthMessage('Reset email sent', 'success');
             } catch (e) {
                 console.error('send reset email', e);
                 const code = e && e.code;
                 let msg = 'Error sending reset email.';
-                if (code === 'auth/invalid-email') msg = 'Invalid email on account.';
-                else if (code === 'auth/user-not-found') msg = 'Password reset not available for this sign-in method.';
+                if (code === 'auth/invalid-email') msg = 'Invalid email address.';
+                else if (code === 'auth/user-not-found') msg = 'No account found for this email.';
+                else if (code === 'auth/missing-email') msg = 'Missing email. Use Forgot Password to continue.';
                 err.textContent = msg;
                 err.style.display = 'block';
                 showAuthMessage(msg, 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Send Reset Email'; }
             }
         }
         
@@ -1393,127 +1415,7 @@
     </script>
     
     <!-- Auth Overlay Modal -->
-    <div id="signin-modal" class="auth-overlay" style="display: none;">
-        <div class="auth-panel">
-            <div class="auth-header">
-                <div class="auth-logo">
-                    <span class="glitch" data-text="GLITCHREALM ACCESS">GLITCHREALM ACCESS</span>
-                </div>
-                <button class="auth-close" id="close-modal">
-                    <span class="close-icon">×</span>
-                </button>
-            </div>
-            
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-tab="signin">
-                    <span class="tab-icon">
-                        <svg class="icon-svg" viewBox="0 0 24 24">
-                            <path d="M10,17V14H3V10H10V7L15,12L10,17M10,2H19A2,2 0 0,1 21,4V20A2,2 0 0,1 19,22H10A2,2 0 0,1 8,20V18H10V20H19V4H10V6H8V4A2,2 0 0,1 10,2Z"/>
-                        </svg>
-                    </span>
-                    <span>SIGN IN</span>
-                </button>
-                <button class="auth-tab" data-tab="signup">
-                    <span class="tab-icon">
-                        <svg class="icon-svg" viewBox="0 0 24 24">
-                            <path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M6,10V7H4V10H1V12H4V15H6V12H9V10M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12Z"/>
-                        </svg>
-                    </span>
-                    <span>SIGN UP</span>
-                </button>
-            </div>
-            
-            <div id="authMessage" class="auth-message hidden"></div>
-            
-            <div class="auth-content">
-                <!-- Sign In Form -->
-                <div class="auth-form-container active" id="signin-form">
-                    <div class="form-title">
-                        <span class="glitch-small" data-text="AUTHENTICATE">AUTHENTICATE</span>
-                    </div>
-                    <form id="email-signin-form" class="neural-form">
-                        <div class="input-container">
-                            <div class="input-label">Email/Username</div>
-                            <input type="email" id="signin-email" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <div class="input-container">
-                            <div class="input-label">Password</div>
-                            <input type="password" id="signin-password" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <button type="submit" class="neural-button primary">
-                            <span class="button-text">INITIATE CONNECTION</span>
-                            <div class="button-glow"></div>
-                        </button>
-                    </form>
-                    
-                    <div class="auth-options">
-                        <button id="forgot-password" class="text-button">Forgot Password?</button>
-                    </div>
-                    
-                    <div class="auth-divider">OR</div>
-                    
-                    <div class="social-auth">
-                        <button id="google-auth" class="neural-button google">
-                            <span class="button-icon">G</span>
-                            <span class="button-text">Google</span>
-                        </button>
-                        <button id="github-auth" class="neural-button github">
-                            <span class="button-icon"></span>
-                            <span class="button-text">GitHub</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Sign Up Form -->
-                <div class="auth-form-container" id="signup-form">
-                    <div class="form-title">
-                        <span class="glitch-small" data-text="CREATE ACCOUNT">CREATE ACCOUNT</span>
-                    </div>
-                    <form id="email-signup-form" class="neural-form">
-                        <div class="input-container">
-                            <div class="input-label">Email</div>
-                            <input type="email" id="signup-email" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <div class="input-container">
-                            <div class="input-label">Password</div>
-                            <input type="password" id="signup-password" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <div class="input-container">
-                            <div class="input-label">Confirm Password</div>
-                            <input type="password" id="confirm-password" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <button type="submit" class="neural-button primary">
-                            <span class="button-text">CREATE NEW IDENTITY</span>
-                            <div class="button-glow"></div>
-                        </button>
-                    </form>
-                    
-                    <div class="auth-divider">OR</div>
-                    
-                    <div class="social-auth">
-                        <button id="google-signup" class="neural-button google">
-                            <span class="button-icon">G</span>
-                            <span class="button-text">Google</span>
-                        </button>
-                        <button id="github-signup" class="neural-button github">
-                            <span class="button-icon"></span>
-                            <span class="button-text">GitHub</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Sign In Modal is now provided by header.html -->
 </body>
 <script>(function(){const c={src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};function i(){if(document.getElementById('bmc-widget-script'))return;const s=document.createElement('script');s.id='bmc-widget-script';s.src=c.src;s.dataset.name='BMC-Widget';s.setAttribute('data-cfasync','false');s.setAttribute('data-id',c.id);s.setAttribute('data-description',c.desc);s.setAttribute('data-message',c.msg);s.setAttribute('data-color',c.color);s.setAttribute('data-position',c.pos);s.setAttribute('data-x_margin',c.x);s.setAttribute('data-y_margin',c.y);document.body.appendChild(s);}if(window.requestIdleCallback)requestIdleCallback(i,{timeout:2500});else window.addEventListener('load',()=>setTimeout(i,600));['pointerdown','keydown','scroll'].forEach(e=>window.addEventListener(e,i,{once:true,passive:true}));})();</script>
 </html>

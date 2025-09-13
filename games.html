@@ -77,6 +77,41 @@
             }
         }, 2000);
     </script>
+    <script>
+    // Show "Submit your game here" CTA for verified users or developer UIDs
+    (function(){
+        const DEV_UIDS = new Set([
+            '6iZDTXC78aVwX22qrY43BOxDRLt1',
+            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+        ]);
+        async function checkAndShowCTA(){
+            try{
+                const cta = document.getElementById('verified-submit-cta');
+                if(!cta) return;
+                if(!window.firebaseAuth || !window.firebaseFirestore){ return; }
+                const user = window.firebaseAuth.currentUser;
+                if(!user){ return; }
+                // Developers always see it
+                if(DEV_UIDS.has(user.uid)){ cta.style.display = 'block'; return; }
+                // Check verified_users/{uid}.verified == true
+                const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const db = f.getFirestore();
+                const snap = await f.getDoc(f.doc(db,'verified_users',user.uid));
+                const isVerified = snap.exists() && snap.data() && snap.data().verified === true;
+                if(isVerified){ cta.style.display = 'block'; }
+            }catch(e){ console.warn('CTA verification check failed:', e); }
+        }
+        // Run once Firebase likely initialized
+        window.addEventListener('DOMContentLoaded', ()=> setTimeout(checkAndShowCTA, 1200));
+        // Also react to auth state changes if available
+        if (window.firebaseAuth && typeof window.firebaseAuth.onAuthStateChanged === 'function'){
+            window.firebaseAuth.onAuthStateChanged(()=> setTimeout(checkAndShowCTA, 600));
+        }
+    })();
+    </script>
     <style>
     /* Performance: avoid rendering offscreen cards until scrolled into view */
     .game-card { content-visibility: auto; contain-intrinsic-size: 400px 1px; }
@@ -1182,6 +1217,9 @@
                     <span class="glitch" data-text="Our Games">Our Games</span>
                 </h1>
                 <p class="page-subtitle">Enter the digital realm and explore our cyberpunk gaming universe</p>
+                <p id="verified-submit-cta" class="page-subtitle" style="display:none; font-size:0.95rem;">
+                    Submit your game <a href="submit-game.html" style="text-decoration:underline; color: var(--primary-cyan);">here</a>.
+                </p>
             </div>
         </section>        <section class="games-grid">
             <div class="container">
@@ -1191,6 +1229,13 @@
                             <img src="assets/Game Logos/ShadowLight.png" alt="ShadowLight" class="game-logo-image" loading="eager" fetchpriority="high" decoding="async">
                             <div class="card-overlay"></div>
                             <div class="game-badge removed">GAME REMOVED</div>
+                            <!-- Game Card Menu Buttons (top right) -->
+                            <div class="game-card-menu" data-game-menu>
+                                <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;">✏️ Edit</button>
+                                <button class="menu-btn delete-btn" data-action="delete" title="Delete Game" style="display:none;">🗑️ Delete</button>
+                                <button class="menu-btn report-btn" data-action="report" title="Report Game" style="display:none;">🚩 Report</button>
+                                <button class="menu-btn three-dot-btn" data-action="report" title="Report Game" style="display:none;">⋮</button>
+                            </div>
                         </div><div class="card-content">
                             <h3 class="card-title">ShadowLight</h3>
                             <p class="card-description">Navigate through the delicate balance between light and shadow in this atmospheric puzzle adventure. Master the interplay of illumination and darkness to solve mind-bending challenges.</p>
@@ -1202,6 +1247,7 @@
                                 <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
                             </div><button class="btn card-btn" onclick="openGameRemovedModal('ShadowLight')">Why Removed?</button>
+                                
                         </div>
                     </div>                    <!-- ByteSurge Game Card -->
                     <div class="game-card" data-game="bytesurge">
@@ -1209,6 +1255,13 @@
                             <img src="assets/Game Logos/ByteSurge.png" alt="ByteSurge" class="game-logo-image" loading="lazy" decoding="async">
                             <div class="card-overlay"></div>
                             <div class="game-badge new">NEW</div>
+                            <!-- Game Card Menu Buttons (top right) -->
+                            <div class="game-card-menu" data-game-menu>
+                                <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;">✏️ Edit</button>
+                                <button class="menu-btn delete-btn" data-action="delete" title="Delete Game" style="display:none;">🗑️ Delete</button>
+                                <button class="menu-btn report-btn" data-action="report" title="Report Game" style="display:none;">🚩 Report</button>
+                                <button class="menu-btn three-dot-btn" data-action="report" title="Report Game" style="display:none;">⋮</button>
+                            </div>
                         </div>
                         <div class="card-content">
                             <h3 class="card-title">ByteSurge</h3>
@@ -1222,13 +1275,22 @@
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
                             </div>
                             <button onclick="showGameOptionsModal('bytesurge', 'ByteSurge', 'Games/ByteSurge/index.html', 'https://bytesurgeloop.netlify.app/')" class="btn btn-primary card-btn">Play Now</button>
+                                
                         </div>
                     </div>
 
                     <!-- NeuroCore: Byte Wars Game Card -->
                     <div class="game-card" data-game="neurocore">                        <div class="card-image">
-                            <img src="assets/Game Logos/NeuroCore Byte Wars Logo.png" alt="NeuroCore: Byte Wars" class="game-logo-image" loading="lazy" decoding="async">                            <div class="card-overlay"></div>
+                            <img src="assets/Game Logos/NeuroCore Byte Wars Logo.png" alt="NeuroCore: Byte Wars" class="game-logo-image" loading="lazy" decoding="async">
+                            <div class="card-overlay"></div>
                             <div class="game-badge coming-soon" style="display: none;">UPDATE SOON</div>
+                            <!-- Game Card Menu Buttons (top right) -->
+                            <div class="game-card-menu" data-game-menu>
+                                <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;">✏️ Edit</button>
+                                <button class="menu-btn delete-btn" data-action="delete" title="Delete Game" style="display:none;">🗑️ Delete</button>
+                                <button class="menu-btn report-btn" data-action="report" title="Report Game" style="display:none;">🚩 Report</button>
+                                <button class="menu-btn three-dot-btn" data-action="report" title="Report Game" style="display:none;">⋮</button>
+                            </div>
                         </div>                        <div class="card-content">
                             <h3 class="card-title">NeuroCore: Byte Wars</h3>
                             <p class="card-description">Engage in neural combat using advanced algorithms. Battle through digital networks in this strategic warfare game.</p>
@@ -1241,6 +1303,7 @@
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
                             </div>
                             <button onclick="showGameOptionsModal('neurocore', 'NeuroCore: Byte Wars', 'Games/ByteWars/index.html', 'https://neurocorebytewars.netlify.app/')" class="btn btn-primary card-btn">Play Now</button>
+                                
                         </div>
                     </div>
 
@@ -1250,6 +1313,13 @@
                             <img src="assets/Game Logos/CodeRunner Logo.png" alt="CodeRunner" class="game-logo-image" loading="lazy" decoding="async">
                             <div class="card-overlay"></div>
                             <div class="game-badge updated">UPDATED</div>
+                            <!-- Game Card Menu Buttons (top right) -->
+                            <div class="game-card-menu" data-game-menu style="position:absolute; top:10px; right:10px; z-index:10; display:flex; flex-direction:column; gap:8px;">
+                                <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none; background:rgba(0,255,249,0.85); color:#041018; border:none; border-radius:8px; padding:6px 14px; font-size:15px; font-family:'Orbitron',sans-serif; box-shadow:0 2px 8px rgba(0,255,249,0.18); cursor:pointer; transition:background 0.2s;">✏️ Edit</button>
+                                <button class="menu-btn delete-btn" data-action="delete" title="Delete Game" style="display:none; background:rgba(255,0,128,0.85); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:15px; font-family:'Orbitron',sans-serif; box-shadow:0 2px 8px rgba(255,0,128,0.18); cursor:pointer; transition:background 0.2s;">🗑️ Delete</button>
+                                <button class="menu-btn report-btn" data-action="report" title="Report Game" style="display:none; background:rgba(255,215,0,0.85); color:#041018; border:none; border-radius:8px; padding:6px 14px; font-size:15px; font-family:'Orbitron',sans-serif; box-shadow:0 2px 8px rgba(255,215,0,0.18); cursor:pointer; transition:background 0.2s;">🚩 Report</button>
+                                <button class="menu-btn three-dot-btn" data-action="report" title="Report Game" style="display:none; background:rgba(0,0,0,0.7); color:#fff; border:none; border-radius:50%; width:38px; height:38px; font-size:22px; font-family:'Orbitron',sans-serif; box-shadow:0 2px 8px rgba(0,0,0,0.18); cursor:pointer; transition:background 0.2s; align-self:flex-end;">⋮</button>
+                            </div>
                         </div><div class="card-content">                            <h3 class="card-title">CodeRunner</h3>
                             <p class="card-description">Navigate through digital mazes while solving programming challenges. Race against time in this cyberpunk coding adventure.</p>
                             <p class="card-developer">Made by <a href="about.html"><strong>NanoShade Studios</strong></a> <button class="review-btn" onclick="openReviewModal('coderunner', 'CodeRunner')">⭐ Review</button><span class="rating-display" data-game-id="coderunner"><span class="no-rating">N/A (0)</span></span></p>                            <div class="card-tags">
@@ -1261,6 +1331,13 @@
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS (doesn't work well in Safari)"></i>
                             </div>
                             <button onclick="showGameOptionsModal('coderunner', 'CodeRunner', 'Games/CodeRunner/index.html', 'https://coderunner-quest.netlify.app/')" class="btn btn-primary card-btn">Play Now</button>
+                                <!-- Game Card Menu Buttons -->
+                                <div class="game-card-menu" data-game-menu>
+                                    <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;"><span>✏️ Edit</span></button>
+                                    <button class="menu-btn delete-btn" data-action="delete" title="Delete Game" style="display:none;"><span>🗑️ Delete</span></button>
+                                    <button class="menu-btn report-btn" data-action="report" title="Report Game" style="display:none;"><span>🚩 Report</span></button>
+                                    <button class="menu-btn three-dot-btn" data-action="report" title="Report Game" style="display:none;"><span>⋮</span></button>
+                                </div>
                         </div>
                     </div>
 
@@ -1323,147 +1400,18 @@
 
     <div id="footer-placeholder"></div>
 
-   <!-- Sign In Modal -->
-    <div id="signin-modal" class="auth-overlay" style="display: none;">
-        <div class="auth-panel">
-            <div class="auth-header">
-                <div class="auth-logo">
-                    <span class="glitch" data-text="GLITCHREALM ACCESS">GLITCHREALM ACCESS</span>
-                </div>
-                <button class="auth-close" id="close-modal">
-                    <span class="close-icon">×</span>
-                </button>
-            </div>
-            
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-tab="signin">
-                    <span class="tab-icon">
-                        <svg class="icon-svg" viewBox="0 0 24 24">
-                            <path d="M10,17V14H3V10H10V7L15,12L10,17M10,2H19A2,2 0 0,1 21,4V20A2,2 0 0,1 19,22H10A2,2 0 0,1 8,20V18H10V20H19V4H10V6H8V4A2,2 0 0,1 10,2Z"/>
-                        </svg>
-                    </span>
-                    <span>SIGN IN</span>
-                </button>
-                <button class="auth-tab" data-tab="signup">
-                    <span class="tab-icon">
-                        <svg class="icon-svg" viewBox="0 0 24 24">
-                            <path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M6,10V7H4V10H1V12H4V15H6V12H9V10M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12Z"/>
-                        </svg>
-                    </span>
-                    <span>SIGN UP</span>
-                </button>
-            </div>
-            
-            <div class="auth-content">
-                <!-- Sign In Form -->
-                <div class="auth-form-container active" id="signin-form">
-                    <div class="form-title">
-                        <span class="glitch-small" data-text="AUTHENTICATE">AUTHENTICATE</span>
-                    </div>
-                    <form id="email-signin-form" class="neural-form">
-                        <div class="input-container">
-                            <div class="input-label">Email/Username</div>
-                            <input type="email" id="signin-email" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <div class="input-container">
-                            <div class="input-label">Password</div>
-                            <input type="password" id="signin-password" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <button type="submit" class="neural-button primary">
-                            <span class="button-text">INITIATE CONNECTION</span>
-                            <div class="button-glow"></div>
-                        </button>
-                        <button type="button" class="forgot-link">
-                            <span>Forgot Password?</span>
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Sign Up Form -->
-                <div class="auth-form-container" id="signup-form">
-                    <div class="form-title">
-                        <span class="glitch-small" data-text="INITIALIZE">INITIALIZE</span>
-                    </div>
-                    <form id="email-signup-form" class="neural-form">
-                        <div class="input-container">
-                            <div class="input-label">Email</div>
-                            <input type="email" id="signup-email" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <div class="input-container">
-                            <div class="input-label">Password</div>
-                            <input type="password" id="signup-password" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <div class="input-container">
-                            <div class="input-label">Confirm Password</div>
-                            <input type="password" id="confirm-password" class="neural-input" required>
-                            <div class="input-line"></div>
-                        </div>
-                        
-                        <button type="submit" class="neural-button primary">
-                            <span class="button-text">CREATE NEURAL LINK</span>
-                            <div class="button-glow"></div>
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Divider -->
-                <div class="auth-divider">
-                    <div class="divider-line"></div>
-                    <span class="divider-text">ALTERNATIVE ACCESS</span>
-                    <div class="divider-line"></div>
-                </div>
-                
-                <!-- Social Login -->
-                <div class="social-auth">
-                    <button id="google-signin" class="social-button google">
-                        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
-                        <span id="google-button-text">Sign in with Google</span>
-                        <div class="social-glow"></div>
-                    </button>
-                    
-                    <button id="github-signin" class="social-button github">
-                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
-                        <span id="github-button-text">Sign in with GitHub</span>
-                        <div class="social-glow"></div>
-                    </button>
-                    
-                    <button id="anonymous-signin" class="social-button guest">
-                        <img src="https://cdn.jsdelivr.net/gh/feathericons/feather/icons/user.svg" alt="Anonymous" class="social-icon" loading="lazy" decoding="async" width="24" height="24">
-                        <span>ANONYMOUS MODE</span>
-                        <div class="social-glow"></div>
-                    </button>
-                </div>
-                
-                <!-- Terms Agreement -->
-                <div class="terms-agreement">
-                    <p>By signing in / signing up you agree to our <a href="terms-of-service.html" target="_blank">Terms of Service</a> and <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.</p>
-                </div>
-            </div>
-            
-            <!-- Background Effects -->
-            <div class="auth-bg-effect"></div>
-            <div class="auth-scanlines"></div>
-        </div>
-    </div>
+    <!-- Sign In Modal is now provided by header.html -->
 
     <!-- Delete Account Confirmation Modal -->
     <div id="delete-account-modal" class="auth-overlay" style="display: none;">
         <div class="auth-panel danger">
             <div class="auth-header warning">
                 <div class="auth-logo">
-                    <span class="glitch-constant" data-text="⚠ NEURAL LINK TERMINATION ⚠">
+                        <span class="glitch-constant" data-text="⚠ ACCOUNT DELETION ⚠">
                         <svg class="icon-svg" viewBox="0 0 24 24">
                             <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
                         </svg>
-                        NEURAL LINK TERMINATION 
+                            ACCOUNT DELETION 
                         <svg class="icon-svg" viewBox="0 0 24 24">
                             <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
                         </svg>
@@ -1487,11 +1435,11 @@
                 
                 <div class="warning-actions">
                     <button id="cancel-delete" class="neural-button secondary">
-                        <span class="button-text">CANCEL TERMINATION</span>
+                        <span class="button-text">CANCEL ACCOUNT DELETION</span>
                         <div class="button-glow"></div>
                     </button>
                     <button id="confirm-delete" class="neural-button danger">
-                        <span class="button-text">TERMINATE NEURAL LINK</span>
+                        <span class="button-text">DELETE ACCOUNT</span>
                         <div class="button-glow danger"></div>
                     </button>
                 </div>
@@ -1663,6 +1611,68 @@
                 <div class="reviews-list" id="modal-reviews-list">
                     <div class="reviews-loading">Loading reviews...</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Game Modal -->
+    <div id="report-game-modal" class="auth-overlay" style="display:none;">
+        <div class="auth-panel" style="max-width:520px;">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <span class="glitch" data-text="REPORT GAME">REPORT GAME</span>
+                </div>
+                <button class="auth-close" id="close-report-game">
+                    <span class="close-icon">×</span>
+                </button>
+            </div>
+            <div class="auth-content">
+                <form id="report-game-form" class="neural-form">
+                    <div style="margin-bottom:10px; opacity:0.85;">
+                        Select a reason and provide optional details to help our moderators.
+                    </div>
+                    <fieldset class="input-container" style="border:none; padding:0; margin:0 0 10px 0;">
+                        <div class="input-label">Reason</div>
+                        <div class="input-line" style="display:none;"></div>
+                        <div class="report-options" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+                            <label style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--gray-700); background: rgba(255,255,255,0.03); cursor:pointer; user-select:none;">
+                                <input type="radio" name="report-game-reason" value="Bug / broken" required> <span>Bug / broken</span>
+                            </label>
+                            <label style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--gray-700); background: rgba(255,255,255,0.03); cursor:pointer; user-select:none;">
+                                <input type="radio" name="report-game-reason" value="Cheating / exploit"> <span>Cheating / exploit</span>
+                            </label>
+                            <label style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--gray-700); background: rgba(255,255,255,0.03); cursor:pointer; user-select:none;">
+                                <input type="radio" name="report-game-reason" value="Spam"> <span>Spam</span>
+                            </label>
+                            <label style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--gray-700); background: rgba(255,255,255,0.03); cursor:pointer; user-select:none;">
+                                <input type="radio" name="report-game-reason" value="Offensive / harassment"> <span>Offensive / harassment</span>
+                            </label>
+                            <label style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--gray-700); background: rgba(255,255,255,0.03); cursor:pointer; user-select:none;">
+                                <input type="radio" name="report-game-reason" value="NSFW / inappropriate"> <span>NSFW / inappropriate</span>
+                            </label>
+                            <label style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--gray-700); background: rgba(255,255,255,0.03); cursor:pointer; user-select:none;">
+                                <input type="radio" name="report-game-reason" value="Copyright / DMCA"> <span>Copyright / DMCA</span>
+                            </label>
+                            <label style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--gray-700); background: rgba(255,255,255,0.03); cursor:pointer; user-select:none; grid-column: 1 / -1;">
+                                <input type="radio" name="report-game-reason" value="Other"> <span>Other</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <div class="input-container">
+                        <div class="input-label">Details (optional)</div>
+                        <textarea id="report-game-details" class="neural-input" rows="4" maxlength="500" placeholder="Add any helpful context (max 500 characters)"></textarea>
+                        <div class="input-line"></div>
+                    </div>
+                    <div style="display:flex; gap:8px; justify-content:flex-end;">
+                        <button type="button" class="neural-button secondary" id="cancel-report-game">
+                            <span class="button-text">Cancel</span>
+                        </button>
+                        <button type="submit" class="neural-button primary" id="submit-report-game">
+                            <span class="button-text">Submit Report</span>
+                            <div class="button-glow"></div>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -2313,11 +2323,17 @@
 
         // Function to update rating displays for all games
         async function updateAllRatingDisplays() {
-            const gameIds = ['bytesurge', 'neurocore', 'coderunner'];
-            
-            for (const gameId of gameIds) {
-                const ratingData = await calculateAverageRating(gameId);
-                updateRatingDisplay(gameId, ratingData);
+            // Find all rating-display elements and update them dynamically
+            const ratingNodes = Array.from(document.querySelectorAll('.rating-display[data-game-id]'));
+            const uniqueIds = [...new Set(ratingNodes.map(n => n.getAttribute('data-game-id')))]
+                .filter(Boolean);
+            for (const gameId of uniqueIds) {
+                try {
+                    const ratingData = await calculateAverageRating(gameId);
+                    updateRatingDisplay(gameId, ratingData);
+                } catch (e) {
+                    console.warn('Failed to update rating for', gameId, e);
+                }
             }
         }
 
@@ -2954,7 +2970,100 @@
         </div>
     </div>
 
-    <!-- Submission feature JS removed (now in submit-game.html). loadPublishedGameSubmissions also removed. -->
+    <script>
+    // Load published creator submissions directly into the main games grid
+    (function(){
+        function escapeHtml(str=''){
+            return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+        }
+
+        function buildSubmissionCard(doc){
+            const id = doc.id;
+            const title = escapeHtml(doc.title || 'Untitled');
+            const desc = escapeHtml((doc.description || '').slice(0, 180));
+            const cover = (typeof doc.coverImageUrl === 'string' && doc.coverImageUrl) ? doc.coverImageUrl : 'assets/icons/anonymous.png';
+            const playUrl = (typeof doc.playUrl === 'string' && /^https?:\/\//i.test(doc.playUrl)) ? doc.playUrl : null;
+            const tags = Array.isArray(doc.tags) ? doc.tags.slice(0,4) : [];
+
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.setAttribute('data-game', id);
+            card.innerHTML = `
+                <div class="card-image">
+                    <img src="${cover}" alt="${title}" class="game-logo-image" loading="lazy" decoding="async">
+                    <div class="card-overlay"></div>
+                    <div class="game-badge new" style="display:${doc.featured ? 'block' : 'none'};">NEW</div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">${title}</h3>
+                    <p class="card-description">${desc || 'No description provided.'}</p>
+                    <p class="card-developer">Made by <a href="about.html"><strong>Community</strong></a>
+                        <button class="review-btn" onclick="openReviewModal('${id}','${title.replace(/'/g, "&#39;")}')">⭐ Review</button>
+                        <span class="rating-display" data-game-id="${id}"><span class="no-rating">N/A (0)</span></span>
+                    </p>
+                    <div class="card-tags">
+                        ${tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                    ${ playUrl
+                        ? `<button onclick="window.open('${playUrl.replace(/'/g, "&#39;")}', '_blank')" class="btn btn-primary card-btn">Play Now</button>`
+                        : `<button class="btn btn-disabled card-btn" disabled>Play link pending</button>`
+                    }
+                </div>`;
+            return card;
+        }
+
+        async function loadPublishedIntoMainGrid(){
+            try{
+                if(!window.firebaseFirestore || !window.firestoreCollection || !window.firestoreQuery || !window.firestoreWhere){
+                    console.log('[games grid] Firestore not ready – retrying...');
+                    return setTimeout(loadPublishedIntoMainGrid, 600);
+                }
+                const container = document.querySelector('.game-cards');
+                if(!container) return;
+                // Prevent duplicate loads
+                if(container.dataset.communityLoaded === '1') return;
+                container.dataset.communityLoaded = '1';
+
+                const submissionsRef = window.firestoreCollection(window.firebaseFirestore, 'game_submissions');
+                const constraints = [ window.firestoreWhere('status','in',['published','Published']) ];
+                if (window.firestoreLimit) constraints.push(window.firestoreLimit(24));
+                const q = window.firestoreQuery(submissionsRef, ...constraints);
+                const snap = await window.firestoreGetDocs(q);
+                const docs = [];
+                snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+                docs.sort((a,b)=>{
+                    const at = (a.updatedAt?.toMillis?.() || a.createdAt?.toMillis?.() || 0);
+                    const bt = (b.updatedAt?.toMillis?.() || b.createdAt?.toMillis?.() || 0);
+                    return bt - at;
+                });
+
+                if(!docs.length){
+                    return; // nothing to add
+                }
+
+                const frag = document.createDocumentFragment();
+                for(const d of docs){
+                    frag.appendChild(buildSubmissionCard(d));
+                }
+
+                // Insert before the "Coming Soon" placeholder if present, else append
+                const comingSoon = container.querySelector('.game-card.coming-soon');
+                if (comingSoon && comingSoon.parentNode === container){
+                    container.insertBefore(frag, comingSoon);
+                } else {
+                    container.appendChild(frag);
+                }
+
+                // Update rating displays for newly added cards
+                setTimeout(updateAllRatingDisplays, 200);
+            }catch(e){
+                console.error('[games grid] Failed to load published submissions:', e);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => setTimeout(loadPublishedIntoMainGrid, 1400));
+    })();
+    </script>
 
     </body>
         <script>

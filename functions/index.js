@@ -324,4 +324,217 @@ api.post('/uploads/covers:signedUrl', requireAuth, async (req, res) => {
 	}
 });
 
+// Callable: Delete user account and all associated data
+exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
+	if (!context.auth) {
+		throw new functions.https.HttpsError('unauthenticated', 'User must be signed in');
+	}
+
+	const uid = context.auth.uid;
+	const email = context.auth.token.email;
+
+	try {
+		functions.logger.info(`Starting account deletion for user ${uid} (${email})`);
+
+		// 1. Delete user data from Firestore collections
+		const collections = [
+			'users',
+			'game_submissions',
+			'user_profiles',
+			'user_settings',
+			'verified_users',
+			'playtime_records',
+			'user_stats',
+			'user_preferences'
+		];
+
+		const batch = db.batch();
+		let deletedDocs = 0;
+
+		for (const collectionName of collections) {
+			try {
+				// Query for user's documents
+				const querySnapshot = await db.collection(collectionName)
+					.where('userId', '==', uid)
+					.get();
+
+				querySnapshot.forEach(doc => {
+					batch.delete(doc.ref);
+					deletedDocs++;
+				});
+
+				// Also check for documents where the user ID is the document ID
+				try {
+					const userDoc = await db.collection(collectionName).doc(uid).get();
+					if (userDoc.exists) {
+						batch.delete(userDoc.ref);
+						deletedDocs++;
+					}
+				} catch (e) {
+					functions.logger.warn(`Could not check document ${uid} in ${collectionName}: ${e.message}`);
+				}
+
+				// Special handling for game_submissions (check ownerId field)
+				if (collectionName === 'game_submissions') {
+					const ownerQuery = await db.collection(collectionName)
+						.where('ownerId', '==', uid)
+						.get();
+					
+					ownerQuery.forEach(doc => {
+						batch.delete(doc.ref);
+						deletedDocs++;
+					});
+				}
+
+			} catch (e) {
+				functions.logger.warn(`Error processing collection ${collectionName}: ${e.message}`);
+			}
+		}
+
+		// Commit Firestore deletions
+		if (deletedDocs > 0) {
+			await batch.commit();
+			functions.logger.info(`Deleted ${deletedDocs} Firestore documents`);
+		}
+
+		// 2. Delete user files from Cloud Storage
+		try {
+			const bucket = storage.bucket();
+			const userFolders = [
+				`users/${uid}/`,
+				`game-covers/${uid}/`,
+				`user-uploads/${uid}/`,
+				`profile-images/${uid}/`
+			];
+
+			let deletedFiles = 0;
+			for (const folder of userFolders) {
+				try {
+					const [files] = await bucket.getFiles({ prefix: folder });
+					
+					for (const file of files) {
+						await file.delete();
+						deletedFiles++;
+					}
+				} catch (e) {
+					functions.logger.warn(`Error deleting files from ${folder}: ${e.message}`);
+				}
+			}
+
+			if (deletedFiles > 0) {
+				functions.logger.info(`Deleted ${deletedFiles} storage files`);
+			}
+		} catch (e) {
+			functions.logger.error(`Error during storage cleanup: ${e.message}`);
+		}
+
+		// 3. Delete the user's authentication record
+		try {
+			await admin.auth().deleteUser(uid);
+			functions.logger.info(`Deleted authentication record for user ${uid}`);
+		} catch (e) {
+			functions.logger.error(`Error deleting authentication record: ${e.message}`);
+			// Don't throw here - we still want to report success for data cleanup
+		}
+
+		// 4. Invalidate any relevant caches
+		try {
+			invalidatePrefix('submissions?');
+		} catch (e) {
+			functions.logger.warn(`Error invalidating cache: ${e.message}`);
+		}
+
+		functions.logger.info(`Account deletion completed for user ${uid}`);
+		
+		return {
+			success: true,
+			message: 'Account and all associated data have been permanently deleted',
+			deletedAt: new Date().toISOString(),
+			userId: uid
+		};
+
+	} catch (error) {
+		functions.logger.error(`Account deletion failed for user ${uid}:`, error);
+		throw new functions.https.HttpsError('internal', `Account deletion failed: ${error.message}`);
+	}
+});
+
+// Callable: Export user data (optional - for GDPR compliance)
+exports.exportUserData = functions.https.onCall(async (data, context) => {
+	if (!context.auth) {
+		throw new functions.https.HttpsError('unauthenticated', 'User must be signed in');
+	}
+
+	const uid = context.auth.uid;
+	
+	try {
+		const userData = {
+			userId: uid,
+			email: context.auth.token.email,
+			exportedAt: new Date().toISOString(),
+			data: {}
+		};
+
+		// Export data from various collections
+		const collections = [
+			'users',
+			'game_submissions',
+			'user_profiles',
+			'user_settings',
+			'verified_users',
+			'playtime_records',
+			'user_stats',
+			'user_preferences'
+		];
+
+		for (const collectionName of collections) {
+			try {
+				// Get documents where userId field matches
+				const querySnapshot = await db.collection(collectionName)
+					.where('userId', '==', uid)
+					.get();
+
+				const docs = [];
+				querySnapshot.forEach(doc => {
+					docs.push({ id: doc.id, ...doc.data() });
+				});
+
+				// Also check for documents where the user ID is the document ID
+				try {
+					const userDoc = await db.collection(collectionName).doc(uid).get();
+					if (userDoc.exists) {
+						docs.push({ id: userDoc.id, ...userDoc.data() });
+					}
+				} catch (e) {
+					// Document doesn't exist, that's fine
+				}
+
+				// Special handling for game_submissions
+				if (collectionName === 'game_submissions') {
+					const ownerQuery = await db.collection(collectionName)
+						.where('ownerId', '==', uid)
+						.get();
+					
+					ownerQuery.forEach(doc => {
+						docs.push({ id: doc.id, ...doc.data() });
+					});
+				}
+
+				if (docs.length > 0) {
+					userData.data[collectionName] = docs;
+				}
+
+			} catch (e) {
+				functions.logger.warn(`Error exporting collection ${collectionName}: ${e.message}`);
+			}
+		}
+
+		return userData;
+
+	} catch (error) {
+		functions.logger.error(`Data export failed for user ${uid}:`, error);
+		throw new functions.https.HttpsError('internal', `Data export failed: ${error.message}`);
+	}
+});
+
 exports.api = functions.https.onRequest(api);
