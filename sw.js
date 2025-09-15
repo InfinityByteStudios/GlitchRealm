@@ -1,5 +1,5 @@
 /* GlitchRealm Service Worker */
-const CACHE_PREFIX = 'gr-v2';
+const CACHE_PREFIX = 'gr-v3';
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 

@@ -437,6 +437,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        // Expose for dynamic pages (e.g., games.html) to re-run after injecting cards
+        try { window.setupGameCardMenus = setupGameCardMenus; } catch {}
+
         // Run setup on DOMContentLoaded and on auth state change
         setupGameCardMenus();
         if (window.firebaseAuth && typeof window.firebaseAuth.onAuthStateChanged === 'function') {
@@ -446,22 +449,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Report modal wiring (games)
-        let reportTargetGameId = null;
+        // Use window-scoped state so other handlers (like the form submit) can access it reliably
+    // Initialize global state and a legacy alias to prevent ReferenceError in older code paths
+    window.reportTargetGameId = window.reportTargetGameId ?? null;
+    // Legacy alias for any code that referenced bare `reportTargetGameId`
+    try { if (typeof reportTargetGameId === 'undefined') { var reportTargetGameId = window.reportTargetGameId; } } catch {}
         function openReportGameModal(gameId){
-            reportTargetGameId = gameId || null;
+            window.reportTargetGameId = gameId || null;
+            try { reportTargetGameId = window.reportTargetGameId; } catch {}
             const modal = document.getElementById('report-game-modal');
             if (!modal) { alert('Report UI not available.'); return; }
+            try { modal.dataset.gameId = String(gameId || ''); } catch {}
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
         function closeReportGameModal(){
             const modal = document.getElementById('report-game-modal');
             if (!modal) return;
-            reportTargetGameId = null;
+            window.reportTargetGameId = null;
+            try { reportTargetGameId = null; } catch {}
             try { document.getElementById('report-game-form')?.reset(); } catch {}
+            try { delete modal.dataset.gameId; } catch {}
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }
+        // Expose helpers on window for cross-scope access
+        window.openReportGameModal = openReportGameModal;
+        window.closeReportGameModal = closeReportGameModal;
         // Close handlers
         document.getElementById('close-report-game')?.addEventListener('click', (e)=>{ e.preventDefault(); closeReportGameModal(); });
         document.getElementById('cancel-report-game')?.addEventListener('click', (e)=>{ e.preventDefault(); closeReportGameModal(); });
@@ -814,12 +828,15 @@ document.addEventListener('DOMContentLoaded', function() {
     (function(){
         const form = document.getElementById('report-game-form');
         if (!form) return;
-        form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async (e) => {
             e.preventDefault();
             try {
                 const auth = window.firebaseAuth;
-                if (!auth || !auth.currentUser) { alert('Please sign in to report.'); return; }
-                if (!reportTargetGameId) { alert('No game selected.'); return; }
+        if (!auth || !auth.currentUser) { alert('Please sign in to report.'); return; }
+                // Resolve the target game id from global or modal dataset as fallback
+                const modalEl = document.getElementById('report-game-modal');
+                const targetId = window.reportTargetGameId || modalEl?.dataset?.gameId;
+                if (!targetId) { alert('No game selected.'); return; }
 
                 // Ensure Firestore (reuse globals if available)
                 let db, addDoc, collection, Timestamp;
@@ -856,7 +873,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 combinedReason = combinedReason.slice(0, 500);
 
                 const payload = {
-                    gameId: String(reportTargetGameId),
+                    gameId: String(targetId),
                     userId: auth.currentUser.uid,
                     reason: combinedReason,
                     createdAt: Timestamp && Timestamp.fromDate ? Timestamp.fromDate(new Date()) : new Date(),

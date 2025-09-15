@@ -2993,6 +2993,13 @@
                     <img src="${cover}" alt="${title}" class="game-logo-image" loading="lazy" decoding="async">
                     <div class="card-overlay"></div>
                     <div class="game-badge new" style="display:${doc.featured ? 'block' : 'none'};">NEW</div>
+                    <!-- Game Card Menu Buttons (top right) for submissions -->
+                    <div class="game-card-menu" data-game-menu>
+                        <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;">✏️ Edit</button>
+                        <button class="menu-btn delete-btn" data-action="delete" title="Delete Game" style="display:none;">🗑️ Delete</button>
+                        <button class="menu-btn report-btn" data-action="report" title="Report Game" style="display:none;">🚩 Report</button>
+                        <button class="menu-btn three-dot-btn" data-action="report" title="Report Game">⋮</button>
+                    </div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">${title}</h3>
@@ -3056,6 +3063,10 @@
 
                 // Update rating displays for newly added cards
                 setTimeout(updateAllRatingDisplays, 200);
+                // Re-run menu setup so three-dot & owner buttons are wired on new cards
+                if (typeof setupGameCardMenus === 'function') {
+                    try { setupGameCardMenus(); } catch {}
+                }
             }catch(e){
                 console.error('[games grid] Failed to load published submissions:', e);
             }

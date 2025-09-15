@@ -4,6 +4,7 @@
   const auth = window.firebaseAuth;
   const accessEl = document.getElementById('mod-access');
   const controlsEl = document.getElementById('mod-reports-controls');
+  const sourceEl = document.getElementById('mod-reports-source');
   const listEl = document.getElementById('mod-reports-list');
   // Verification panel elements
   const vControlsEl = document.getElementById('mod-verify-controls');
@@ -75,7 +76,7 @@
       const when = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : '';
       const reason = (r.reason || '').toString();
       const status = (r.status || 'open');
-      const postId = r.postId || '';
+  const postId = r.postId || r.gameId || '';
       const statusChipClass = status === 'pending' ? 'status-chip status-pending' : (status === 'closed' ? 'status-chip status-closed' : 'status-chip status-open');
       let ttlNote = '';
       if (status === 'closed') {
@@ -120,7 +121,8 @@
         </div>
         <div class="mrr-actions">
           <button class="neural-button secondary mrr-copy" data-pid="${esc(postId)}"><span class="button-text">Copy ID</span></button>
-          <a class="neural-button secondary" href="community.html?focus=${encodeURIComponent(postId)}"><span class="button-text">View in Community</span></a>
+          ${r.postId ? `<a class="neural-button secondary" href="community.html?focus=${encodeURIComponent(postId)}"><span class="button-text">View in Community</span></a>` : ''}
+          ${r.gameId ? `<a class="neural-button secondary" href="games.html#${encodeURIComponent(postId)}"><span class="button-text">View Game</span></a>` : ''}
         </div>
       </div>`);
     });
@@ -131,7 +133,8 @@
         try {
           const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
           const db = f.getFirestore();
-          await Promise.all(expiredIds.map(id => f.deleteDoc(f.doc(db, 'community_post_reports', id))));
+          const col = (sourceEl?.value === 'games') ? 'game_reports' : 'community_post_reports';
+          await Promise.all(expiredIds.map(id => f.deleteDoc(f.doc(db, col, id))));
         } catch(err) { /* ignore */ }
       })();
     }
@@ -142,7 +145,8 @@
           const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
           const db = f.getFirestore();
           const expiresAt = f.Timestamp.fromMillis(Date.now() + AUTO_DELETE_TTL_HOURS*60*60*1000);
-          await Promise.all(needsTTL.map(id => f.updateDoc(f.doc(db, 'community_post_reports', id), { expiresAt })));
+          const col = (sourceEl?.value === 'games') ? 'game_reports' : 'community_post_reports';
+          await Promise.all(needsTTL.map(id => f.updateDoc(f.doc(db, col, id), { expiresAt })));
         } catch(err) { /* ignore */ }
       })();
     }
@@ -282,7 +286,11 @@
     const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
   const { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs, doc, updateDoc } = mod;
       const db = getFirestore();
-      const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(50));
+      const buildQuery = () => {
+        const src = sourceEl?.value === 'games' ? 'game_reports' : 'community_post_reports';
+        return query(collection(db, src), orderBy('createdAt','desc'), limit(50));
+      };
+      let q = buildQuery();
 
   // No capability fallback; this page is dev-only.
 
@@ -291,11 +299,18 @@
   gsControlsEl.style.display = 'flex';
       accessEl.textContent = 'Access granted.';
       if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
-      reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
+  reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
 
       // Wire actions
       document.getElementById('mod-refresh')?.addEventListener('click', async () => {
         try { const snap = await getDocs(q); renderReportsList(snap); } catch(e) {}
+      });
+      sourceEl?.addEventListener('change', () => {
+        try {
+          if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
+          q = buildQuery();
+          reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
+        } catch(e) {}
       });
 
   // Verification requests query + handlers
@@ -388,7 +403,8 @@
             try {
               const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
               const db = f.getFirestore();
-              const dref = f.doc(db, 'community_post_reports', rid);
+              const col = (sourceEl?.value === 'games') ? 'game_reports' : 'community_post_reports';
+              const dref = f.doc(db, col, rid);
               if (newStatus === 'closed') {
         const expiresAt = f.Timestamp.fromMillis(Date.now() + AUTO_DELETE_TTL_HOURS*60*60*1000);
                 await f.updateDoc(dref, { status: 'closed', closedAt: f.serverTimestamp(), expiresAt });
