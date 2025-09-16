@@ -120,6 +120,15 @@
             <input type="text" id="tag3" class="neural-input" placeholder="Tag 3" maxlength="20">
           </div>
         </div>
+        <div class="input-container">
+          <div class="input-label">Badge</div>
+          <select id="submissionBadge" class="neural-input" style="max-width:260px;">
+            <option value="">None</option>
+            <option value="new">NEW</option>
+            <option value="updated">UPDATED</option>
+            <option value="beta">BETA</option>
+          </select>
+        </div>
         <div id="submissionMessage" style="margin:2px 0 6px;"></div>
         <div class="submit-actions">
           <button type="reset" class="btn btn-secondary">Reset</button>
@@ -209,7 +218,7 @@
         if(!user){ if(msg) msg.innerHTML='<div class="error-message">Please sign in first.</div>'; return; }
         // verify privilege
         try { const me = await getMe(); const allowed = me && (me.isVerified || me.isDeveloper); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch {}
-        const title=$('submissionTitle').value.trim(); const description=$('submissionDescription').value.trim(); const playUrl=$('submissionPlayUrl').value.trim(); let coverImageUrl=$('submissionCoverUrl').value.trim(); const tags=[ $('tag1').value.trim(), $('tag2').value.trim(), $('tag3').value.trim() ].filter(Boolean).slice(0,3); const file=fileInput?.files?.[0]||null;
+  const title=$('submissionTitle').value.trim(); const description=$('submissionDescription').value.trim(); const playUrl=$('submissionPlayUrl').value.trim(); let coverImageUrl=$('submissionCoverUrl').value.trim(); const tags=[ $('tag1').value.trim(), $('tag2').value.trim(), $('tag3').value.trim() ].filter(Boolean).slice(0,3); const file=fileInput?.files?.[0]||null; const badge=($('submissionBadge')?.value||'').trim();
         if(!title){ if(msg) msg.innerHTML='<div class="error-message">Title is required.</div>'; return; }
         if(!description){ if(msg) msg.innerHTML='<div class="error-message">Description is required.</div>'; return; }
         if(!playUrl || !/^https?:\/\//i.test(playUrl)){ if(msg) msg.innerHTML='<div class="error-message">Valid Play URL required (http/https)</div>'; return; }
@@ -281,6 +290,7 @@
           const payloadDoc = { title, ownerId:user.uid, description, status:'draft', playUrl, createdAt: f.serverTimestamp(), updatedAt: f.serverTimestamp() };
           if (coverImageUrl && coverImageUrl.trim()) payloadDoc.coverImageUrl = coverImageUrl.trim();
           if (Array.isArray(tags) && tags.length > 0) payloadDoc.tags = tags;
+          if (badge && ['new','updated','beta'].includes(badge)) payloadDoc.badge = badge;
           console.log('Attempting Firestore write with payload:', payloadDoc);
           await f.addDoc(f.collection(db,'game_submissions'), payloadDoc);
           if(msg) msg.innerHTML='<div class="success-message">Draft created. We\'ll review it soon.</div>';

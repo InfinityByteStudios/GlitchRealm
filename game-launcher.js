@@ -21,12 +21,6 @@ class GameLauncher {
                 name: 'NeuroCore: Byte Wars',
                 path: 'Games/ByteWars/index.html',
                 iconUrl: 'assets/game logos/neurocore byte wars logo.png'
-            },
-            'shadowlight': {
-                id: 'shadowlight',
-                name: 'ShadowLight',
-                path: 'Games/ShadowLight/index.html',
-                iconUrl: 'assets/game logos/shadowlight.png'
             }
         };
         

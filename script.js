@@ -412,27 +412,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Game Card Menu Button Logic
         function setupGameCardMenus() {
             const gameCards = document.querySelectorAll('.game-card');
-            const currentUser = window.firebaseAuth?.currentUser;
-            // Example: games submitted by user (replace with real logic)
-            // For demo, assume user UID 'demo-user-uid' submitted ByteSurge and CodeRunner
-            const userSubmittedGames = {
-                'demo-user-uid': ['bytesurge', 'coderunner']
-            };
-            let userUID = currentUser?.uid || '';
+            const currentUid = window.firebaseAuth?.currentUser?.uid || '';
             gameCards.forEach(card => {
-                const gameId = card.getAttribute('data-game');
                 const menu = card.querySelector('.game-card-menu');
                 if (!menu) return;
-                // Hide all buttons by default
-                menu.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
-                // Show owner buttons when applicable
-                if (userSubmittedGames[userUID]?.includes(gameId)) {
-                    // Owner: show edit, delete, report
-                    menu.querySelector('.edit-btn')?.setAttribute('style', 'display:inline-block;');
-                    menu.querySelector('.delete-btn')?.setAttribute('style', 'display:inline-block;');
-                    menu.querySelector('.report-btn')?.setAttribute('style', 'display:inline-block;');
-                }
-                // Always show the three-dot dropdown for everyone (owners and non-owners)
+                // Always hide inline action buttons (Edit/Delete/Report) — use dropdown only
+                menu.querySelectorAll('.edit-btn, .delete-btn, .report-btn').forEach(btn => btn.style.display = 'none');
+                // Always show the three-dot menu trigger
                 menu.querySelector('.three-dot-btn')?.setAttribute('style', 'display:inline-block;');
             });
         }
@@ -506,6 +492,11 @@ document.addEventListener('DOMContentLoaded', function() {
         function ensureGameOptionsMenu(card){
             if (!card) return;
             let menu = card.querySelector('.game-options-menu');
+            const computeOwnerState = () => {
+                const ownerId = card.getAttribute('data-owner') || '';
+                const currentUid = window.firebaseAuth?.currentUser?.uid || '';
+                return !!(currentUid && ownerId && currentUid === ownerId);
+            };
             if (!menu) {
                 const imgWrap = card.querySelector('.card-image');
                 if (!imgWrap) return;
@@ -514,11 +505,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 menu.setAttribute('role','menu');
                 menu.setAttribute('aria-hidden','true');
                 menu.style.display = 'none';
+                const gameId = card.getAttribute('data-game') || '';
+                const isOwner = computeOwnerState();
                 menu.innerHTML = `
+                    ${isOwner ? '<button class="menu-item edit" role="menuitem">Edit</button>' : ''}
                     <button class="menu-item star" role="menuitem">Star</button>
                     <button class="menu-item report" role="menuitem">Report</button>
                 `;
                 imgWrap.appendChild(menu);
+            } else {
+                // Menu exists: ensure Edit presence matches current ownership state
+                const isOwner = computeOwnerState();
+                const hasEdit = !!menu.querySelector('.menu-item.edit');
+                if (isOwner && !hasEdit) {
+                    const first = menu.querySelector('.menu-item');
+                    const btn = document.createElement('button');
+                    btn.className = 'menu-item edit';
+                    btn.setAttribute('role','menuitem');
+                    btn.textContent = 'Edit';
+                    if (first) menu.insertBefore(btn, first); else menu.appendChild(btn);
+                } else if (!isOwner && hasEdit) {
+                    menu.querySelector('.menu-item.edit').remove();
+                }
             }
             // Sync Star/Unstar label
             const gameId = card.getAttribute('data-game') || '';
@@ -532,20 +540,59 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.three-dot-btn[aria-expanded="true"]').forEach(btn => btn.setAttribute('aria-expanded','false'));
         }
 
+        // Fallback: fetch ownerId for a card if missing
+        async function ensureCardOwner(card){
+            try {
+                if (!card) return '';
+                const existing = card.getAttribute('data-owner') || '';
+                if (existing) return existing;
+                const gameId = card.getAttribute('data-game') || '';
+                if (!gameId) return '';
+                // Only attempt for community submissions (we mark them with is-submission)
+                if (!card.classList.contains('game-card') || !card.classList.contains('is-submission')) return '';
+                // Cache to avoid repeated lookups
+                if (!window.__grOwnerCache) window.__grOwnerCache = new Map();
+                if (window.__grOwnerCache.has(gameId)) {
+                    const cached = window.__grOwnerCache.get(gameId) || '';
+                    if (cached) card.setAttribute('data-owner', String(cached));
+                    return cached;
+                }
+                // Load Firestore if needed
+                let f;
+                try { f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'); } catch { return ''; }
+                const db = window.firebaseFirestore || f.getFirestore();
+                const dref = (window.firestoreDoc || f.doc)(db, 'game_submissions', gameId);
+                const snap = await (window.firestoreGetDoc || f.getDoc)(dref);
+                if (!snap.exists()) return '';
+                const data = snap.data() || {};
+                const ownerId = typeof data.ownerId === 'string' ? data.ownerId : '';
+                if (ownerId) {
+                    window.__grOwnerCache.set(gameId, ownerId);
+                    card.setAttribute('data-owner', String(ownerId));
+                }
+                return ownerId;
+            } catch { return ''; }
+        }
+
         // Open/close dropdowns and handle actions
         document.body.addEventListener('click', function(e) {
             // Open/close when clicking three-dot
             const dot = e.target.closest('.three-dot-btn');
             if (dot) {
                 const card = dot.closest('.game-card');
-                const menu = ensureGameOptionsMenu(card);
-                if (menu) {
-                    const open = menu.style.display !== 'block';
-                    closeAllGameMenus();
-                    menu.style.display = open ? 'block' : 'none';
-                    dot.setAttribute('aria-expanded', open ? 'true' : 'false');
-                    menu.setAttribute('aria-hidden', open ? 'false' : 'true');
-                }
+                (async () => {
+                    // If we don't have owner set yet, fetch it so the Edit item can appear
+                    const ownerBefore = card?.getAttribute('data-owner') || '';
+                    if (!ownerBefore) { await ensureCardOwner(card); }
+                    const menu = ensureGameOptionsMenu(card);
+                    if (menu) {
+                        const open = menu.style.display !== 'block';
+                        closeAllGameMenus();
+                        menu.style.display = open ? 'block' : 'none';
+                        dot.setAttribute('aria-expanded', open ? 'true' : 'false');
+                        menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+                    }
+                })();
                 return;
             }
 
@@ -554,6 +601,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (menu) {
                 const card = menu.closest('.game-card');
                 const gameId = card?.getAttribute('data-game');
+                if (e.target.closest('.menu-item.edit')) {
+                    closeAllGameMenus();
+                    if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
+                    return;
+                }
                 if (e.target.closest('.menu-item.report')) {
                     closeAllGameMenus();
                     openReportGameModal(gameId);
@@ -577,12 +629,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 switch (action) {
                     case 'edit':
-                        alert('Edit game: ' + gameId);
+                        if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
                         break;
                     case 'delete':
-                        if (confirm('Are you sure you want to delete this game?')) {
-                            alert('Game deleted: ' + gameId);
-                        }
+                        (async () => {
+                            const card = btn.closest('.game-card');
+                            const owner = card?.getAttribute('data-owner') || '';
+                            const uid = window.firebaseAuth?.currentUser?.uid || '';
+                            if (!uid || uid !== owner) { alert('You can only delete your own submission.'); return; }
+                            if (!confirm('Delete this submission permanently? This cannot be undone.')) return;
+                            try {
+                                // Ensure firestore
+                                if (!window.firebaseFirestore || !window.firestoreDoc || !window.firestoreDeleteDoc) {
+                                    const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                                    window.firebaseFirestore = window.firebaseFirestore || f.getFirestore();
+                                    window.firestoreDoc = window.firestoreDoc || f.doc;
+                                    window.firestoreDeleteDoc = window.firestoreDeleteDoc || f.deleteDoc;
+                                }
+                                const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', gameId);
+                                await window.firestoreDeleteDoc(dref);
+                                // Optimistic removal (realtime listener will also remove)
+                                try { card?.remove(); } catch {}
+                                showAuthMessage('Submission deleted.', 'success');
+                            } catch (err) {
+                                console.error('Delete failed:', err);
+                                alert('Failed to delete submission.');
+                            }
+                        })();
                         break;
                     case 'report':
                         openReportGameModal(gameId);
@@ -599,6 +672,207 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Close on Escape
         document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape') closeAllGameMenus(); });
+        
+        // --- Edit Submission Modal logic ---
+        (function(){
+            const modalId = 'edit-submission-modal';
+            const idEl = () => document.getElementById('edit-submission-id');
+            const titleEl = () => document.getElementById('edit-title');
+            const descEl = () => document.getElementById('edit-description');
+            const tagsEl = () => document.getElementById('edit-tags');
+            const badgeEl = () => document.getElementById('edit-badge');
+
+            async function ensureFirestoreLight(){
+                if (window.firebaseFirestore && window.firestoreDoc && window.firestoreUpdateDoc) return;
+                const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const { getFirestore, doc, getDoc, updateDoc, serverTimestamp, deleteField } = mod;
+                window.firebaseFirestore = window.firebaseFirestore || getFirestore();
+                window.firestoreDoc = window.firestoreDoc || doc;
+                window.firestoreGetDoc = window.firestoreGetDoc || getDoc;
+                window.firestoreUpdateDoc = window.firestoreUpdateDoc || updateDoc;
+                window.firestoreServerTimestamp = window.firestoreServerTimestamp || serverTimestamp;
+                window.firestoreDeleteField = window.firestoreDeleteField || deleteField;
+            }
+
+            function close(){
+                const m = document.getElementById(modalId);
+                if (!m) return;
+                m.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
+            async function open(gameId){
+                const m = document.getElementById(modalId);
+                if (!m) { alert('Edit UI not available.'); return; }
+                if (!window.firebaseAuth?.currentUser) { alert('Please sign in.'); return; }
+                const card = document.querySelector(`.game-card[data-game="${CSS.escape(gameId)}"]`);
+                const owner = card?.getAttribute('data-owner') || '';
+                const uid = window.firebaseAuth.currentUser.uid;
+                try {
+                    await ensureFirestoreLight();
+                    const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', gameId);
+                    const snap = await window.firestoreGetDoc(dref);
+                    if (!snap.exists()) { alert('Submission not found.'); return; }
+                    const data = snap.data();
+                    // Verify ownership from source of truth (Firestore)
+                    const docOwner = typeof data.ownerId === 'string' ? data.ownerId : '';
+                    if (!docOwner) {
+                        // Unassigned: offer to claim
+                        if (confirm('This submission has no owner yet. Claim ownership with your account now?')) {
+                            try {
+                                await window.firestoreUpdateDoc(dref, { ownerId: uid, updatedAt: window.firestoreServerTimestamp ? window.firestoreServerTimestamp() : new Date() });
+                                try { card?.setAttribute('data-owner', String(uid)); } catch {}
+                                showAuthMessage('Ownership claimed for this submission.', 'success');
+                            } catch (claimErr) {
+                                console.error('Ownership claim failed:', claimErr);
+                                alert('Unable to claim ownership (rules may block setting ownerId). Please share the game ID so we can backfill ownerId manually: ' + gameId);
+                                return;
+                            }
+                        } else {
+                            alert('Cannot edit until an owner is assigned.');
+                            return;
+                        }
+                    } else if (docOwner !== uid) {
+                        const short = docOwner.length > 10 ? (docOwner.slice(0,6)+'...'+docOwner.slice(-4)) : docOwner;
+                        alert('You can only edit your own submission. Current owner: ' + short);
+                        return;
+                    }
+                    idEl().value = gameId;
+                    titleEl().value = data.title || '';
+                    descEl().value = data.description || '';
+                    const tags = Array.isArray(data.tags) ? data.tags.join(', ') : '';
+                    tagsEl().value = tags;
+                    const b = (typeof data.badge === 'string' && ['new','updated','beta'].includes(data.badge)) ? data.badge : '';
+                    badgeEl().value = b;
+                    m.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                } catch (e) {
+                    console.error('Open edit modal failed:', e);
+                    alert('Failed to load submission.');
+                }
+            }
+
+            async function submit(e){
+                e && e.preventDefault && e.preventDefault();
+                try {
+                    if (!window.firebaseAuth?.currentUser) { alert('Please sign in.'); return; }
+                    await ensureFirestoreLight();
+                    const gameId = idEl().value;
+                    if (!gameId) return;
+                    const card = document.querySelector(`.game-card[data-game="${CSS.escape(gameId)}"]`);
+                    const owner = card?.getAttribute('data-owner') || '';
+                    const uid = window.firebaseAuth.currentUser.uid;
+                    if (!owner || owner !== uid) { alert('You can only edit your own submission.'); return; }
+
+                    // Collect fields with validation per rules
+                    const title = String(titleEl().value || '').trim().slice(0, 120);
+                    const description = String(descEl().value || '').trim();
+                    if (!title || !description) { alert('Title and description are required.'); return; }
+                    if (description.length > 1000) { alert('Description too long (max 1000).'); return; }
+                    let tagsStr = String(tagsEl().value || '').trim();
+                    let tags = tagsStr ? tagsStr.split(',').map(s=>s.trim()).filter(Boolean) : [];
+                    if (tags.length > 3) tags = tags.slice(0,3);
+                    // Enforce per-tag length similar to submit form
+                    if (tags.some(t => t.length > 20)) { alert('Each tag must be 20 characters or less.'); return; }
+                    const badgeRaw = String(badgeEl().value || '').trim();
+                    const badge = ['new','updated','beta'].includes(badgeRaw) ? badgeRaw : '';
+
+                    const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', gameId);
+                    const patch = {
+                        title,
+                        description,
+                        updatedAt: window.firestoreServerTimestamp ? window.firestoreServerTimestamp() : new Date(),
+                    };
+                    if (tags.length) patch.tags = tags;
+                    else patch.tags = window.firestoreDeleteField ? window.firestoreDeleteField() : undefined;
+                    if (badge) patch.badge = badge; else patch.badge = window.firestoreDeleteField ? window.firestoreDeleteField() : undefined;
+
+                    await window.firestoreUpdateDoc(dref, patch);
+
+                    // Update DOM
+                    if (card) {
+                        const titleNode = card.querySelector('.card-title');
+                        if (titleNode) titleNode.textContent = title;
+                        const descNode = card.querySelector('.card-description');
+                        if (descNode) descNode.textContent = description.slice(0,180) || 'No description provided.';
+                        const tagsWrap = card.querySelector('.card-tags');
+                        if (tagsWrap) {
+                            tagsWrap.innerHTML = (tags||[]).map(t=>`<span class="tag"></span>`).join('');
+                            const spans = tagsWrap.querySelectorAll('.tag');
+                            spans.forEach((sp,i)=> sp.textContent = tags[i] || '');
+                        }
+                        const imgWrap = card.querySelector('.card-image');
+                        if (imgWrap) {
+                            let badgeDiv = imgWrap.querySelector('.game-badge');
+                            if (!badge && badgeDiv) {
+                                // If featured NEW fallback exists, keep it; otherwise hide
+                                if (!badgeDiv.classList.contains('new') || badgeDiv.textContent.trim().toUpperCase() !== 'NEW') {
+                                    badgeDiv.remove();
+                                }
+                            } else if (badge) {
+                                const label = badge === 'new' ? 'NEW' : (badge === 'updated' ? 'UPDATED' : 'BETA');
+                                if (!badgeDiv || !badgeDiv.classList.contains(badge)) {
+                                    // Replace existing badge
+                                    if (badgeDiv) badgeDiv.remove();
+                                    badgeDiv = document.createElement('div');
+                                    badgeDiv.className = `game-badge ${badge}`;
+                                    badgeDiv.textContent = label;
+                                    imgWrap.appendChild(badgeDiv);
+                                } else {
+                                    // Update label just in case
+                                    badgeDiv.textContent = label;
+                                }
+                            }
+                        }
+                    }
+
+                    showAuthMessage('Submission updated.', 'success');
+                    close();
+                } catch (err) {
+                    try { console.error('Save submission failed:', err); } catch {}
+                    const code = (err && (err.code || err.name)) ? String(err.code || err.name) : 'unknown-error';
+                    const msg = (err && err.message) ? String(err.message) : 'Unknown error';
+                    if (/permission-denied/i.test(code) || /permission denied/i.test(msg)) {
+                        showAuthMessage('Permission denied: you can only edit your own submission.', 'error');
+                        alert('Permission denied: you can only edit your own submission.');
+                    } else if (/invalid-argument|invalid data|unsupported field value/i.test(code + ' ' + msg)) {
+                        showAuthMessage('Invalid data. Check title/description length and tags (max 3).', 'error');
+                        alert('Invalid data. Ensure title ≤ 120, description ≤ 1000, and up to 3 tags.');
+                    } else {
+                        showAuthMessage('Failed to save changes: ' + msg, 'error');
+                        alert('Failed to save changes: ' + msg + (code ? ' [' + code + ']' : ''));
+                    }
+                }
+            }
+
+            // Wire buttons once
+            setTimeout(() => {
+                const closeBtn = document.getElementById('close-edit-submission');
+                const cancelBtn = document.getElementById('cancel-edit-submission');
+                const form = document.getElementById('edit-submission-form');
+                const modal = document.getElementById(modalId);
+                closeBtn && closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); close(); });
+                cancelBtn && cancelBtn.addEventListener('click', (e)=>{ e.preventDefault(); close(); });
+                modal && modal.addEventListener('click', (e)=>{ if (e.target === modal) close(); });
+                form && form.addEventListener('submit', submit);
+            }, 0);
+
+            // Expose
+            window.openEditSubmissionModal = open;
+            window.closeEditSubmissionModal = close;
+            // Debug helper to check ownership quickly from console
+            window.debugSubmissionOwnership = async function(gameId){
+                try {
+                    await ensureFirestoreLight();
+                    const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', String(gameId));
+                    const snap = await window.firestoreGetDoc(dref);
+                    if (!snap.exists()) { console.log('No such submission'); return; }
+                    const data = snap.data();
+                    const ownerId = data?.ownerId || '(none)';
+                    console.log('[debugSubmissionOwnership]', { gameId, ownerId, currentUid: window.firebaseAuth?.currentUser?.uid });
+                } catch (e) { console.log('debugSubmissionOwnership error', e); }
+            };
+        })();
     const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
 
     const providers = [
@@ -2069,7 +2343,7 @@ async function initializeAuth() {
                 const appAuthReady = !!window.firebaseAuth;
                 // Import Firestore SDK (modular)
                 const firestoreMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                const { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, orderBy, addDoc } = firestoreMod;
+                const { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, orderBy, addDoc, deleteField } = firestoreMod;
                 // Try to reuse an already initialized app via compat or prior module scripts
                 // Some pages initialize Firestore in page <script type="module"> blocks; expose helpers for reuse
                 const db = window.firebaseFirestore || getFirestore();
@@ -2083,6 +2357,7 @@ async function initializeAuth() {
                 window.firestoreServerTimestamp = serverTimestamp;
                 window.firestoreOrderBy = orderBy;
                 window.firestoreAddDoc = addDoc;
+                window.firestoreDeleteField = deleteField;
                 return db;
             } catch (e) {
                 console.warn('Failed to initialize Firestore SDK:', e);
@@ -2280,8 +2555,7 @@ class SharedAuthSystem {
         this.eventKey = 'glitchRealm_auth_change';
         this.gameOrigins = [
             'https://coderunner-test.netlify.app',
-            'https://neurocorebytewars.netlify.app',
-            'https://shadowlight.netlify.app'
+            'https://neurocorebytewars.netlify.app'
         ];
         this.initCrossTabSync();
     }

@@ -1223,33 +1223,8 @@
             </div>
         </section>        <section class="games-grid">
             <div class="container">
-                <div class="game-cards">                    <!-- ShadowLight Game Card -->
-                    <div class="game-card" data-game="shadowlight">
-                        <div class="card-image">
-                            <img src="assets/Game Logos/ShadowLight.png" alt="ShadowLight" class="game-logo-image" loading="eager" fetchpriority="high" decoding="async">
-                            <div class="card-overlay"></div>
-                            <div class="game-badge removed">GAME REMOVED</div>
-                            <!-- Game Card Menu Buttons (top right) -->
-                            <div class="game-card-menu" data-game-menu>
-                                <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;">✏️ Edit</button>
-                                <button class="menu-btn delete-btn" data-action="delete" title="Delete Game" style="display:none;">🗑️ Delete</button>
-                                <button class="menu-btn report-btn" data-action="report" title="Report Game" style="display:none;">🚩 Report</button>
-                                <button class="menu-btn three-dot-btn" data-action="report" title="Report Game" style="display:none;">⋮</button>
-                            </div>
-                        </div><div class="card-content">
-                            <h3 class="card-title">ShadowLight</h3>
-                            <p class="card-description">Navigate through the delicate balance between light and shadow in this atmospheric puzzle adventure. Master the interplay of illumination and darkness to solve mind-bending challenges.</p>
-                            <p class="card-developer">Made by <a href="about.html"><strong>GhostPixel Studios</strong></a> <button class="review-btn" disabled>⭐ Review</button></p>                            <div class="card-tags">
-                                <span class="tag">Puzzle</span>
-                                <span class="tag">Atmospheric</span>
-                                <span class="tag">Adventure</span>
-                                <i class="devicon-linux-plain platform-icon" title="Works on Linux"></i>
-                                <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
-                                <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
-                            </div><button class="btn card-btn" onclick="openGameRemovedModal('ShadowLight')">Why Removed?</button>
-                                
-                        </div>
-                    </div>                    <!-- ByteSurge Game Card -->
+                <div class="game-cards">
+                    <!-- ByteSurge Game Card -->
                     <div class="game-card" data-game="bytesurge">
                         <div class="card-image">
                             <img src="assets/Game Logos/ByteSurge.png" alt="ByteSurge" class="game-logo-image" loading="lazy" decoding="async">
@@ -1677,6 +1652,52 @@
         </div>
     </div>
 
+    <!-- Edit Submission Modal -->
+    <div id="edit-submission-modal" class="auth-overlay" style="display:none;">
+        <div class="auth-panel" style="max-width:640px;">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <span class="glitch" data-text="EDIT SUBMISSION">EDIT SUBMISSION</span>
+                </div>
+                <button class="auth-close" id="close-edit-submission"><span class="close-icon">×</span></button>
+            </div>
+            <div class="auth-content">
+                <form id="edit-submission-form" class="neural-form">
+                    <input type="hidden" id="edit-submission-id" />
+                    <div class="input-container">
+                        <div class="input-label">Title</div>
+                        <input id="edit-title" class="neural-input" type="text" maxlength="120" placeholder="Enter game title" required />
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-container">
+                        <div class="input-label">Description</div>
+                        <textarea id="edit-description" class="neural-input" rows="5" maxlength="1000" placeholder="Describe your game (max 1000 characters)" required></textarea>
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-container">
+                        <div class="input-label">Tags (max 3, comma-separated)</div>
+                        <input id="edit-tags" class="neural-input" type="text" maxlength="120" placeholder="e.g. action, shooter, retro" />
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-container">
+                        <div class="input-label">Badge</div>
+                        <select id="edit-badge" class="neural-input">
+                            <option value="">None</option>
+                            <option value="new">NEW</option>
+                            <option value="updated">UPDATED</option>
+                            <option value="beta">BETA</option>
+                        </select>
+                        <div class="input-line"></div>
+                    </div>
+                    <div style="display:flex; gap:8px; justify-content:flex-end;">
+                        <button type="button" class="neural-button secondary" id="cancel-edit-submission"><span class="button-text">Cancel</span></button>
+                        <button type="submit" class="neural-button primary" id="save-edit-submission"><span class="button-text">Save Changes</span><div class="button-glow"></div></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
@@ -1725,14 +1746,26 @@
                 resetReviewForm();
             }
             
-            // Load reviews for this game when modal opens
-            loadModalReviews(gameId);
+            // Start realtime reviews for this game when modal opens
+            try {
+                if (typeof startLiveModalReviews === 'function') {
+                    startLiveModalReviews(gameId);
+                } else {
+                    // Fallback to one-time load if live wiring isn't available yet
+                    loadModalReviews(gameId);
+                }
+            } catch {
+                // As an absolute fallback, keep previous behavior
+                try { loadModalReviews(gameId); } catch {}
+            }
         };
 
         window.closeReviewModal = function() {
             document.getElementById('reviewModal').style.display = 'none';
             document.body.style.overflow = 'auto';
             resetReviewForm();
+            // Stop realtime listeners when modal closes
+            try { if (typeof stopLiveModalReviews === 'function') stopLiveModalReviews(); } catch {}
         };
 
         function hideSubmissionForm() {
@@ -2431,6 +2464,220 @@
         });
 
         // Reviews Display Functions for Modal
+        // Realtime state for modal reviews (approved + pending for privileged users) and their replies
+        let __modalReviews = {
+            active: false,
+            gameId: null,
+            isPrivileged: false,
+            unsubApproved: null,
+            unsubPending: null,
+            unsubReplies: null,
+            approvedMap: new Map(),    // id -> review
+            pendingMap: new Map(),     // id -> review (privileged only)
+            repliesMap: new Map(),     // id -> [replies]
+            renderTimer: null
+        };
+
+        function clearModalReviewsUI() {
+            const countElement = document.getElementById('modal-reviews-count');
+            const listElement = document.getElementById('modal-reviews-list');
+            if (countElement) countElement.textContent = '0 Reviews';
+            if (listElement) listElement.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to leave a review!</div>';
+        }
+
+        function showLoadingModalReviewsUI() {
+            const countElement = document.getElementById('modal-reviews-count');
+            const listElement = document.getElementById('modal-reviews-list');
+            if (countElement) countElement.textContent = 'Loading...';
+            if (listElement) listElement.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
+        }
+
+        function computePrivilege() {
+            const isAuthed = !!(window.firebaseAuth && window.firebaseAuth.currentUser);
+            const currentUid = isAuthed ? window.firebaseAuth.currentUser.uid : null;
+            const developerUIDs = [
+                '6iZDTXC78aVwX22qrY43BOxDRLt1',
+                'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+            ];
+            const adminUIDs = [
+                'admin-uid-1',
+                'admin-uid-2',
+                'replace-with-your-admin-uid'
+            ];
+            return !!(currentUid && (developerUIDs.includes(currentUid) || adminUIDs.includes(currentUid)));
+        }
+
+        function scheduleModalReviewsRender() {
+            if (__modalReviews.renderTimer) {
+                clearTimeout(__modalReviews.renderTimer);
+            }
+            __modalReviews.renderTimer = setTimeout(() => {
+                try {
+                    const all = [];
+                    // Merge maps
+                    __modalReviews.approvedMap.forEach((val, key) => all.push(val));
+                    if (__modalReviews.isPrivileged) {
+                        __modalReviews.pendingMap.forEach((val, key) => all.push(val));
+                    }
+                    // Attach replies
+                    const reviews = all.map(r => ({
+                        ...r,
+                        replies: __modalReviews.repliesMap.get(r.id) || []
+                    }));
+                    // Sort by timestamp desc
+                    reviews.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    displayModalReviews(reviews);
+                    // Keep rating display in sync while modal is open
+                    if (typeof calculateAverageRating === 'function' && typeof updateRatingDisplay === 'function' && __modalReviews.gameId) {
+                        calculateAverageRating(__modalReviews.gameId).then(data => updateRatingDisplay(__modalReviews.gameId, data)).catch(()=>{});
+                    }
+                } catch (e) {
+                    console.error('[reviews modal] render failed:', e);
+                }
+            }, 80);
+        }
+
+        async function attachRepliesListener(reviewIds) {
+            try {
+                if (__modalReviews.unsubReplies) { try { __modalReviews.unsubReplies(); } catch {} __modalReviews.unsubReplies = null; }
+                __modalReviews.repliesMap = new Map();
+                if (!reviewIds || reviewIds.length === 0) {
+                    scheduleModalReviewsRender();
+                    return;
+                }
+                // Firestore 'in' supports up to 10 ids; we limit reviews to 10 so this is safe
+                const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const repliesRef = window.firestoreCollection(window.firebaseFirestore, 'review_replies');
+                const q = f.query(
+                    repliesRef,
+                    f.where('reviewId', 'in', reviewIds),
+                    f.orderBy('timestamp', 'asc')
+                );
+                __modalReviews.unsubReplies = f.onSnapshot(q, (snap) => {
+                    try {
+                        const tmp = new Map();
+                        snap.forEach(d => {
+                            const reply = { id: d.id, ...d.data() };
+                            const arr = tmp.get(reply.reviewId) || [];
+                            arr.push(reply);
+                            tmp.set(reply.reviewId, arr);
+                        });
+                        __modalReviews.repliesMap = tmp;
+                        scheduleModalReviewsRender();
+                    } catch (e) { console.error('[reviews modal] replies snapshot err:', e); }
+                }, (err) => {
+                    console.error('[reviews modal] replies realtime error:', err);
+                });
+            } catch (e) {
+                console.error('[reviews modal] failed to attach replies listener:', e);
+            }
+        }
+
+        async function startLiveModalReviews(gameId) {
+            try {
+                // Stop any existing listeners first
+                try { stopLiveModalReviews(); } catch {}
+                __modalReviews.active = true;
+                __modalReviews.gameId = gameId;
+                __modalReviews.isPrivileged = computePrivilege();
+                __modalReviews.approvedMap = new Map();
+                __modalReviews.pendingMap = new Map();
+                __modalReviews.repliesMap = new Map();
+                showLoadingModalReviewsUI();
+
+                const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const reviewsRef = window.firestoreCollection(window.firebaseFirestore, 'reviews');
+
+                // Common helper to normalize timestamp to millis for UI sorting/formatting
+                function toMillis(ts) {
+                    if (!ts) return 0;
+                    if (typeof ts === 'number') return ts;
+                    if (typeof ts === 'string') { const t = Date.parse(ts); return isNaN(t) ? 0 : t; }
+                    if (typeof ts.toMillis === 'function') return ts.toMillis();
+                    try { return new Date(ts).getTime() || 0; } catch { return 0; }
+                }
+
+                const approvedQ = f.query(
+                    reviewsRef,
+                    f.where('gameId', '==', gameId),
+                    f.where('moderationStatus', '==', 'approved'),
+                    f.orderBy('timestamp', 'desc'),
+                    f.limit(10)
+                );
+                __modalReviews.unsubApproved = f.onSnapshot(approvedQ, (snap) => {
+                    try {
+                        const ids = [];
+                        const map = new Map();
+                        snap.forEach(d => {
+                            const data = d.data();
+                            const norm = { id: d.id, ...data, timestamp: toMillis(data.timestamp) };
+                            map.set(d.id, norm);
+                            ids.push(d.id);
+                        });
+                        __modalReviews.approvedMap = map;
+                        // Update replies listener with current set of reviewIds across both sets
+                        const pendingIds = Array.from(__modalReviews.pendingMap.keys());
+                        const combined = [...new Set([...ids, ...pendingIds])];
+                        attachRepliesListener(combined);
+                        scheduleModalReviewsRender();
+                    } catch (e) { console.error('[reviews modal] approved snapshot err:', e); }
+                }, (err) => {
+                    console.error('[reviews modal] approved realtime error:', err);
+                    clearModalReviewsUI();
+                });
+
+                if (__modalReviews.isPrivileged) {
+                    const pendingQ = f.query(
+                        reviewsRef,
+                        f.where('gameId', '==', gameId),
+                        f.where('moderationStatus', '==', 'pending'),
+                        f.orderBy('timestamp', 'desc'),
+                        f.limit(10)
+                    );
+                    __modalReviews.unsubPending = f.onSnapshot(pendingQ, (snap) => {
+                        try {
+                            const ids = [];
+                            const map = new Map();
+                            snap.forEach(d => {
+                                const data = d.data();
+                                const norm = { id: d.id, ...data, timestamp: toMillis(data.timestamp) };
+                                map.set(d.id, norm);
+                                ids.push(d.id);
+                            });
+                            __modalReviews.pendingMap = map;
+                            const approvedIds = Array.from(__modalReviews.approvedMap.keys());
+                            const combined = [...new Set([...ids, ...approvedIds])];
+                            attachRepliesListener(combined);
+                            scheduleModalReviewsRender();
+                        } catch (e) { console.error('[reviews modal] pending snapshot err:', e); }
+                    }, (err) => {
+                        console.error('[reviews modal] pending realtime error:', err);
+                    });
+                }
+            } catch (error) {
+                console.error('[reviews modal] failed to start live listeners:', error);
+                // Fallback to single load
+                try { await loadModalReviews(gameId); } catch {}
+            }
+        }
+
+        function stopLiveModalReviews() {
+            try { if (__modalReviews.unsubApproved) { __modalReviews.unsubApproved(); } } catch {}
+            try { if (__modalReviews.unsubPending) { __modalReviews.unsubPending(); } } catch {}
+            try { if (__modalReviews.unsubReplies) { __modalReviews.unsubReplies(); } } catch {}
+            __modalReviews.unsubApproved = null;
+            __modalReviews.unsubPending = null;
+            __modalReviews.unsubReplies = null;
+            __modalReviews.active = false;
+            __modalReviews.gameId = null;
+            __modalReviews.approvedMap = new Map();
+            __modalReviews.pendingMap = new Map();
+            __modalReviews.repliesMap = new Map();
+            if (__modalReviews.renderTimer) { try { clearTimeout(__modalReviews.renderTimer); } catch {} __modalReviews.renderTimer = null; }
+        }
         async function loadModalReviews(gameId) {
             try {
                 console.log(`🔍 Loading reviews for game in modal: ${gameId}`);
@@ -2858,10 +3105,15 @@
 
         // Refresh modal reviews after successful submission
         function refreshModalReviews() {
-            console.log(`🔄 Refreshing reviews for ${currentGameId} in modal`);
+            // With realtime listeners, manual refresh is unnecessary
+            if (__modalReviews && __modalReviews.active) {
+                console.log(`🔄 Realtime active for ${currentGameId}; no manual refresh needed`);
+                return;
+            }
+            console.log(`🔄 Refreshing reviews for ${currentGameId} in modal (fallback one-time load)`);
             setTimeout(() => {
-                loadModalReviews(currentGameId);
-            }, 1000);
+                try { loadModalReviews(currentGameId); } catch {}
+            }, 800);
         }
 
         // Make functions globally available
@@ -2977,22 +3229,25 @@
             return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
         }
 
-        function buildSubmissionCard(doc){
+    function buildSubmissionCard(doc){
             const id = doc.id;
             const title = escapeHtml(doc.title || 'Untitled');
             const desc = escapeHtml((doc.description || '').slice(0, 180));
             const cover = (typeof doc.coverImageUrl === 'string' && doc.coverImageUrl) ? doc.coverImageUrl : 'assets/icons/anonymous.png';
             const playUrl = (typeof doc.playUrl === 'string' && /^https?:\/\//i.test(doc.playUrl)) ? doc.playUrl : null;
             const tags = Array.isArray(doc.tags) ? doc.tags.slice(0,4) : [];
+            const badge = (typeof doc.badge === 'string' && ['new','updated','beta'].includes(doc.badge)) ? doc.badge : null;
+            const badgeLabel = badge === 'new' ? 'NEW' : (badge === 'updated' ? 'UPDATED' : (badge === 'beta' ? 'BETA' : ''));
 
             const card = document.createElement('div');
-            card.className = 'game-card';
+            card.className = 'game-card is-submission';
             card.setAttribute('data-game', id);
+            if (doc.ownerId) { try { card.setAttribute('data-owner', String(doc.ownerId)); } catch {} }
             card.innerHTML = `
                 <div class="card-image">
                     <img src="${cover}" alt="${title}" class="game-logo-image" loading="lazy" decoding="async">
                     <div class="card-overlay"></div>
-                    <div class="game-badge new" style="display:${doc.featured ? 'block' : 'none'};">NEW</div>
+                    ${badge ? `<div class="game-badge ${badge}">${badgeLabel}</div>` : `<div class=\"game-badge new\" style=\"display:${doc.featured ? 'block' : 'none'};\">NEW</div>`}
                     <!-- Game Card Menu Buttons (top right) for submissions -->
                     <div class="game-card-menu" data-game-menu>
                         <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;">✏️ Edit</button>
@@ -3019,60 +3274,82 @@
             return card;
         }
 
-        async function loadPublishedIntoMainGrid(){
-            try{
-                if(!window.firebaseFirestore || !window.firestoreCollection || !window.firestoreQuery || !window.firestoreWhere){
-                    console.log('[games grid] Firestore not ready – retrying...');
-                    return setTimeout(loadPublishedIntoMainGrid, 600);
-                }
-                const container = document.querySelector('.game-cards');
-                if(!container) return;
-                // Prevent duplicate loads
-                if(container.dataset.communityLoaded === '1') return;
-                container.dataset.communityLoaded = '1';
+        function startRealtimePublishedIntoMainGrid(){
+            (async function init(){
+                try{
+                    if(!window.firebaseFirestore || !window.firestoreCollection || !window.firestoreWhere){
+                        console.log('[games grid] Firestore not ready – retrying...');
+                        return setTimeout(startRealtimePublishedIntoMainGrid, 600);
+                    }
+                    const container = document.querySelector('.game-cards');
+                    if(!container) return;
+                    if(container.dataset.communityLoaded === '1') return; // prevent duplicate listener
+                    container.dataset.communityLoaded = '1';
 
-                const submissionsRef = window.firestoreCollection(window.firebaseFirestore, 'game_submissions');
-                const constraints = [ window.firestoreWhere('status','in',['published','Published']) ];
-                if (window.firestoreLimit) constraints.push(window.firestoreLimit(24));
-                const q = window.firestoreQuery(submissionsRef, ...constraints);
-                const snap = await window.firestoreGetDocs(q);
-                const docs = [];
-                snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
-                docs.sort((a,b)=>{
-                    const at = (a.updatedAt?.toMillis?.() || a.createdAt?.toMillis?.() || 0);
-                    const bt = (b.updatedAt?.toMillis?.() || b.createdAt?.toMillis?.() || 0);
-                    return bt - at;
-                });
+                    // Ensure onSnapshot is available
+                    if (!window.firestoreOnSnapshot) {
+                        const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                        window.firestoreOnSnapshot = f.onSnapshot;
+                        window.firestoreGetDoc = window.firestoreGetDoc || f.getDoc;
+                        window.firestoreDoc = window.firestoreDoc || f.doc;
+                    }
 
-                if(!docs.length){
-                    return; // nothing to add
-                }
+                    const submissionsRef = window.firestoreCollection(window.firebaseFirestore, 'game_submissions');
+                    const q = window.firestoreQuery(
+                        submissionsRef,
+                        window.firestoreWhere('status','in',['published','Published'])
+                    );
 
-                const frag = document.createDocumentFragment();
-                for(const d of docs){
-                    frag.appendChild(buildSubmissionCard(d));
-                }
+                    // Attach listener
+                    const unsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
+                        try {
+                            const list = [];
+                            snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
+                            // Sort by updatedAt desc then createdAt desc
+                            list.sort((a,b)=>{
+                                const at = (a.updatedAt?.toMillis?.() || a.createdAt?.toMillis?.() || 0);
+                                const bt = (b.updatedAt?.toMillis?.() || b.createdAt?.toMillis?.() || 0);
+                                return bt - at;
+                            });
 
-                // Insert before the "Coming Soon" placeholder if present, else append
-                const comingSoon = container.querySelector('.game-card.coming-soon');
-                if (comingSoon && comingSoon.parentNode === container){
-                    container.insertBefore(frag, comingSoon);
-                } else {
-                    container.appendChild(frag);
-                }
+                            // Remove previously rendered submission cards
+                            container.querySelectorAll('.game-card.is-submission').forEach(el => el.remove());
 
-                // Update rating displays for newly added cards
-                setTimeout(updateAllRatingDisplays, 200);
-                // Re-run menu setup so three-dot & owner buttons are wired on new cards
-                if (typeof setupGameCardMenus === 'function') {
-                    try { setupGameCardMenus(); } catch {}
+                            // Rebuild
+                            const frag = document.createDocumentFragment();
+                            for(const d of list){
+                                frag.appendChild(buildSubmissionCard(d));
+                            }
+                            const comingSoon = container.querySelector('.game-card.coming-soon');
+                            if (comingSoon && comingSoon.parentNode === container){
+                                container.insertBefore(frag, comingSoon);
+                            } else {
+                                container.appendChild(frag);
+                            }
+
+                            // Update menus and ratings
+                            if (typeof setupGameCardMenus === 'function') {
+                                try { setupGameCardMenus(); } catch {}
+                                // Re-run shortly after to catch any auth state changes or slow DOM attachments
+                                try { setTimeout(setupGameCardMenus, 250); } catch {}
+                            }
+                            setTimeout(updateAllRatingDisplays, 200);
+                        } catch (err) {
+                            console.error('[games grid] snapshot render failed:', err);
+                        }
+                    }, (error) => {
+                        console.error('[games grid] realtime error:', error);
+                    });
+
+                    // Clean up on unload
+                    window.addEventListener('beforeunload', () => { try { unsubscribe(); } catch {} }, { once: true });
+                }catch(e){
+                    console.error('[games grid] Failed to init realtime listener:', e);
                 }
-            }catch(e){
-                console.error('[games grid] Failed to load published submissions:', e);
-            }
+            })();
         }
 
-        window.addEventListener('DOMContentLoaded', () => setTimeout(loadPublishedIntoMainGrid, 1400));
+        window.addEventListener('DOMContentLoaded', () => setTimeout(startRealtimePublishedIntoMainGrid, 800));
     })();
     </script>
 

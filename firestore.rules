@@ -201,6 +201,14 @@ service cloud.firestore {
       // - Owner may update content but cannot change status (must remain the same)
       // - Admin/Developer can update including publishing/unpublishing
       allow update: if request.auth != null && (
+                      // 0) Safe owner-claim for legacy/unowned docs: only ownerId (+ optional updatedAt) may be set
+                      (
+                        !(resource.data.keys().hasAny(['ownerId']) && resource.data.ownerId is string && resource.data.ownerId.size() > 0) &&
+                        request.resource.data.ownerId is string &&
+                        request.resource.data.ownerId == request.auth.uid &&
+                        request.resource.data.diff(resource.data).changedKeys().hasOnly(['ownerId','updatedAt']) &&
+                        (!request.resource.data.keys().hasAny(['updatedAt']) || request.resource.data.updatedAt is timestamp)
+                      ) ||
                       (
                         request.auth.uid == resource.data.ownerId &&
                         isValidGameSubmissionUpdate() &&
@@ -362,8 +370,7 @@ service cloud.firestore {
         'coderunner',
         'neurocore',
         'neurocore-byte-wars',
-        'bytesurge',
-        'shadowlight'
+        'bytesurge'
       ];
     }
 
@@ -582,24 +589,28 @@ service cloud.firestore {
              data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
              (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
         (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string))) &&
-        (!data.keys().hasAny(['playUrl']) || (data.playUrl is string && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://')));
+        (!data.keys().hasAny(['playUrl']) || (data.playUrl is string && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://'))) &&
+        (!data.keys().hasAny(['badge']) || (data.badge in ['new','updated','beta']));
     }
 
     function isValidGameSubmissionUpdate() {
       let d = request.resource.data.diff(resource.data);
-      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','coverImageUrl','tags','status','playUrl']) &&
-          d.addedKeys().hasOnly(['coverImageUrl','tags','playUrl']) &&
-          d.removedKeys().hasOnly(['coverImageUrl','tags','playUrl']);
+      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','coverImageUrl','tags','status','playUrl','badge']) &&
+          // Allow admins to add a missing 'status' field on legacy docs
+          d.addedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','status']) &&
+          d.removedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge']);
       let immutableOk = request.resource.data.ownerId == resource.data.ownerId &&
                         request.resource.data.createdAt == resource.data.createdAt;
       return allowed && immutableOk &&
              request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120 &&
              request.resource.data.updatedAt is timestamp &&
-             request.resource.data.status in ['draft','published'] &&
+             // Permit unchanged/missing status (legacy docs) while validating if provided
+             (!request.resource.data.keys().hasAny(['status']) || request.resource.data.status in ['draft','published']) &&
              request.resource.data.description is string && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 5000 &&
-             (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
-        (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 3 && request.resource.data.tags[0] is string)) &&
-        (!request.resource.data.keys().hasAny(['playUrl']) || (request.resource.data.playUrl is string && request.resource.data.playUrl.size() <= 2000 && request.resource.data.playUrl.matches('^https?://')));
+       (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
+     (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 3 && request.resource.data.tags[0] is string)) &&
+     (!request.resource.data.keys().hasAny(['playUrl']) || (request.resource.data.playUrl is string && request.resource.data.playUrl.size() <= 2000 && request.resource.data.playUrl.matches('^https?://'))) &&
+     (!request.resource.data.keys().hasAny(['badge']) || (request.resource.data.badge in ['new','updated','beta']));
     }
 
   // Lighter validator used on create for drafts to prevent false negatives with serverTimestamp

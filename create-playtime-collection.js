@@ -49,12 +49,6 @@ const createPlaytimeCollectionAndIndex = async () => {
         gameName: 'NeuroCore: Byte Wars', 
         hours: 0,
         iconUrl: 'assets/game logos/neurocore byte wars logo.png'
-      },
-      { 
-        gameId: 'shadowlight', 
-        gameName: 'ShadowLight', 
-        hours: 0,
-        iconUrl: 'assets/game logos/shadowlight.png'
       }
     ];
     

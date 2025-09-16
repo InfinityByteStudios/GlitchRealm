@@ -44,13 +44,6 @@ function addShortPlaytimeTest() {
             totalMinutes: 1, // Exactly 1 minute
             lastPlayed: new Date(Date.now() - 172800000),
             sessionCount: 1
-        },
-        shadowlight: { 
-            gameId: 'shadowlight', 
-            gameName: 'ShadowLight', 
-            totalMinutes: 60, // Exactly 1 hour
-            lastPlayed: new Date(Date.now() - 259200000),
-            sessionCount: 1
         }
     };
     

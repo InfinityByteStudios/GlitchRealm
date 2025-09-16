@@ -47,14 +47,6 @@ function addTestPlaytimeData() {
             totalMinutes: 30,
             lastPlayed: new Date(Date.now() - 172800000), // 2 days ago
             sessionCount: 1
-        },
-        { 
-            gameId: 'shadowlight', 
-            gameName: 'ShadowLight', 
-            hours: 0,
-            totalMinutes: 0,
-            lastPlayed: null,
-            sessionCount: 0
         }
     ];
 
