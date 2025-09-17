@@ -1556,14 +1556,44 @@ async function initializeAuth() {
             console.log('Firebase not yet initialized, retrying...');
             setTimeout(initializeAuth, 500);
             return;
-        }        console.log('Initializing Firebase Auth...');        const { signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        }        console.log('Initializing Firebase Auth...');
+        // Attempt to initialize App Check if configured
+        try {
+            const { getApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            const { initializeAppCheck, ReCaptchaV3Provider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js');
+            if (window.GR_APPCHECK_DEBUG) {
+                // Enable debug token mode; Firebase will log the token to console on first run
+                try { self.FIREBASE_APPCHECK_DEBUG_TOKEN = window.GR_APPCHECK_DEBUG === true ? true : String(window.GR_APPCHECK_DEBUG); } catch {}
+            }
+            if (window.GR_APPCHECK_SITE_KEY) {
+                try {
+                    const app = getApp();
+                    initializeAppCheck(app, {
+                        provider: new ReCaptchaV3Provider(String(window.GR_APPCHECK_SITE_KEY)),
+                        isTokenAutoRefreshEnabled: true,
+                    });
+                    console.log('[AppCheck] Initialized with reCAPTCHA v3');
+                } catch (appCheckErr) {
+                    console.warn('[AppCheck] Initialization skipped or failed:', appCheckErr?.message || appCheckErr);
+                }
+            } else {
+                console.log('[AppCheck] GR_APPCHECK_SITE_KEY not set; skipping App Check init');
+            }
+        } catch (e) {
+            console.log('[AppCheck] Not initialized (modules unavailable or not needed).');
+        }
+
+        const { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
     
     // Expose deleteUser to global scope for account deletion
     window.deleteUser = deleteUser;
     
     const auth = window.firebaseAuth;
+    try { auth.languageCode = navigator.language || 'en'; } catch {}
+    const forceRedirect = !!window.GR_AUTH_FORCE_REDIRECT;
     const googleProvider = new GoogleAuthProvider();
     const githubProvider = new GithubAuthProvider();
+    try { githubProvider.setCustomParameters({ allow_signup: 'true' }); } catch {}
 
     // DOM elements (with null checks for dynamic loading)
     const signInBtn = document.getElementById('sign-in-btn');
@@ -1571,6 +1601,25 @@ async function initializeAuth() {
     const signInModal = document.getElementById('signin-modal');
     const closeModal = document.getElementById('close-modal');
     const userProfile = document.getElementById('user-profile');
+
+    // If we returned from a redirect sign-in, complete the flow
+    try {
+        const redirectResult = await getRedirectResult(auth);
+        if (redirectResult && redirectResult.user) {
+            // Close modal if present and restore scrolling
+            if (signInModal) {
+                signInModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+            showAuthMessage('Signed in successfully!', 'success');
+            console.log('Completed redirect sign-in:', {
+                providerId: redirectResult.providerId,
+                user: { uid: redirectResult.user.uid, email: redirectResult.user.email }
+            });
+        }
+    } catch (redirectErr) {
+        console.warn('getRedirectResult error (safe to ignore if no redirect happened):', redirectErr);
+    }
     const userName = document.getElementById('user-name');
     
     // If header elements aren't loaded yet, store auth function for later
@@ -1628,39 +1677,82 @@ async function initializeAuth() {
 
     // Authentication methods (Firebase-dependent)
     googleSignIn?.addEventListener('click', async () => {
+        let finalized = false;
         try {
             showAuthLoading(googleSignIn, 'CONNECTING...');
+            if (forceRedirect) {
+                console.warn('Forcing Google sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
+                await signInWithRedirect(auth, googleProvider);
+                return;
+            }
             await signInWithPopup(auth, googleProvider);
-            signInModal.style.display = 'none';
+            finalized = true;
+            if (signInModal) signInModal.style.display = 'none';
             document.body.style.overflow = 'auto';
             showAuthMessage('Neural sync successful!', 'success');
         } catch (error) {
             console.error('Google sign-in error:', error);
-            showAuthMessage('Connection failed. Please try again.', 'error');        } finally {
-            // Reset to proper default text based on active tab
-            const activeTab = document.querySelector('.auth-tab.active');
-            const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-            const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
-            hideAuthLoading(googleSignIn, defaultText);
-        }    });
+            const code = String(error?.code || error?.message || '');
+            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
+            if (shouldRedirect) {
+                try {
+                    console.warn('Falling back to redirect for Google sign-in...');
+                    await signInWithRedirect(auth, googleProvider);
+                    return; // Will navigate and complete via getRedirectResult()
+                } catch (redirectErr) {
+                    console.error('Google redirect sign-in failed:', redirectErr);
+                }
+            }
+            showAuthMessage('Connection failed. Please try again.', 'error');
+        } finally {
+            if (!finalized) {
+                // Reset to proper default text based on active tab
+                const activeTab = document.querySelector('.auth-tab.active');
+                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
+                const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
+                hideAuthLoading(googleSignIn, defaultText);
+            }
+        }
+    });
 
-    // GitHub sign-in
+    // GitHub sign-in (with redirect fallback for popup/internal errors)
     githubSignIn?.addEventListener('click', async () => {
+        let finalized = false;
         try {
             showAuthLoading(githubSignIn, 'CONNECTING...');
+            if (forceRedirect) {
+                console.warn('Forcing GitHub sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
+                await signInWithRedirect(auth, githubProvider);
+                return;
+            }
             await signInWithPopup(auth, githubProvider);
-            signInModal.style.display = 'none';
+            finalized = true;
+            if (signInModal) signInModal.style.display = 'none';
             document.body.style.overflow = 'auto';
             showAuthMessage('GitHub sync successful!', 'success');
         } catch (error) {
             console.error('GitHub sign-in error:', error);
+            const code = String(error?.code || error?.message || '');
+            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
+            if (shouldRedirect) {
+                try {
+                    console.warn('Falling back to redirect for GitHub sign-in...');
+                    // Keep loading state; navigation should occur
+                    await signInWithRedirect(auth, githubProvider);
+                    return; // Will navigate away; getRedirectResult will complete later
+                } catch (redirectErr) {
+                    console.error('GitHub redirect sign-in failed:', redirectErr);
+                }
+            }
             showAuthMessage('GitHub connection failed. Please try again.', 'error');
         } finally {
-            // Reset to proper default text based on active tab
-            const activeTab = document.querySelector('.auth-tab.active');
-            const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-            const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
-            hideAuthLoading(githubSignIn, defaultText);
+            // Reset to proper default text based on active tab unless we’ve navigated/finished
+            if (!finalized) {
+                const activeTab = document.querySelector('.auth-tab.active');
+                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
+                const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
+                hideAuthLoading(githubSignIn, defaultText);
+            }
         }
     });
 
@@ -1673,7 +1765,13 @@ async function initializeAuth() {
             showAuthMessage('Anonymous mode activated!', 'success');
         } catch (error) {
             console.error('Anonymous sign-in error:', error);
-            showAuthMessage('Initialization failed. Please try again.', 'error');
+            const code = String(error?.code || error?.message || '');
+            if (/app-check/i.test(code) || /firebase-app-check-token-is-invalid/i.test(code)) {
+                showAuthMessage('App Check required. Configure App Check or disable enforcement.', 'error');
+                console.warn('App Check appears to be enforced for Auth. Provide GR_APPCHECK_SITE_KEY and initialize App Check, or temporarily disable enforcement for Authentication in Firebase Console.');
+            } else {
+                showAuthMessage('Initialization failed. Please try again.', 'error');
+            }
         } finally {
             hideAuthLoading(anonymousSignIn, 'ANONYMOUS MODE');
         }
