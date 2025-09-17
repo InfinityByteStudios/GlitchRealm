@@ -8,7 +8,7 @@ This repository uses a dual-license approach:
 
 - Code: MIT — see `LICENSE`
 - Non-code assets (art, audio, logos, etc.): All Rights Reserved — see `LICENSE-ASSETS`
-- Trademarks: See `NOTICE` ("GlitchRealm" and InfinityByte Studios marks)
+- Trademarks: See `NOTICE` ("GlitchRealm" and GlitchRealm Games marks)
 
 For licensing or special permissions, contact: legal@glitchrealm.ca
 

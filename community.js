@@ -240,8 +240,10 @@
     try {
       const f = await ensureModFirestore();
       // Fallback avoids composite indexes: fetch by createdAt only, client-filter/sort
+      // IMPORTANT: add status=='published' filter here so we never pull drafts/archived (which would 403 for signed-out users)
       let q = f.query(
         f.collection(f.db, 'community_posts'),
+        f.where('status','==','published'),
         f.orderBy('createdAt','desc')
       );
       if (!reset && lastCursor) q = f.query(q, f.startAfter(lastCursor));
@@ -250,7 +252,8 @@
 
       // Client-side filter/sort
   let docs = snap.docs.map(d => ({ ref: d, data: d.data() }));
-      docs = docs.filter(x => (x.data.status === 'published'));
+  // No need to filter by status now (query already restricts) but keep defensive check:
+  docs = docs.filter(x => (x.data.status === 'published'));
       if (tag) {
         docs = docs.filter(x => Array.isArray(x.data.tags) && x.data.tags.includes(tag));
       }
