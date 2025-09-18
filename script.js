@@ -509,6 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isOwner = computeOwnerState();
                 menu.innerHTML = `
                     ${isOwner ? '<button class="menu-item edit" role="menuitem">Edit</button>' : ''}
+                    <button class="menu-item info" role="menuitem">Info</button>
                     <button class="menu-item star" role="menuitem">Star</button>
                     <button class="menu-item report" role="menuitem">Report</button>
                 `;
@@ -604,6 +605,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (e.target.closest('.menu-item.edit')) {
                     closeAllGameMenus();
                     if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
+                    return;
+                }
+                if (e.target.closest('.menu-item.info')) {
+                    closeAllGameMenus();
+                    try {
+                        const target = gameId || (menu.closest('.game-card')?.getAttribute('data-game')) || '';
+                        if (target) {
+                            // Navigate to game detail page with query param
+                            window.location.href = 'game-detail.html?game=' + encodeURIComponent(target);
+                        }
+                    } catch (err) { console.error('Failed to open info page', err); }
                     return;
                 }
                 if (e.target.closest('.menu-item.report')) {
@@ -4521,7 +4533,7 @@ function maybeShowPortalIntro() {
     header.style.alignItems = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'assets/glitch realm favicon image.png';
+    icon.src = 'assets/favicon.svg';
     icon.alt = '';
     icon.width = 28;
     icon.height = 28;
@@ -4635,7 +4647,7 @@ function maybeShowBotIntro() {
     header.style.alignItems = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'assets/glitch realm favicon image.png';
+    icon.src = 'assets/favicon.svg';
     icon.alt = '';
     icon.width = 28;
     icon.height = 28;

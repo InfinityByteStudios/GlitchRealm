@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Sitemap: https://glitchrealm.ca/sitemap.xml
+# Recommended for ad partners: do not disallow common ad bot user-agents here.
+# If you need to block crawlers for staging, add specific rules per-host.

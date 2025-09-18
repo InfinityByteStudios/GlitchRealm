@@ -11,7 +11,7 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "assets/glitch realm favicon image.png",
+  "src": "assets/favicon.svg",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
