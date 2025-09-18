@@ -1,8 +1,8 @@
-// Script to update favicon references in all HTML files
+// Script to update favicon references in selected HTML files
 const fs = require('fs');
 const path = require('path');
 
-// Main HTML files to update (excluding game-specific ones)
+// Files to update (top-level, non-game pages)
 const htmlFiles = [
   'about.html',
   'contact.html',
@@ -18,38 +18,26 @@ const htmlFiles = [
   'terms-of-service.html',
   'test-dropdown.html',
   'test-modal.html',
-  'user-portal.html'
+  'user-portal.html',
+  'submit-game.html'
 ];
 
-// Update favicon references
+// Canonical new favicon to use
+const newFavicon = 'assets/favicon.ico';
+
+// Generic pattern replace: any filename or URL that contains 'glitch' and 'favicon' (case-insensitive)
+const pattern = /(?:assets\/)?.*glitch[^\s"']*favicon[^\s"']*\.(?:png|svg|ico)/gi;
+
 htmlFiles.forEach(file => {
   const filePath = path.join(__dirname, file);
-  
   try {
-    // Read file content
     let content = fs.readFileSync(filePath, 'utf8');
-    
-    // Replace favicon references
-  const oldFavicon = 'assets/Glitch Realm FaviCon Image.png';
-  const newFavicon = 'assets/favicon.svg';
-    
-    // Case-insensitive replacement
-    const regex = new RegExp(oldFavicon.replace(/\./g, '\\.'), 'i');
-    const updatedContent = content.replace(regex, newFavicon);
-    
-    // Also replace lowercase reference that might be in JavaScript
-    const lowercaseReplacement = content.replace(
-      /'assets\/glitch realm favicon image\.png'/g, 
-      "'assets/game logos/glitchbot with words.png'"
-    );
-    
-    // Write updated content back to file
-    fs.writeFileSync(filePath, lowercaseReplacement, 'utf8');
-    
+    content = content.replace(pattern, newFavicon);
+    fs.writeFileSync(filePath, content, 'utf8');
     console.log(`Updated favicon in: ${file}`);
-  } catch (error) {
-    console.error(`Error updating ${file}: ${error.message}`);
+  } catch (err) {
+    console.error(`Failed to update ${file}: ${err.message}`);
   }
 });
 
-console.log('Favicon update complete!');
+console.log('Favicon update script finished.');

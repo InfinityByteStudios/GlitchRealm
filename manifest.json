@@ -11,7 +11,7 @@
   "prefer_related_applications": false,
   "icons": [
     {
-  "src": "assets/favicon.svg",
+  "src": "assets/favicon.ico",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
