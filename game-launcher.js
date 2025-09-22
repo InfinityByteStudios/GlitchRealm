@@ -4,23 +4,23 @@
 class GameLauncher {
     constructor() {
         this.games = {
-            'coderunner': {
+                'coderunner': {
                 id: 'coderunner',
                 name: 'CodeRunner',
                 path: 'Games/CodeRunner/index.html',
-                iconUrl: 'assets/game logos/coderunner logo.png'
+                iconUrl: 'assets/Game Logos/coderunner logo.webp'
             },
             'bytesurge': {
                 id: 'bytesurge',
                 name: 'ByteSurge',
                 path: 'Games/ByteSurge/index.html',
-                iconUrl: 'assets/game logos/bytesurge.png'
+                iconUrl: 'assets/Game Logos/ByteSurge.webp'
             },
             'neurocore-byte-wars': {
                 id: 'neurocore-byte-wars',
                 name: 'NeuroCore: Byte Wars',
                 path: 'Games/ByteWars/index.html',
-                iconUrl: 'assets/game logos/neurocore byte wars logo.png'
+                iconUrl: 'assets/Game Logos/neurocore byte wars logo.webp'
             }
         };
         

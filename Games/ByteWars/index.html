@@ -2,8 +2,11 @@
 <html lang="en">
 <head>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroCore: Byte Wars</title>    <link rel="icon" type="image/png" href="assets/Logos/NeuroCore Byte Wars Logo.png">
+    <title>NeuroCore: Byte Wars</title>
+    <link rel="icon" type="image/png" href="assets/Logos/NeuroCore Byte Wars Logo.png">
     <link rel="shortcut icon" type="image/png" href="assets/Logos/NeuroCore Byte Wars Logo.png">
+    <!-- Prefer WebP splash when supported -->
+    <link rel="preload" as="image" href="assets/Logos/NeuroCore Byte Wars Logo.webp">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>    <!-- Studio Splash Screen -->
@@ -22,7 +25,10 @@
     </div>    <!-- Game Logo Splash Screen -->
     <div id="gameSplash" class="splash-screen">
         <div class="splash-content">
-            <img src="assets/Logos/NeuroCore Byte Wars Logo.png" alt="NeuroCore Byte Wars" class="splash-logo game-logo">
+            <picture>
+                <source type="image/webp" srcset="assets/Logos/NeuroCore Byte Wars Logo.webp">
+                <img src="assets/Logos/NeuroCore Byte Wars Logo.png" alt="NeuroCore Byte Wars" class="splash-logo game-logo">
+            </picture>
             <div class="splash-loading">
                 <div class="loading-squares">
                     <div class="loading-square"></div>

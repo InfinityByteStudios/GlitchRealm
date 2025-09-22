@@ -1189,9 +1189,9 @@
                 
                 // Make sure all games are included in the list, even if they haven't been played yet
                 const allGames = [
-                    { gameId: 'coderunner', gameName: 'CodeRunner', hours: 0, iconUrl: 'assets/game logos/coderunner logo.png' },
-                    { gameId: 'bytesurge', gameName: 'ByteSurge', hours: 0, iconUrl: 'assets/game logos/bytesurge.png' },
-                    { gameId: 'bytewars', gameName: 'NeuroCore: Byte Wars', hours: 0, iconUrl: 'assets/game logos/neurocore byte wars logo.png' }
+                    { gameId: 'coderunner', gameName: 'CodeRunner', hours: 0, iconUrl: 'assets/Game Logos/coderunner logo.webp' },
+                    { gameId: 'bytesurge', gameName: 'ByteSurge', hours: 0, iconUrl: 'assets/Game Logos/ByteSurge.webp' },
+                    { gameId: 'bytewars', gameName: 'NeuroCore: Byte Wars', hours: 0, iconUrl: 'assets/Game Logos/neurocore byte wars logo.webp' }
                 ];
                 
                 // Merge playtime data with all games list
@@ -1278,13 +1278,13 @@
                     // Fallback logic based on gameId
                     switch(game.gameId) {
                         case 'coderunner':
-                            imageUrl = 'assets/game logos/coderunner logo.png';
+                            imageUrl = 'assets/Game Logos/coderunner logo.webp';
                             break;
                         case 'bytesurge':
-                            imageUrl = 'assets/game logos/bytesurge.png';
+                            imageUrl = 'assets/Game Logos/ByteSurge.webp';
                             break;
                         case 'bytewars': // Updated ID to match what's in the GamePlaytimeTracker
-                            imageUrl = 'assets/game logos/neurocore byte wars logo.png';
+                            imageUrl = 'assets/Game Logos/neurocore byte wars logo.webp';
                             break;
                         default:
                             imageUrl = 'assets/favicon.ico';

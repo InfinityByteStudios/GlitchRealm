@@ -36,19 +36,19 @@ const createPlaytimeCollectionAndIndex = async () => {
         gameId: 'coderunner', 
         gameName: 'CodeRunner', 
         hours: 0,
-        iconUrl: 'assets/game logos/coderunner logo.png'
+        iconUrl: 'assets/Game Logos/coderunner logo.webp'
       },
       { 
         gameId: 'bytesurge', 
         gameName: 'ByteSurge', 
         hours: 0,
-        iconUrl: 'assets/game logos/bytesurge.png'
+        iconUrl: 'assets/Game Logos/ByteSurge.webp'
       },
       { 
         gameId: 'neurocore-byte-wars', 
         gameName: 'NeuroCore: Byte Wars', 
         hours: 0,
-        iconUrl: 'assets/game logos/neurocore byte wars logo.png'
+        iconUrl: 'assets/Game Logos/neurocore byte wars logo.webp'
       }
     ];
     

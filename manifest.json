@@ -40,7 +40,7 @@
       "name": "Play Games",
       "short_name": "Games",
       "url": "/games.html",
-      "icons": [{ "src": "assets/game logos/bytesurge.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "assets/Game Logos/ByteSurge.webp", "sizes": "192x192", "type": "image/webp" }]
     },
     {
       "name": "Community",
