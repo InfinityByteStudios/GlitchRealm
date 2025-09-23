@@ -144,51 +144,6 @@ function makeEtag(obj) {
 // Health
 api.get('/health', (_req, res) => res.json({ ok: true }));
 
-// Verify reCAPTCHA token (POST) - expects { token, action }
-api.post('/verify-recaptcha', async (req, res) => {
-	try {
-		const token = (req.body && req.body.token) ? String(req.body.token) : '';
-		const action = (req.body && req.body.action) ? String(req.body.action) : '';
-		if (!token) return res.status(400).json({ success: false, error: 'missing-token' });
-
-		// Prefer functions config if provided, fall back to env var
-		let secret = null;
-		try {
-			const cfg = functions.config && functions.config().recaptcha;
-			if (cfg && cfg.secret) secret = String(cfg.secret);
-		} catch (e) { /* ignore */ }
-		if (!secret && process.env.RECAPTCHA_SECRET) secret = String(process.env.RECAPTCHA_SECRET);
-		if (!secret) return res.status(500).json({ success: false, error: 'recaptcha-secret-not-configured' });
-
-		// Verify with Google's siteverify API
-		const params = new URLSearchParams();
-		params.append('secret', secret);
-		params.append('response', token);
-		// If client passed remoteip, we ignore for now
-
-		const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
-		const fetchRes = await fetch(verifyUrl, { method: 'POST', body: params });
-		const data = await fetchRes.json();
-
-		// Basic checks: success === true and (if action provided) matched action
-		if (!data || data.success !== true) {
-			return res.status(400).json({ success: false, error: 'verification-failed', details: data });
-		}
-
-		// If action was supplied by client, ensure it matches
-		if (action && data.action && data.action !== action) {
-			return res.status(400).json({ success: false, error: 'action-mismatch', details: data });
-		}
-
-		// Provide score back to client so they can make policy decisions
-		const score = typeof data.score === 'number' ? data.score : null;
-		return res.json({ success: true, score, hostname: data.hostname || null, action: data.action || null, raw: data });
-	} catch (e) {
-		console.error('reCAPTCHA verify error:', e);
-		return res.status(500).json({ success: false, error: 'internal-error' });
-	}
-});
-
 // Current user info (auth required)
 api.get('/me', requireAuth, async (req, res) => {
 	try {

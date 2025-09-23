@@ -509,7 +509,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isOwner = computeOwnerState();
                 menu.innerHTML = `
                     ${isOwner ? '<button class="menu-item edit" role="menuitem">Edit</button>' : ''}
-                    <button class="menu-item info" role="menuitem">Info</button>
                     <button class="menu-item star" role="menuitem">Star</button>
                     <button class="menu-item report" role="menuitem">Report</button>
                 `;
@@ -605,17 +604,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (e.target.closest('.menu-item.edit')) {
                     closeAllGameMenus();
                     if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
-                    return;
-                }
-                if (e.target.closest('.menu-item.info')) {
-                    closeAllGameMenus();
-                    try {
-                        const target = gameId || (menu.closest('.game-card')?.getAttribute('data-game')) || '';
-                        if (target) {
-                            // Navigate to game detail page with query param
-                            window.location.href = 'game-detail.html?game=' + encodeURIComponent(target);
-                        }
-                    } catch (err) { console.error('Failed to open info page', err); }
                     return;
                 }
                 if (e.target.closest('.menu-item.report')) {
@@ -1771,60 +1759,6 @@ async function initializeAuth() {
     anonymousSignIn?.addEventListener('click', async () => {
         try {
             showAuthLoading(anonymousSignIn, 'INITIALIZING...');
-
-            // Obtain reCAPTCHA v3 token (action: anonymous_signin)
-            const siteKey = window.GR_RECAPTCHA_SITE_KEY || window.GR_APPCHECK_SITE_KEY || '6LcW2tErAAAAAFF3swTbUtuPytuH4g3DTP4NnsZh';
-
-            async function loadRecaptcha() {
-                if (window.grecaptcha && window.grecaptcha.execute) return window.grecaptcha;
-                return new Promise((resolve, reject) => {
-                    const s = document.createElement('script');
-                    s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
-                    s.async = true;
-                    s.onload = () => { if (window.grecaptcha) resolve(window.grecaptcha); else reject(new Error('grecaptcha not found')); };
-                    s.onerror = (e) => reject(new Error('Failed to load reCAPTCHA script'));
-                    document.head.appendChild(s);
-                });
-            }
-
-            let verified = false;
-            try {
-                const grecap = await loadRecaptcha();
-                const token = await grecap.execute(siteKey, { action: 'anonymous_signin' });
-
-                // Send token to server for verification
-                const resp = await fetch('/__/functions/verify-recaptcha', { // cloud functions external path may be proxied; also accept /api/ path
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token, action: 'anonymous_signin' })
-                }).then(r => r.json()).catch(e => ({ success: false }));
-
-                // Cloud Functions are mounted at /api via Express; also accept the functions default path
-                if (!resp || resp.success !== true) {
-                    // Try alternate path
-                    const resp2 = await fetch('/api/verify-recaptcha', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, action: 'anonymous_signin' })
-                    }).then(r => r.json()).catch(e => ({ success: false }));
-                    if (resp2 && resp2.success === true && (resp2.score === null || resp2.score >= 0.3)) {
-                        verified = true;
-                    } else {
-                        console.warn('reCAPTCHA verification failed or low score', resp, resp2);
-                        showAuthMessage('Verification failed. Try again later.', 'error');
-                        throw new Error('recaptcha-failed');
-                    }
-                } else {
-                    if (resp.score === null || resp.score >= 0.3) verified = true; else {
-                        console.warn('Low recaptcha score', resp.score);
-                        showAuthMessage('Verification flagged as suspicious. Try again later.', 'error');
-                        throw new Error('recaptcha-low-score');
-                    }
-                }
-            } catch (recapErr) {
-                console.warn('reCAPTCHA step failed, falling back to direct anonymous sign-in if allowed:', recapErr);
-                // If recaptcha fails to load/verify, we still attempt signInAnonymously to avoid blocking feature; server-side App Check enforcement will still protect endpoints
-            }
-
-            // Proceed with anonymous sign-in; if App Check is enforced and anonymous sign-in is blocked, the error handler will advise
             await signInAnonymously(auth);
             signInModal.style.display = 'none';
             document.body.style.overflow = 'auto';
@@ -1835,8 +1769,6 @@ async function initializeAuth() {
             if (/app-check/i.test(code) || /firebase-app-check-token-is-invalid/i.test(code)) {
                 showAuthMessage('App Check required. Configure App Check or disable enforcement.', 'error');
                 console.warn('App Check appears to be enforced for Auth. Provide GR_APPCHECK_SITE_KEY and initialize App Check, or temporarily disable enforcement for Authentication in Firebase Console.');
-            } else if (/recaptcha/i.test(code) || /recaptcha-failed/i.test(code)) {
-                showAuthMessage('Verification failed. Please try again.', 'error');
             } else {
                 showAuthMessage('Initialization failed. Please try again.', 'error');
             }
@@ -4589,7 +4521,7 @@ function maybeShowPortalIntro() {
     header.style.alignItems = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'assets/favicon.ico';
+    icon.src = 'assets/glitch realm favicon image.png';
     icon.alt = '';
     icon.width = 28;
     icon.height = 28;
@@ -4703,7 +4635,7 @@ function maybeShowBotIntro() {
     header.style.alignItems = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'assets/favicon.ico';
+    icon.src = 'assets/glitch realm favicon image.png';
     icon.alt = '';
     icon.width = 28;
     icon.height = 28;

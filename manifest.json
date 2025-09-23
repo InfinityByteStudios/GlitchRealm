@@ -11,28 +11,10 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "assets/favicon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/favicon-512.png",
+      "src": "assets/glitch realm favicon image.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "assets/favicon.ico",
-      "sizes": "48x48 64x64",
-      "type": "image/x-icon",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -40,7 +22,7 @@
       "name": "Play Games",
       "short_name": "Games",
       "url": "/games.html",
-      "icons": [{ "src": "assets/Game Logos/ByteSurge.webp", "sizes": "192x192", "type": "image/webp" }]
+      "icons": [{ "src": "assets/game logos/bytesurge.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Community",

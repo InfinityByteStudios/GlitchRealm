@@ -13,7 +13,7 @@ const PRECACHE_URLS = [
   '/user-portal.html',
   '/styles.css',
   '/script.js',
-  '/assets/favicon.ico'
+  '/assets/glitch realm favicon image.png'
 ];
 
 // External resources we want to cache-fast-path (opaque responses ok)
