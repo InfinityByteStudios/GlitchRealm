@@ -30,7 +30,7 @@ htmlFiles.forEach(file => {
     let content = fs.readFileSync(filePath, 'utf8');
     
     // Replace favicon references
-    const oldFavicon = 'assets/Glitch Realm FaviCon Image.png';
+  const oldFavicon = 'assets/favicon-192.png';
     const newFavicon = 'assets/game logos/glitchbot with words.png';
     
     // Case-insensitive replacement
@@ -39,7 +39,7 @@ htmlFiles.forEach(file => {
     
     // Also replace lowercase reference that might be in JavaScript
     const lowercaseReplacement = content.replace(
-      /'assets\/glitch realm favicon image\.png'/g, 
+  /'assets\/favicon-192\.png'/g, 
       "'assets/game logos/glitchbot with words.png'"
     );
     
