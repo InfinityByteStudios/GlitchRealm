@@ -4521,7 +4521,7 @@ function maybeShowPortalIntro() {
     header.style.alignItems = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'assets/favicon-192.png';
+    icon.src = 'assets/favicon.ico';
     icon.alt = '';
     icon.width = 28;
     icon.height = 28;
@@ -4635,7 +4635,7 @@ function maybeShowBotIntro() {
     header.style.alignItems = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'assets/favicon-192.png';
+    icon.src = 'assets/favicon.ico';
     icon.alt = '';
     icon.width = 28;
     icon.height = 28;
