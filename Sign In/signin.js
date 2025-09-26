@@ -1,12 +1,12 @@
 // Minimal standalone auth for GlitchRealm Sign In page
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import {
     getAuth, onAuthStateChanged,
     setPersistence, browserLocalPersistence,
     signInWithEmailAndPassword, createUserWithEmailAndPassword, 
     sendPasswordResetEmail,
     GoogleAuthProvider, GithubAuthProvider, signInWithPopup
-} from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Firebase configuration - replace with your actual config
 const firebaseConfig = {
@@ -21,6 +21,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+// Expose auth/app on window so site-wide scripts can find the same auth instance
+try { window.firebaseApp = app; window.firebaseAuth = auth; } catch (e) {}
 // Persist auth across tabs and reloads
 try {
     // Ensure tokens and user session persist when navigating back/around the site

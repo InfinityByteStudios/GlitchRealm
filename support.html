@@ -18,8 +18,8 @@
   <style>
     .support-hero { padding:70px 0 30px; text-align:center; position:relative; }
     .support-hero h1 { font-family:'Orbitron', monospace; font-size:2.4rem; background:linear-gradient(90deg,#00fff9,#008cff); -webkit-background-clip:text; background-clip:text; color:transparent; letter-spacing:2px; }
-    .support-grid { display:grid; gap:24px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); margin:40px 0; }
-    .support-card { background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); padding:18px 20px 22px; border-radius:14px; position:relative; overflow:hidden; }
+  .support-grid { display:flex; gap:24px; flex-wrap:wrap; justify-content:center; margin:40px auto; max-width:920px; }
+  .support-card { background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); padding:18px 20px 22px; border-radius:14px; position:relative; overflow:hidden; max-width:360px; margin:0 auto; }
     .support-card:before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 18% 22%,rgba(0,255,249,0.12),transparent 60%),radial-gradient(circle at 80% 75%,rgba(0,140,255,0.12),transparent 65%); mix-blend-mode:screen; pointer-events:none; }
     .support-card h3 { margin:0 0 8px; font-size:1.05rem; letter-spacing:.6px; color:#00f5ff; }
     .support-card p { margin:0 0 10px; font-size:.9rem; line-height:1.35; color:#c9d8dc; }

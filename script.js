@@ -134,6 +134,29 @@ function showAuthMessage(message, type) {
     }, 4000);
 }
 
+// Dev helper: log auth state changes so we can see if persistence is working
+(function(){
+    function attachLogger(){
+        try{
+            if(window.firebaseAuth && typeof window.firebaseAuth.onAuthStateChanged === 'function'){
+                window.firebaseAuth.onAuthStateChanged(user => {
+                    console.info('GlitchRealm: auth state changed ->', user);
+                });
+                return true;
+            }
+        }catch(e){console.warn('Auth logger attach failed', e);} 
+        return false;
+    }
+
+    if(!attachLogger()){
+        // poll briefly for auth to become available (e.g., module loads later)
+        let attempts = 0;
+        const id = setInterval(()=>{
+            if(attachLogger() || ++attempts > 20) clearInterval(id);
+        }, 200);
+    }
+})();
+
 // Check for password change success notification
 function checkPasswordChangeSuccess() {
     const urlParams = new URLSearchParams(window.location.search);
