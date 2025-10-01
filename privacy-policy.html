@@ -5,7 +5,12 @@
     <title>Privacy Policy - GlitchRealm Games</title>
     <!-- Google CMP + Consent Mode v2: load early -->
     <script src="cmp-consent.js"></script>
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -550,7 +555,9 @@
         }
     </style>
     
-    <!-- Firebase SDK -->
+    <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+    <script type="module" src="firebase-core.js"></script>
+    <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -566,10 +573,11 @@
             measurementId: "G-KK5XVVLMVN"
         };
         
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
         const analytics = getAnalytics(app);
         
+        window.firebaseApp = app;
         window.firebaseAuth = auth;
     </script>
 </head>

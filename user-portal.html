@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Portal - GlitchRealm Games</title>
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png" />
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-message.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
+    <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+    <script type="module" src="firebase-core.js"></script>
+    <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, updateEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -24,10 +30,11 @@
             measurementId: "G-KK5XVVLMVN"
         };
         
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const firestore = getFirestore(app);
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
+        const firestore = window.firebaseFirestore || getFirestore(app);
         
+        window.firebaseApp = app;
         window.firebaseAuth = auth;
         window.firebaseFirestore = firestore;
         window.updateEmail = updateEmail;
@@ -1287,7 +1294,7 @@
                             imageUrl = 'assets/game logos/neurocore byte wars logo.png';
                             break;
                         default:
-                            imageUrl = 'assets/favicon.ico';
+                            imageUrl = 'assets/Favicon and Icons/favicon.ico';
                     }
                 }
                 

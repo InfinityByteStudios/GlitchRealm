@@ -30,7 +30,7 @@ htmlFiles.forEach(file => {
     let content = fs.readFileSync(filePath, 'utf8');
     
     // Replace favicon references
-  const oldFavicon = 'assets/favicon.ico';
+  const oldFavicon = 'assets/Favicon and Icons/favicon.ico';
     const newFavicon = 'assets/game logos/glitchbot with words.png';
     
     // Case-insensitive replacement

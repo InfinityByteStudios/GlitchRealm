@@ -2630,7 +2630,7 @@ async function initializeAuth() {
     function getDefaultAvatar(user) {
         // If anonymous user, use the anonymous icon
         if (!user.email && (!user.providerData || user.providerData.length === 0)) {
-            return 'assets/Icons/anonymous.png';
+            return 'assets/icons/anonymous.png';
         }
         
         // For other users without a photo, create an avatar with their initial
@@ -4544,7 +4544,7 @@ function maybeShowPortalIntro() {
     header.style.alignItems = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'assets/favicon.ico';
+    icon.src = 'assets/Favicon and Icons/favicon.ico';
     icon.alt = '';
     icon.width = 28;
     icon.height = 28;
@@ -4658,7 +4658,7 @@ function maybeShowBotIntro() {
     header.style.alignItems = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'assets/favicon.ico';
+    icon.src = 'assets/Favicon and Icons/favicon.ico';
     icon.alt = '';
     icon.width = 28;
     icon.height = 28;

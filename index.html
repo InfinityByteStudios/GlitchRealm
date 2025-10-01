@@ -6,7 +6,11 @@
     <meta name="theme-color" content="#00fff9">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="assets/favicon.ico">
+    <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png" />
     <!-- Buy Me a Coffee performance hints -->
     <link rel="preconnect" href="https://cdnjs.buymeacoffee.com">
     <link rel="dns-prefetch" href="//cdnjs.buymeacoffee.com">
@@ -22,7 +26,6 @@
     <title>GlitchRealm Games</title>
     <!-- Google CMP + Consent Mode v2: load early (replace PUB_ID inside cmp-consent.js) -->
     <script src="cmp-consent.js"></script>
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link rel="preload" as="style" href="styles.css" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="styles.css"></noscript>
     <!-- Preload LCP image for Featured section -->
@@ -309,7 +312,9 @@
         }
     </style>
     
-    <!-- Firebase SDK -->
+    <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+    <script type="module" src="firebase-core.js"></script>
+    <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -326,12 +331,13 @@
             measurementId: "G-KK5XVVLMVN"
         };
         
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
     // Explicitly target the default bucket using gs:// URL
-    const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
+    const storage = window.firebaseStorage || getStorage(app, 'gs://shared-sign-in.appspot.com');
         const analytics = getAnalytics(app);
         
+        window.firebaseApp = app;
         window.firebaseAuth = auth;
         window.firebaseStorage = storage;
     </script>

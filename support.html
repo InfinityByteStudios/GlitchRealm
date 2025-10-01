@@ -6,20 +6,22 @@
   <meta name="theme-color" content="#00fff9">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="assets/favicon.ico">
-  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+  <link rel="icon" type="image/png" href="assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Support - GlitchRealm</title>
-  
   <link rel="stylesheet" href="styles.css">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
   <style>
     .support-hero { padding:70px 0 30px; text-align:center; position:relative; }
     .support-hero h1 { font-family:'Orbitron', monospace; font-size:2.4rem; background:linear-gradient(90deg,#00fff9,#008cff); -webkit-background-clip:text; background-clip:text; color:transparent; letter-spacing:2px; }
-  .support-grid { display:flex; gap:24px; flex-wrap:wrap; justify-content:center; margin:40px auto; max-width:920px; }
-  .support-card { background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); padding:18px 20px 22px; border-radius:14px; position:relative; overflow:hidden; max-width:360px; margin:0 auto; }
+    .support-grid { display:grid; gap:24px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); margin:40px 0; }
+    .support-card { background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); padding:18px 20px 22px; border-radius:14px; position:relative; overflow:hidden; }
     .support-card:before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 18% 22%,rgba(0,255,249,0.12),transparent 60%),radial-gradient(circle at 80% 75%,rgba(0,140,255,0.12),transparent 65%); mix-blend-mode:screen; pointer-events:none; }
     .support-card h3 { margin:0 0 8px; font-size:1.05rem; letter-spacing:.6px; color:#00f5ff; }
     .support-card p { margin:0 0 10px; font-size:.9rem; line-height:1.35; color:#c9d8dc; }
@@ -59,6 +61,8 @@
     .support-form .sf-note { font-size:.65rem; opacity:.6; margin-top:12px; }
     @media (max-width:620px){ .support-form-dialog { margin:30px 14px; padding:24px 22px 26px; } }
   </style>
+  <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+  <script type="module" src="firebase-core.js"></script>
 </head>
 <body>
   <div class="background-animation"></div>
@@ -79,7 +83,8 @@
           <div>
             <a class="contact-chip" href="#help-reset-password">Reset Password</a>
             <a class="contact-chip" href="#help-change-email">Change Email</a>
-      <a class="contact-chip" href="#help-verification">Verification</a>
+            <a class="contact-chip" href="#help-verification">Verification</a>
+          </div>
         </div>
         <div class="support-card">
           <h3>Games & Platform</h3>
@@ -368,7 +373,7 @@
     data-secondary-color="#E5E8ED"
     data-button-background-color="#0A1629"
     data-starting-message="Hello! How can I help you today?"
-  data-logo="assets/favicon.ico"></script>
+  data-logo="assets/Favicon and Icons/favicon.ico"></script>
   <script>
     // Support Request Modal open/close (static Netlify form present in DOM)
     (function(){

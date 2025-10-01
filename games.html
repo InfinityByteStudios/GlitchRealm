@@ -6,7 +6,11 @@
     <meta name="theme-color" content="#00fff9">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="assets/favicon.ico">
+    <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png" />
     <!-- Buy Me a Coffee performance hints -->
     <link rel="preconnect" href="https://cdnjs.buymeacoffee.com">
     <link rel="dns-prefetch" href="//cdnjs.buymeacoffee.com">
@@ -14,8 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games - GlitchRealm Games</title>
     <!-- Google CMP + Consent Mode v2: load early (replace PUB_ID inside cmp-consent.js) -->
-    <script src="cmp-consent.js"></script>
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">    <link rel="stylesheet" href="styles.css">
+    <script src="cmp-consent.js"></script>    <link rel="stylesheet" href="styles.css">
     <!-- Async Google Fonts (non-render-blocking) -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
@@ -33,8 +36,10 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="//www.gstatic.com">
-      <!-- Firebase SDK -->
-    <script type="module">        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+            <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+        <script type="module" src="firebase-core.js"></script>
+            <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
+        <script type="module">        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
         import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -48,19 +53,19 @@
             messagingSenderId: "332039027753",
             appId: "1:332039027753:web:aa7c6877d543bb90363038",
             measurementId: "G-KK5XVVLMVN"
-        };
-          const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+                };
+                    const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
     // Explicitly target the default bucket using gs:// URL
-    const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
-    const firestore = getFirestore(app);
+        const storage = window.firebaseStorage || getStorage(app, 'gs://shared-sign-in.appspot.com');
+        const firestore = window.firebaseFirestore || getFirestore(app);
         const analytics = getAnalytics(app);
         
-    window.firebaseApp = app;
+        window.firebaseApp = app;
     window.firebaseConfig = firebaseConfig;
-    window.firebaseAuth = auth;
-        window.firebaseStorage = storage;
-        window.firebaseFirestore = firestore;
+        window.firebaseAuth = auth;
+                window.firebaseStorage = storage;
+                window.firebaseFirestore = firestore;
         window.firestoreCollection = collection;
         window.firestoreAddDoc = addDoc;
         window.firestoreQuery = query;

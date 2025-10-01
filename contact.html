@@ -3,7 +3,12 @@
 <head>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - GlitchRealm Games</title>
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -289,7 +294,9 @@
         }
     </style>
     
-    <!-- Firebase SDK -->
+    <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+    <script type="module" src="firebase-core.js"></script>
+    <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -305,9 +312,10 @@
             measurementId: "G-KK5XVVLMVN"
         };
         
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-    const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
+        const storage = window.firebaseStorage || getStorage(app, 'gs://shared-sign-in.appspot.com');
+        window.firebaseApp = app;
         window.firebaseAuth = auth;
         window.firebaseStorage = storage;
     </script>
@@ -368,19 +376,19 @@
                         <div class="social-links" style="margin-bottom:12px;">
                             <a href="mailto:support@glitchrealm.ca" class="social-link">
                                 <span class="social-icon">
-                                    <img src="assets/favicon.ico" alt="Support" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
+                                    <img src="assets/Favicon and Icons/favicon.ico" alt="Support" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
                                 </span>
                                 <span>support@glitchrealm.ca — Player support, bug reports, general</span>
                             </a>
                             <a href="mailto:contact@glitchrealm.ca" class="social-link">
                                 <span class="social-icon">
-                                    <img src="assets/favicon.ico" alt="Contact" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
+                                    <img src="assets/Favicon and Icons/favicon.ico" alt="Contact" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
                                 </span>
                                 <span>contact@glitchrealm.ca — General questions, feedback, and partnerships</span>
                             </a>
                             <a href="mailto:legal@glitchrealm.ca" class="social-link">
                                 <span class="social-icon">
-                                    <img src="assets/favicon.ico" alt="Legal" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
+                                    <img src="assets/Favicon and Icons/favicon.ico" alt="Legal" class="logo-icon" loading="lazy" decoding="async" width="24" height="24">
                                 </span>
                                 <span>legal@glitchrealm.ca — Privacy Policy, Terms, legal/compliance</span>
                             </a>

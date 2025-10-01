@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submit Your Game - GlitchRealm</title>
-  <link re        const auth = window.firebaseAuth; const user = auth?auth.currentUser:null; const msg = $('submissionMessage'); const btn=$('submitGameBtn');
-        if(!user){ if(msg) msg.innerHTML='<div class="error-message">Please sign in first.</div>'; return; }
-        // Debug logging
-        console.log('User auth state:', { uid: user.uid, email: user.email });
-        // verify privilege - TEMPORARILY DISABLED FOR TESTING
-  // try { const me = await getMe(); console.log('User verification state:', me); const allowed = me && (me.isVerified || me.isDeveloper); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch(err){ console.error('Verification check failed:', err); }
+  <!-- Favicons -->
+  <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+  <link rel="icon" type="image/png" href="assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png" />
   <link rel="preload" as="style" href="styles.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="styles.css"></noscript>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,7 +55,9 @@
   #submissionCoverPreviewWrap { display:none; margin-top:10px; width:100%; max-width:680px; aspect-ratio:16/9; border:1px solid rgba(255,255,255,.08); border-radius:10px; overflow:hidden; background:#0a0d14; box-shadow:0 2px 10px rgba(0,0,0,.35); }
   #submissionCoverPreview { width:100%; height:100%; object-fit:cover; display:block; background:#000; }
   </style>
-  <!-- Firebase SDK (added so submit gate recognizes signed-in users) -->
+  <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+  <script type="module" src="firebase-core.js"></script>
+  <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -70,9 +72,9 @@
       appId: "1:332039027753:web:aa7c6877d543bb90363038",
       measurementId: "G-KK5XVVLMVN"
     };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const storage = getStorage(app, 'gs://shared-sign-in.appspot.com');
+    const app = window.firebaseApp || initializeApp(firebaseConfig);
+    const auth = window.firebaseAuth || getAuth(app);
+    const storage = window.firebaseStorage || getStorage(app, 'gs://shared-sign-in.appspot.com');
     window.firebaseApp = app;
     window.firebaseAuth = auth;
     window.firebaseStorage = storage;
@@ -163,8 +165,32 @@
       try{ const me = await getMe(); const allowed = me && (me.isVerified || me.isDeveloper); show(submitCard, allowed); show(gateNotice, !allowed); } catch { show(submitCard,false); show(gateNotice,true); }
     }
     document.addEventListener('DOMContentLoaded', () => {
-      if(window.firebaseAuth){ import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js').then(({onAuthStateChanged})=>{ try { onAuthStateChanged(window.firebaseAuth, gate); } catch{} }); }
-      gate();
+      // Wait for cached auth to hydrate, then attach a listener and gate UI
+      const attach = async () => {
+        try {
+          const { onAuthStateChanged, setPersistence, browserLocalPersistence } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+          const auth = window.firebaseAuth;
+          if (!auth) return false;
+          try { setPersistence(auth, browserLocalPersistence).catch(()=>{}); } catch {}
+          try { onAuthStateChanged(auth, () => gate()); } catch {}
+          // Run once in case currentUser is already available
+          gate();
+          return true;
+        } catch { return false; }
+      };
+      let attempts = 0;
+      const tryAttach = () => {
+        if (window.firebaseAuth) { attach(); return true; }
+        return false;
+      };
+      if (!tryAttach()) {
+        const id = setInterval(() => {
+          if (tryAttach() || ++attempts > 25) {
+            clearInterval(id);
+            if (attempts > 25) gate(); // final fallback
+          }
+        }, 200);
+      }
       const form = $('submitGameForm'); if(!form) return;
       const fileInput = $('submissionCoverFile'); const urlInput = $('submissionCoverUrl'); const wrap = $('submissionCoverPreviewWrap'); const img = $('submissionCoverPreview'); const preTag = $('submissionPreReleaseTag');
       const msgBox = $('submissionMessage');
