@@ -2033,12 +2033,19 @@ async function initializeAuth() {
             }
         }
         
-        // Initialize profile picture upload functionality
-        initializeProfilePictureUpload();
+        // Profile picture upload now handled by portal-avatar-integration.js (Supabase)
+        // Old initializeProfilePictureUpload() call removed
     }
     
     // Profile picture upload functionality
     function initializeProfilePictureUpload() {
+        // DISABLED: This old profile picture upload is replaced by Supabase avatar integration
+        // The new system is in portal-avatar-integration.js and handles uploads properly
+        // Only runs on user-portal.html with Supabase Storage
+        
+        console.log('Old profile picture upload disabled - using Supabase avatar system');
+        return; // Exit early - don't set up old handlers
+        
         const uploadOverlays = document.querySelectorAll('.avatar-upload-overlay, .avatar-upload-overlay-large');
         const fileInput = document.getElementById('profile-picture-upload');
         
@@ -4314,11 +4321,8 @@ function initializeAuthElements() {
         // Re-initialize profile dropdown functionality
         initializeProfileDropdown();
         
-        // Initialize profile picture upload functionality
-        initializeProfilePictureUpload();
-        
-        // Initialize crop modal functionality
-        initializeCropModal();
+        // Profile picture upload now handled by portal-avatar-integration.js (Supabase)
+        // Old initializeProfilePictureUpload() and initializeCropModal() removed
         
         // Re-initialize profile action buttons
         initializeProfileActions();
