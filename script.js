@@ -4968,4 +4968,165 @@ document.addEventListener('DOMContentLoaded', function() {
     // You can call updateNotificationCount here with actual notification data
     // For demo purposes, uncomment the line below to show a notification count:
     // updateNotificationCount(3);
+    
+    // Initialize Mobile Navigation
+    initializeMobileNavigation();
 });
+
+// Mobile Menu Toggle Functionality
+function initializeMobileNavigation() {
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+    let isMenuOpen = false;
+
+    // Debug logging
+    console.log('Initializing mobile navigation...');
+    console.log('Mobile toggle button:', mobileMenuToggle);
+    console.log('Nav links:', navLinks);
+
+    function toggleMobileMenu() {
+        isMenuOpen = !isMenuOpen;
+        console.log('Toggling mobile menu. Open:', isMenuOpen);
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.classList.toggle('active', isMenuOpen);
+        }
+        if (navLinks) {
+            navLinks.classList.toggle('active', isMenuOpen);
+        }
+        
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+        
+        // Close other dropdowns when menu opens
+        if (isMenuOpen) {
+            closeAllDropdowns();
+        }
+    }
+
+    function closeMobileMenu() {
+        if (isMenuOpen) {
+            isMenuOpen = false;
+            if (mobileMenuToggle) {
+                mobileMenuToggle.classList.remove('active');
+            }
+            if (navLinks) {
+                navLinks.classList.remove('active');
+            }
+            document.body.style.overflow = '';
+            console.log('Mobile menu closed');
+        }
+    }
+
+    function closeAllDropdowns() {
+        // Close nav dropdown
+        const navDropdown = document.querySelector('.nav-dropdown');
+        if (navDropdown) {
+            navDropdown.classList.remove('open');
+        }
+        
+        // Close profile dropdown
+        const userProfile = document.querySelector('.user-profile');
+        if (userProfile) {
+            userProfile.classList.remove('open');
+        }
+    }
+
+    // Mobile menu toggle click handler
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+            console.log('Mobile menu button clicked!');
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+        
+        // Also add touch event for better mobile support
+        mobileMenuToggle.addEventListener('touchend', function(e) {
+            console.log('Mobile menu button touched!');
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+        
+        console.log('Mobile menu toggle event listeners added');
+    } else {
+        console.warn('Mobile menu toggle button not found!');
+    }
+
+    // Close mobile menu when clicking on nav links (except dropdowns)
+    if (navLinks) {
+        navLinks.addEventListener('click', function(e) {
+            // Close menu if clicking on a direct nav link (not dropdown triggers)
+            if (e.target.classList.contains('nav-link') && 
+                !e.target.classList.contains('dropdown-trigger') &&
+                !e.target.classList.contains('profile-trigger')) {
+                closeMobileMenu();
+            }
+        });
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (isMenuOpen && 
+            navLinks && !navLinks.contains(e.target) && 
+            mobileMenuToggle && !mobileMenuToggle.contains(e.target)) {
+            closeMobileMenu();
+        }
+    });
+
+    // Close mobile menu on window resize to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768 && isMenuOpen) {
+            closeMobileMenu();
+        }
+    });
+
+    // Enhanced dropdown handling for mobile
+    const dropdownTriggers = document.querySelectorAll('.dropdown-trigger, .profile-trigger');
+    dropdownTriggers.forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const dropdown = this.closest('.nav-dropdown, .user-profile');
+            const isOpen = dropdown.classList.contains('open');
+            
+            // Close all other dropdowns
+            dropdownTriggers.forEach(otherTrigger => {
+                const otherDropdown = otherTrigger.closest('.nav-dropdown, .user-profile');
+                if (otherDropdown !== dropdown) {
+                    otherDropdown.classList.remove('open');
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.classList.toggle('open', !isOpen);
+        });
+    });
+
+    // Touch handling for better mobile experience
+    let touchStartY = 0;
+    if (navLinks) {
+        navLinks.addEventListener('touchstart', function(e) {
+            touchStartY = e.touches[0].clientY;
+        });
+
+        navLinks.addEventListener('touchmove', function(e) {
+            // Allow scrolling within the nav menu
+            const touchY = e.touches[0].clientY;
+            const scrollTop = this.scrollTop;
+            const scrollHeight = this.scrollHeight;
+            const height = this.clientHeight;
+            const deltaY = touchY - touchStartY;
+
+            // Prevent overscroll
+            if ((scrollTop === 0 && deltaY > 0) || 
+                (scrollTop === scrollHeight - height && deltaY < 0)) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    console.log('Mobile navigation initialization complete');
+}

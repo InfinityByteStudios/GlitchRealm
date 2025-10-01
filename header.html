@@ -4,7 +4,15 @@
             <span class="glitch" data-text="GlitchRealm">GlitchRealm</span>
             <span class="games-text">Games</span>
         </a>
-        <div class="nav-links">
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+        
+        <div class="nav-links" id="nav-links">
             <a href="index.html" class="nav-link">Home</a>
             <a href="games.html" class="nav-link">Games</a>
             <a href="about.html" class="nav-link" title="About GlitchRealm Games - Learn about our indie gaming platform">About</a>
@@ -118,11 +126,9 @@
             </div>
         </div>
     </div>
-    <!-- Hidden file input for profile picture upload -->
-    <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;">
-</nav>
-
-<!-- Terms Updated Popup (site-wide) - moved outside nav so it can cover the full viewport -->
+<!-- Hidden file input for profile picture upload -->
+<input type="file" id="profile-picture-upload" accept="image/*" style="display: none;">
+</nav><!-- Terms Updated Popup (site-wide) - moved outside nav so it can cover the full viewport -->
 <div id="terms-update-popup" class="terms-popup-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="terms-update-title">
     <div class="terms-popup" role="document">
         <div class="terms-popup-header">
