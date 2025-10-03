@@ -1229,14 +1229,19 @@
         }
         
         if (!window.firebaseApp) {
-          console.error('[Support] Firebase app not available');
+          console.error('[Support] Firebase app not available - showing database error status');
+          updateStatusUI({
+            status: 'down',
+            message: 'Database Issues',
+            description: 'Unable to connect to the database. Our team has been notified and is working on a fix.'
+          });
           return;
         }
         
         const db = getFirestore(window.firebaseApp);
         const statusDocRef = doc(db, 'system', 'status');
         
-        // Set up real-time listener
+        // Set up real-time listener with error handling
         const unsubscribe = onSnapshot(statusDocRef, (docSnap) => {
           if(docSnap.exists()){
             updateStatusUI(docSnap.data());
@@ -1250,21 +1255,24 @@
           }
         }, (error) => {
           console.error('[Support] Error listening to status:', error);
-        });
-        
-        // Set up info button click handler (only needs to be set once)
-        statusInfoBtn.addEventListener('click', () => {
-          if(statusDescription.style.display === 'none' || !statusDescription.style.display){
-            statusDescription.style.display = 'block';
-          } else {
-            statusDescription.style.display = 'none';
-          }
+          // Show database error if listener fails
+          updateStatusUI({
+            status: 'down',
+            message: 'Database Issues',
+            description: 'Unable to retrieve system status. Our team has been notified and is working on a fix.'
+          });
         });
         
         console.log('[Support] Real-time status listener active');
         
       } catch(err) {
         console.error('[Support] Failed to set up status listener:', err);
+        // Show database error on any exception
+        updateStatusUI({
+          status: 'down',
+          message: 'Database Issues',
+          description: 'Unable to connect to the database. Our team has been notified and is working on a fix.'
+        });
       }
     })();
 
@@ -1508,7 +1516,16 @@
             attempts++;
           }
           
-          if (!window.firebaseApp) return;
+          if (!window.firebaseApp) {
+            console.error('[Status Modal] Firebase app not available');
+            currentStatusData = {
+              status: 'down',
+              message: 'Database Issues',
+              description: 'Unable to connect to the database. Our team has been notified and is working on a fix.',
+              updatedAt: new Date()
+            };
+            return;
+          }
           
           const db = getFirestore(window.firebaseApp);
           const statusDocRef = doc(db, 'system', 'status');
@@ -1524,9 +1541,23 @@
                 updatedAt: new Date()
               };
             }
+          }, (error) => {
+            console.error('[Status Modal] Error listening to status:', error);
+            currentStatusData = {
+              status: 'down',
+              message: 'Database Issues',
+              description: 'Unable to retrieve system status. Our team has been notified and is working on a fix.',
+              updatedAt: new Date()
+            };
           });
         } catch(err) {
-          console.error('[Support] Failed to listen for status updates:', err);
+          console.error('[Status Modal] Failed to listen for status updates:', err);
+          currentStatusData = {
+            status: 'down',
+            message: 'Database Issues',
+            description: 'Unable to connect to the database. Our team has been notified and is working on a fix.',
+            updatedAt: new Date()
+          };
         }
       })();
     })();
