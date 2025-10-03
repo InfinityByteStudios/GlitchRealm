@@ -27,6 +27,9 @@
     .support-card:hover:before { opacity:1; }
     .support-card h3 { margin:0 0 10px; font-size:1.15rem; font-weight:700; letter-spacing:.8px; color:#00f5ff; font-family:'Orbitron', monospace; text-transform:uppercase; }
     .support-card p { margin:0 0 16px; font-size:.88rem; line-height:1.5; color:#b8d4d8; opacity:0.9; }
+    /* System Status Box - Clickable */
+    #system-status:hover { border-color:rgba(0,255,249,0.4); background:linear-gradient(135deg,rgba(11,24,34,0.95),rgba(7,16,23,1)); box-shadow:0 4px 16px rgba(0,255,249,0.15); }
+    #system-status:active { transform:scale(0.99); }
   .contact-chip { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid rgba(0,255,249,0.3); border-radius:20px; font-size:.72rem; letter-spacing:.6px; text-transform:uppercase; color:#00fff9; background:rgba(0,255,249,0.08); margin:4px 6px 4px 0; font-weight:600; cursor:pointer; text-decoration:none; position:relative; transition:all .22s ease; }
   .contact-chip:hover, .contact-chip:focus { background:rgba(0,255,249,0.2); border-color:rgba(0,255,249,0.6); color:#00fff9; outline:none; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,255,249,0.25); }
   .contact-chip:active { transform:translateY(0); }
@@ -87,14 +90,13 @@
         <p style="max-width:620px;margin:14px auto 0; font-size:1rem; color:#d4dde0;">Need help with your account, games, or platform features? Choose a category below to get started.</p>
         
         <!-- System Status -->
-        <div id="system-status" style="max-width:620px; margin:20px auto 0; padding:14px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.9),rgba(7,16,23,0.95)); border:1px solid rgba(0,255,249,0.2); border-radius:12px; display:flex; align-items:center; gap:12px;">
+        <div id="system-status" style="max-width:620px; margin:20px auto 0; padding:14px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.9),rgba(7,16,23,0.95)); border:1px solid rgba(0,255,249,0.2); border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all .25s ease;" role="button" tabindex="0" aria-label="View system status details">
           <div id="status-indicator" style="width:10px; height:10px; border-radius:50%; background:#00ff00; box-shadow:0 0 10px #00ff00;"></div>
           <div style="flex:1;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-weight:700; font-size:.9rem; color:#fff;">System Status: <span id="status-text">All Systems Operational</span></span>
-              <button id="status-info-btn" style="display:none; background:none; border:1px solid rgba(0,255,249,0.4); border-radius:50%; width:20px; height:20px; color:#00fff9; font-size:.7rem; cursor:pointer; padding:0; line-height:1;">i</button>
+              <span style="font-size:.7rem; color:#7edcf0; opacity:.8;">Click for details →</span>
             </div>
-            <div id="status-description" style="display:none; margin-top:8px; font-size:.8rem; line-height:1.4; color:#b8d4d8; padding-top:8px; border-top:1px solid rgba(0,255,249,0.15);"></div>
           </div>
         </div>
         
@@ -1130,6 +1132,38 @@
     </div>
   </div>
 
+  <!-- System Status Details Modal -->
+  <div id="status-details-modal" class="support-form-modal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
+    <div class="support-form-backdrop" data-close-status></div>
+    <div class="support-form-dialog" style="max-width:520px;">
+      <button class="support-form-close" id="close-status-modal" aria-label="Close">&times;</button>
+      <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+        <div id="modal-status-indicator" style="width:12px; height:12px; border-radius:50%; background:#00ff00; box-shadow:0 0 12px #00ff00;"></div>
+        System Status
+      </h3>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:.7rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0; margin-bottom:6px;">Current Status</div>
+        <div id="modal-status-text" style="font-size:1.1rem; font-weight:700; color:#fff;">All Systems Operational</div>
+      </div>
+      <div id="modal-status-message-section" style="margin-bottom:16px;">
+        <div style="font-size:.7rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0; margin-bottom:6px;">Message</div>
+        <div id="modal-status-message" style="font-size:.9rem; line-height:1.5; color:#d7e5e8;">Everything is running smoothly.</div>
+      </div>
+      <div id="modal-status-description-section" style="display:none; margin-bottom:16px;">
+        <div style="font-size:.7rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0; margin-bottom:6px;">Details</div>
+        <div id="modal-status-description" style="font-size:.85rem; line-height:1.6; color:#c3d2d6; padding:12px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.1); border-radius:8px;"></div>
+      </div>
+      <div id="modal-status-updated" style="font-size:.72rem; color:#7edcf0; opacity:.7; margin-top:20px; padding-top:16px; border-top:1px solid rgba(0,255,249,0.15);">
+        Last updated: <span id="modal-status-time">Just now</span>
+      </div>
+      <div style="margin-top:20px; text-align:center;">
+        <button id="modal-contact-btn" class="contact-chip" style="padding:10px 20px; font-size:.82rem; cursor:pointer; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.4);">
+          📧 Contact Support
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Chatbot widget only on this page -->
   <script id="doai-chatbot-loader" async
     src="https://kcur57gey4euhzpupakvb43g.agents.do-ai.run/static/chatbot/widget.js"
@@ -1337,6 +1371,164 @@
       modal.addEventListener('click', e=>{ if(e.target===modal || e.target.hasAttribute('data-close')) close(); });
       document.getElementById('close-support-form')?.addEventListener('click', close);
       document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.classList.contains('visible')) close(); });
+    })();
+
+    // System Status Details Modal
+    (function(){
+      const statusBox = document.getElementById('system-status');
+      const statusModal = document.getElementById('status-details-modal');
+      if(!statusBox || !statusModal) return;
+      
+      let currentStatusData = null;
+      
+      // Store status data when updated
+      const statusIndicator = document.getElementById('status-indicator');
+      const statusText = document.getElementById('status-text');
+      
+      // Modal elements
+      const modalIndicator = document.getElementById('modal-status-indicator');
+      const modalStatusText = document.getElementById('modal-status-text');
+      const modalMessage = document.getElementById('modal-status-message');
+      const modalDescription = document.getElementById('modal-status-description');
+      const modalDescriptionSection = document.getElementById('modal-status-description-section');
+      const modalTime = document.getElementById('modal-status-time');
+      const modalContactBtn = document.getElementById('modal-contact-btn');
+      const closeBtn = document.getElementById('close-status-modal');
+      
+      function formatTime(timestamp) {
+        if(!timestamp) return 'Just now';
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if(diffMins < 1) return 'Just now';
+        if(diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+        
+        const diffHours = Math.floor(diffMins / 60);
+        if(diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        
+        const diffDays = Math.floor(diffHours / 24);
+        if(diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        
+        return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      }
+      
+      function openStatusModal() {
+        // Get current status from hero section
+        const status = currentStatusData?.status || 'operational';
+        const message = statusText.textContent || 'All Systems Operational';
+        const description = currentStatusData?.description || '';
+        const updatedAt = currentStatusData?.updatedAt;
+        
+        // Update modal content
+        modalStatusText.textContent = message;
+        modalMessage.textContent = message;
+        
+        // Update indicator color
+        if(status === 'operational'){
+          modalIndicator.style.background = '#00ff00';
+          modalIndicator.style.boxShadow = '0 0 12px #00ff00';
+        } else if(status === 'degraded'){
+          modalIndicator.style.background = '#ffaa00';
+          modalIndicator.style.boxShadow = '0 0 12px #ffaa00';
+        } else if(status === 'down'){
+          modalIndicator.style.background = '#ff0000';
+          modalIndicator.style.boxShadow = '0 0 12px #ff0000';
+        }
+        
+        // Show/hide description section
+        if(description && description.trim()){
+          modalDescription.textContent = description;
+          modalDescriptionSection.style.display = 'block';
+        } else {
+          modalDescriptionSection.style.display = 'none';
+        }
+        
+        // Update timestamp
+        modalTime.textContent = formatTime(updatedAt);
+        
+        // Open modal
+        statusModal.style.display = 'block';
+        statusModal.setAttribute('aria-hidden', 'false');
+        setTimeout(() => statusModal.classList.add('visible'), 10);
+      }
+      
+      function closeStatusModal() {
+        statusModal.classList.remove('visible');
+        setTimeout(() => {
+          statusModal.style.display = 'none';
+          statusModal.setAttribute('aria-hidden', 'true');
+        }, 180);
+      }
+      
+      // Click handlers
+      statusBox.addEventListener('click', openStatusModal);
+      statusBox.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openStatusModal();
+        }
+      });
+      
+      closeBtn.addEventListener('click', closeStatusModal);
+      statusModal.addEventListener('click', (e) => {
+        if(e.target === statusModal || e.target.hasAttribute('data-close-status')) {
+          closeStatusModal();
+        }
+      });
+      
+      // Modal contact button opens support form
+      modalContactBtn.addEventListener('click', () => {
+        closeStatusModal();
+        setTimeout(() => {
+          const supportFormModal = document.getElementById('support-form-modal');
+          if(supportFormModal) {
+            supportFormModal.style.display = 'block';
+            supportFormModal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => supportFormModal.classList.add('visible'), 10);
+          }
+        }, 200);
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape' && statusModal.classList.contains('visible')) {
+          closeStatusModal();
+        }
+      });
+      
+      // Listen for status updates and store the data
+      (async function(){
+        try {
+          const { getFirestore, doc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          let attempts = 0;
+          while (!window.firebaseApp && attempts < 20) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          
+          if (!window.firebaseApp) return;
+          
+          const db = getFirestore(window.firebaseApp);
+          const statusDocRef = doc(db, 'system', 'status');
+          
+          onSnapshot(statusDocRef, (docSnap) => {
+            if(docSnap.exists()){
+              currentStatusData = docSnap.data();
+            } else {
+              currentStatusData = {
+                status: 'operational',
+                message: 'All Systems Operational',
+                description: '',
+                updatedAt: new Date()
+              };
+            }
+          });
+        } catch(err) {
+          console.error('[Support] Failed to listen for status updates:', err);
+        }
+      })();
     })();
   </script>
   <script>
