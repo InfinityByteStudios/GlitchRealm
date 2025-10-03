@@ -585,19 +585,37 @@
       if (statusDoc.exists) {
         const data = statusDoc.data();
         statusSelect.value = data.status || 'operational';
-        statusMessage.value = data.message || 'All Systems Operational';
+        statusMessage.value = data.message || DEFAULT_STATUS_MESSAGES[data.status || 'operational'];
         statusDescriptionInput.value = data.description || '';
+        updatePreview();
+      } else {
+        // If no status exists yet, set defaults
+        statusSelect.value = 'operational';
+        statusMessage.value = DEFAULT_STATUS_MESSAGES.operational;
+        statusDescriptionInput.value = '';
         updatePreview();
       }
     } catch (error) {
       console.error('Error loading status:', error);
+      // On error, still set defaults so form is usable
+      statusSelect.value = 'operational';
+      statusMessage.value = DEFAULT_STATUS_MESSAGES.operational;
+      statusDescriptionInput.value = '';
+      updatePreview();
     }
   }
+
+  // Default status messages for each status type
+  const DEFAULT_STATUS_MESSAGES = {
+    operational: 'All Systems Operational',
+    degraded: 'Experiencing Minor Issues',
+    down: 'Service Temporarily Unavailable'
+  };
 
   // Update preview
   function updatePreview() {
     const status = statusSelect.value;
-    const message = statusMessage.value || 'All Systems Operational';
+    const message = statusMessage.value || DEFAULT_STATUS_MESSAGES[status] || 'All Systems Operational';
     const description = statusDescriptionInput.value;
 
     previewText.textContent = message;
@@ -627,10 +645,49 @@
     if (descCounter) descCounter.textContent = statusDescriptionInput.value.length;
   }
 
-  // Live preview updates
-  if (statusSelect) statusSelect.addEventListener('change', updatePreview);
+  // Auto-fill default message when status changes (but allow customization)
+  if (statusSelect) {
+    statusSelect.addEventListener('change', () => {
+      // Only auto-fill if the current message is empty or is one of the default messages
+      const currentMessage = statusMessage.value.trim();
+      const isDefaultMessage = Object.values(DEFAULT_STATUS_MESSAGES).includes(currentMessage);
+      
+      if (!currentMessage || isDefaultMessage) {
+        statusMessage.value = DEFAULT_STATUS_MESSAGES[statusSelect.value] || '';
+      }
+      
+      updatePreview();
+    });
+  }
+
+  // Live preview updates for message and description
   if (statusMessage) statusMessage.addEventListener('input', updatePreview);
   if (statusDescriptionInput) statusDescriptionInput.addEventListener('input', updatePreview);
+
+  // Quick preset buttons
+  document.querySelectorAll('.status-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const status = btn.getAttribute('data-status');
+      const message = btn.getAttribute('data-message');
+      const description = btn.getAttribute('data-description') || '';
+      
+      if (statusSelect) statusSelect.value = status;
+      if (statusMessage) statusMessage.value = message;
+      if (statusDescriptionInput) statusDescriptionInput.value = description;
+      
+      updatePreview();
+    });
+    
+    // Add hover effect
+    btn.addEventListener('mouseenter', () => {
+      btn.style.transform = 'translateY(-2px)';
+      btn.style.boxShadow = '0 4px 12px rgba(0,255,249,0.2)';
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = 'translateY(0)';
+      btn.style.boxShadow = 'none';
+    });
+  });
 
   // Form submission
   if (statusForm) {

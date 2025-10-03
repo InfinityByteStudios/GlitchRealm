@@ -97,6 +97,14 @@
             <div id="status-description" style="display:none; margin-top:8px; font-size:.8rem; line-height:1.4; color:#b8d4d8; padding-top:8px; border-top:1px solid rgba(0,255,249,0.15);"></div>
           </div>
         </div>
+        
+        <!-- Quick Contact Support Button -->
+        <div style="margin-top:24px; text-align:center;">
+          <button id="quick-contact-btn" class="contact-chip" style="padding:10px 20px; font-size:.82rem; cursor:pointer; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.4);">
+            Contact Support
+          </button>
+          <p style="margin-top:10px; font-size:.78rem; opacity:.7; color:#b8d4d8;">Or browse categories below for instant answers</p>
+        </div>
       </div>
     </section>
 
@@ -1134,16 +1142,50 @@
     data-starting-message="Hello! How can I help you today?"
   data-logo="assets/Favicon and Icons/favicon.ico"></script>
   <script>
-    // System Status Loader
+    // System Status Loader with Real-time Updates
     (async function(){
       const statusIndicator = document.getElementById('status-indicator');
       const statusText = document.getElementById('status-text');
       const statusInfoBtn = document.getElementById('status-info-btn');
       const statusDescription = document.getElementById('status-description');
       
+      // Function to update UI with status data
+      function updateStatusUI(data) {
+        const status = data.status || 'operational';
+        const message = data.message || 'All Systems Operational';
+        const description = data.description || '';
+        
+        console.log('[Support] Status updated:', { status, message, description });
+        
+        // Update status text
+        statusText.textContent = message;
+        
+        // Update indicator color with animation
+        statusIndicator.style.transition = 'all 0.3s ease';
+        if(status === 'operational'){
+          statusIndicator.style.background = '#00ff00';
+          statusIndicator.style.boxShadow = '0 0 10px #00ff00';
+        } else if(status === 'degraded'){
+          statusIndicator.style.background = '#ffaa00';
+          statusIndicator.style.boxShadow = '0 0 10px #ffaa00';
+        } else if(status === 'down'){
+          statusIndicator.style.background = '#ff0000';
+          statusIndicator.style.boxShadow = '0 0 10px #ff0000';
+        }
+        
+        // Show or hide info button and description
+        if(description && description.trim()){
+          statusDescription.textContent = description;
+          statusInfoBtn.style.display = 'inline-block';
+        } else {
+          statusInfoBtn.style.display = 'none';
+          statusDescription.style.display = 'none';
+        }
+      }
+      
       try {
-        // Import Firestore
-        const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        // Import Firestore with real-time listener
+        const { getFirestore, doc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         
         // Wait for Firebase app to be available
         let attempts = 0;
@@ -1158,49 +1200,37 @@
         }
         
         const db = getFirestore(window.firebaseApp);
-        const statusDoc = await getDoc(doc(db, 'system', 'status'));
+        const statusDocRef = doc(db, 'system', 'status');
         
-        if(statusDoc.exists()){
-          const data = statusDoc.data();
-          const status = data.status || 'operational';
-          const message = data.message || 'All Systems Operational';
-          const description = data.description || '';
-          
-          console.log('[Support] Loaded status:', { status, message, description });
-          
-          // Update status text
-          statusText.textContent = message;
-          
-          // Update indicator color
-          if(status === 'operational'){
-            statusIndicator.style.background = '#00ff00';
-            statusIndicator.style.boxShadow = '0 0 10px #00ff00';
-          } else if(status === 'degraded'){
-            statusIndicator.style.background = '#ffaa00';
-            statusIndicator.style.boxShadow = '0 0 10px #ffaa00';
-          } else if(status === 'down'){
-            statusIndicator.style.background = '#ff0000';
-            statusIndicator.style.boxShadow = '0 0 10px #ff0000';
-          }
-          
-          // Show info button and description if there's a description
-          if(description && description.trim()){
-            statusDescription.textContent = description;
-            statusInfoBtn.style.display = 'inline-block';
-            
-            statusInfoBtn.addEventListener('click', () => {
-              if(statusDescription.style.display === 'none'){
-                statusDescription.style.display = 'block';
-              } else {
-                statusDescription.style.display = 'none';
-              }
+        // Set up real-time listener
+        const unsubscribe = onSnapshot(statusDocRef, (docSnap) => {
+          if(docSnap.exists()){
+            updateStatusUI(docSnap.data());
+          } else {
+            console.log('[Support] No status document found, using defaults');
+            updateStatusUI({
+              status: 'operational',
+              message: 'All Systems Operational',
+              description: ''
             });
           }
-        } else {
-          console.log('[Support] No status document found');
-        }
+        }, (error) => {
+          console.error('[Support] Error listening to status:', error);
+        });
+        
+        // Set up info button click handler (only needs to be set once)
+        statusInfoBtn.addEventListener('click', () => {
+          if(statusDescription.style.display === 'none' || !statusDescription.style.display){
+            statusDescription.style.display = 'block';
+          } else {
+            statusDescription.style.display = 'none';
+          }
+        });
+        
+        console.log('[Support] Real-time status listener active');
+        
       } catch(err) {
-        console.error('[Support] Failed to load status:', err);
+        console.error('[Support] Failed to set up status listener:', err);
       }
     })();
 
@@ -1301,6 +1331,9 @@
       function close(){ modal.classList.remove('visible'); setTimeout(()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); releaseFocus(); }, 180); }
       if(openBtn) openBtn.addEventListener('click', open);
       if(openChip) openChip.addEventListener('click', (e) => { e.preventDefault(); open(); });
+      // Quick contact button in hero section
+      const quickContactBtn = document.getElementById('quick-contact-btn');
+      if(quickContactBtn) quickContactBtn.addEventListener('click', open);
       modal.addEventListener('click', e=>{ if(e.target===modal || e.target.hasAttribute('data-close')) close(); });
       document.getElementById('close-support-form')?.addEventListener('click', close);
       document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.classList.contains('visible')) close(); });

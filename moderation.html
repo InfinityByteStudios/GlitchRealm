@@ -165,6 +165,54 @@
                 <div id="mod-status-section" style="display:none;">
                     <h2 style="margin:0 0 16px; font-size:1.4rem; letter-spacing:.5px; color:#00f5ff;">System Status Management</h2>
                     
+                    <!-- Quick Status Presets -->
+                    <div style="margin-bottom:24px;">
+                        <h3 style="font-size:.9rem; letter-spacing:.5px; color:#7edcf0; margin:0 0 12px; text-transform:uppercase;">Quick Presets</h3>
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+                            <!-- Operational Presets -->
+                            <button type="button" class="status-preset-btn" data-status="operational" data-message="All Systems Operational" data-description="All services are running normally. No issues reported." style="padding:10px 14px; background:rgba(0,255,0,0.1); border:1px solid rgba(0,255,0,0.3); border-radius:8px; color:#00ff66; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">✅ All Systems Operational</div>
+                                <div style="font-size:.7rem; opacity:.8;">Everything running smoothly</div>
+                            </button>
+                            <button type="button" class="status-preset-btn" data-status="operational" data-message="System Restored" data-description="All services have been restored and are functioning normally. Thank you for your patience." style="padding:10px 14px; background:rgba(0,255,0,0.1); border:1px solid rgba(0,255,0,0.3); border-radius:8px; color:#00ff66; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">✅ System Restored</div>
+                                <div style="font-size:.7rem; opacity:.8;">Back to normal operations</div>
+                            </button>
+                            <button type="button" class="status-preset-btn" data-status="operational" data-message="Maintenance Complete" data-description="Scheduled maintenance has been completed successfully. All features are now available." style="padding:10px 14px; background:rgba(0,255,0,0.1); border:1px solid rgba(0,255,0,0.3); border-radius:8px; color:#00ff66; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">✅ Maintenance Complete</div>
+                                <div style="font-size:.7rem; opacity:.8;">Updates finished successfully</div>
+                            </button>
+                            
+                            <!-- Degraded Presets -->
+                            <button type="button" class="status-preset-btn" data-status="degraded" data-message="Experiencing Minor Issues" data-description="We're experiencing some minor performance issues. Some features may be slower than usual. Our team is actively working to resolve this." style="padding:10px 14px; background:rgba(255,170,0,0.1); border:1px solid rgba(255,170,0,0.3); border-radius:8px; color:#ffaa00; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">⚠️ Experiencing Minor Issues</div>
+                                <div style="font-size:.7rem; opacity:.8;">Some features may be slow</div>
+                            </button>
+                            <button type="button" class="status-preset-btn" data-status="degraded" data-message="Scheduled Maintenance" data-description="Planned maintenance is currently underway to improve system performance. Some features may be temporarily unavailable or slower during this time." style="padding:10px 14px; background:rgba(255,170,0,0.1); border:1px solid rgba(255,170,0,0.3); border-radius:8px; color:#ffaa00; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">⚠️ Scheduled Maintenance</div>
+                                <div style="font-size:.7rem; opacity:.8;">Planned updates in progress</div>
+                            </button>
+                            <button type="button" class="status-preset-btn" data-status="degraded" data-message="High Traffic Load" data-description="We're experiencing higher than normal traffic. Services remain operational but may respond slower than usual. We're monitoring the situation closely." style="padding:10px 14px; background:rgba(255,170,0,0.1); border:1px solid rgba(255,170,0,0.3); border-radius:8px; color:#ffaa00; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">⚠️ High Traffic Load</div>
+                                <div style="font-size:.7rem; opacity:.8;">Service may be slower than usual</div>
+                            </button>
+                            
+                            <!-- Down Presets -->
+                            <button type="button" class="status-preset-btn" data-status="down" data-message="Service Temporarily Unavailable" data-description="Our services are currently unavailable due to technical difficulties. Our team is working urgently to restore service as quickly as possible." style="padding:10px 14px; background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.3); border-radius:8px; color:#ff6666; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">❌ Service Temporarily Unavailable</div>
+                                <div style="font-size:.7rem; opacity:.8;">Working to restore service</div>
+                            </button>
+                            <button type="button" class="status-preset-btn" data-status="down" data-message="Emergency Maintenance" data-description="Emergency maintenance is being performed to address critical issues. Services will be restored as soon as possible. We apologize for the inconvenience." style="padding:10px 14px; background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.3); border-radius:8px; color:#ff6666; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">❌ Emergency Maintenance</div>
+                                <div style="font-size:.7rem; opacity:.8;">Urgent updates required</div>
+                            </button>
+                            <button type="button" class="status-preset-btn" data-status="down" data-message="Database Issues" data-description="We're currently investigating database connectivity issues affecting service availability. Our technical team is working to resolve this as quickly as possible." style="padding:10px 14px; background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.3); border-radius:8px; color:#ff6666; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">❌ Database Issues</div>
+                                <div style="font-size:.7rem; opacity:.8;">Investigating database problems</div>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <form id="status-form" style="display:flex; flex-direction:column; gap:18px; max-width:700px;">
                         <div style="display:flex; flex-direction:column; gap:8px;">
                             <label style="font-size:.85rem; font-weight:600; color:#7edcf0; text-transform:uppercase; letter-spacing:.5px;">System Status</label>
@@ -177,8 +225,8 @@
                         
                         <div style="display:flex; flex-direction:column; gap:8px;">
                             <label style="font-size:.85rem; font-weight:600; color:#7edcf0; text-transform:uppercase; letter-spacing:.5px;">Status Message</label>
-                            <input type="text" id="status-message" class="neural-input" placeholder="e.g., All Systems Operational" maxlength="100" required />
-                            <small style="font-size:.75rem; opacity:.7;"><span id="message-counter">0</span>/100 characters</small>
+                            <input type="text" id="status-message" class="neural-input" placeholder="Select a preset above or type your own..." maxlength="100" required />
+                            <small style="font-size:.75rem; opacity:.7;"><span id="message-counter">0</span>/100 characters • Use quick presets or write a custom message</small>
                         </div>
                         
                         <div style="display:flex; flex-direction:column; gap:8px;">
