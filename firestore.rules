@@ -89,6 +89,16 @@ service cloud.firestore {
     }
     
     // ================================
+    // System Status (Public read, developer write)
+    // ================================
+    match /system/status {
+      // Anyone can read the system status
+      allow read: if true;
+      // Only developers can update the status
+      allow write: if request.auth != null && isDeveloper(request.auth.uid) && isValidSystemStatus(request.resource.data);
+    }
+
+    // ================================
     // Admin Actions Collection
     // ================================
     match /adminActions/{actionId} {
@@ -612,17 +622,27 @@ service cloud.firestore {
      (!request.resource.data.keys().hasAny(['playUrl']) || (request.resource.data.playUrl is string && request.resource.data.playUrl.size() <= 2000 && request.resource.data.playUrl.matches('^https?://'))) &&
      (!request.resource.data.keys().hasAny(['badge']) || (request.resource.data.badge in ['new','updated','beta']));
     }
-
-  // Lighter validator used on create for drafts to prevent false negatives with serverTimestamp
-  function isValidGameSubmissionDraftCreate(data) {
-    return data.keys().hasAll(['title','ownerId','description','status','playUrl']) &&
-       data.title is string && data.title.size() > 0 && data.title.size() <= 120 &&
-       data.ownerId is string && data.ownerId.size() > 0 &&
-       data.status == 'draft' &&
-       data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
-       data.playUrl is string && data.playUrl.size() > 0 && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://') &&
-       (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
-       (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string)));
-  }
+  
+    // Lighter validator used on create for drafts to prevent false negatives with serverTimestamp
+    function isValidGameSubmissionDraftCreate(data) {
+      return data.keys().hasAll(['title','ownerId','description','status','playUrl']) &&
+         data.title is string && data.title.size() > 0 && data.title.size() <= 120 &&
+         data.ownerId is string && data.ownerId.size() > 0 &&
+         data.status == 'draft' &&
+         data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
+         data.playUrl is string && data.playUrl.size() > 0 && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://') &&
+         (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
+         (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string)));
+    }
+  
+    // Validate system status updates
+    function isValidSystemStatus(data) {
+      return data.keys().hasAll(['status','message','updatedAt','updatedBy']) &&
+             data.status in ['operational','degraded','down'] &&
+             data.message is string && data.message.size() > 0 && data.message.size() <= 100 &&
+             data.updatedAt is string && // ISO timestamp string
+             data.updatedBy is string && data.updatedBy.size() > 0 &&
+             (!data.keys().hasAny(['description']) || (data.description is string && data.description.size() <= 1000));
+    }
   }
 }

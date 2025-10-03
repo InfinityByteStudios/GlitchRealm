@@ -7,8 +7,16 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_CONFIG } from './supabase-config.js';
 
-// Initialize Supabase client
-const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+// Check if Supabase is configured
+const isConfigured = SUPABASE_CONFIG.url && 
+                     SUPABASE_CONFIG.anonKey && 
+                     !SUPABASE_CONFIG.url.includes('YOUR_SUPABASE') &&
+                     !SUPABASE_CONFIG.anonKey.includes('YOUR_SUPABASE');
+
+// Initialize Supabase client (only if configured)
+const supabase = isConfigured 
+    ? createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey)
+    : null;
 
 // Cache for profiles to avoid repeated queries
 const profileCache = new Map();
@@ -19,7 +27,7 @@ const profileCache = new Map();
  * @returns {Promise<object|null>}
  */
 async function getSupabaseProfile(userId) {
-    if (!userId) return null;
+    if (!userId || !supabase) return null;
     
     // Check cache first
     if (profileCache.has(userId)) {
@@ -134,6 +142,13 @@ export function clearProfileCache(userId) {
  * Also adds click handler to avatar to navigate to User Portal
  */
 export function initializeSupabaseAvatarIntegration() {
+    if (!isConfigured) {
+        console.log('⚠️ Supabase avatar system not configured. See supabase-config.js and AVATAR_IMPLEMENTATION.md');
+        // Still add click handlers for navigation
+        setupAvatarClickHandlers();
+        return;
+    }
+    
     console.log('Initializing Supabase avatar integration...');
     
     // Add click handlers to avatars to navigate to user portal

@@ -117,6 +117,13 @@ function openAvatarSelector() {
         return;
     }
     
+    // Check if Supabase is configured
+    if (!supabase) {
+        showAuthMessage('⚠️ Avatar upload not configured yet. Please update supabase-config.js with your Supabase credentials. See AVATAR_IMPLEMENTATION.md for setup instructions.', 'error');
+        console.error('Supabase not configured. Update supabase-config.js');
+        return;
+    }
+    
     avatarFileInput.click();
 }
 
@@ -226,17 +233,25 @@ function updateAvatarDisplay() {
  * Only shown on user portal page
  */
 export function addRevertAvatarButton() {
+    console.log('addRevertAvatarButton called');
+    console.log('Current pathname:', window.location.pathname);
+    
     // Only add button on user portal page
     if (!window.location.pathname.includes('user-portal')) {
+        console.log('Not on user portal page, skipping button');
         return;
     }
     
     // Find the Profile Picture section first
     const profilePictureSection = document.querySelector('.portal-section');
+    console.log('Profile Picture section found:', !!profilePictureSection);
+    
     let revertContainer = profilePictureSection ? profilePictureSection.querySelector('.revert-avatar-container') : null;
+    console.log('Revert container found:', !!revertContainer);
     
     // If container doesn't exist, create it in the Profile Picture section
     if (!revertContainer && profilePictureSection) {
+        console.log('Creating revert container');
         revertContainer = document.createElement('div');
         revertContainer.className = 'revert-avatar-container';
         revertContainer.style.textAlign = 'center';
@@ -247,12 +262,20 @@ export function addRevertAvatarButton() {
     // Fallback: try profile-actions for backwards compatibility
     if (!revertContainer) {
         const profileActions = document.querySelector('.profile-actions');
-        if (!profileActions) return;
+        if (!profileActions) {
+            console.log('No container found for revert button');
+            return;
+        }
         revertContainer = profileActions;
     }
     
     // Check if button already exists
-    if (document.getElementById('revert-avatar-btn')) return;
+    if (document.getElementById('revert-avatar-btn')) {
+        console.log('Revert button already exists');
+        return;
+    }
+    
+    console.log('Creating revert button');
     
     const revertBtn = document.createElement('button');
     revertBtn.id = 'revert-avatar-btn';
@@ -264,6 +287,20 @@ export function addRevertAvatarButton() {
     revertBtn.innerHTML = `
         <span style="margin-right: 8px;">↺</span>
         <span>Use Default Avatar (Google/GitHub)</span>
+        <span id="revert-info-icon" style="
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1.5px solid var(--primary-magenta);
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+            cursor: help;
+            font-family: 'Rajdhani', sans-serif;
+        " title="Click for information">i</span>
     `;
     
     revertBtn.addEventListener('click', async () => {
@@ -297,6 +334,36 @@ export function addRevertAvatarButton() {
         }
     });
     
+    // Add info icon click handler
+    // Use setTimeout to ensure the button is in DOM before adding the listener
+    setTimeout(() => {
+        const infoIcon = document.getElementById('revert-info-icon');
+        if (infoIcon) {
+            infoIcon.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent button click
+                
+                const providerName = currentUser?.providerData?.[0]?.providerId === 'google.com' ? 'Google' : 
+                                    currentUser?.providerData?.[0]?.providerId === 'github.com' ? 'GitHub' : 
+                                    'an OAuth provider';
+                
+                const message = `ℹ️ Revert to Provider Avatar
+
+This button allows you to remove your custom uploaded avatar and use your ${providerName} profile picture instead.
+
+✅ Works if you signed in with:
+• Google
+• GitHub
+
+❌ Not available if you signed in with:
+• Email/Password (no provider avatar available)
+
+Note: You can only see this button when you have a custom avatar uploaded.`;
+                
+                alert(message);
+            });
+        }
+    }, 100);
+    
     // Append to container
     revertContainer.appendChild(revertBtn);
     
@@ -309,14 +376,21 @@ export function addRevertAvatarButton() {
  */
 function toggleRevertButton() {
     const revertBtn = document.getElementById('revert-avatar-btn');
-    if (!revertBtn) return;
-    
-    // Show button only if user has custom avatar
-    if (currentProfile?.custom_photo_url || currentProfile?.avatar_storage_path) {
-        revertBtn.style.display = 'flex';
-    } else {
-        revertBtn.style.display = 'none';
+    if (!revertBtn) {
+        console.log('Revert button not found in DOM');
+        return;
     }
+    
+    console.log('Toggle revert button - Profile:', currentProfile);
+    console.log('Has custom_photo_url:', currentProfile?.custom_photo_url);
+    console.log('Has avatar_storage_path:', currentProfile?.avatar_storage_path);
+    
+    // Always show the button
+    revertBtn.style.display = 'flex';
+    revertBtn.style.opacity = '1';
+    revertBtn.disabled = false;
+    
+    console.log('Revert button is now visible');
 }
 
 /**

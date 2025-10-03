@@ -467,8 +467,13 @@
 
   document.addEventListener('DOMContentLoaded', function(){
     // Auto-open behavior not needed here; this is the destination page
+    console.log('[Moderation] DOMContentLoaded fired');
+    console.log('[Moderation] window.firebaseAuth:', window.firebaseAuth);
+    
     if (auth) {
+      console.log('[Moderation] Setting up auth state listener');
       auth.onAuthStateChanged((u) => {
+        console.log('[Moderation] Auth state changed:', u ? `User ${u.uid}` : 'No user');
         if (!u) {
           accessEl.textContent = 'Please sign in to access moderation.';
           renderEmpty('');
@@ -478,8 +483,236 @@
         ensureReportsListener();
       });
     } else {
-      accessEl.textContent = 'Auth not available.';
+      console.warn('[Moderation] Auth not available at DOMContentLoaded');
+      accessEl.textContent = 'Auth not available. Waiting...';
       renderEmpty('');
+      
+      // Retry auth setup
+      setTimeout(() => {
+        if (window.firebaseAuth) {
+          console.log('[Moderation] Auth now available, setting up listener');
+          const authRetry = window.firebaseAuth;
+          authRetry.onAuthStateChanged((u) => {
+            console.log('[Moderation] Auth state changed (retry):', u ? `User ${u.uid}` : 'No user');
+            if (!u) {
+              accessEl.textContent = 'Please sign in to access moderation.';
+              renderEmpty('');
+              return;
+            }
+            accessEl.textContent = 'Validating access…';
+            ensureReportsListener();
+          });
+        } else {
+          accessEl.textContent = 'Auth not available.';
+        }
+      }, 500);
     }
   });
+})();
+
+// System Status Management
+(function(){
+  const statusSection = document.getElementById('mod-status-section');
+  const statusForm = document.getElementById('status-form');
+  const statusSelect = document.getElementById('status-select');
+  const statusMessage = document.getElementById('status-message');
+  const statusDescriptionInput = document.getElementById('status-description');
+  const successMsg = document.getElementById('status-success-msg');
+  const errorMsg = document.getElementById('status-error-msg');
+  const previewIndicator = document.getElementById('preview-indicator');
+  const previewText = document.getElementById('preview-text');
+  const previewDescription = document.getElementById('preview-description');
+
+  const DEVELOPER_UIDS = [
+    '6iZDTXC78aVwX22qrY43BOxDRLt1',
+    'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+  ];
+
+  // Initialize separate Firebase app for GlitchRealm Firestore
+  let glitchRealmApp = null;
+  let glitchRealmDb = null;
+  
+  function initGlitchRealmFirestore() {
+    if (glitchRealmDb) return glitchRealmDb;
+    
+    const glitchRealmConfig = {
+      apiKey: "AIzaSyBu6Z3s66aDXeHQ3yxGW5O-VDUIv9cA8fM",
+      authDomain: "glitchrealm.firebaseapp.com",
+      projectId: "glitchrealm",
+      storageBucket: "glitchrealm.firebasestorage.app",
+      messagingSenderId: "510393316540",
+      appId: "1:510393316540:web:0029a8b1f73da2a485a87e"
+    };
+    
+    try {
+      // Initialize separate app for GlitchRealm if not exists
+      glitchRealmApp = firebase.apps.find(app => app.name === 'glitchrealm-status');
+      if (!glitchRealmApp) {
+        glitchRealmApp = firebase.initializeApp(glitchRealmConfig, 'glitchrealm-status');
+      }
+      glitchRealmDb = glitchRealmApp.firestore();
+      return glitchRealmDb;
+    } catch (error) {
+      console.error('Error initializing GlitchRealm Firestore:', error);
+      return null;
+    }
+  }
+
+  // Check if user is authorized developer
+  function checkAccess(user) {
+    if (!user) {
+      statusSection.style.display = 'none';
+      return false;
+    }
+    if (DEVELOPER_UIDS.includes(user.uid)) {
+      statusSection.style.display = 'block';
+      loadCurrentStatus();
+      return true;
+    }
+    statusSection.style.display = 'none';
+    return false;
+  }
+
+  // Load current status from Firestore
+  async function loadCurrentStatus() {
+    try {
+      // Use the primary Firebase database (shared-sign-in) instead of glitchrealm
+      const db = firebase.firestore();
+      const statusDoc = await db.collection('system').doc('status').get();
+      if (statusDoc.exists) {
+        const data = statusDoc.data();
+        statusSelect.value = data.status || 'operational';
+        statusMessage.value = data.message || 'All Systems Operational';
+        statusDescriptionInput.value = data.description || '';
+        updatePreview();
+      }
+    } catch (error) {
+      console.error('Error loading status:', error);
+    }
+  }
+
+  // Update preview
+  function updatePreview() {
+    const status = statusSelect.value;
+    const message = statusMessage.value || 'All Systems Operational';
+    const description = statusDescriptionInput.value;
+
+    previewText.textContent = message;
+
+    if (status === 'operational') {
+      previewIndicator.style.background = '#00ff00';
+      previewIndicator.style.boxShadow = '0 0 10px #00ff00';
+    } else if (status === 'degraded') {
+      previewIndicator.style.background = '#ffaa00';
+      previewIndicator.style.boxShadow = '0 0 10px #ffaa00';
+    } else if (status === 'down') {
+      previewIndicator.style.background = '#ff0000';
+      previewIndicator.style.boxShadow = '0 0 10px #ff0000';
+    }
+
+    if (description && description.trim()) {
+      previewDescription.textContent = description;
+      previewDescription.style.display = 'block';
+    } else {
+      previewDescription.style.display = 'none';
+    }
+    
+    // Update character counters
+    const messageCounter = document.getElementById('message-counter');
+    const descCounter = document.getElementById('desc-counter');
+    if (messageCounter) messageCounter.textContent = statusMessage.value.length;
+    if (descCounter) descCounter.textContent = statusDescriptionInput.value.length;
+  }
+
+  // Live preview updates
+  if (statusSelect) statusSelect.addEventListener('change', updatePreview);
+  if (statusMessage) statusMessage.addEventListener('input', updatePreview);
+  if (statusDescriptionInput) statusDescriptionInput.addEventListener('input', updatePreview);
+
+  // Form submission
+  if (statusForm) {
+    statusForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (successMsg) successMsg.style.display = 'none';
+      if (errorMsg) errorMsg.style.display = 'none';
+
+      try {
+        // Client-side validation
+        const messageValue = statusMessage.value.trim();
+        if (!messageValue || messageValue.length === 0) {
+          throw new Error('Status message is required');
+        }
+        if (messageValue.length > 100) {
+          throw new Error('Status message must be 100 characters or less');
+        }
+        
+        const descValue = statusDescriptionInput.value.trim();
+        if (descValue.length > 1000) {
+          throw new Error('Description must be 1000 characters or less');
+        }
+        
+        // Wait for auth to be ready
+        const auth = window.firebaseAuth || firebase.auth();
+        const user = auth.currentUser;
+        
+        if (!user) {
+          throw new Error('Not signed in');
+        }
+        
+        console.log('Current user UID:', user.uid);
+        console.log('Authorized UIDs:', DEVELOPER_UIDS);
+        
+        if (!DEVELOPER_UIDS.includes(user.uid)) {
+          throw new Error('Unauthorized - Your UID is not in the developer list');
+        }
+
+        // Use the primary Firebase database (shared-sign-in) where user is authenticated
+        const db = firebase.firestore();
+        
+        // Prepare the data object
+        const statusData = {
+          status: statusSelect.value,
+          message: messageValue,
+          updatedAt: new Date().toISOString(),
+          updatedBy: user.uid
+        };
+        
+        // Only add description if it's not empty
+        if (descValue !== '') {
+          statusData.description = descValue;
+        }
+        
+        console.log('Sending status data:', statusData);
+        
+        await db.collection('system').doc('status').set(statusData);
+
+        if (successMsg) {
+          successMsg.style.display = 'block';
+          setTimeout(() => { successMsg.style.display = 'none'; }, 5000);
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+        if (errorMsg) {
+          errorMsg.textContent = `Error: ${error.message}`;
+          errorMsg.style.display = 'block';
+        }
+      }
+    });
+  }
+
+  // Check access on auth state change
+  if (window.firebaseAuth) {
+    window.firebaseAuth.onAuthStateChanged(checkAccess);
+  } else {
+    // Wait for Firebase to load
+    const checkAuth = setInterval(() => {
+      if (window.firebaseAuth) {
+        clearInterval(checkAuth);
+        window.firebaseAuth.onAuthStateChanged(checkAccess);
+      }
+    }, 100);
+  }
 })();

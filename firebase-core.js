@@ -28,12 +28,58 @@
       const app = initializeApp(config);
       const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = authMod;
       const auth = getAuth(app);
-      try { await setPersistence(auth, browserLocalPersistence); } catch {}
+      
+      // Set persistence to LOCAL to maintain auth state across tabs and refreshes
+      try { 
+        await setPersistence(auth, browserLocalPersistence); 
+        console.log('[Firebase Core] Auth persistence set to LOCAL');
+      } catch(e) {
+        console.warn('[Firebase Core] Failed to set persistence:', e);
+      }
+      
       window.firebaseApp = app;
       window.firebaseAuth = auth;
-      // Optional: early listener so other code can react ASAP
-      try { onAuthStateChanged(auth, ()=>{}); } catch {}
-    } catch(e){ console.warn('firebase-core init failed', e); }
+      
+      // Set up early auth state listener to ensure state is available ASAP
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log('[Firebase Core] User authenticated:', user.uid);
+          // Store current user globally for immediate access
+          window.currentFirebaseUser = user;
+          
+          // Broadcast auth state change to other tabs/windows
+          try {
+            localStorage.setItem('firebase_auth_state', JSON.stringify({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              timestamp: Date.now()
+            }));
+          } catch(e) {
+            console.warn('[Firebase Core] Failed to broadcast auth state:', e);
+          }
+        } else {
+          console.log('[Firebase Core] User signed out');
+          window.currentFirebaseUser = null;
+          
+          // Clear auth state from storage
+          try {
+            localStorage.removeItem('firebase_auth_state');
+          } catch(e) {}
+        }
+        
+        // Trigger custom event that pages can listen for
+        window.dispatchEvent(new CustomEvent('firebaseAuthStateChanged', { 
+          detail: { user } 
+        }));
+      });
+      
+      console.log('[Firebase Core] Initialization complete');
+      
+    } catch(e){ 
+      console.warn('[Firebase Core] Init failed:', e); 
+    }
   }
 
   // If module import is blocked by CSP or offline, we just no-op; pages using

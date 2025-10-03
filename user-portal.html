@@ -704,6 +704,7 @@
                         <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,8.39C13.57,9.4 15.42,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20C9.27,20 6.9,18.53 5.5,16.36C6.77,15.5 8.54,15 10.5,15C11.35,15 12.16,15.11 12.92,15.32C13.65,15.11 14.43,15 15.25,15C17.21,15 18.98,15.5 20.25,16.36C20.62,15.46 20.87,14.47 20.96,13.42C19.78,12.92 18.43,12.62 17,12.62C14.84,12.62 12.88,13.29 11.31,14.39L11.75,15.66C11.94,16.25 11.61,16.89 11,17.08C10.39,17.27 9.76,16.94 9.56,16.33L9,14.74L8.44,16.33C8.24,16.94 7.61,17.27 7,17.08C6.39,16.89 6.06,16.25 6.25,15.66L6.69,14.39C5.12,13.29 3.16,12.62 1,12.62C0.57,12.62 0.15,12.66 -0.26,12.73C-0.09,11.85 0.13,11 0.5,10.23C1.44,10.74 2.53,11.04 3.67,11.04C5.42,11.04 6.96,10.5 8.08,9.61C7.39,9.04 6.5,8.65 5.5,8.65C4.24,8.65 3.13,9.29 2.42,10.23C2.15,9.61 2,8.92 2,8.19C2,7.46 2.15,6.77 2.42,6.15C3.13,7.09 4.24,7.73 5.5,7.73C6.77,7.73 7.88,7.09 8.58,6.15C8.86,5.77 9.09,5.34 9.25,4.88C10.03,5.61 11.01,6.12 12.08,6.34C12.05,6.56 12.03,6.78 12.03,7C12.03,8.86 13.5,10.39 15.31,10.39C16.38,10.39 17.32,9.87 17.92,9.08C18.61,9.29 19.33,9.42 20.08,9.42C20.62,9.42 21.14,9.36 21.64,9.25C21.87,10.1 22,11 22,11.92C22,12.64 21.9,13.33 21.73,14C20.96,13.37 20.04,12.92 19,12.66C18.22,11.85 17.12,11.35 15.92,11.35C14.15,11.35 12.65,12.5 12.15,14.11L11.31,14.39Z" />
                     </svg>
                     Profile Picture
+                    <span id="beta-tag" style="display: inline-block; background: linear-gradient(135deg, #ff6b6b, #ee5a6f); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px; margin-left: 10px; vertical-align: middle; box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3); cursor: pointer; transition: all 0.3s ease;" title="Click for beta information">BETA</span>
                 </h2>
                 <div style="text-align: center; padding: 20px 0;">
                     <div class="user-avatar-large-container" style="display: inline-block; position: relative;">
@@ -721,12 +722,17 @@
                             Click your avatar above to upload a custom profile picture. Hover to see the upload icon.
                         </p>
                         <p class="form-help" style="max-width: 500px; margin: 0 auto; font-size: 0.85rem; opacity: 0.7;">
-                            Supported formats: JPEG, PNG | Max size: 5MB<br>
-                            If you signed in with Google or GitHub, you can revert to use their profile picture.
+                            Supported formats: JPEG, PNG | Max size: 5MB
                         </p>
                     </div>
                 </div>
                 <!-- Revert button will be added here by JavaScript when custom avatar exists -->
+                <!-- Info text for revert button -->
+                <div id="revert-info-text" style="text-align: center; margin-top: 10px;">
+                    <p class="form-help" style="max-width: 500px; margin: 0 auto; font-size: 0.85rem; opacity: 0.7;">
+                        If you signed in with Google or GitHub, you can revert to use their profile picture.
+                    </p>
+                </div>
             </div>
 
             <!-- Password Management -->
@@ -941,6 +947,55 @@
             const sendResetBtn = document.getElementById('send-reset-email-btn');
             if (changePwdBtn) changePwdBtn.addEventListener('click', changeUserPassword);
             if (sendResetBtn) sendResetBtn.addEventListener('click', sendResetEmailForUser);
+        }
+        
+        // Beta tag click handler
+        function initializeBetaTag() {
+            const betaTag = document.getElementById('beta-tag');
+            if (betaTag) {
+                betaTag.addEventListener('click', () => {
+                    const message = `
+🧪 BETA FEATURE: Custom Avatar Upload
+
+This feature is currently in beta testing. Here's what you should know:
+
+⚠️ Known Issues:
+• Some upload errors may occur during database synchronization
+• Avatar updates might take a few seconds to display
+• First-time uploads may require page refresh
+
+✅ What's Working:
+• Upload custom profile pictures (JPEG, PNG)
+• Revert to Google/GitHub provider avatars
+• Avatar display across the site
+
+📊 We're actively monitoring:
+• Upload success rates
+• Database performance
+• User experience feedback
+
+If you encounter any issues, please:
+1. Try refreshing the page
+2. Clear your browser cache
+3. Contact support if problems persist
+
+Thank you for being an early tester! 🚀
+                    `.trim();
+                    
+                    alert(message);
+                });
+                
+                // Add hover effect
+                betaTag.addEventListener('mouseenter', () => {
+                    betaTag.style.transform = 'scale(1.05)';
+                    betaTag.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.5)';
+                });
+                
+                betaTag.addEventListener('mouseleave', () => {
+                    betaTag.style.transform = 'scale(1)';
+                    betaTag.style.boxShadow = '0 2px 8px rgba(255, 107, 107, 0.3)';
+                });
+            }
         }
         
         // Update header text for portal-specific branding
@@ -1361,6 +1416,8 @@
         
         // Call initialization when document is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize beta tag click handler
+            initializeBetaTag();
             // initializeUserPortal will be called by the Firebase timeout
         });
 

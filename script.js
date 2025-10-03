@@ -1972,6 +1972,38 @@ async function initializeAuth() {
         }
     });
 
+    // Listen for auth state changes from other tabs/windows
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'firebase_auth_state') {
+            console.log('[Auth] Auth state changed in another tab');
+            
+            // Force auth state refresh
+            if (auth.currentUser) {
+                console.log('[Auth] Updating UI for current user');
+                updateUserProfile(auth.currentUser);
+            } else {
+                console.log('[Auth] No current user, checking for changes');
+                // Auth state might have changed, let Firebase handle it
+                auth.currentUser; // This triggers internal check
+            }
+        }
+    });
+    
+    // Listen for custom Firebase auth events
+    window.addEventListener('firebaseAuthStateChanged', (e) => {
+        const user = e.detail?.user;
+        console.log('[Auth] Custom auth state event received:', user ? user.uid : 'signed out');
+        
+        if (user) {
+            // Ensure UI is updated even if onAuthStateChanged already fired
+            setTimeout(() => {
+                if (auth.currentUser) {
+                    updateUserProfile(auth.currentUser);
+                }
+            }, 100);
+        }
+    });
+
     // Delete anonymous accounts when tab is closed or becomes hidden
     function handleAnonymousAccountCleanup() {
         const user = auth.currentUser;
@@ -4019,7 +4051,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, starting header/footer loading...');
     
     // Load header (defer to idle when available to reduce TBT)
-    const loadHeader = () => fetch('header.html')
+    const loadHeader = () => fetch('header.html?v=' + Date.now())
         .then(response => {
             console.log('Header fetch response:', response.status);
             return response.text();

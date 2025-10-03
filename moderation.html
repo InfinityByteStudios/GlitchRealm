@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Moderation - GlitchRealm</title>
     <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
@@ -56,6 +59,32 @@
         window.firebaseApp = app;
         window.firebaseAuth = auth;
         window.firebaseConfig = firebaseConfig;
+        
+        // Force UI update when auth state changes
+        auth.onAuthStateChanged((user) => {
+            console.log('[Moderation Page] Auth state changed:', user ? user.uid : 'signed out');
+            
+            // Force update header UI
+            setTimeout(() => {
+                const signInBtn = document.getElementById('sign-in-btn');
+                const userProfile = document.getElementById('user-profile');
+                
+                if (user) {
+                    console.log('[Moderation Page] User signed in, updating UI');
+                    if (signInBtn) signInBtn.style.display = 'none';
+                    if (userProfile) userProfile.style.display = 'flex';
+                    
+                    // Update user profile if function exists
+                    if (typeof updateUserProfile === 'function') {
+                        updateUserProfile(user);
+                    }
+                } else {
+                    console.log('[Moderation Page] User signed out, updating UI');
+                    if (signInBtn) signInBtn.style.display = 'block';
+                    if (userProfile) userProfile.style.display = 'none';
+                }
+            }, 100);
+        });
     </script>
 </head>
 <body class="mod-page">
@@ -129,6 +158,53 @@
                     </div>
                 </div>
                 <div id="mod-gamesub-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+                <hr style="margin:24px 0; border-color: var(--gray-800);">
+
+                <!-- System Status Management -->
+                <div id="mod-status-section" style="display:none;">
+                    <h2 style="margin:0 0 16px; font-size:1.4rem; letter-spacing:.5px; color:#00f5ff;">System Status Management</h2>
+                    
+                    <form id="status-form" style="display:flex; flex-direction:column; gap:18px; max-width:700px;">
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <label style="font-size:.85rem; font-weight:600; color:#7edcf0; text-transform:uppercase; letter-spacing:.5px;">System Status</label>
+                            <select id="status-select" class="neural-input" required>
+                                <option value="operational">✅ Operational - All systems running normally</option>
+                                <option value="degraded">⚠️ Degraded - Some features may be slow</option>
+                                <option value="down">❌ Down - System experiencing issues</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <label style="font-size:.85rem; font-weight:600; color:#7edcf0; text-transform:uppercase; letter-spacing:.5px;">Status Message</label>
+                            <input type="text" id="status-message" class="neural-input" placeholder="e.g., All Systems Operational" maxlength="100" required />
+                            <small style="font-size:.75rem; opacity:.7;"><span id="message-counter">0</span>/100 characters</small>
+                        </div>
+                        
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <label style="font-size:.85rem; font-weight:600; color:#7edcf0; text-transform:uppercase; letter-spacing:.5px;">Description (Optional)</label>
+                            <textarea id="status-description" class="neural-input" placeholder="Provide details about the current status, what's affected, expected resolution time, etc." style="min-height:100px; resize:vertical;" maxlength="1000"></textarea>
+                            <small style="font-size:.75rem; opacity:.7;"><span id="desc-counter">0</span>/1000 characters • Only visible if you add text here. Users can click the 'i' icon to view.</small>
+                        </div>
+                        
+                        <button type="submit" class="neural-button"><span class="button-text">Update Status</span></button>
+                    </form>
+                    
+                    <div id="status-success-msg" style="display:none; background:rgba(0,255,100,0.1); border:1px solid rgba(0,255,100,0.3); padding:14px; border-radius:8px; color:#00ff66; margin-top:16px;">
+                        Status updated successfully!
+                    </div>
+                    <div id="status-error-msg" style="display:none; background:rgba(255,100,100,0.1); border:1px solid rgba(255,100,100,0.3); padding:14px; border-radius:8px; color:#ff6666; margin-top:16px;">
+                        Error updating status. Please try again.
+                    </div>
+                    
+                    <div style="margin-top:20px; padding:14px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.9),rgba(7,16,23,0.95)); border:1px solid rgba(0,255,249,0.2); border-radius:12px; display:flex; align-items:center; gap:12px;">
+                        <div id="preview-indicator" style="width:10px; height:10px; border-radius:50%; background:#00ff00; box-shadow:0 0 10px #00ff00;"></div>
+                        <div style="flex:1;">
+                            <div style="font-weight:700; font-size:.9rem; color:#fff;">Preview: <span id="preview-text">All Systems Operational</span></div>
+                            <div id="preview-description" style="display:none; margin-top:8px; font-size:.8rem; color:#b8d4d8; padding-top:8px; border-top:1px solid rgba(0,255,249,0.15);"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
@@ -153,8 +229,8 @@
             else document.addEventListener('DOMContentLoaded', initCompat);
         })();
     </script>
-    <script src="script.js" defer></script>
-    <script src="moderation.js" defer></script>
+    <script src="script.js?v=20251002" defer></script>
+    <script src="moderation.js?v=20251002" defer></script>
 </body>
 <script>(function(){const c={src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};function i(){if(document.getElementById('bmc-widget-script'))return;const s=document.createElement('script');s.id='bmc-widget-script';s.src=c.src;s.dataset.name='BMC-Widget';s.setAttribute('data-cfasync','false');s.setAttribute('data-id',c.id);s.setAttribute('data-description',c.desc);s.setAttribute('data-message',c.msg);s.setAttribute('data-color',c.color);s.setAttribute('data-position',c.pos);s.setAttribute('data-x_margin',c.x);s.setAttribute('data-y_margin',c.y);document.body.appendChild(s);}if(window.requestIdleCallback)requestIdleCallback(i,{timeout:2500});else window.addEventListener('load',()=>setTimeout(i,600));['pointerdown','keydown','scroll'].forEach(e=>window.addEventListener(e,i,{once:true,passive:true}));})();</script>
 </html>

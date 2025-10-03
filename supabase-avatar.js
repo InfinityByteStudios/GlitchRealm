@@ -6,8 +6,26 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_CONFIG } from './supabase-config.js';
 
-// Initialize Supabase client
-export const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+// Check if Supabase is configured
+const isConfigured = SUPABASE_CONFIG.url && 
+                     SUPABASE_CONFIG.anonKey && 
+                     !SUPABASE_CONFIG.url.includes('YOUR_SUPABASE') &&
+                     !SUPABASE_CONFIG.anonKey.includes('YOUR_SUPABASE');
+
+// Initialize Supabase client (only if configured)
+export const supabase = isConfigured 
+    ? createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey)
+    : null;
+
+// Helper to check if Supabase is ready
+function checkSupabaseReady() {
+    if (!supabase) {
+        console.warn('⚠️ Supabase not configured. Please update supabase-config.js with your project credentials.');
+        console.warn('📖 See AVATAR_IMPLEMENTATION.md for setup instructions.');
+        return false;
+    }
+    return true;
+}
 
 /**
  * Ensure user profile exists in Supabase
@@ -15,6 +33,7 @@ export const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKe
  */
 export async function ensureProfile(firebaseUser) {
   if (!firebaseUser) return;
+  if (!checkSupabaseReady()) return;
   
   try {
     // Sign in to Supabase using Firebase ID token (if using Supabase Auth)
@@ -37,6 +56,10 @@ export async function ensureProfile(firebaseUser) {
  * @returns {Promise<{path: string, url: string}>}
  */
 export async function uploadAvatar(file, userId) {
+  if (!checkSupabaseReady()) {
+    throw new Error('Supabase not configured. Please update supabase-config.js');
+  }
+  
   if (!file || !userId) {
     throw new Error('File and userId required');
   }
@@ -76,6 +99,10 @@ export async function uploadAvatar(file, userId) {
  * @param {string} avatarUrl - Public/signed URL
  */
 export async function updateProfileAvatar(userId, avatarPath, avatarUrl) {
+  if (!checkSupabaseReady()) {
+    throw new Error('Supabase not configured');
+  }
+  
   const { error } = await supabase
     .from('profiles')
     .upsert({
@@ -99,6 +126,10 @@ export async function updateProfileAvatar(userId, avatarPath, avatarUrl) {
  * @param {string} avatarPath - Storage path to delete
  */
 export async function deleteAvatar(userId, avatarPath) {
+  if (!checkSupabaseReady()) {
+    throw new Error('Supabase not configured');
+  }
+  
   if (!avatarPath) return;
 
   // Delete from storage
@@ -132,6 +163,10 @@ export async function deleteAvatar(userId, avatarPath) {
  * @returns {Promise<object>}
  */
 export async function getProfile(userId) {
+  if (!checkSupabaseReady()) {
+    return null; // Return null if not configured (graceful degradation)
+  }
+  
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
