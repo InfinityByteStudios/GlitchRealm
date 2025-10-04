@@ -1,5 +1,0 @@
-# ads.txt for Google AdSense
-# Replace pub-XXXXXXXXXXXXXXXX with your AdSense Publisher ID (keep the last field as-is)
-# Format: <ad system domain>, <publisher account ID>, <DIRECT|RESELLER>, <certification authority ID>
-
-google.com, pub-7271783548299942, DIRECT, f08c47fec0942fa0
