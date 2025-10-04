@@ -182,6 +182,10 @@
                                 <div style="font-weight:700; margin-bottom:4px;">✅ Maintenance Complete</div>
                                 <div style="font-size:.7rem; opacity:.8;">Updates finished successfully</div>
                             </button>
+                            <button type="button" class="status-preset-btn" data-status="operational" data-message="Update Finished" data-description="A platform update has finished rolling out successfully. Systems are back to normal operation. Let us know if you notice any lingering issues." style="padding:10px 14px; background:rgba(0,255,0,0.1); border:1px solid rgba(0,255,0,0.3); border-radius:8px; color:#00ff66; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">✅ Update Finished</div>
+                                <div style="font-size:.7rem; opacity:.8;">Rollout completed</div>
+                            </button>
                             
                             <!-- Degraded Presets -->
                             <button type="button" class="status-preset-btn" data-status="degraded" data-message="Experiencing Minor Issues" data-description="We're experiencing some minor performance issues. Some features may be slower than usual. Our team is actively working to resolve this." style="padding:10px 14px; background:rgba(255,170,0,0.1); border:1px solid rgba(255,170,0,0.3); border-radius:8px; color:#ffaa00; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
@@ -195,6 +199,14 @@
                             <button type="button" class="status-preset-btn" data-status="degraded" data-message="High Traffic Load" data-description="We're experiencing higher than normal traffic. Services remain operational but may respond slower than usual. We're monitoring the situation closely." style="padding:10px 14px; background:rgba(255,170,0,0.1); border:1px solid rgba(255,170,0,0.3); border-radius:8px; color:#ffaa00; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
                                 <div style="font-weight:700; margin-bottom:4px;">⚠️ High Traffic Load</div>
                                 <div style="font-size:.7rem; opacity:.8;">Service may be slower than usual</div>
+                            </button>
+                            <button type="button" class="status-preset-btn" data-status="degraded" data-message="Update Rolling Out" data-description="A new platform update is currently rolling out. Some users may experience temporary glitches, missing assets, or slower responses while propagation completes." style="padding:10px 14px; background:rgba(255,170,0,0.1); border:1px solid rgba(255,170,0,0.3); border-radius:8px; color:#ffaa00; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">⚠️ Update Rolling Out</div>
+                                <div style="font-size:.7rem; opacity:.8;">Temporary issues possible</div>
+                            </button>
+                            <button type="button" class="status-preset-btn" data-status="degraded" data-message="Post-Update Issues" data-description="We're investigating issues reported after the recent update. Some features may behave unexpectedly while a fix is prepared." style="padding:10px 14px; background:rgba(255,170,0,0.1); border:1px solid rgba(255,170,0,0.3); border-radius:8px; color:#ffaa00; font-size:.8rem; cursor:pointer; transition:all .2s ease; text-align:left;">
+                                <div style="font-weight:700; margin-bottom:4px;">⚠️ Post-Update Issues</div>
+                                <div style="font-size:.7rem; opacity:.8;">Fix in progress</div>
                             </button>
                             
                             <!-- Down Presets -->
