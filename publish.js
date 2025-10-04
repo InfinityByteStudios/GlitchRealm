@@ -1,0 +1,105 @@
+import { SUPABASE_CONFIG } from '../supabase-config.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/+esm';
+import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+const db = getFirestore(window.firebaseApp);
+
+const EDITOR_UIDS = [
+  '6iZDTXC78aVwX22qrY43BOxDRLt1',
+  'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+];
+
+const form = document.getElementById('publish-form');
+const titleEl = document.getElementById('title');
+const summaryEl = document.getElementById('summary');
+const categoriesEl = document.getElementById('categories');
+const tagsEl = document.getElementById('tags');
+const coverEl = document.getElementById('cover');
+const contentEl = document.getElementById('content');
+const embedEl = document.getElementById('embed');
+
+const successMsg = document.getElementById('status-success');
+const errorMsg = document.getElementById('status-error');
+const saveDraftBtn = document.getElementById('save-draft');
+
+function getSelectedCategories(){
+  return Array.from(categoriesEl.selectedOptions).map(o=>o.value);
+}
+
+async function uploadCoverIfAny(){
+  const file = coverEl.files?.[0];
+  if(!file) return null;
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+  const path = `covers/${fileName}`;
+  const { error } = await supabase.storage.from('news-media').upload(path, file, { upsert:false, cacheControl:'3600' });
+  if(error) throw error;
+  const { data } = supabase.storage.from('news-media').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+function requireEditor(user){
+  if(!user || !EDITOR_UIDS.includes(user.uid)){
+    form.innerHTML = '<div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);"><h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Access Restricted</h2><p style="margin:0; font-size:.9rem; opacity:.8;">You must be an authorized editor to publish news.</p></div>';
+    throw new Error('Not authorized');
+  }
+}
+
+async function publishArticle({ draft }){
+  try {
+    successMsg.style.display='none';
+    errorMsg.style.display='none';
+
+    const auth = firebase.auth();
+    const user = auth.currentUser;
+    requireEditor(user);
+
+    if(!titleEl.value.trim()) throw new Error('Title required');
+    if(!summaryEl.value.trim()) throw new Error('Summary required');
+    if(!contentEl.value.trim()) throw new Error('Content required');
+
+    const coverUrl = await uploadCoverIfAny();
+
+    const payload = {
+      title: titleEl.value.trim(),
+      summary: summaryEl.value.trim(),
+      content: contentEl.value,
+      categories: getSelectedCategories(),
+      tags: tagsEl.value.split(',').map(t=>t.trim()).filter(Boolean).slice(0,25),
+      coverImageUrl: coverUrl || null,
+      embed: embedEl.value.trim() || null,
+      draft: !!draft,
+      publishedAt: draft ? null : serverTimestamp(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      authorUid: user.uid
+    };
+
+    const docRef = await addDoc(collection(db,'news_articles'), payload);
+
+    successMsg.textContent = draft ? 'Draft saved.' : 'Published successfully.';
+    successMsg.style.display='block';
+    form.reset();
+    window.scrollTo({top:0,behavior:'smooth'});
+    setTimeout(()=> successMsg.style.display='none', 6000);
+
+  } catch(err){
+    console.error('Publish error:', err);
+    errorMsg.textContent = 'Error: ' + err.message;
+    errorMsg.style.display='block';
+    setTimeout(()=> errorMsg.style.display='none', 8000);
+  }
+}
+
+form?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
+saveDraftBtn?.addEventListener('click', () => publishArticle({ draft:true }));
+
+firebase.auth().onAuthStateChanged(user => {
+  if(user && EDITOR_UIDS.includes(user.uid)){
+    // allowed
+  }
+});
