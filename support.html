@@ -1403,34 +1403,71 @@
           return os ? `${fallback} on ${os} (${deviceLabel})` : `${fallback} (${deviceLabel})`;
         } catch { return 'Unknown'; }
       }
+      let hiPlatformVersion = null; // High entropy platformVersion when available
       function detectOS(ua){
         try {
-          if (navigator.userAgentData && navigator.userAgentData.platform) {
-            // We'll still try to enrich below using UA tokens if possible
-            const plat = navigator.userAgentData.platform;
-            // Fall through to UA parsing to append version details if we can
-            // (e.g., macOS 10.15.7 vs plain 'macOS')
+          const uaData = navigator.userAgentData;
+          const platform = uaData?.platform || '';
+
+          // Try Windows detection using high-entropy platformVersion (Chromium browsers)
+          if (platform === 'Windows') {
+            if (hiPlatformVersion) {
+              const major = parseInt(hiPlatformVersion.split('.')[0], 10);
+              // Chromium mapping: Windows 11 => major >= 13
+              if (!isNaN(major)) {
+                if (major >= 13) return 'Windows 11';
+                return 'Windows 10';
+              }
+            }
+            // Fallback to UA tokens (may misreport Win11 as NT 10.0 due to UA freeze)
+            if (/Windows NT 11\.0/i.test(ua)) return 'Windows 11';
+            if (/Windows NT 10\.0/i.test(ua)) return 'Windows 10';
+            if (/Windows NT 6\.3/i.test(ua)) return 'Windows 8.1';
+            if (/Windows NT 6\.2/i.test(ua)) return 'Windows 8';
+            if (/Windows NT 6\.1/i.test(ua)) return 'Windows 7';
           }
-          // Windows versions (include NT build token)
-          if (/Windows NT 11\.0/i.test(ua)) return 'Windows 11 (NT 11.0)';
-          if (/Windows NT 10\.0/i.test(ua)) return 'Windows 10 (NT 10.0)';
-          if (/Windows NT 6\.3/i.test(ua)) return 'Windows 8.1 (NT 6.3)';
-          if (/Windows NT 6\.2/i.test(ua)) return 'Windows 8 (NT 6.2)';
-          if (/Windows NT 6\.1/i.test(ua)) return 'Windows 7 (NT 6.1)';
-          // macOS: capture detailed 10.x or 11+/12+ tokens if present
-          if (/Mac OS X (10_[0-9_]+)/i.test(ua)) {
-            return 'macOS ' + ua.match(/Mac OS X (10_[0-9_]+)/i)[1].replace(/_/g,'.');
+
+          // macOS
+          if (platform === 'macOS' || /Mac OS X/i.test(ua)) {
+            // Attempt to extract 10.x version token from UA (UA freeze may always show 10_15_7 on newer macOS)
+            const m10 = ua.match(/Mac OS X (10_[0-9_]+)/i);
+            if (m10) return 'macOS ' + m10[1].replace(/_/g,'.');
+            if (hiPlatformVersion && !/10_[0-9_]+/.test(ua)) {
+              const major = parseInt(hiPlatformVersion.split('.')[0],10);
+              if (!isNaN(major)) return 'macOS ' + major; // e.g. macOS 14
+            }
+            return 'macOS';
           }
-          // Newer macOS versions after UA freeze sometimes only show 10_15_7 even on 11+; keep generic if ambiguous
-          if (/Mac OS X 10_[0-9_]+/i.test(ua)) return 'macOS ' + ua.match(/Mac OS X (10_[0-9_]+)/i)[1].replace(/_/g,'.');
-          if (/Mac OS X/i.test(ua)) return 'macOS';
-          if (/Android ([0-9.]+)/i.test(ua)) return 'Android ' + ua.match(/Android ([0-9.]+)/i)[1];
+
+            // iOS / iPadOS (UA)
           if (/(iPhone|iPad|iPod).*OS ([0-9_]+)/i.test(ua)) return 'iOS ' + ua.match(/OS ([0-9_]+)/i)[1].replace(/_/g,'.');
-          if (/Linux/i.test(ua)) return 'Linux';
-          if (/CrOS/i.test(ua)) return 'ChromeOS';
+          // Android
+          if (/Android ([0-9.]+)/i.test(ua)) return 'Android ' + ua.match(/Android ([0-9.]+)/i)[1];
+          // ChromeOS
+          if (platform === 'Chrome OS' || /CrOS/i.test(ua)) return 'ChromeOS';
+          // Linux
+          if (platform === 'Linux' || /Linux/i.test(ua)) return 'Linux';
           return '';
         } catch { return ''; }
       }
+
+      // Attempt to fetch high entropy platformVersion to refine OS detection (async enhancement)
+      (function fetchHighEntropyPlatform(){
+        try {
+          if (navigator.userAgentData?.getHighEntropyValues) {
+            navigator.userAgentData.getHighEntropyValues(['platformVersion']).then(res => {
+              if (res?.platformVersion) {
+                hiPlatformVersion = res.platformVersion;
+                // Rebuild environment string with improved OS detail if field already populated
+                if (envField && envField.value) {
+                  const improved = buildEnvSummary();
+                  if (improved && improved !== envField.value) envField.value = improved;
+                }
+              }
+            }).catch(()=>{});
+          }
+        } catch {}
+      })();
       function ensureEnv(){ if(envField && !envField.value) envField.value = buildEnvSummary(); }
       if(!modal) return;
       let lastFocused = null;
