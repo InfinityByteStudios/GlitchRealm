@@ -1093,6 +1093,11 @@
       <h3 id="support-form-title">Submit a Support Request</h3>
       <form name="support-request" method="POST" data-netlify="true" netlify data-netlify-honeypot="bot-field" class="support-form" autocomplete="on" action="thank-you.html">
         <input type="hidden" name="form-name" value="support-request" />
+        <!-- Automatically captured environment info (readonly, populated by JS) -->
+        <label class="sf-field" style="display:none;">
+          <span>Environment</span>
+          <textarea name="environment" id="support-env-field" readonly rows="3" style="opacity:.7; font-size:.7rem; resize:vertical;" tabindex="-1"></textarea>
+        </label>
         <p class="sr-only" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
           <label>Don’t fill this out: <input name="bot-field" /></label>
         </p>
@@ -1356,6 +1361,23 @@
       const openBtn = document.getElementById('open-support-form');
       const openChip = document.getElementById('open-support-form-chip');
       const modal = document.getElementById('support-form-modal');
+      const envField = document.getElementById('support-env-field');
+      function buildEnvSummary(){
+        try {
+          const nav = navigator || {};
+          const parts = [];
+          parts.push(`UserAgent: ${nav.userAgent||'n/a'}`);
+          parts.push(`Platform: ${nav.platform||'n/a'}`);
+          parts.push(`Language: ${nav.language||'n/a'}`);
+          if (nav.hardwareConcurrency) parts.push(`Cores: ${nav.hardwareConcurrency}`);
+          if (nav.deviceMemory) parts.push(`RAM(GB): ${nav.deviceMemory}`);
+          parts.push(`Viewport: ${window.innerWidth}x${window.innerHeight}`);
+          parts.push(`TimeZone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+          parts.push(`UAData Mobile: ${(nav.userAgentData && typeof nav.userAgentData.mobile!== 'undefined')? nav.userAgentData.mobile : 'n/a'}`);
+          return parts.join('\n');
+        } catch(e){ return 'Environment capture failed'; }
+      }
+      function ensureEnv(){ if(envField && !envField.value) envField.value = buildEnvSummary(); }
       if(!modal) return;
       let lastFocused = null;
       const dialog = modal.querySelector('.support-form-dialog');
@@ -1369,13 +1391,18 @@
         modal._loop = loop;
       }
       function releaseFocus(){ if(lastFocused) try{ lastFocused.focus(); }catch{} if(modal._loop) modal.removeEventListener('keydown', modal._loop); }
-      function open(){ modal.style.display='block'; modal.setAttribute('aria-hidden','false'); setTimeout(()=> modal.classList.add('visible'), 10); trapFocus(); }
+  function open(){ ensureEnv(); modal.style.display='block'; modal.setAttribute('aria-hidden','false'); setTimeout(()=> modal.classList.add('visible'), 10); trapFocus(); }
       function close(){ modal.classList.remove('visible'); setTimeout(()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); releaseFocus(); }, 180); }
       if(openBtn) openBtn.addEventListener('click', open);
       if(openChip) openChip.addEventListener('click', (e) => { e.preventDefault(); open(); });
       // Quick contact button in hero section
       const quickContactBtn = document.getElementById('quick-contact-btn');
       if(quickContactBtn) quickContactBtn.addEventListener('click', open);
+      // Populate env just before submit as well (in case user cleared / delayed open)
+      const supportForm = modal.querySelector('form[name="support-request"]');
+      if(supportForm){
+        supportForm.addEventListener('submit', () => { ensureEnv(); });
+      }
       modal.addEventListener('click', e=>{ if(e.target===modal || e.target.hasAttribute('data-close')) close(); });
       document.getElementById('close-support-form')?.addEventListener('click', close);
       document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.classList.contains('visible')) close(); });
