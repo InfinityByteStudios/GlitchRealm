@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Publish News - GlitchRealm</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  <style>
+    .publish-wrap { max-width:960px; margin:40px auto 100px; }
+    .publish-header { margin:0 0 30px; }
+    .publish-header h1 { font-family:'Orbitron'; font-size:2rem; background:linear-gradient(90deg,#00fff9,#008cff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    form.publish-form { display:flex; flex-direction:column; gap:22px; }
+    form.publish-form .field { display:flex; flex-direction:column; gap:8px; }
+    form.publish-form label { font-size:.72rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0; }
+    form.publish-form input[type=text], form.publish-form textarea, form.publish-form input[type=file] { background:#08131b; border:1px solid #12313d; border-radius:10px; padding:12px 14px; color:#d7e5e8; font-size:.85rem; font-family:inherit; }
+    form.publish-form textarea { resize:vertical; min-height:160px; line-height:1.5; }
+    form.publish-form select { background:#08131b; border:1px solid #12313d; border-radius:10px; padding:10px 12px; color:#d7e5e8; font-size:.8rem; }
+    .inline { display:flex; flex-wrap:wrap; gap:16px; }
+    .inline .field { flex:1 1 240px; }
+    .chips { display:flex; gap:6px; flex-wrap:wrap; }
+    .chips span { background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.3); border-radius:20px; padding:6px 12px; font-size:.65rem; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; }
+    .chips span:hover { background:rgba(0,255,249,0.25); }
+    .actions { display:flex; gap:14px; flex-wrap:wrap; }
+    button.primary { background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; cursor:pointer; }
+    button.secondary { background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.4); color:#00fff9; border-radius:30px; padding:12px 24px; font-size:.7rem; letter-spacing:.6px; font-weight:600; cursor:pointer; }
+    button.secondary:hover { background:rgba(0,255,249,0.22); }
+    button.primary:hover { filter:brightness(1.1); }
+    .status-msg { font-size:.75rem; padding:12px 16px; border-radius:10px; display:none; }
+    .status-msg.success { background:rgba(0,255,100,0.12); border:1px solid rgba(0,255,100,0.35); color:#58ff9c; }
+    .status-msg.error { background:rgba(255,100,100,0.12); border:1px solid rgba(255,100,100,0.35); color:#ff6d6d; }
+  </style>
+  <script type="module" src="../firebase-core.js"></script>
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <main class="main">
+    <div class="publish-wrap">
+      <div class="publish-header">
+        <h1>Publish Article</h1>
+        <p style="max-width:720px; font-size:.9rem; color:#b7c9cd;">Create a news post: updates, patch notes, dev log, event, or community spotlight. Media is optional—images upload to Supabase storage. Videos should be hosted externally (YouTube, etc.) and embedded.</p>
+      </div>
+      <form class="publish-form" id="publish-form">
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="title" maxlength="140" required placeholder="GlitchRealm v1.2 Performance Update" />
+        </div>
+        <div class="field">
+          <label>Summary / Intro</label>
+          <textarea id="summary" maxlength="400" placeholder="Short overview (1–3 sentences) explaining the article focus." required></textarea>
+          <small style="opacity:.6; font-size:.65rem;">Max 400 chars. Appears in listings.</small>
+        </div>
+        <div class="inline">
+          <div class="field">
+            <label>Categories (select multiple)</label>
+            <select id="categories" multiple size="6">
+              <option value="updates">Platform Update</option>
+              <option value="patches">Patch Notes</option>
+              <option value="games">Game Release</option>
+              <option value="community">Community</option>
+              <option value="devlogs">Dev Log</option>
+              <option value="events">Event</option>
+              <option value="esports">Esports</option>
+            </select>
+            <small style="opacity:.55; font-size:.6rem;">Hold CTRL / CMD to multi-select.</small>
+          </div>
+          <div class="field">
+            <label>Tags (comma separated)</label>
+            <input type="text" id="tags" placeholder="performance, backend, rollout" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Cover Image (optional)</label>
+          <input type="file" id="cover" accept="image/*" />
+          <small style="opacity:.55; font-size:.6rem;">Uploaded to Supabase storage bucket <code>news-media</code>.</small>
+        </div>
+        <div class="field">
+          <label>Main Content (Markdown)</label>
+          <textarea id="content" placeholder="## Overview\nDetails here..." required></textarea>
+        </div>
+        <div class="field">
+          <label>External Video / Media Embed (optional)</label>
+          <input type="text" id="embed" placeholder="YouTube / external embed link" />
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary">Publish</button>
+          <button type="button" id="save-draft" class="secondary">Save Draft</button>
+        </div>
+        <div id="status-success" class="status-msg success">Published successfully.</div>
+        <div id="status-error" class="status-msg error">Error publishing.</div>
+      </form>
+    </div>
+  </main>
+  <div id="footer-placeholder"></div>
+  <script type="module" src="publish.js"></script>
+  <script src="../script.js" defer></script>
+</body>
+</html>
