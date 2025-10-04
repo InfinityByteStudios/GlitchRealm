@@ -21,11 +21,6 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/signin.html</loc>
-    <priority>0.50</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
     <loc>https://glitchrealm.ca/privacy-policy.html</loc>
     <priority>0.40</priority>
     <changefreq>yearly</changefreq>
@@ -39,5 +34,45 @@
     <loc>https://glitchrealm.ca/submit-game.html</loc>
     <priority>0.40</priority>
     <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/credits.html</loc>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/terms-of-service.html</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/reset-password.html</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/forgot-password.html</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/user-portal.html</loc>
+    <priority>0.60</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/delete-account.html</loc>
+    <priority>0.30</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/support.html</loc>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/projects.html</loc>
+    <priority>0.55</priority>
+    <changefreq>monthly</changefreq>
   </url>
 </urlset>
