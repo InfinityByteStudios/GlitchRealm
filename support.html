@@ -1364,18 +1364,60 @@
       const envField = document.getElementById('support-env-field');
       function buildEnvSummary(){
         try {
-          const nav = navigator || {};
-          const parts = [];
-          parts.push(`UserAgent: ${nav.userAgent||'n/a'}`);
-          parts.push(`Platform: ${nav.platform||'n/a'}`);
-          parts.push(`Language: ${nav.language||'n/a'}`);
-          if (nav.hardwareConcurrency) parts.push(`Cores: ${nav.hardwareConcurrency}`);
-          if (nav.deviceMemory) parts.push(`RAM(GB): ${nav.deviceMemory}`);
-          parts.push(`Viewport: ${window.innerWidth}x${window.innerHeight}`);
-          parts.push(`TimeZone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
-          parts.push(`UAData Mobile: ${(nav.userAgentData && typeof nav.userAgentData.mobile!== 'undefined')? nav.userAgentData.mobile : 'n/a'}`);
-          return parts.join('\n');
-        } catch(e){ return 'Environment capture failed'; }
+          const ua = navigator.userAgent || '';
+          // Detect major browsers and version
+          const detectors = [
+            /(Edg)\/([0-9]+)\./i,
+            /(Chrome)\/([0-9]+)\./i,
+            /(Firefox)\/([0-9]+)\./i,
+            /(Safari)\/([0-9]+)\./i,
+            /(OPR)\/([0-9]+)\./i
+          ];
+          const isMobile = (navigator.userAgentData && navigator.userAgentData.mobile) || /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+          const deviceLabel = isMobile ? 'Mobile' : 'Desktop';
+            for (const re of detectors){
+              const m = ua.match(re);
+              if(m){
+                let name = m[1];
+                if(name === 'OPR') name = 'Opera';
+                if(name === 'Edg') name = 'Edge';
+                // Safari's version token is actually from Version/XX sometimes
+                if(name === 'Safari'){
+                  const verAlt = ua.match(/Version\/([0-9]+)/i);
+                  if(verAlt) {
+                    const os2 = detectOS(ua);
+                    return os2 ? `${name} ${verAlt[1]} on ${os2} (${deviceLabel})` : `${name} ${verAlt[1]} (${deviceLabel})`;
+                  }
+                }
+                const browserString = `${name} ${m[2]}`;
+                const os = detectOS(ua);
+                return os ? `${browserString} on ${os} (${deviceLabel})` : `${browserString} (${deviceLabel})`;
+              }
+            }
+          // Fallback: use first product token
+          const fallback = (ua.split(' ').find(t=>/\//.test(t)) || 'Unknown');
+          const os = detectOS(ua);
+          return os ? `${fallback} on ${os} (${deviceLabel})` : `${fallback} (${deviceLabel})`;
+        } catch { return 'Unknown'; }
+      }
+      function detectOS(ua){
+        try {
+          if (navigator.userAgentData && navigator.userAgentData.platform) {
+            return navigator.userAgentData.platform; // Chrome-based newer API
+          }
+          if (/Windows NT 11\.0/i.test(ua)) return 'Windows 11';
+          if (/Windows NT 10\.0/i.test(ua)) return 'Windows 10';
+          if (/Windows NT 6\.3/i.test(ua)) return 'Windows 8.1';
+            if (/Windows NT 6\.2/i.test(ua)) return 'Windows 8';
+          if (/Windows NT 6\.1/i.test(ua)) return 'Windows 7';
+          if (/Mac OS X 10_[0-9_]+/i.test(ua)) return 'macOS ' + ua.match(/Mac OS X (10_[0-9_]+)/i)[1].replace(/_/g,'.');
+          if (/Mac OS X/i.test(ua)) return 'macOS';
+          if (/Android ([0-9.]+)/i.test(ua)) return 'Android ' + ua.match(/Android ([0-9.]+)/i)[1];
+          if (/(iPhone|iPad|iPod).*OS ([0-9_]+)/i.test(ua)) return 'iOS ' + ua.match(/OS ([0-9_]+)/i)[1].replace(/_/g,'.');
+          if (/Linux/i.test(ua)) return 'Linux';
+          if (/CrOS/i.test(ua)) return 'ChromeOS';
+          return '';
+        } catch { return ''; }
       }
       function ensureEnv(){ if(envField && !envField.value) envField.value = buildEnvSummary(); }
       if(!modal) return;
