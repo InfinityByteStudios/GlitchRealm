@@ -4,9 +4,29 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // Firestore (for structured article metadata) & Supabase (for media storage)
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-const app = window.firebaseApp; // from firebase-core.js
-const db = getFirestore(app);
+// Wait for Firebase to initialize
+async function waitForFirebase() {
+  if (window.firebaseApp) return window.firebaseApp;
+  
+  return new Promise((resolve) => {
+    const checkInterval = setInterval(() => {
+      if (window.firebaseApp) {
+        clearInterval(checkInterval);
+        resolve(window.firebaseApp);
+      }
+    }, 100);
+    
+    // Also listen for the custom event
+    window.addEventListener('firebaseAuthStateChanged', () => {
+      if (window.firebaseApp) {
+        clearInterval(checkInterval);
+        resolve(window.firebaseApp);
+      }
+    }, { once: true });
+  });
+}
 
+let db;
 const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
 // Developer / editor UIDs allowed to publish
@@ -18,9 +38,9 @@ const EDITOR_UIDS = [
   'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
 ];
 
-// Collection refs
-const ARTICLES_COL = collection(db, 'news_articles');
-const TAGS_COL = collection(db, 'news_tags');
+// Collection refs - initialized after Firebase is ready
+let ARTICLES_COL;
+let TAGS_COL;
 
 // DOM refs
 const articleListEl = document.getElementById('article-list');
@@ -123,27 +143,42 @@ async function renderTags(){
   }));
 }
 
+// Initialize Firebase and Firestore
+async function initializeFirebase() {
+  const app = await waitForFirebase();
+  db = getFirestore(app);
+  ARTICLES_COL = collection(db, 'news_articles');
+  TAGS_COL = collection(db, 'news_tags');
+}
+
 // Show create button if editor
-firebase.auth().onAuthStateChanged(user => {
-  if(user && EDITOR_UIDS.includes(user.uid)){
-    createFirstBtn.style.display = 'inline-block';
+async function checkEditorAccess() {
+  await waitForFirebase();
+  if (window.firebaseAuth) {
+    window.firebaseAuth.onAuthStateChanged(user => {
+      if (user && EDITOR_UIDS.includes(user.uid)) {
+        if (createFirstBtn) createFirstBtn.style.display = 'inline-block';
+      }
+    });
   }
-});
+}
 
 createFirstBtn?.addEventListener('click', () => {
   window.location.href = 'publish.html';
 });
 
-(async function init(){
+(async function init() {
   try {
+    await initializeFirebase();
+    checkEditorAccess(); // Run in parallel
     await loadArticles();
     renderArticles();
     renderLatest();
     renderTags();
-    if(!articlesCache.length){
+    if (!articlesCache.length) {
       emptyPlaceholderEl.style.display = 'block';
     }
-  } catch(err){
+  } catch (err) {
     console.error('Error loading news articles:', err);
     articleListEl.innerHTML = '<div class="empty-state"><h2>Error Loading Articles</h2><p>Try again later.</p></div>';
   }

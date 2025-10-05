@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GlitchRealm News</title>
   <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="newsletter-embed.css">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
   <style>
@@ -42,6 +43,24 @@
     .empty-state p { margin:0 0 20px; font-size:.9rem; color:#b7c9cd; }
     .create-first-btn { background:linear-gradient(90deg,#00fff9,#008cff); color:#02141c; border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; cursor:pointer; }
     .create-first-btn:hover { filter:brightness(1.1); }
+    
+    /* Newsletter Button Hover */
+    #openNewsletterModal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,255,249,0.4);
+    }
+    
+    /* Modal Animation */
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
   </style>
   <script type="module" src="../firebase-core.js"></script>
 </head>
@@ -70,12 +89,10 @@
       <div class="news-layout">
         <aside class="news-sidebar">
           <section class="news-subscribe">
-            <h3>Subscribe</h3>
-            <form id="news-subscribe-form">
-              <input type="email" name="email" placeholder="Email for updates" required>
-              <button type="submit">Join</button>
-            </form>
-            <p style="margin:10px 0 0; font-size:.65rem; opacity:.65; line-height:1.4;">You may receive periodic platform updates. Unsubscribe anytime.</p>
+            <h3>Newsletter</h3>
+            <p style="margin:0 0 12px; font-size:.75rem; opacity:.75; line-height:1.5;">Stay updated with the latest news and special offers!</p>
+            <button id="openNewsletterModal" style="width:100%; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:12px 16px; font-size:.8rem; font-weight:600; letter-spacing:.6px; color:#02141c; cursor:pointer; text-transform:uppercase; transition: transform 0.2s;">Subscribe to Newsletter</button>
+            <p style="margin:10px 0 0; font-size:.65rem; opacity:.65; line-height:1.4;"><a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9;">Privacy Policy</a></p>
           </section>
           <section class="news-latest">
             <h3>Latest</h3>
@@ -101,8 +118,52 @@
       </div>
     </section>
   </main>
+
+  <!-- Newsletter Modal -->
+  <div id="newsletterModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center;">
+    <div style="position:relative; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; background:#0a0e1a; border:2px solid #00fff9; border-radius:12px; box-shadow:0 0 40px rgba(0,255,249,0.3); padding:20px;">
+      <button id="closeNewsletterModal" style="position:absolute; top:15px; right:15px; background:none; border:none; color:#00fff9; font-size:28px; cursor:pointer; z-index:1; line-height:1; padding:0; width:30px; height:30px;">&times;</button>
+      
+      <!-- MailerLite Form Content -->
+      <div class="ml-embedded" data-form="V1Ovsk"></div>
+    </div>
+  </div>
+
+  <script>
+    // Newsletter Modal Controls
+    const modal = document.getElementById('newsletterModal');
+    const openBtn = document.getElementById('openNewsletterModal');
+    const closeBtn = document.getElementById('closeNewsletterModal');
+    
+    openBtn.addEventListener('click', () => {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+    
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    });
+    
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+    
+    // Load MailerLite script
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '1183661');
+  </script>
+
   <div id="footer-placeholder"></div>
   <script type="module" src="news.js"></script>
+  <script src="newsletter-handler.js"></script>
   <script src="../script.js" defer></script>
 </body>
 </html>
