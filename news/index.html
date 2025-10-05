@@ -121,13 +121,49 @@
 
   <!-- Newsletter Modal -->
   <div id="newsletterModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center;">
-    <div style="position:relative; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; background:#0a0e1a; border:2px solid #00fff9; border-radius:12px; box-shadow:0 0 40px rgba(0,255,249,0.3); padding:20px;">
-      <button id="closeNewsletterModal" style="position:absolute; top:15px; right:15px; background:none; border:none; color:#00fff9; font-size:28px; cursor:pointer; z-index:1; line-height:1; padding:0; width:30px; height:30px;">&times;</button>
+    <div style="position:relative; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; background:#0a0e1a; border:2px solid #00fff9; border-radius:12px; box-shadow:0 0 40px rgba(0,255,249,0.3); padding:30px 25px;">
+      <button id="closeNewsletterModal" style="position:absolute; top:15px; right:15px; background:none; border:none; color:#00fff9; font-size:28px; cursor:pointer; z-index:1; line-height:1; padding:0; width:30px; height:30px; font-weight:300;">&times;</button>
       
-      <!-- MailerLite Form Content -->
-      <div class="ml-embedded" data-form="V1Ovsk"></div>
+      <!-- Newsletter Form -->
+      <div style="text-align:center;">
+        <h2 style="font-family:Orbitron; color:#00fff9; margin:0 0 10px; font-size:1.8rem; letter-spacing:1px;">Newsletter</h2>
+        <p style="color:#b8d4d8; margin:0 0 25px; font-size:0.95rem; line-height:1.5;">Signup for news and special offers!</p>
+        
+        <form id="modalNewsletterForm" action="https://assets.mailerlite.com/jsonp/1836682/forms/167354636185896415/subscribe" method="post" target="_blank" style="margin-bottom:20px;">
+          <div style="margin-bottom:15px;">
+            <input type="email" name="fields[email]" placeholder="Enter your email address" required autocomplete="email" style="width:100%; padding:14px 16px; background:#08131b; border:1px solid #12313d; border-radius:8px; color:#d7e5e8; font-size:0.95rem; font-family:Rajdhani; box-sizing:border-box; transition:border-color 0.3s;">
+          </div>
+          
+          <div style="margin-bottom:20px; text-align:left; padding:15px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.15); border-radius:8px;">
+            <p style="margin:0 0 10px; color:#b8d4d8; font-size:0.85rem; font-weight:600;">Marketing Permissions</p>
+            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; color:#b8d4d8; font-size:0.8rem; line-height:1.4;">
+              <input type="checkbox" name="gdpr[]" value="Email" style="margin-top:2px; accent-color:#00fff9;">
+              <span>I agree to receive promotional emails about new products, updates, and special offers.</span>
+            </label>
+          </div>
+          
+          <button type="submit" style="width:100%; padding:14px 20px; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; color:#02141c; font-size:0.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; font-family:Rajdhani; transition:transform 0.2s, box-shadow 0.2s;">Subscribe Now</button>
+          
+          <input type="hidden" name="ml-submit" value="1">
+          <input type="hidden" name="anticsrf" value="true">
+        </form>
+        
+        <p style="color:#7a9599; font-size:0.75rem; line-height:1.5; margin:0;">By subscribing, you acknowledge that your information will be processed in accordance with our <a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9; text-decoration:none;">Privacy Policy</a>. You can unsubscribe at any time.</p>
+      </div>
     </div>
   </div>
+
+  <style>
+    #modalNewsletterForm input[type="email"]:focus {
+      outline:none;
+      border-color:#00fff9;
+      box-shadow:0 0 8px rgba(0,255,249,0.3);
+    }
+    #modalNewsletterForm button[type="submit"]:hover {
+      transform:translateY(-2px);
+      box-shadow:0 4px 15px rgba(0,255,249,0.5);
+    }
+  </style>
 
   <script>
     // Newsletter Modal Controls
@@ -152,13 +188,6 @@
         document.body.style.overflow = '';
       }
     });
-    
-    // Load MailerLite script
-    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
-    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
-    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
-    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
-    ml('account', '1183661');
   </script>
 
   <div id="footer-placeholder"></div>
