@@ -1,123 +1,32 @@
 /* Profile Menu CSS Fixes */
 
-/* Notification count badge on profile trigger */
-.profile-trigger {
+/* Fix for user avatar in the navigation */
+.user-profile {
     position: relative;
+}
+
+.profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
 }
 
 .user-avatar-container {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
     position: relative;
 }
 
-.notification-count-badge {
-    position: absolute;
-    top: -8px;
-    left: -8px;
-    background: linear-gradient(135deg, #ff0080, #ff1493, #ff69b4);
-    color: var(--white);
-    border-radius: 50%;
-    min-width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: bold;
-    line-height: 1;
-    border: 3px solid var(--white);
-    box-shadow: 0 0 20px rgba(255, 0, 128, 0.8), 
-                0 0 40px rgba(255, 0, 128, 0.4),
-                0 2px 10px rgba(0, 0, 0, 0.3);
-    animation: badgePulse 1.5s infinite, badgeGlow 2s infinite alternate;
-    z-index: 15;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-    transform-origin: center;
-}
-
-@keyframes badgePulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.2);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-@keyframes badgeGlow {
-    0% {
-        box-shadow: 0 0 20px rgba(255, 0, 128, 0.8), 
-                    0 0 40px rgba(255, 0, 128, 0.4),
-                    0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-    100% {
-        box-shadow: 0 0 30px rgba(255, 0, 128, 1), 
-                    0 0 60px rgba(255, 0, 128, 0.6),
-                    0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-}
-
-@keyframes badgePulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.2);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-@keyframes badgeGlow {
-    0% {
-        box-shadow: 0 0 20px rgba(255, 0, 128, 0.8), 
-                    0 0 40px rgba(255, 0, 128, 0.4),
-                    0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-    100% {
-        box-shadow: 0 0 30px rgba(255, 0, 128, 1), 
-                    0 0 60px rgba(255, 0, 128, 0.6),
-                    0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-}
-
-/* EMERGENCY FIX: Prevent ANY image from taking up the whole screen */
-html img, body img, * img {
-    max-width: 150px !important;
-    max-height: 150px !important;
-    width: auto !important;
-    height: auto !important;
-}
-
-/* Universal fix to prevent ANY image from taking up the whole screen */
-* img {
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-}
-
-/* More specific fix for profile/avatar images */
-img {
-    max-width: 200px !important;
-    max-height: 200px !important;
-}
-
-/* Global fix for any profile image that might be taking up the whole screen */
-img[src*="profile"], 
-img[src*="avatar"],
-img[alt*="Profile"],
-img[alt*="Avatar"],
-.profile-image,
-.avatar-image,
-#user-avatar,
-#profile-picture {
-    max-width: 100px !important;
-    max-height: 100px !important;
-    width: auto !important;
-    height: auto !important;
-    object-fit: cover !important;
+.user-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .avatar-upload-overlay {
@@ -179,8 +88,8 @@ img[alt*="Avatar"],
 }
 
 .user-avatar-large-container {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     overflow: hidden;
     position: relative;
@@ -192,8 +101,6 @@ img[alt*="Avatar"],
     width: 100%;
     height: 100%;
     object-fit: cover;
-    max-width: 60px;
-    max-height: 60px;
 }
 
 .avatar-upload-overlay-large {

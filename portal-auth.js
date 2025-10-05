@@ -12,12 +12,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 console.log('Sign-in button in header clicked');
                 
-                // Always route to standalone Sign In with redirect back to current page
-                const currentUrl = window.location.href;
-                try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
-                const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
-                console.log('Redirecting to standalone sign-in:', target);
-                window.location.href = target;
+                // Get auth overlay
+                const authOverlay = document.getElementById('signin-modal');
+                if (authOverlay) {
+                    console.log('Found auth overlay, displaying it');
+                    authOverlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    console.log('Auth overlay not found, redirecting to signin page');
+                    window.location.href = 'signin.html';
+                }
             });
             
             console.log('Event listener attached to sign-in button');
