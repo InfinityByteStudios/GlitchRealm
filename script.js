@@ -253,14 +253,17 @@ function showPasswordChangeSuccessNotification() {
     }, 100);
     
     // Add pulse animation for icon
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-    `;
-    document.head.appendChild(style);
+    if (!document.querySelector('#pulseKeyframes')) {
+        const pulseStyle = document.createElement('style');
+        pulseStyle.id = 'pulseKeyframes';
+        pulseStyle.textContent = `
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+            }
+        `;
+        document.head.appendChild(pulseStyle);
+    }
 }
 
 // Error message mapping for Firebase auth errors
@@ -2986,12 +2989,14 @@ window.addEventListener('message', (event) => {
 });
 
 // CSS Animations added via JavaScript
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes glitchOverlay {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.8; }
-    }
+if (!document.querySelector('#glitchOverlayKeyframes')) {
+    const glitchStyle = document.createElement('style');
+    glitchStyle.id = 'glitchOverlayKeyframes';
+    glitchStyle.textContent = `
+        @keyframes glitchOverlay {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
     
     .ripple {
         position: absolute;
@@ -3031,7 +3036,8 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(glitchStyle);
+}
 
 // Global Settings
 const GR_SETTINGS = {
@@ -4031,9 +4037,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add fadeOut animation to CSS if not already present
 if (!document.querySelector('#fadeOutKeyframes')) {
-    const style = document.createElement('style');
-    style.id = 'fadeOutKeyframes';
-    style.textContent = `
+    const fadeOutStyle = document.createElement('style');
+    fadeOutStyle.id = 'fadeOutKeyframes';
+    fadeOutStyle.textContent = `
         @keyframes fadeOut {
             from {
                 opacity: 1;
@@ -4043,7 +4049,7 @@ if (!document.querySelector('#fadeOutKeyframes')) {
             }
         }
     `;
-    document.head.appendChild(style);
+    document.head.appendChild(fadeOutStyle);
 }
 
 // Load Header and Footer

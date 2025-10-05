@@ -75,4 +75,9 @@
     <priority>0.55</priority>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>https://glitchrealm.ca/newsletter.html</loc>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>

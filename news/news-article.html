@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>News Article - GlitchRealm</title>
   <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="newsletter-embed.css">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
   <style>
@@ -20,10 +21,21 @@
     .article-content code { background:#08131b; padding:2px 5px; border:1px solid #12313d; border-radius:6px; font-size:.75rem; }
     .article-tags { display:flex; flex-wrap:wrap; gap:8px; margin:34px 0 0; }
     .article-tags span { font-size:.6rem; padding:6px 10px; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.25); border-radius:18px; letter-spacing:.5px; color:#00f5ff; text-transform:uppercase; }
+    .newsletter-cta { margin:50px 0 0; padding:30px; background:linear-gradient(135deg,#0b1822,#07131b); border:1px solid rgba(0,255,249,0.25); border-radius:16px; text-align:center; }
+    .newsletter-cta h3 { font-family:'Orbitron'; font-size:1.3rem; color:#00fff9; margin:0 0 10px; letter-spacing:1px; }
+    .newsletter-cta p { color:#b8d4d8; margin:0 0 20px; font-size:.9rem; }
+    .newsletter-cta .ml-embedded { max-width:400px; margin:0 auto; }
     .back-link { display:inline-flex; align-items:center; gap:6px; font-size:.65rem; text-transform:uppercase; letter-spacing:.5px; text-decoration:none; color:#00f5ff; margin-bottom:22px; }
     .back-link:hover { text-decoration:underline; }
     .embed-wrapper { margin:30px 0; border:1px solid rgba(0,255,249,0.25); border-radius:16px; overflow:hidden; background:rgba(0,255,249,0.05); }
     .embed-wrapper iframe { width:100%; height:420px; display:block; }
+    
+    /* Newsletter Button Hover */
+    #openNewsletterModal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,255,249,0.4);
+      filter: brightness(1.1);
+    }
   </style>
   <script type="module" src="../firebase-core.js"></script>
 </head>
@@ -41,10 +53,65 @@
       <div id="embed-container" class="embed-wrapper" style="display:none;"></div>
       <article id="article-content" class="article-content"></article>
       <div id="article-tags" class="article-tags"></div>
+      
+      <!-- Newsletter CTA -->
+      <div class="newsletter-cta">
+        <h3>Stay Updated</h3>
+        <p>Get the latest GlitchRealm news and updates delivered to your inbox.</p>
+        
+        <h3>Stay Updated</h3>
+        <p style="margin:0 0 15px; opacity:.8;">Subscribe to our newsletter for the latest news and updates.</p>
+        <button id="openNewsletterModal" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:14px 24px; font-size:.8rem; font-weight:600; letter-spacing:.7px; color:#02141c; cursor:pointer; text-transform:uppercase; width:100%; max-width:300px; margin:0 auto; display:block;">Subscribe to Newsletter</button>
+        <p style="margin:15px 0 0; font-size:.7rem; opacity:.7; text-align:center;">Read our <a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9;">Privacy Policy</a></p>
+      </div>
     </div>
   </main>
+
+  <!-- Newsletter Modal -->
+  <div id="newsletterModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center;">
+    <div style="position:relative; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; background:#0a0e1a; border:2px solid #00fff9; border-radius:12px; box-shadow:0 0 40px rgba(0,255,249,0.3); padding:20px;">
+      <button id="closeNewsletterModal" style="position:absolute; top:15px; right:15px; background:none; border:none; color:#00fff9; font-size:28px; cursor:pointer; z-index:1; line-height:1; padding:0; width:30px; height:30px;">&times;</button>
+      
+      <!-- MailerLite Form Content -->
+      <div class="ml-embedded" data-form="V1Ovsk"></div>
+    </div>
+  </div>
+
+  <script>
+    // Newsletter Modal Controls
+    const modal = document.getElementById('newsletterModal');
+    const openBtn = document.getElementById('openNewsletterModal');
+    const closeBtn = document.getElementById('closeNewsletterModal');
+    
+    openBtn.addEventListener('click', () => {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+    
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    });
+    
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+    
+    // Load MailerLite script
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '1183661');
+  </script>
+
   <div id="footer-placeholder"></div>
   <script type="module" src="article.js"></script>
+  <script src="newsletter-handler.js"></script>
   <script src="../script.js" defer></script>
 </body>
 </html>

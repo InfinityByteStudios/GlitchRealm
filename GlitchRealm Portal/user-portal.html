@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Portal - GlitchRealm Games</title>
+    <link rel="icon" type="image/png" href="assets/glitch realm favicon image.png">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.firebasestorage.app",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const firestore = getFirestore(app);
+        
+        window.firebaseAuth = auth;
+        window.firebaseFirestore = firestore;
+        window.updateEmail = updateEmail;
+        window.reauthenticateWithCredential = reauthenticateWithCredential;
+        window.EmailAuthProvider = EmailAuthProvider;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.firestoreDoc = doc;
+        window.firestoreGetDoc = getDoc;
+        window.firestoreSetDoc = setDoc;
+        window.firestoreCollection = collection;
+        window.firestoreQuery = query;
+        window.firestoreWhere = where;
+        window.firestoreGetDocs = getDocs;
+
+        // Initialize user portal after Firebase is ready
+        setTimeout(() => {
+            if (typeof initializeUserPortal === 'function') {
+                initializeUserPortal();
+            }
+        }, 1000);
+    </script>
+    <script src="script.js"></script>
+    <style>
+        /* User Portal specific styles */
+        .portal-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 20px 40px 20px; /* Increased top padding to account for fixed header */
+        }
+        
+        .portal-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .portal-title {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .portal-title:after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+        }
+        
+        .portal-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.2rem;
+            color: var(--text-lighter);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .portal-sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        @media (min-width: 768px) {
+            .portal-sections {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .portal-section {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--primary-cyan);
+            border-radius: 10px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.1);
+        }
+        
+        .portal-section:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.2);
+        }
+        
+        .portal-section:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--accent-purple));
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--primary-cyan);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+            color: var(--text-lighter);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--primary-cyan);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-family: 'Rajdhani', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            color: var(--text-lighter);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        .btn-portal {
+            background: linear-gradient(135deg, var(--primary-cyan), var(--accent-purple));
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 6px;
+            padding: 12px 25px;
+            font-family: 'Orbitron', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+        
+        .btn-portal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 249, 0.3);
+        }
+        
+        .btn-portal:active {
+            transform: translateY(0);
+        }
+        
+        .playtime-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .playtime-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0, 255, 249, 0.2);
+        }
+        
+        .playtime-item:last-child {
+            border-bottom: none;
+        }
+        
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .game-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--primary-cyan);
+        }
+        
+        .game-name {
+            font-family: 'Orbitron', monospace;
+            font-weight: bold;
+        }
+        
+        .game-time {
+            font-family: 'Rajdhani', sans-serif;
+            background: rgba(0, 255, 249, 0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            color: var(--primary-cyan);
+            font-weight: bold;
+        }
+        
+        .total-playtime {
+            margin-top: 25px;
+            text-align: right;
+            font-size: 1.2rem;
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .total-hours {
+            color: var(--primary-cyan);
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+        
+        .playtime-note {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid var(--accent-purple);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--text-lighter);
+        }
+        
+        .playtime-note svg {
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
+            margin-right: 5px;
+            fill: var(--accent-purple);
+        }
+        
+        .auth-required {
+            text-align: center;
+            padding: 50px 0;
+        }
+        
+        .auth-required-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .loading-spinner {
+            border: 5px solid rgba(0, 255, 249, 0.1);
+            border-radius: 50%;
+            border-top: 5px solid var(--primary-cyan);
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .email-messages {
+            width: 100%;
+            word-wrap: break-word; /* Allows long words to break and wrap to next line */
+            margin-top: 15px; /* Maintains spacing from the button */
+            display: block;
+        }
+        
+        #email-success,
+        #email-error {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 6px;
+            display: none;
+            box-sizing: border-box; /* Ensures padding is included in width calculation */
+        }
+        
+        #email-success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00cc00;
+            color: #00cc00;
+        }
+        
+        #email-error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+    
+    <main class="portal-container">
+        <div class="portal-header">
+            <h1 class="portal-title">User Portal</h1>
+            <p class="portal-subtitle">Manage your account settings and view your GlitchRealm game statistics in one place.</p>
+        </div>
+        
+        <div id="loading-container" style="text-align: center; padding: 50px 0;">
+            <div class="loading-spinner"></div>
+            <p style="margin-top: 20px;">Loading your data...</p>
+        </div>
+        
+        <div id="auth-required" class="auth-required" style="display: none;">
+            <svg class="auth-required-icon" viewBox="0 0 24 24" width="60" height="60">
+                <path fill="var(--primary-cyan)" d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.1 14.8,9.5V11C15.4,11 16,11.6 16,12.3V15.8C16,16.4 15.4,17 14.7,17H9.2C8.6,17 8,16.4 8,15.7V12.2C8,11.6 8.6,11 9.2,11V9.5C9.2,8.1 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V11H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z" />
+            </svg>
+            <h2>Sign In Required</h2>
+            <p>Please sign in to access your user portal and game statistics.</p>
+            <button class="btn-portal" onclick="location.href='signin.html'">Sign In Now</button>
+        </div>
+        
+        <div id="portal-content" class="portal-sections" style="display: none;">
+            <div class="portal-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
+                    </svg>
+                    Email Management
+                </h2>
+                <div class="form-group">
+                    <label class="form-label">Current Email</label>
+                    <input type="text" id="current-email" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Email</label>
+                    <input type="email" id="new-email" class="form-control" placeholder="Enter new email address">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" id="current-password" class="form-control" placeholder="Verify with your password">
+                    <p class="form-help">Required to confirm email change</p>
+                </div>
+                <button id="update-email-btn" class="btn-portal">Update Email</button>
+                <div class="email-messages">
+                    <div id="email-success">Email updated successfully!</div>
+                    <div id="email-error">Error updating email. Please try again.</div>
+                </div>
+            </div>
+            
+            <div class="portal-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M13,17.5C13,19.98 10.98,22 8.5,22C6.02,22 4,19.98 4,17.5C4,15.02 6.02,13 8.5,13C10.98,13 13,15.02 13,17.5M20,16.5C20,19.58 16.58,22 12.5,22C8.42,22 5,19.58 5,16.5C5,13.42 8.42,11 12.5,11C16.58,11 20,13.42 20,16.5M20,5V9H12V5H20M20,4H12C11.45,4 11,4.45 11,5V9C11,9.55 11.45,10 12,10H20C20.55,10 21,9.55 21,9V5C21,4.45 20.55,4 20,4M14.5,2.5C14.5,3.33 13.83,4 13,4C12.17,4 11.5,3.33 11.5,2.5C11.5,1.67 12.17,1 13,1C13.83,1 14.5,1.67 14.5,2.5M5.5,4.5C5.5,6.05 4.05,7.5 2.5,7.5C0.95,7.5 -0.5,6.05 -0.5,4.5C-0.5,2.95 0.95,1.5 2.5,1.5C4.05,1.5 5.5,2.95 5.5,4.5Z" />
+                    </svg>
+                    Game Playtime
+                </h2>
+                <div id="playtime-loading" style="text-align: center; padding: 20px;">
+                    <div class="loading-spinner"></div>
+                </div>
+                <ul id="playtime-list" class="playtime-list" style="display: none;"></ul>
+                <div class="total-playtime">
+                    Total: <span id="total-hours" class="total-hours">0</span>
+                </div>
+                <div class="playtime-note">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                    </svg>
+                    Playtime is only tracked when playing games on GlitchRealm. External website builds do not contribute to this total.
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+    
+    <script src="script.js"></script>
+    <script>
+        // User Portal Functionality
+        function initializeUserPortal() {
+            console.log('Initializing user portal...');
+            // Load header and footer
+            loadHeaderFooter();
+            
+            const loadingContainer = document.getElementById('loading-container');
+            const authRequired = document.getElementById('auth-required');
+            const portalContent = document.getElementById('portal-content');
+            
+            // Check authentication state
+            window.onAuthStateChanged(window.firebaseAuth, (user) => {
+                loadingContainer.style.display = 'none';
+                
+                if (user) {
+                    console.log('User is signed in, showing portal content');
+                    portalContent.style.display = 'grid';
+                    loadUserData(user);
+                } else {
+                    console.log('User is not signed in, showing auth required');
+                    authRequired.style.display = 'block';
+                }
+            });
+            
+            // Set up event listeners
+            const updateEmailBtn = document.getElementById('update-email-btn');
+            if (updateEmailBtn) {
+                updateEmailBtn.addEventListener('click', updateUserEmail);
+            }
+        }
+        
+        // Load user data including email and playtime
+        async function loadUserData(user) {
+            // Set current email
+            const currentEmailInput = document.getElementById('current-email');
+            if (currentEmailInput) {
+                currentEmailInput.value = user.email;
+            }
+            
+            // Load playtime data
+            await loadPlaytimeData(user.uid);
+        }
+        
+        // Update user email
+        async function updateUserEmail() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newEmail = document.getElementById('new-email').value;
+            const successMessage = document.getElementById('email-success');
+            const errorMessage = document.getElementById('email-error');
+            
+            // Hide previous messages
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            if (!newEmail) {
+                errorMessage.textContent = 'Please enter a new email address.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            if (!currentPassword) {
+                errorMessage.textContent = 'Please enter your current password.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const user = window.firebaseAuth.currentUser;
+                
+                // Re-authenticate the user
+                const credential = window.EmailAuthProvider.credential(user.email, currentPassword);
+                await window.reauthenticateWithCredential(user, credential);
+                
+                // Update email
+                await window.updateEmail(user, newEmail);
+                
+                // Success
+                document.getElementById('current-email').value = newEmail;
+                document.getElementById('new-email').value = '';
+                document.getElementById('current-password').value = '';
+                successMessage.style.display = 'block';
+                console.log('Email updated successfully');
+            } catch (error) {
+                console.error('Error updating email:', error);
+                
+                // Handle specific errors
+                switch (error.code) {
+                    case 'auth/wrong-password':
+                        errorMessage.textContent = 'Incorrect password. Please try again.';
+                        break;
+                    case 'auth/email-already-in-use':
+                        errorMessage.textContent = 'This email is already in use by another account.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage.textContent = 'Please enter a valid email address.';
+                        break;
+                    default:
+                        errorMessage.textContent = 'Error updating email: ' + error.message;
+                }
+                
+                errorMessage.style.display = 'block';
+            }
+        }
+        
+        // Load playtime data from Firestore
+        async function loadPlaytimeData(userId) {
+            const playtimeList = document.getElementById('playtime-list');
+            const playtimeLoading = document.getElementById('playtime-loading');
+            const totalHoursElement = document.getElementById('total-hours');
+            
+            try {
+                // Query the playtime collection for this user
+                const db = window.firebaseFirestore;
+                
+                // Get both the global document and game-specific subcollection
+                const globalRef = window.firestoreDoc(db, 'playtime', userId);
+                const globalDoc = await window.firestoreGetDoc(globalRef);
+                
+                // Also get the games subcollection
+                const gamesCollRef = window.firestoreCollection(db, 'playtime', userId, 'games');
+                const gamesSnapshot = await window.firestoreGetDocs(gamesCollRef);
+                
+                // Process the playtime data
+                let totalHours = 0;
+                const gameMap = new Map(); // Use a Map to avoid duplicates
+                
+                // First, process the global document if it exists
+                if (globalDoc.exists()) {
+                    const globalData = globalDoc.data();
+                    
+                    // Check if the document has games object
+                    if (globalData.games) {
+                        // Process each game in the games object
+                        Object.values(globalData.games).forEach(game => {
+                            // Skip if no gameId
+                            if (!game.gameId) return;
+                            
+                            // Calculate hours from totalMinutes if available
+                            if (game.totalMinutes) {
+                                game.hours = game.totalMinutes / 60;
+                            } else {
+                                game.hours = 0;
+                            }
+                            
+                            // Add to map using gameId as key to avoid duplicates
+                            gameMap.set(game.gameId, game);
+                        });
+                    }
+                }
+                
+                // Then, process each game-specific document
+                gamesSnapshot.forEach((doc) => {
+                    const gameData = doc.data();
+                    
+                    // Skip if no gameId
+                    if (!gameData.gameId) return;
+                    
+                    // Calculate hours from totalMinutes if available
+                    if (gameData.totalMinutes) {
+                        gameData.hours = gameData.totalMinutes / 60;
+                    } else {
+                        gameData.hours = 0;
+                    }
+                    
+                    // Add to map using gameId as key to avoid duplicates
+                    // This will override global data with game-specific data
+                    gameMap.set(gameData.gameId, gameData);
+                });
+                
+                // Convert map values to array and calculate total hours
+                const playtimeData = Array.from(gameMap.values());
+                totalHours = playtimeData.reduce((sum, game) => sum + (game.hours || 0), 0);
+                
+                // Make sure all games are included in the list, even if they haven't been played yet
+                const allGames = [
+                    { gameId: 'coderunner', gameName: 'CodeRunner', hours: 0, iconUrl: 'assets/game logos/coderunner logo.png' },
+                    { gameId: 'bytesurge', gameName: 'ByteSurge', hours: 0, iconUrl: 'assets/game logos/bytesurge.png' },
+                    { gameId: 'bytewars', gameName: 'NeuroCore: Byte Wars', hours: 0, iconUrl: 'assets/game logos/neurocore byte wars logo.png' },
+                    { gameId: 'shadowlight', gameName: 'ShadowLight', hours: 0, iconUrl: 'assets/game logos/shadowlight.png' }
+                ];
+                
+                // Merge playtime data with all games list
+                const mergedData = allGames.map(defaultGame => {
+                    // If we have playtime data for this game, use it, otherwise use the default
+                    const gameData = gameMap.get(defaultGame.gameId);
+                    return gameData ? { ...defaultGame, ...gameData } : defaultGame;
+                });
+                
+                // Render the merged data
+                renderPlaytimeList(mergedData);
+                
+                // Update total hours
+                const totalHoursDisplay = formatPlaytime(totalHours);
+                totalHoursElement.textContent = totalHoursDisplay;
+                
+                // Update the total hours label to match the units
+                const totalPlaytimeLabel = document.querySelector('.total-playtime');
+                if (totalPlaytimeLabel) {
+                    if (totalHours < 0.0167) { // Less than a minute
+                        totalPlaytimeLabel.innerHTML = `Total: <span id="total-hours" class="total-hours">${totalHoursDisplay}</span>`;
+                    } else if (totalHours < 1) { // Less than an hour
+                        totalPlaytimeLabel.innerHTML = `Total: <span id="total-hours" class="total-hours">${totalHoursDisplay}</span>`;
+                    } else {
+                        totalPlaytimeLabel.innerHTML = `Total: <span id="total-hours" class="total-hours">${totalHoursDisplay}</span>`;
+                    }
+                }
+                
+                // Hide loading spinner
+                playtimeLoading.style.display = 'none';
+                playtimeList.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading playtime data:', error);
+                playtimeLoading.innerHTML = '<p>Error loading playtime data. Please try again later.</p>';
+            }
+        }
+        
+        // Helper function to format playtime based on duration
+        function formatPlaytime(hours) {
+            if (hours < 0.001) { // Very small values (less than ~3.5 seconds)
+                return '0 seconds';
+            } else if (hours < 0.0167) { // Less than a minute (0.0167 hours = 1 minute)
+                const seconds = Math.round(hours * 3600);
+                return seconds === 1 ? '1 second' : `${seconds} seconds`;
+            } else if (hours < 1) { // Less than an hour
+                const minutes = Math.round(hours * 60);
+                return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+            } else {
+                const hourValue = Math.round(hours * 10) / 10; // Round to 1 decimal
+                return hourValue === 1 ? '1 hour' : `${hourValue.toFixed(1)} hours`;
+            }
+        }
+        
+        // Render playtime list
+        function renderPlaytimeList(playtimeData) {
+            const playtimeList = document.getElementById('playtime-list');
+            playtimeList.innerHTML = '';
+            
+            // Sort games by playtime (descending)
+            playtimeData.sort((a, b) => b.hours - a.hours);
+            
+            playtimeData.forEach((game) => {
+                // Commenting out this code to show all games even with 0 hours
+                // if (game.hours === 0) {
+                //     return;
+                // }
+                
+                const listItem = document.createElement('li');
+                listItem.className = 'playtime-item';
+                
+                // Game icon and name
+                const gameInfo = document.createElement('div');
+                gameInfo.className = 'game-info';
+                
+                const gameIcon = document.createElement('img');
+                gameIcon.className = 'game-icon';
+                
+                // Determine the correct image URL based on gameId
+                let imageUrl;
+                if (game.iconUrl) {
+                    imageUrl = game.iconUrl;
+                } else {
+                    // Fallback logic based on gameId
+                    switch(game.gameId) {
+                        case 'coderunner':
+                            imageUrl = 'assets/game logos/coderunner logo.png';
+                            break;
+                        case 'bytesurge':
+                            imageUrl = 'assets/game logos/bytesurge.png';
+                            break;
+                        case 'bytewars': // Updated ID to match what's in the GamePlaytimeTracker
+                            imageUrl = 'assets/game logos/neurocore byte wars logo.png';
+                            break;
+                        case 'shadowlight':
+                            imageUrl = 'assets/game logos/shadowlight.png';
+                            break;
+                        default:
+                            imageUrl = 'assets/glitch realm favicon image.png';
+                    }
+                }
+                
+                gameIcon.src = imageUrl;
+                gameIcon.alt = game.gameName;
+                
+                const gameName = document.createElement('div');
+                gameName.className = 'game-name';
+                gameName.textContent = game.gameName;
+                
+                gameInfo.appendChild(gameIcon);
+                gameInfo.appendChild(gameName);
+                
+                // Playtime display
+                const gameTime = document.createElement('div');
+                gameTime.className = 'game-time';
+                
+                // Format playtime based on duration
+                let displayTime = typeof game.hours === 'number' ? 
+                    formatPlaytime(game.hours) : '0 seconds';
+                
+                gameTime.textContent = displayTime;
+                
+                listItem.appendChild(gameInfo);
+                listItem.appendChild(gameTime);
+                
+                playtimeList.appendChild(listItem);
+            });
+        }
+        
+        // Call initialization when document is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // initializeUserPortal will be called by the Firebase timeout
+        });
+    </script>
+</body>
+</html>

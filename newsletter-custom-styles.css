@@ -1,0 +1,168 @@
+/* GlitchRealm Newsletter Custom Styles */
+/* Add this to override MailerLite's default styles */
+
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper {
+  background-color: rgba(15, 20, 30, 0.95) !important;
+  border: 1px solid rgba(0, 255, 249, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 40px rgba(0, 255, 249, 0.15) !important;
+}
+
+/* Heading */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedContent h4 {
+  color: #00fff9 !important;
+  font-family: 'Orbitron', 'Open Sans', Arial, sans-serif !important;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 20px rgba(0, 255, 249, 0.5) !important;
+  margin-bottom: 15px !important;
+}
+
+/* Description text */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedContent p {
+  color: #b8d4d8 !important;
+  font-family: 'Rajdhani', 'Open Sans', Arial, sans-serif !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Input fields */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-fieldRow input,
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-horizontalRow input {
+  background-color: rgba(0, 255, 249, 0.05) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(0, 255, 249, 0.3) !important;
+  border-radius: 8px !important;
+  font-family: 'Rajdhani', 'Open Sans', Arial, sans-serif !important;
+  transition: all 0.3s ease !important;
+}
+
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-fieldRow input:focus,
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-horizontalRow input:focus {
+  border-color: #00fff9 !important;
+  box-shadow: 0 0 10px rgba(0, 255, 249, 0.3) !important;
+  outline: none !important;
+}
+
+/* Placeholder */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-fieldRow input::placeholder,
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-horizontalRow input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Labels */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-block-form .ml-field-group label {
+  color: #00fff9 !important;
+  font-family: 'Orbitron', 'Open Sans', Arial, sans-serif !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}
+
+/* Submit button */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedSubmit button,
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-horizontalRow button {
+  background: linear-gradient(135deg, #00fff9 0%, #00cccc 100%) !important;
+  color: #0a0e1a !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-family: 'Orbitron', 'Open Sans', Arial, sans-serif !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(0, 255, 249, 0.3) !important;
+}
+
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedSubmit button:hover,
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-horizontalRow button:hover {
+  background: linear-gradient(135deg, #00cccc 0%, #009999 100%) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 249, 0.5) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Checkbox styling */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-checkboxRow .label-description,
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsOptionsCheckbox .label-description {
+  color: #b8d4d8 !important;
+  font-family: 'Rajdhani', 'Open Sans', Arial, sans-serif !important;
+}
+
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-checkboxRow .label-description::before,
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsOptionsCheckbox .label-description::before {
+  border-color: rgba(0, 255, 249, 0.5) !important;
+  background-color: rgba(0, 255, 249, 0.05) !important;
+}
+
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-checkboxRow input[type=checkbox]:checked~.label-description::before,
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsOptionsCheckbox input[type=checkbox]:checked~.label-description::before {
+  background-color: #00fff9 !important;
+  border-color: #00fff9 !important;
+}
+
+/* Privacy policy text */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsContent.privacy-policy p {
+  color: rgba(184, 212, 216, 0.8) !important;
+  font-size: 0.85rem !important;
+}
+
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsContent.privacy-policy p a {
+  color: #00fff9 !important;
+  text-decoration: underline !important;
+}
+
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsContent.privacy-policy p a:hover {
+  color: #00cccc !important;
+}
+
+/* Marketing permissions heading */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsContent h4 {
+  color: #00fff9 !important;
+  font-family: 'Orbitron', 'Open Sans', Arial, sans-serif !important;
+  font-size: 1.1rem !important;
+}
+
+/* Marketing permissions text */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsContent p {
+  color: #b8d4d8 !important;
+}
+
+/* Checkbox description */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedPermissionsOptionsCheckbox .description {
+  color: rgba(184, 212, 216, 0.7) !important;
+  font-size: 0.8rem !important;
+  font-style: italic !important;
+}
+
+/* GDPR footer text */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedPermissions .ml-form-embedMailerLite-GDPR p {
+  color: rgba(184, 212, 216, 0.6) !important;
+  font-size: 0.75rem !important;
+}
+
+/* Success message */
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-successBody .ml-form-successContent h4 {
+  color: #00ff41 !important;
+  font-family: 'Orbitron', 'Open Sans', Arial, sans-serif !important;
+  text-shadow: 0 0 20px rgba(0, 255, 65, 0.5) !important;
+}
+
+#mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-successBody .ml-form-successContent p {
+  color: #b8d4d8 !important;
+}
+
+/* reCAPTCHA container */
+.ml-form-recaptcha {
+  margin-top: 15px !important;
+}
+
+/* Loading spinner */
+.ml-form-embedSubmitLoad {
+  border-color: #00fff9 #00fff9 #00fff9 transparent !important;
+}
+
+/* Responsive adjustments */
+@media only screen and (max-width: 768px) {
+  #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedContent h4 {
+    font-size: 1.5rem !important;
+  }
+}
