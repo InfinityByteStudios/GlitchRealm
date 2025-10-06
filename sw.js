@@ -11,6 +11,7 @@ const PRECACHE_URLS = [
   '/about.html',
   '/contact.html',
   '/user-portal.html',
+  '/offline.html',
   '/styles.css',
   '/script.js',
   '/assets/Favicon and Icons/favicon.ico'
@@ -99,8 +100,16 @@ self.addEventListener('fetch', (event) => {
           caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
           return response;
         } catch (e) {
+          // Try to serve from cache first
           const cached = await caches.match(request);
-          return cached || caches.match('/index.html');
+          if (cached) return cached;
+          
+          // If not in cache, serve offline page
+          const offlinePage = await caches.match('/offline.html');
+          if (offlinePage) return offlinePage;
+          
+          // Ultimate fallback to index
+          return caches.match('/index.html');
         }
       })()
     );

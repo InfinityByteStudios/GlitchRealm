@@ -1,0 +1,72 @@
+<!-- 
+    NETWORK STATUS INTEGRATION SNIPPET
+    Add this to your HTML files to enable network status monitoring
+-->
+
+<!-- Option 1: Direct Include (Recommended) -->
+<!-- Add to <head> section: -->
+<link rel="stylesheet" href="/network-status.css">
+
+<!-- Add before </body> tag: -->
+<script src="/network-status.js" defer></script>
+
+
+<!-- Option 2: Dynamic Loading (via existing script.js) -->
+<!-- Add to script.js: -->
+/*
+(function loadNetworkMonitor() {
+    // Load CSS
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = '/network-status.css';
+    document.head.appendChild(css);
+    
+    // Load JS
+    const js = document.createElement('script');
+    js.src = '/network-status.js';
+    js.defer = true;
+    document.body.appendChild(js);
+})();
+*/
+
+
+<!-- Option 3: Inline (No separate files needed) -->
+<!-- Add to <head>: -->
+<style>
+.network-status-toast{position:fixed;bottom:20px;right:20px;z-index:9999;padding:16px 24px;border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:12px;transform:translateY(120px);transition:transform .4s cubic-bezier(.68,-.55,.265,1.55),opacity .3s;opacity:0;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.network-status-toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
+.network-status-toast.offline{background:linear-gradient(135deg,#2d1414 0%,#1a0f0f 100%);border:2px solid rgba(255,107,107,.5);color:#ff9393}
+.network-status-toast.online{background:linear-gradient(135deg,#142d1a 0%,#0f1a14 100%);border:2px solid rgba(0,255,65,.5);color:#58ff9c}
+.network-status-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.network-status-icon.pulse{animation:statusPulse 2s ease-in-out infinite}
+@keyframes statusPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.network-status-close{background:none;border:none;color:inherit;font-size:1.2rem;cursor:pointer;opacity:.6;transition:opacity .2s;padding:0;margin-left:8px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.network-status-close:hover{opacity:1}
+@media (max-width:768px){.network-status-toast{bottom:10px;right:10px;left:10px;padding:12px 16px;font-size:.85rem}}
+</style>
+
+<!-- Add before </body>: -->
+<script>
+!function(){"use strict";const t=document.createElement("div");t.className="network-status-toast",t.innerHTML='\n        <div class="network-status-icon"></div>\n        <span class="network-status-message"></span>\n        <button class="network-status-close" aria-label="Close">&times;</button>\n    ',"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>{document.body.appendChild(t),e()}):( document.body.appendChild(t),e());function e(){const e=t.querySelector(".network-status-icon"),n=t.querySelector(".network-status-message"),s=t.querySelector(".network-status-close");let a;function o(s){clearTimeout(a),t.classList.remove("offline","online"),t.classList.add(s?"online":"offline"),s?(e.innerHTML="✓",e.classList.remove("pulse"),n.textContent="Connection restored",a=setTimeout(()=>{i()},3e3)):(e.innerHTML="⚠",e.classList.add("pulse"),n.textContent="No internet connection"),t.classList.add("show")}function i(){t.classList.remove("show")}s.addEventListener("click",i),window.addEventListener("online",()=>{console.log("[Network] Connection restored"),o(!0)}),window.addEventListener("offline",()=>{console.log("[Network] Connection lost"),o(!1)}),navigator.onLine||o(!1);let l=navigator.onLine;setInterval(()=>{const t=navigator.onLine;t!==l&&(l=t,o(t))},5e3)}window.NetworkStatus={show:t=>{const e=new Event(t?"online":"offline");window.dispatchEvent(e)},hide:()=>{t.classList.remove("show")}}}();
+</script>
+
+
+<!-- TESTING THE INTEGRATION -->
+<!-- 
+Open browser console and run:
+
+// Test offline notification
+window.NetworkStatus.show(false);
+
+// Test online notification  
+window.NetworkStatus.show(true);
+
+// Hide notification
+window.NetworkStatus.hide();
+
+// Or use browser DevTools:
+1. Open DevTools (F12)
+2. Go to Network tab
+3. Check "Offline" checkbox
+4. Should see toast notification
+-->
