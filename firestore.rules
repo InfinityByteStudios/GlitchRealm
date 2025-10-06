@@ -1,0 +1,710 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ================================
+    // Reviews Collection
+    // ================================
+    match /reviews/{reviewId} {
+  // Read: Anyone can read approved reviews,
+  //        users can read their own pending reviews,
+  //        developers and admins can read all reviews
+  allow read: if resource.data.moderationStatus == 'approved' || 
+         (request.auth != null && request.auth.uid == resource.data.userId) ||
+         isAdmin(request.auth.uid) ||
+         isDeveloper(request.auth.uid);
+      
+      // Create: Authenticated users only
+      allow create: if request.auth != null &&
+                       request.auth.uid == request.resource.data.userId &&
+                       isValidReview(request.resource.data);
+      
+      // Update: Only review author can update their own reviews
+      allow update: if request.auth != null &&
+                       request.auth.uid == resource.data.userId &&
+                       isValidReview(request.resource.data) &&
+                       // Prevent users from changing moderation status
+                       request.resource.data.moderationStatus == resource.data.moderationStatus;
+      
+      // Delete: Only admins can delete reviews
+      allow delete: if isAdmin(request.auth.uid);
+    }
+    
+    // ================================
+    // Review Replies Collection
+    // ================================
+    match /review_replies/{replyId} {
+      allow read: if true; // Publicly readable
+      
+      // Create: Authenticated users only
+      allow create: if request.auth != null &&
+                       request.auth.uid == request.resource.data.userId;
+      
+      // Update: Only reply author can update their own replies
+      allow update: if request.auth != null &&
+                       request.auth.uid == resource.data.userId;
+      
+      // Delete: Only admins and reply authors can delete
+      allow delete: if request.auth != null && 
+                       (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
+    }
+    
+    // ================================
+    // Game Playtime Collection
+    // ================================
+    match /playtime/{playTimeId} {
+      // Read: Users can read their own playtime doc
+      // Support either a stored userId field OR the doc ID being the userId
+      allow read: if request.auth != null && (
+                     request.auth.uid == resource.data.userId ||
+                     request.auth.uid == playTimeId
+                   );
+      
+      // Create: Authenticated users only
+      allow create: if request.auth != null &&
+                       request.auth.uid == request.resource.data.userId &&
+                       isValidPlaytime(request.resource.data);
+      
+      // Update: Only the user can update their own playtime
+      // (requires valid schema at top-level)
+      allow update: if request.auth != null &&
+                       (request.auth.uid == resource.data.userId || request.auth.uid == playTimeId) &&
+                       isValidPlaytime(request.resource.data);
+      
+      // Delete: Only admins can delete playtime records
+      allow delete: if isAdmin(request.auth.uid);
+    }
+
+    // Subcollection: per-game playtime documents at /playtime/{userId}/games/{gameDocId}
+    match /playtime/{userId}/games/{gameDocId} {
+      // Read: Only the owner can read their per-game playtime
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Create/Update: Only the owner can write their per-game playtime
+      // (Do not enforce isValidPlaytime here since these docs may use different fields like totalMinutes)
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+
+      // Delete: Admins only
+      allow delete: if isAdmin(request.auth.uid);
+    }
+    
+    // ================================
+    // System Status (Public read, developer write)
+    // ================================
+    match /system/status {
+      // Anyone can read the system status
+      allow read: if true;
+      // Only developers can update the status
+      allow write: if request.auth != null && isDeveloper(request.auth.uid) && isValidSystemStatus(request.resource.data);
+    }
+
+    // ================================
+    // Admin Actions Collection
+    // ================================
+    match /adminActions/{actionId} {
+      allow read, write: if isAdmin(request.auth.uid);
+    }
+
+    // ================================
+    // Community Post Reports (Moderation)
+    // ================================
+    match /community_post_reports/{reportId} {
+  // Admins, developers, and the reporter can read
+  allow read: if request.auth != null && (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid) || request.auth.uid == resource.data.userId);
+      // Any authenticated user can create their own report
+      allow create: if request.auth != null &&
+                    request.auth.uid == request.resource.data.userId &&
+                    isValidReport(request.resource.data);
+  // Admins, moderators (via custom claim), and developers can update/delete reports
+  // Updates are restricted to status/closedAt/expiresAt with strict semantics
+  allow update: if (isAdmin(request.auth.uid) || isModerator(request.auth.uid) || isDeveloper(request.auth.uid)) &&
+                 isValidReportUpdate();
+  allow delete: if isAdmin(request.auth.uid) || isModerator(request.auth.uid) || isDeveloper(request.auth.uid);
+    }
+
+    // ================================
+    // Game Reports (Moderation)
+    // ================================
+    match /game_reports/{reportId} {
+      // Admins, developers, and the reporter can read
+      allow read: if request.auth != null && (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid) || request.auth.uid == resource.data.userId);
+      // Any authenticated user can create their own report
+      allow create: if request.auth != null &&
+                    request.auth.uid == request.resource.data.userId &&
+                    isValidGameReport(request.resource.data);
+      // Admins, moderators, and developers can update/delete reports
+      allow update: if (isAdmin(request.auth.uid) || isModerator(request.auth.uid) || isDeveloper(request.auth.uid)) &&
+                    isValidGameReportUpdate();
+      allow delete: if isAdmin(request.auth.uid) || isModerator(request.auth.uid) || isDeveloper(request.auth.uid);
+    }
+    
+    // ================================
+    // User Profiles
+    // ================================
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+        // Per-user hidden posts for the community
+        match /hidden_posts/{postId} {
+          allow read: if request.auth != null && request.auth.uid == userId;
+          allow create, update: if request.auth != null && request.auth.uid == userId &&
+                                request.resource.data.keys().hasOnly(['hiddenAt']) &&
+                                request.resource.data.hiddenAt is timestamp;
+          allow delete: if request.auth != null && request.auth.uid == userId;
+        }
+    }
+
+    // ================================
+    // Verification Requests
+    // ================================
+    match /verification_requests/{uid} {
+      // Requester can read their own; admins/devs can read all
+      allow read: if (request.auth != null && request.auth.uid == uid) || isAdmin(request.auth.uid) || isDeveloper(request.auth.uid);
+      // Create: only the requester can create their own request with valid schema
+      allow create: if request.auth != null && request.auth.uid == uid && isValidVerificationRequest(request.resource.data);
+      // Update: requester can update their own non-privileged fields; admins/devs can update status and review fields
+      allow update: if request.auth != null && (
+        (
+          request.auth.uid == uid && isValidVerificationRequestUserUpdate()
+        ) || (
+          (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) && isValidVerificationAdminUpdate()
+        )
+      );
+      // Delete: requester or admins/devs can delete
+      allow delete: if request.auth != null && (request.auth.uid == uid || isAdmin(request.auth.uid) || isDeveloper(request.auth.uid));
+    }
+
+    // ================================
+    // Verified Users (Public read, admin/dev write)
+    // ================================
+    match /verified_users/{uid} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) && isValidVerifiedUser(request.resource.data);
+    }
+
+    // ================================
+    // Community Games (legacy; kept for backward compatibility)
+    // ================================
+    match /community_games/{gameId} {
+      // Publicly readable
+      allow read: if true;
+      // Create: only verified users can create games they own
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId && isVerified(request.auth.uid) && isValidCommunityGame(request.resource.data);
+      // Update: only owner and verified; restrict fields to safe set
+      allow update: if request.auth != null && request.auth.uid == resource.data.ownerId && isVerified(request.auth.uid) && isValidCommunityGameUpdate();
+      // Delete: owner or admin/dev
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.ownerId || isAdmin(request.auth.uid) || isDeveloper(request.auth.uid));
+    }
+
+    // ================================
+    // Game Submissions (show on regular games page)
+    // ================================
+    match /game_submissions/{id} {
+      // Publicly readable
+      allow read: if true;
+      // Create: TEMP relaxed for debugging — any authenticated user can create a DRAFT they own
+      // Once verified working, re-enable the validator to enforce schema.
+      allow create: if request.auth != null &&
+                    request.auth.uid == request.resource.data.ownerId &&
+                    request.resource.data.status == 'draft';
+      // Update:
+      // - Owner may update content but cannot change status (must remain the same)
+      // - Admin/Developer can update including publishing/unpublishing
+      allow update: if request.auth != null && (
+                      // 0) Safe owner-claim for legacy/unowned docs: only ownerId (+ optional updatedAt) may be set
+                      (
+                        !(resource.data.keys().hasAny(['ownerId']) && resource.data.ownerId is string && resource.data.ownerId.size() > 0) &&
+                        request.resource.data.ownerId is string &&
+                        request.resource.data.ownerId == request.auth.uid &&
+                        request.resource.data.diff(resource.data).changedKeys().hasOnly(['ownerId','updatedAt']) &&
+                        (!request.resource.data.keys().hasAny(['updatedAt']) || request.resource.data.updatedAt is timestamp)
+                      ) ||
+                      (
+                        request.auth.uid == resource.data.ownerId &&
+                        isValidGameSubmissionUpdate() &&
+                        request.resource.data.status == resource.data.status
+                      ) || (
+                        (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) &&
+                        isValidGameSubmissionUpdate()
+                      )
+                    );
+      // Delete: owner or admin/dev
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.ownerId || isAdmin(request.auth.uid) || isDeveloper(request.auth.uid));
+    }
+    
+    // ================================
+    // News Articles Collection
+    // ================================
+    match /news_articles/{articleId} {
+      // Public read for published articles; authors and devs can read drafts
+      allow read: if resource.data.draft == false ||
+                   (request.auth != null && request.auth.uid == resource.data.authorUid) ||
+                   isDeveloper(request.auth.uid);
+      
+      // Create: Only developers can create articles
+      allow create: if request.auth != null &&
+                     isDeveloper(request.auth.uid) &&
+                     request.resource.data.authorUid == request.auth.uid &&
+                     isValidNewsArticle(request.resource.data);
+      
+      // Update: Only author or other developers can update
+      allow update: if request.auth != null &&
+                     isDeveloper(request.auth.uid) &&
+                     isValidNewsArticleUpdate();
+      
+      // Delete: Only developers can delete
+      allow delete: if request.auth != null && isDeveloper(request.auth.uid);
+    }
+    
+    // ================================
+    // Other Collections (Authenticated Read-Only by default)
+    // Explicit write rules must be defined per collection above.
+    match /{document=**} {
+      allow read: if request.auth != null;
+    }
+    
+    // ================================
+    // Helper Functions
+    // ================================
+    // Community Posts Collection: Public reads for published, writes restricted
+    match /community_posts/{postId} {
+      // Anyone can read published posts; owners and admins can read their drafts/others
+      allow read: if resource.data.status == 'published' ||
+                   (request.auth != null && request.auth.uid == resource.data.userId) ||
+                   isAdmin(request.auth.uid);
+
+  // Loosened: any authenticated user can create valid posts (owner check removed)
+  allow create: if request.auth != null &&
+         isValidCommunityPost(request.resource.data);
+
+  // Only the owner can update their post (admins may use delete for moderation)
+  allow update: if request.auth != null &&
+         request.auth.uid == resource.data.userId &&
+         isValidCommunityPost(request.resource.data) &&
+         (!request.resource.data.keys().hasAny(['pinned']) || request.resource.data.pinned == resource.data.pinned);
+
+  // Allow safe likesCount-only updates by any authenticated user (for upvotes)
+  allow update: if request.auth != null && isLikesCountOnlyUpdate();
+
+  // Admins can toggle only the 'pinned' flag
+  allow update: if request.auth != null && isAdmin(request.auth.uid) && isPinOnlyUpdate();
+
+  // Delete: owner or admin can delete posts
+  allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
+
+      // Comments subcollection under each post
+      match /comments/{commentId} {
+        // Publicly readable
+        allow read: if true;
+        // Create: authenticated users can comment with valid data
+        allow create: if request.auth != null && isValidComment(request.resource.data);
+        // Update/Delete: only author or admin
+        allow update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin(request.auth.uid));
+      }
+
+      // Likes (Upvotes) subcollection under each post
+      match /likes/{uid} {
+        // Only the owner of the like can read their like doc (used to mark UI state)
+        allow read: if request.auth != null && request.auth.uid == uid;
+        // Create: user creates their own like doc with basic schema
+        allow create: if request.auth != null &&
+                       request.auth.uid == uid &&
+                       request.resource.data.keys().hasOnly(['userId','createdAt']) &&
+                       request.resource.data.userId == uid &&
+                       request.resource.data.createdAt is timestamp;
+        // Delete: user can remove their own like; admins too
+        allow delete: if request.auth != null && (request.auth.uid == uid || isAdmin(request.auth.uid));
+        // No updates to like docs (delete/recreate)
+        allow update: if false;
+      }
+    }
+
+    function isValidReview(reviewData) {
+      return reviewData.keys().hasAll(['rating', 'gameId', 'userId', 'moderationStatus', 'timestamp']) &&
+             reviewData.rating is int &&
+             reviewData.rating >= 1 &&
+             reviewData.rating <= 5 &&
+             reviewData.gameId is string &&
+             reviewData.gameId.size() > 0 &&
+             reviewData.userId is string &&
+             reviewData.userId.size() > 0 &&
+             reviewData.moderationStatus in ['approved', 'pending', 'rejected', 'blocked'] &&
+             reviewData.timestamp is timestamp &&
+             (!reviewData.keys().hasAny(['comment']) || 
+              (reviewData.comment is string && reviewData.comment.size() <= 500)) &&
+             (!reviewData.keys().hasAny(['userDisplayName']) ||
+              (reviewData.userDisplayName is string && reviewData.userDisplayName.size() <= 50)) &&
+             (!reviewData.keys().hasAny(['authorPhotoUrl']) ||
+              (reviewData.authorPhotoUrl is string && reviewData.authorPhotoUrl.size() <= 2000)) &&
+             (!reviewData.keys().hasAny(['gameName']) ||
+              (reviewData.gameName is string && reviewData.gameName.size() <= 100)) &&
+             (!reviewData.keys().hasAny(['reason']) ||
+              (reviewData.reason is string && reviewData.reason.size() <= 200)) &&
+             // Ensure no malicious fields
+             !reviewData.keys().hasAny(['admin', 'isAdmin', 'role', 'permissions']);
+    }
+    
+    function isValidPlaytime(playtimeData) {
+      return playtimeData.keys().hasAll(['gameId', 'userId', 'hours', 'lastUpdated']) &&
+             playtimeData.gameId is string &&
+             isValidGameId(playtimeData.gameId) &&
+             playtimeData.userId is string &&
+             playtimeData.userId.size() > 0 &&
+             playtimeData.hours is number &&
+             playtimeData.hours >= 0 &&
+             playtimeData.lastUpdated is timestamp &&
+             (!playtimeData.keys().hasAny(['iconUrl']) || 
+              (playtimeData.iconUrl is string && playtimeData.iconUrl.size() > 0)) &&
+             (!playtimeData.keys().hasAny(['gameName']) || 
+              (playtimeData.gameName is string && playtimeData.gameName.size() > 0));
+    }
+
+    // Validate a community post payload
+    function isValidCommunityPost(postData) {
+      return postData.keys().hasAll(['title','body','userId','createdAt','updatedAt','status']) &&
+             postData.title is string && postData.title.size() > 0 && postData.title.size() <= 200 &&
+             postData.body is string && postData.body.size() > 0 && postData.body.size() <= 10000 &&
+             postData.userId is string && postData.userId.size() > 0 &&
+             postData.createdAt is timestamp &&
+             postData.updatedAt is timestamp &&
+             postData.status in ['published','draft','archived'] &&
+             (!postData.keys().hasAny(['tags']) || (
+               postData.tags is list && postData.tags.size() <= 10
+             )) &&
+             (!postData.keys().hasAny(['authorName']) || (postData.authorName is string && postData.authorName.size() <= 100)) &&
+             (!postData.keys().hasAny(['authorPhotoUrl']) || (postData.authorPhotoUrl is string && postData.authorPhotoUrl.size() <= 2000)) &&
+             (!postData.keys().hasAny(['likesCount']) || (postData.likesCount is int && postData.likesCount >= 0)) &&
+             (!postData.keys().hasAny(['commentsCount']) || (postData.commentsCount is int && postData.commentsCount >= 0)) &&
+             // Ensure no privilege-escalation fields
+             !postData.keys().hasAny(['admin','isAdmin','role','permissions']);
+    }
+    
+    function isAdmin(userId) {
+      return (request.auth != null && request.auth.token.admin == true) ||
+             userId in [
+               'admin-uid-1',
+               'admin-uid-2',
+               'replace-with-your-admin-uid'
+             ];
+    }
+    
+    // Developer accounts allowed to moderate/reply to reviews
+    function isDeveloper(userId) {
+      return userId in [
+        '6iZDTXC78aVwX22qrY43BOxDRLt1',
+        'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+        'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+        '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+        'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+      ];
+    }
+    
+    function isValidGameId(gameId) {
+      return gameId in [
+        'coderunner',
+        'neurocore',
+        'neurocore-byte-wars',
+        'bytesurge'
+      ];
+    }
+
+    // Validate a comment payload under community posts
+    function isValidComment(commentData) {
+      return commentData.keys().hasAll(['body','userId','createdAt']) &&
+             commentData.body is string && commentData.body.size() > 0 && commentData.body.size() <= 2000 &&
+             commentData.userId is string && commentData.userId.size() > 0 &&
+             commentData.createdAt is timestamp &&
+             (!commentData.keys().hasAny(['authorName']) || (commentData.authorName is string && commentData.authorName.size() <= 100)) &&
+             (!commentData.keys().hasAny(['authorPhotoUrl']) || (commentData.authorPhotoUrl is string && commentData.authorPhotoUrl.size() <= 2000)) &&
+             (!commentData.keys().hasAny(['likesCount']) || (commentData.likesCount is int && commentData.likesCount >= 0)) &&
+             // Prevent privilege-escalation fields
+             !commentData.keys().hasAny(['admin','isAdmin','role','permissions']);
+    }
+
+    // Allow only likesCount field to change, keeping it >= 0
+    function isLikesCountOnlyUpdate() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['likesCount']) &&
+             request.resource.data.likesCount is int &&
+             request.resource.data.likesCount >= 0;
+    }
+
+    // Allow only 'pinned' to change (admin-controlled)
+    function isPinOnlyUpdate() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['pinned']) &&
+             request.resource.data.pinned is bool;
+    }
+
+    // Validate a moderation report document
+    function isValidReport(reportData) {
+      return reportData.keys().hasAll(['postId','userId','reason','status','createdAt']) &&
+             reportData.postId is string && reportData.postId.size() > 0 &&
+             reportData.userId is string && reportData.userId.size() > 0 &&
+             reportData.reason is string && reportData.reason.size() > 0 && reportData.reason.size() <= 500 &&
+             // Allow both legacy and new status labels used by the UI
+             reportData.status in ['open','pending','closed','reviewing','resolved','rejected'] &&
+             reportData.createdAt is timestamp;
+    }
+
+    // Validate a game moderation report document
+    function isValidGameReport(reportData) {
+      return reportData.keys().hasAll(['gameId','userId','reason','status','createdAt']) &&
+             reportData.gameId is string && reportData.gameId.size() > 0 &&
+             reportData.userId is string && reportData.userId.size() > 0 &&
+             reportData.reason is string && reportData.reason.size() > 0 && reportData.reason.size() <= 500 &&
+             reportData.status in ['open','pending','closed','reviewing','resolved','rejected'] &&
+             reportData.createdAt is timestamp;
+    }
+
+    // Validate updates to game reports: only status/closedAt/expiresAt may change; base fields immutable
+    function isValidGameReportUpdate() {
+      let d = request.resource.data.diff(resource.data);
+      let keysOk = d.changedKeys().hasOnly(['status','closedAt','expiresAt']) &&
+                   d.addedKeys().hasOnly(['closedAt','expiresAt']) &&
+                   d.removedKeys().hasOnly(['closedAt','expiresAt']);
+
+      let baseUnchanged = request.resource.data.gameId == resource.data.gameId &&
+                          request.resource.data.userId == resource.data.userId &&
+                          request.resource.data.reason == resource.data.reason &&
+                          request.resource.data.createdAt == resource.data.createdAt;
+
+      let newStatus = request.resource.data.status;
+      let closedSemantics = newStatus == 'closed' &&
+                            (request.resource.data.expiresAt is timestamp) &&
+                            (request.resource.data.expiresAt > request.time) &&
+                            (!request.resource.data.keys().hasAny(['closedAt']) || request.resource.data.closedAt is timestamp);
+      let reopenSemantics = newStatus != 'closed' &&
+                            (!request.resource.data.keys().hasAny(['expiresAt']) || request.resource.data.expiresAt == null) &&
+                            (!request.resource.data.keys().hasAny(['closedAt']) || request.resource.data.closedAt == null);
+      return keysOk && baseUnchanged && (closedSemantics || reopenSemantics);
+    }
+
+    // Validate updates to moderation reports: only status/closedAt/expiresAt may change
+    function isValidReportUpdate() {
+      let d = request.resource.data.diff(resource.data);
+      let keysOk = d.changedKeys().hasOnly(['status','closedAt','expiresAt']) &&
+                   d.addedKeys().hasOnly(['closedAt','expiresAt']) &&
+                   d.removedKeys().hasOnly(['closedAt','expiresAt']);
+
+      // Immutable base fields must not change
+      let baseUnchanged = request.resource.data.postId == resource.data.postId &&
+                          request.resource.data.userId == resource.data.userId &&
+                          request.resource.data.reason == resource.data.reason &&
+                          request.resource.data.createdAt == resource.data.createdAt;
+
+      let newStatus = request.resource.data.status;
+
+      // If closed: requires a future expiresAt; closedAt may be added and must be a timestamp if present
+      let closedSemantics = newStatus == 'closed' &&
+                            (request.resource.data.expiresAt is timestamp) &&
+                            (request.resource.data.expiresAt > request.time) &&
+                            (!request.resource.data.keys().hasAny(['closedAt']) || request.resource.data.closedAt is timestamp);
+
+      // If not closed: expiresAt/closedAt must be removed or null (allow clearing when reopening)
+      let reopenSemantics = newStatus != 'closed' &&
+                            (!request.resource.data.keys().hasAny(['expiresAt']) || request.resource.data.expiresAt == null) &&
+                            (!request.resource.data.keys().hasAny(['closedAt']) || request.resource.data.closedAt == null);
+
+      return keysOk && baseUnchanged && (closedSemantics || reopenSemantics);
+    }
+
+    // Moderator via custom claim
+    function isModerator(userId) {
+      return request.auth != null && request.auth.token.moderator == true;
+    }
+
+    // ================================
+    // Verification Helpers and Validators
+    // ================================
+    function isVerified(userId) {
+      return exists(/databases/$(database)/documents/verified_users/$(userId)) &&
+             get(/databases/$(database)/documents/verified_users/$(userId)).data.verified == true;
+    }
+
+    function isValidVerificationRequest(data) {
+      return data.keys().hasAll(['uid','displayName','status','createdAt']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100 &&
+             data.status in ['pending','draft','approved','denied'] &&
+             data.createdAt is timestamp &&
+             (!data.keys().hasAny(['links']) || (data.links is list && data.links.size() <= 5)) &&
+             (!data.keys().hasAny(['bio']) || (data.bio is string && data.bio.size() <= 1000)) &&
+             // Admin-only fields must not be set by users
+             !data.keys().hasAny(['decidedAt','reviewerId','notes']);
+    }
+
+    function isValidVerificationRequestUserUpdate() {
+      // Requester can change displayName, links, bio, and may move draft->pending
+      let d = request.resource.data.diff(resource.data);
+      // Allow changing these keys and not introducing admin-only fields
+      let allowedChanges = d.changedKeys().hasOnly(['displayName','links','bio','status']) &&
+                           d.addedKeys().hasOnly(['links','bio']) &&
+                           d.removedKeys().hasOnly(['links','bio']);
+      // Immutable fields
+      let baseUnchanged = request.resource.data.uid == resource.data.uid &&
+                          request.resource.data.createdAt == resource.data.createdAt;
+      // Status can be set to 'pending' from 'draft' or stay the same
+      let statusOk = (request.resource.data.status == resource.data.status) ||
+                     (resource.data.status in ['draft','pending'] && request.resource.data.status in ['draft','pending']);
+      // No admin-only fields introduced
+      let noAdminFields = !request.resource.data.keys().hasAny(['decidedAt','reviewerId','notes']);
+      return allowedChanges && baseUnchanged && statusOk && noAdminFields;
+    }
+
+    function isValidVerificationAdminUpdate() {
+      // Admin/dev can modify status and set decidedAt/reviewerId/notes; base fields immutable
+      let d = request.resource.data.diff(resource.data);
+      let keysOk = d.changedKeys().hasOnly(['status','decidedAt','reviewerId','notes']) &&
+                   d.addedKeys().hasOnly(['decidedAt','reviewerId','notes']) &&
+                   d.removedKeys().hasOnly(['decidedAt','reviewerId','notes']);
+      let baseUnchanged = request.resource.data.uid == resource.data.uid &&
+                          request.resource.data.displayName == resource.data.displayName &&
+                          request.resource.data.createdAt == resource.data.createdAt &&
+                          request.resource.data.links == resource.data.links &&
+                          request.resource.data.bio == resource.data.bio;
+      let statusOk = request.resource.data.status in ['pending','approved','denied'];
+      // decidedAt should be timestamp if present
+      let decidedOk = !request.resource.data.keys().hasAny(['decidedAt']) || request.resource.data.decidedAt is timestamp;
+      // reviewerId is string if present
+      let reviewerOk = !request.resource.data.keys().hasAny(['reviewerId']) || (request.resource.data.reviewerId is string && request.resource.data.reviewerId.size() > 0);
+      // notes optional and limited
+      let notesOk = !request.resource.data.keys().hasAny(['notes']) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 1000);
+      return keysOk && baseUnchanged && statusOk && decidedOk && reviewerOk && notesOk;
+    }
+
+    function isValidVerifiedUser(data) {
+      return data.keys().hasAll(['verified','verifiedAt']) &&
+             data.verified == true &&
+             data.verifiedAt is timestamp &&
+             (!data.keys().hasAny(['badgeType']) || (data.badgeType in ['creator','developer','artist','community'])) &&
+             (!data.keys().hasAny(['reviewerId']) || (data.reviewerId is string && data.reviewerId.size() > 0));
+    }
+
+    function isValidCommunityGame(data) {
+      return data.keys().hasAll(['title','slug','ownerId','createdAt','updatedAt','visibility','status','description']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 120 &&
+             data.slug is string && data.slug.size() > 0 && data.slug.size() <= 140 &&
+             data.ownerId is string && data.ownerId.size() > 0 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp &&
+             data.visibility in ['public','unlisted','private'] &&
+             data.status in ['draft','published','archived'] &&
+             data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
+             (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
+             (!data.keys().hasAny(['links']) || (data.links is list && data.links.size() <= 10));
+    }
+
+    function isValidCommunityGameUpdate() {
+      // Owner can update selected fields only; ownerId and slug immutable
+      let d = request.resource.data.diff(resource.data);
+      let allowed = d.changedKeys().hasOnly(['title','updatedAt','visibility','status','description','coverImageUrl','links']) &&
+                    d.addedKeys().hasOnly(['coverImageUrl','links']) &&
+                    d.removedKeys().hasOnly(['coverImageUrl','links']);
+      let immutableOk = request.resource.data.ownerId == resource.data.ownerId &&
+                        request.resource.data.slug == resource.data.slug &&
+                        request.resource.data.createdAt == resource.data.createdAt;
+      // Validate new full doc against core constraints
+      return allowed && immutableOk &&
+             request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120 &&
+             request.resource.data.updatedAt is timestamp &&
+             request.resource.data.visibility in ['public','unlisted','private'] &&
+             request.resource.data.status in ['draft','published','archived'] &&
+             request.resource.data.description is string && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 5000 &&
+             (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
+             (!request.resource.data.keys().hasAny(['links']) || (request.resource.data.links is list && request.resource.data.links.size() <= 10));
+    }
+
+    function isValidGameSubmission(data) {
+      return data.keys().hasAll(['title','ownerId','createdAt','updatedAt','description','status']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 120 &&
+             data.ownerId is string && data.ownerId.size() > 0 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp &&
+             data.status in ['draft','published'] &&
+             data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
+             (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
+        (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string))) &&
+        (!data.keys().hasAny(['playUrl']) || (data.playUrl is string && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://'))) &&
+        (!data.keys().hasAny(['badge']) || (data.badge in ['new','updated','beta']));
+    }
+
+    function isValidGameSubmissionUpdate() {
+      let d = request.resource.data.diff(resource.data);
+      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','coverImageUrl','tags','status','playUrl','badge']) &&
+          // Allow admins to add a missing 'status' field on legacy docs
+          d.addedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','status']) &&
+          d.removedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge']);
+      let immutableOk = request.resource.data.ownerId == resource.data.ownerId &&
+                        request.resource.data.createdAt == resource.data.createdAt;
+      return allowed && immutableOk &&
+             request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120 &&
+             request.resource.data.updatedAt is timestamp &&
+             // Permit unchanged/missing status (legacy docs) while validating if provided
+             (!request.resource.data.keys().hasAny(['status']) || request.resource.data.status in ['draft','published']) &&
+             request.resource.data.description is string && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 5000 &&
+       (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
+     (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 3 && request.resource.data.tags[0] is string)) &&
+     (!request.resource.data.keys().hasAny(['playUrl']) || (request.resource.data.playUrl is string && request.resource.data.playUrl.size() <= 2000 && request.resource.data.playUrl.matches('^https?://'))) &&
+     (!request.resource.data.keys().hasAny(['badge']) || (request.resource.data.badge in ['new','updated','beta']));
+    }
+  
+    // Lighter validator used on create for drafts to prevent false negatives with serverTimestamp
+    function isValidGameSubmissionDraftCreate(data) {
+      return data.keys().hasAll(['title','ownerId','description','status','playUrl']) &&
+         data.title is string && data.title.size() > 0 && data.title.size() <= 120 &&
+         data.ownerId is string && data.ownerId.size() > 0 &&
+         data.status == 'draft' &&
+         data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
+         data.playUrl is string && data.playUrl.size() > 0 && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://') &&
+         (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
+         (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string)));
+    }
+  
+    // Validate system status updates
+    function isValidSystemStatus(data) {
+      return data.keys().hasAll(['status','message','updatedAt','updatedBy']) &&
+             data.status in ['operational','degraded','down'] &&
+             data.message is string && data.message.size() > 0 && data.message.size() <= 100 &&
+             data.updatedAt is string && // ISO timestamp string
+             data.updatedBy is string && data.updatedBy.size() > 0 &&
+             (!data.keys().hasAny(['description']) || (data.description is string && data.description.size() <= 1000));
+    }
+
+    // Validate news article creation
+    function isValidNewsArticle(data) {
+      return data.keys().hasAll(['title','summary','content','authorUid','createdAt','updatedAt','draft']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 140 &&
+             data.summary is string && data.summary.size() > 0 && data.summary.size() <= 400 &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 50000 &&
+             data.authorUid is string && data.authorUid.size() > 0 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp &&
+             data.draft is bool &&
+             (!data.keys().hasAny(['categories']) || (data.categories is list && data.categories.size() <= 10)) &&
+             (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 25)) &&
+             (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
+             (!data.keys().hasAny(['embed']) || (data.embed is string && data.embed.size() <= 2000)) &&
+             (!data.keys().hasAny(['publishedAt']) || data.publishedAt is timestamp || data.publishedAt == null);
+    }
+
+    // Validate news article updates
+    function isValidNewsArticleUpdate() {
+      let d = request.resource.data.diff(resource.data);
+      let allowed = d.changedKeys().hasOnly(['title','summary','content','categories','tags','coverImageUrl','embed','draft','publishedAt','updatedAt']) &&
+                    d.addedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt']) &&
+                    d.removedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt']);
+      let immutableOk = request.resource.data.authorUid == resource.data.authorUid &&
+                        request.resource.data.createdAt == resource.data.createdAt;
+      return allowed && immutableOk &&
+             request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 140 &&
+             request.resource.data.summary is string && request.resource.data.summary.size() > 0 && request.resource.data.summary.size() <= 400 &&
+             request.resource.data.content is string && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 50000 &&
+             request.resource.data.updatedAt is timestamp &&
+             request.resource.data.draft is bool &&
+             (!request.resource.data.keys().hasAny(['categories']) || (request.resource.data.categories is list && request.resource.data.categories.size() <= 10)) &&
+             (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 25)) &&
+             (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
+             (!request.resource.data.keys().hasAny(['embed']) || (request.resource.data.embed is string && request.resource.data.embed.size() <= 2000)) &&
+             (!request.resource.data.keys().hasAny(['publishedAt']) || request.resource.data.publishedAt is timestamp || request.resource.data.publishedAt == null);
+    }
+  }
+}
