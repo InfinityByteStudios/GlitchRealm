@@ -3243,6 +3243,9 @@
             const tags = Array.isArray(doc.tags) ? doc.tags.slice(0,4) : [];
             const badge = (typeof doc.badge === 'string' && ['new','updated','beta'].includes(doc.badge)) ? doc.badge : null;
             const badgeLabel = badge === 'new' ? 'NEW' : (badge === 'updated' ? 'UPDATED' : (badge === 'beta' ? 'BETA' : ''));
+            
+            // Get owner username - prioritize the stored username, fallback to "Community Creator"
+            const ownerUsername = escapeHtml(doc.ownerUsername || 'Community Creator');
 
             const card = document.createElement('div');
             card.className = 'game-card is-submission';
@@ -3264,7 +3267,7 @@
                 <div class="card-content">
                     <h3 class="card-title">${title}</h3>
                     <p class="card-description">${desc || 'No description provided.'}</p>
-                    <p class="card-developer">Made by <a href="about.html"><strong>Community</strong></a>
+                    <p class="card-developer">Made by <strong>${ownerUsername}</strong>
                         <button class="review-btn" onclick="openReviewModal('${id}','${title.replace(/'/g, "&#39;")}')">⭐ Review</button>
                         <span class="rating-display" data-game-id="${id}"><span class="no-rating">N/A (0)</span></span>
                     </p>

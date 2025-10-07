@@ -837,8 +837,27 @@
                 <p id="verif-status" class="form-help" style="margin-top:-6px; opacity:0.9;">Not verified. Submit a request below.</p>
                 <form id="verif-form" class="neural-form">
                     <div class="form-group">
+                        <label class="form-label" for="verif-username">Username <span style="color: var(--primary-cyan);">*</span></label>
+                        <input type="text" id="verif-username" class="form-control" maxlength="50" placeholder="Your username (shown as 'Made by [username]')" required />
+                        <div class="form-help">This username will appear when you publish games or articles (e.g., "Made by YourUsername")</div>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label" for="verif-name">Display Name</label>
                         <input type="text" id="verif-name" class="form-control" maxlength="100" placeholder="Your creator or studio name" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Verification Type <span style="color: var(--primary-cyan);">*</span></label>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="verif-type-games" value="games" style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>Games - Ability to submit and publish games</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="verif-type-news" value="news" style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>News - Ability to write and publish articles</span>
+                            </label>
+                        </div>
+                        <div class="form-help">Select at least one verification type</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="verif-bio">Bio</label>
@@ -1433,9 +1452,12 @@ Thank you for being an early tester! 🚀
         async function setupVerificationUI(user){
             const statusEl = document.getElementById('verif-status');
             const form = document.getElementById('verif-form');
+            const usernameEl = document.getElementById('verif-username');
             const nameEl = document.getElementById('verif-name');
             const bioEl = document.getElementById('verif-bio');
             const linkEls = [1,2,3,4,5].map(i => document.getElementById('verif-link-'+i));
+            const typeGamesEl = document.getElementById('verif-type-games');
+            const typeNewsEl = document.getElementById('verif-type-news');
             const btn = document.getElementById('verif-submit');
             const db = window.firebaseFirestore;
             const reqRef = window.firestoreDoc(db, 'verification_requests', user.uid);
@@ -1450,10 +1472,14 @@ Thank you for being an early tester! 🚀
             }
             if (existing) {
                 const d = reqSnap.data();
+                usernameEl.value = d.username || '';
                 nameEl.value = d.displayName || user.displayName || '';
                 bioEl.value = d.bio || '';
                 const links = Array.isArray(d.links) ? d.links : [];
                 links.forEach((v,i) => { if (linkEls[i]) linkEls[i].value = v; });
+                const types = Array.isArray(d.verificationTypes) ? d.verificationTypes : [];
+                if (types.includes('games')) typeGamesEl.checked = true;
+                if (types.includes('news')) typeNewsEl.checked = true;
                 statusEl.textContent = 'Status: ' + (d.status || 'pending');
             } else {
                 statusEl.textContent = 'Not verified. Submit a request below.';
@@ -1461,10 +1487,18 @@ Thank you for being an early tester! 🚀
             }
             btn.addEventListener('click', async () => {
                 try {
+                    const username = (usernameEl.value||'').trim().slice(0,50);
+                    if (!username) { alert('Username is required.'); return; }
                     const displayName = (nameEl.value||'').trim().slice(0,100);
-                    if (!displayName) { alert('Display name is required.'); return; }
                     const bio = (bioEl.value||'').trim().slice(0,1000);
                     const links = linkEls.map(i => (i?.value||'').trim()).filter(Boolean).slice(0,5);
+                    const verificationTypes = [];
+                    if (typeGamesEl.checked) verificationTypes.push('games');
+                    if (typeNewsEl.checked) verificationTypes.push('news');
+                    if (verificationTypes.length === 0) {
+                        alert('Please select at least one verification type (Games or News).');
+                        return;
+                    }
                     // If request already decided, block user-side to avoid rule failures
                     if (existing && (existingStatus === 'approved' || existingStatus === 'denied')) {
                         showAuthMessage('Your verification request has already been decided (' + existingStatus + '). Please contact support for changes.', 'error');
@@ -1475,9 +1509,11 @@ Thank you for being an early tester! 🚀
                         // Create new request (must include createdAt & uid)
                         const createPayload = {
                             uid: user.uid,
+                            username,
                             displayName,
                             bio,
                             links,
+                            verificationTypes,
                             status: 'pending',
                             createdAt: new Date()
                         };
@@ -1488,9 +1524,11 @@ Thank you for being an early tester! 🚀
                     } else {
                         // Update allowed user fields only (no uid/createdAt)
                         const updatePayload = {
+                            username,
                             displayName,
                             bio,
                             links,
+                            verificationTypes,
                             status: 'pending'
                         };
                         await window.firestoreSetDoc(reqRef, updatePayload, { merge: true });

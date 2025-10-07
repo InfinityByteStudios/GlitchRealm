@@ -210,6 +210,7 @@ service cloud.firestore {
       // Update:
       // - Owner may update content but cannot change status (must remain the same)
       // - Admin/Developer can update including publishing/unpublishing
+      // - Admin/Developer can add ownerUsername for migration purposes (username-only update)
       allow update: if request.auth != null && (
                       // 0) Safe owner-claim for legacy/unowned docs: only ownerId (+ optional updatedAt) may be set
                       (
@@ -226,6 +227,13 @@ service cloud.firestore {
                       ) || (
                         (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) &&
                         isValidGameSubmissionUpdate()
+                      ) || (
+                        // Migration: Admin/Developer can add ownerUsername field only
+                        (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) &&
+                        request.resource.data.diff(resource.data).changedKeys().hasOnly(['ownerUsername']) &&
+                        request.resource.data.ownerUsername is string &&
+                        request.resource.data.ownerUsername.size() > 0 &&
+                        request.resource.data.ownerUsername.size() <= 100
                       )
                     );
       // Delete: owner or admin/dev
@@ -528,17 +536,19 @@ service cloud.firestore {
              data.createdAt is timestamp &&
              (!data.keys().hasAny(['links']) || (data.links is list && data.links.size() <= 5)) &&
              (!data.keys().hasAny(['bio']) || (data.bio is string && data.bio.size() <= 1000)) &&
+             (!data.keys().hasAny(['verificationTypes']) || (data.verificationTypes is list && data.verificationTypes.size() >= 1 && data.verificationTypes.size() <= 2)) &&
+             (!data.keys().hasAny(['username']) || (data.username is string && data.username.size() > 0 && data.username.size() <= 50)) &&
              // Admin-only fields must not be set by users
              !data.keys().hasAny(['decidedAt','reviewerId','notes']);
     }
 
     function isValidVerificationRequestUserUpdate() {
-      // Requester can change displayName, links, bio, and may move draft->pending
+      // Requester can change displayName, links, bio, verificationTypes, username, and may move draft->pending
       let d = request.resource.data.diff(resource.data);
       // Allow changing these keys and not introducing admin-only fields
-      let allowedChanges = d.changedKeys().hasOnly(['displayName','links','bio','status']) &&
-                           d.addedKeys().hasOnly(['links','bio']) &&
-                           d.removedKeys().hasOnly(['links','bio']);
+      let allowedChanges = d.changedKeys().hasOnly(['displayName','links','bio','status','verificationTypes','username']) &&
+                           d.addedKeys().hasOnly(['links','bio','verificationTypes','username']) &&
+                           d.removedKeys().hasOnly(['links','bio','verificationTypes','username']);
       // Immutable fields
       let baseUnchanged = request.resource.data.uid == resource.data.uid &&
                           request.resource.data.createdAt == resource.data.createdAt;
@@ -560,7 +570,9 @@ service cloud.firestore {
                           request.resource.data.displayName == resource.data.displayName &&
                           request.resource.data.createdAt == resource.data.createdAt &&
                           request.resource.data.links == resource.data.links &&
-                          request.resource.data.bio == resource.data.bio;
+                          request.resource.data.bio == resource.data.bio &&
+                          request.resource.data.verificationTypes == resource.data.verificationTypes &&
+                          request.resource.data.username == resource.data.username;
       let statusOk = request.resource.data.status in ['pending','approved','denied'];
       // decidedAt should be timestamp if present
       let decidedOk = !request.resource.data.keys().hasAny(['decidedAt']) || request.resource.data.decidedAt is timestamp;
@@ -576,7 +588,9 @@ service cloud.firestore {
              data.verified == true &&
              data.verifiedAt is timestamp &&
              (!data.keys().hasAny(['badgeType']) || (data.badgeType in ['creator','developer','artist','community'])) &&
-             (!data.keys().hasAny(['reviewerId']) || (data.reviewerId is string && data.reviewerId.size() > 0));
+             (!data.keys().hasAny(['reviewerId']) || (data.reviewerId is string && data.reviewerId.size() > 0)) &&
+             (!data.keys().hasAny(['username']) || (data.username is string && data.username.size() > 0 && data.username.size() <= 50)) &&
+             (!data.keys().hasAny(['verificationTypes']) || (data.verificationTypes is list && data.verificationTypes.size() >= 1 && data.verificationTypes.size() <= 2));
     }
 
     function isValidCommunityGame(data) {
@@ -624,15 +638,16 @@ service cloud.firestore {
              (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
         (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string))) &&
         (!data.keys().hasAny(['playUrl']) || (data.playUrl is string && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://'))) &&
-        (!data.keys().hasAny(['badge']) || (data.badge in ['new','updated','beta']));
+        (!data.keys().hasAny(['badge']) || (data.badge in ['new','updated','beta'])) &&
+        (!data.keys().hasAny(['ownerUsername']) || (data.ownerUsername is string && data.ownerUsername.size() <= 100));
     }
 
     function isValidGameSubmissionUpdate() {
       let d = request.resource.data.diff(resource.data);
-      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','coverImageUrl','tags','status','playUrl','badge']) &&
+      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','coverImageUrl','tags','status','playUrl','badge','ownerUsername']) &&
           // Allow admins to add a missing 'status' field on legacy docs
-          d.addedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','status']) &&
-          d.removedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge']);
+          d.addedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','status','ownerUsername']) &&
+          d.removedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','ownerUsername']);
       let immutableOk = request.resource.data.ownerId == resource.data.ownerId &&
                         request.resource.data.createdAt == resource.data.createdAt;
       return allowed && immutableOk &&
@@ -644,7 +659,8 @@ service cloud.firestore {
        (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
      (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 3 && request.resource.data.tags[0] is string)) &&
      (!request.resource.data.keys().hasAny(['playUrl']) || (request.resource.data.playUrl is string && request.resource.data.playUrl.size() <= 2000 && request.resource.data.playUrl.matches('^https?://'))) &&
-     (!request.resource.data.keys().hasAny(['badge']) || (request.resource.data.badge in ['new','updated','beta']));
+     (!request.resource.data.keys().hasAny(['badge']) || (request.resource.data.badge in ['new','updated','beta'])) &&
+     (!request.resource.data.keys().hasAny(['ownerUsername']) || (request.resource.data.ownerUsername is string && request.resource.data.ownerUsername.size() <= 100));
     }
   
     // Lighter validator used on create for drafts to prevent false negatives with serverTimestamp
@@ -656,7 +672,8 @@ service cloud.firestore {
          data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
          data.playUrl is string && data.playUrl.size() > 0 && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://') &&
          (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
-         (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string)));
+         (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string))) &&
+         (!data.keys().hasAny(['ownerUsername']) || (data.ownerUsername is string && data.ownerUsername.size() <= 100));
     }
   
     // Validate system status updates
@@ -683,15 +700,16 @@ service cloud.firestore {
              (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 25)) &&
              (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
              (!data.keys().hasAny(['embed']) || (data.embed is string && data.embed.size() <= 2000)) &&
-             (!data.keys().hasAny(['publishedAt']) || data.publishedAt is timestamp || data.publishedAt == null);
+             (!data.keys().hasAny(['publishedAt']) || data.publishedAt is timestamp || data.publishedAt == null) &&
+             (!data.keys().hasAny(['authorUsername']) || (data.authorUsername is string && data.authorUsername.size() <= 100));
     }
 
     // Validate news article updates
     function isValidNewsArticleUpdate() {
       let d = request.resource.data.diff(resource.data);
-      let allowed = d.changedKeys().hasOnly(['title','summary','content','categories','tags','coverImageUrl','embed','draft','publishedAt','updatedAt']) &&
-                    d.addedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt']) &&
-                    d.removedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt']);
+      let allowed = d.changedKeys().hasOnly(['title','summary','content','categories','tags','coverImageUrl','embed','draft','publishedAt','updatedAt','authorUsername']) &&
+                    d.addedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt','authorUsername']) &&
+                    d.removedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt','authorUsername']);
       let immutableOk = request.resource.data.authorUid == resource.data.authorUid &&
                         request.resource.data.createdAt == resource.data.createdAt;
       return allowed && immutableOk &&
@@ -704,7 +722,8 @@ service cloud.firestore {
              (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 25)) &&
              (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
              (!request.resource.data.keys().hasAny(['embed']) || (request.resource.data.embed is string && request.resource.data.embed.size() <= 2000)) &&
-             (!request.resource.data.keys().hasAny(['publishedAt']) || request.resource.data.publishedAt is timestamp || request.resource.data.publishedAt == null);
+             (!request.resource.data.keys().hasAny(['publishedAt']) || request.resource.data.publishedAt is timestamp || request.resource.data.publishedAt == null) &&
+             (!request.resource.data.keys().hasAny(['authorUsername']) || (request.resource.data.authorUsername is string && request.resource.data.authorUsername.size() <= 100));
     }
   }
 }

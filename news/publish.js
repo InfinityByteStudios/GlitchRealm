@@ -1,9 +1,12 @@
 import { SUPABASE_CONFIG } from '../supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/+esm';
-import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getVerifiedUsername } from '../verified-user-helper.js';
 
 const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 const db = getFirestore(window.firebaseApp);
+const auth = getAuth(window.firebaseApp);
 
 const EDITOR_UIDS = [
   '6iZDTXC78aVwX22qrY43BOxDRLt1',
@@ -69,7 +72,6 @@ async function uploadCoverIfAny(){
   if(!file) return null;
   
   // Double-check: only devs can upload images
-  const auth = firebase.auth();
   const user = auth.currentUser;
   if (!user || !isDevUID(user.uid)) {
     throw new Error('Image uploads are restricted to developers');
@@ -99,7 +101,6 @@ async function publishArticle({ draft }){
     successMsg.style.display='none';
     errorMsg.style.display='none';
 
-    const auth = firebase.auth();
     const user = auth.currentUser;
     requireEditor(user);
 
@@ -108,6 +109,9 @@ async function publishArticle({ draft }){
     if(!contentEl.value.trim()) throw new Error('Content required');
 
     const coverUrl = await uploadCoverIfAny();
+    
+    // Get the verified username for the author
+    const authorUsername = await getVerifiedUsername(user.uid);
 
     const payload = {
       title: titleEl.value.trim(),
@@ -121,7 +125,8 @@ async function publishArticle({ draft }){
       publishedAt: draft ? null : serverTimestamp(),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      authorUid: user.uid
+      authorUid: user.uid,
+      authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous'
     };
 
     const docRef = await addDoc(collection(db,'news_articles'), payload);
@@ -143,7 +148,7 @@ async function publishArticle({ draft }){
 form?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
 saveDraftBtn?.addEventListener('click', () => publishArticle({ draft:true }));
 
-firebase.auth().onAuthStateChanged(user => {
+onAuthStateChanged(auth, (user) => {
   if(user && EDITOR_UIDS.includes(user.uid)){
     // Update image upload access for authorized users
     updateImageUploadAccess(user);
