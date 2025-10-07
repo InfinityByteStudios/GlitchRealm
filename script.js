@@ -253,14 +253,14 @@ function showPasswordChangeSuccessNotification() {
     }, 100);
     
     // Add pulse animation for icon
-    const style = document.createElement('style');
-    style.textContent = `
+    const pulseStyle = document.createElement('style');
+    pulseStyle.textContent = `
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
     `;
-    document.head.appendChild(style);
+    document.head.appendChild(pulseStyle);
 }
 
 // Error message mapping for Firebase auth errors
@@ -2986,8 +2986,8 @@ window.addEventListener('message', (event) => {
 });
 
 // CSS Animations added via JavaScript
-const style = document.createElement('style');
-style.textContent = `
+const animationStyle = document.createElement('style');
+animationStyle.textContent = `
     @keyframes glitchOverlay {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.8; }
@@ -3031,7 +3031,7 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(animationStyle);
 
 // Global Settings
 const GR_SETTINGS = {
