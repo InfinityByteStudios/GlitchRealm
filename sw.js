@@ -1,24 +1,43 @@
 /* GlitchRealm Service Worker */
-const CACHE_PREFIX = 'gr-v3';
+const CACHE_PREFIX = 'gr-v4'; // Incremented to bust old caches
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 
 const PRECACHE_URLS = [
-  '/',
-  '/index.html',
-  '/games.html',
-  '/community.html',
-  '/about.html',
-  '/contact.html',
-  '/user-portal.html',
   '/offline.html',
   '/styles.css',
-  '/script.js',
   '/assets/Favicon and Icons/favicon.ico'
 ];
 
 // External resources we want to cache-fast-path (opaque responses ok)
 const BMC_WIDGET_URL = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js';
+
+// Files that should NEVER be cached (always fetch fresh for auth state)
+const NEVER_CACHE = [
+  '/news/',
+  '/news/index.html',
+  '/news/publish.html',
+  '/news/news-article.html',
+  '/index.html',
+  '/games.html',
+  '/user-portal.html',
+  '/firebase-core.js',
+  '/news/firebase-core.js',
+  '/script.js',
+  '/news/script.js',
+  'firebase',
+  'firebaseapp.com',
+  'firestore.googleapis.com'
+];
+
+function shouldNeverCache(url) {
+  const urlStr = url.toString();
+  return NEVER_CACHE.some(pattern => 
+    urlStr.includes(pattern) || 
+    urlStr.endsWith('.html') ||
+    urlStr.includes('firebase')
+  );
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -68,6 +87,14 @@ self.addEventListener('fetch', (event) => {
 
   // Bypass non-GET requests
   if (request.method !== 'GET') return;
+
+  // NEVER cache auth-sensitive or HTML files
+  if (shouldNeverCache(url)) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/offline.html'))
+    );
+    return;
+  }
 
   // Cache Google Fonts aggressively (cross-origin allowed)
   if (url.origin === 'https://fonts.gstatic.com') {

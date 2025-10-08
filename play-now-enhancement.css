@@ -1,0 +1,301 @@
+/**
+ * GlitchRealm - Enhanced Play Now Button Micro-interactions
+ * 
+ * Features:
+ * - Pulsing glow animation to draw attention
+ * - Particle effects on hover
+ * - Enhanced gradient with better contrast
+ * - Smooth scale & shadow transitions
+ * - Ripple effect on click
+ * - Energized border animation
+ */
+
+/* ==================== ENHANCED PLAY NOW BUTTON ==================== */
+
+/* Base enhancement - Better contrast and prominence */
+.hero-buttons .btn-primary.glitch-btn {
+    background: linear-gradient(135deg, 
+        #16e1ff 0%, 
+        #ff4d6d 50%, 
+        #00ffc3 100%
+    );
+    background-size: 200% 200%;
+    border: 2px solid rgba(22, 225, 255, 0.8);
+    color: #0a0e27;
+    font-weight: 700;
+    letter-spacing: 1px;
+    box-shadow: 
+        0 0 20px rgba(22, 225, 255, 0.4),
+        0 0 40px rgba(255, 77, 109, 0.2),
+        inset 0 0 20px rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 1;
+    animation: pulseGlow 2s ease-in-out infinite, gradientShift 4s ease infinite;
+}
+
+/* Animated gradient background */
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Pulsing glow to draw attention */
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(22, 225, 255, 0.4),
+            0 0 40px rgba(255, 77, 109, 0.2),
+            inset 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 0 30px rgba(22, 225, 255, 0.6),
+            0 0 60px rgba(255, 77, 109, 0.4),
+            0 0 80px rgba(0, 255, 195, 0.2),
+            inset 0 0 30px rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* Energized border animation */
+.hero-buttons .btn-primary.glitch-btn::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+        #16e1ff, 
+        #ff4d6d, 
+        #00ffc3, 
+        #16e1ff
+    );
+    background-size: 400% 400%;
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    animation: energyBorder 3s linear infinite;
+    transition: opacity 0.3s ease;
+}
+
+@keyframes energyBorder {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 400% 50%;
+    }
+}
+
+.hero-buttons .btn-primary.glitch-btn:hover::before {
+    opacity: 0.7;
+}
+
+/* Hover state - Enhanced with scale and glow */
+.hero-buttons .btn-primary.glitch-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 
+        0 0 40px rgba(22, 225, 255, 0.8),
+        0 0 80px rgba(255, 77, 109, 0.5),
+        0 0 120px rgba(0, 255, 195, 0.3),
+        0 8px 25px rgba(0, 0, 0, 0.4),
+        inset 0 0 40px rgba(255, 255, 255, 0.3);
+    border-color: rgba(0, 255, 195, 1);
+    animation: pulseGlowHover 1s ease-in-out infinite, gradientShift 2s ease infinite, glitchIntense 0.5s ease-in-out;
+}
+
+/* Intense pulsing on hover */
+@keyframes pulseGlowHover {
+    0%, 100% {
+        box-shadow: 
+            0 0 40px rgba(22, 225, 255, 0.8),
+            0 0 80px rgba(255, 77, 109, 0.5),
+            0 0 120px rgba(0, 255, 195, 0.3),
+            0 8px 25px rgba(0, 0, 0, 0.4),
+            inset 0 0 40px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        box-shadow: 
+            0 0 50px rgba(22, 225, 255, 1),
+            0 0 100px rgba(255, 77, 109, 0.7),
+            0 0 150px rgba(0, 255, 195, 0.5),
+            0 10px 30px rgba(0, 0, 0, 0.5),
+            inset 0 0 50px rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Enhanced glitch effect on hover */
+@keyframes glitchIntense {
+    0%, 100% { 
+        transform: translateY(-4px) scale(1.05); 
+    }
+    10% { 
+        transform: translateY(-4px) scale(1.05) translateX(-3px) skewX(-2deg); 
+    }
+    20% { 
+        transform: translateY(-4px) scale(1.05) translateX(3px) skewX(2deg); 
+    }
+    30% { 
+        transform: translateY(-4px) scale(1.05) translateX(-2px); 
+    }
+    40% { 
+        transform: translateY(-4px) scale(1.05); 
+    }
+}
+
+/* Particle effects container */
+.hero-buttons .btn-primary.glitch-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, 
+        rgba(22, 225, 255, 0.3) 0%, 
+        rgba(255, 77, 109, 0.2) 30%,
+        transparent 70%
+    );
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.6s ease-out;
+    pointer-events: none;
+}
+
+.hero-buttons .btn-primary.glitch-btn:hover::after {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 1;
+}
+
+/* Active/Click state - Ripple effect */
+.hero-buttons .btn-primary.glitch-btn:active {
+    transform: translateY(-2px) scale(1.02);
+    transition: transform 0.1s ease;
+}
+
+/* Text glow on hover */
+.hero-buttons .btn-primary.glitch-btn:hover {
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(22, 225, 255, 0.6),
+        0 0 30px rgba(0, 255, 195, 0.4);
+}
+
+/* Focus state for keyboard navigation */
+.hero-buttons .btn-primary.glitch-btn:focus-visible {
+    outline: 3px solid rgba(0, 255, 195, 0.8);
+    outline-offset: 4px;
+    animation: pulseGlowHover 1s ease-in-out infinite, gradientShift 2s ease infinite;
+}
+
+/* ==================== RIPPLE EFFECT ON CLICK ==================== */
+
+/* Ripple container created by JavaScript */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+        rgba(255, 255, 255, 0.8) 0%, 
+        rgba(22, 225, 255, 0.6) 30%,
+        rgba(0, 255, 195, 0.3) 60%,
+        transparent 100%
+    );
+    transform: scale(0);
+    animation: rippleEffect 0.8s ease-out;
+    pointer-events: none;
+}
+
+@keyframes rippleEffect {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ==================== SHINE EFFECT ==================== */
+
+.hero-buttons .btn-primary.glitch-btn .shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%
+    );
+    transform: skewX(-20deg);
+    animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+    }
+    20% {
+        left: 200%;
+    }
+    100% {
+        left: 200%;
+    }
+}
+
+/* ==================== RESPONSIVE ADJUSTMENTS ==================== */
+
+/* Reduce animations on mobile for performance */
+@media (max-width: 768px) {
+    .hero-buttons .btn-primary.glitch-btn {
+        animation: pulseGlow 3s ease-in-out infinite;
+    }
+    
+    .hero-buttons .btn-primary.glitch-btn:hover {
+        transform: translateY(-2px) scale(1.02);
+    }
+    
+    .hero-buttons .btn-primary.glitch-btn::before {
+        animation: none;
+    }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .hero-buttons .btn-primary.glitch-btn,
+    .hero-buttons .btn-primary.glitch-btn::before,
+    .hero-buttons .btn-primary.glitch-btn::after,
+    .shine,
+    .ripple {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .hero-buttons .btn-primary.glitch-btn:hover {
+        transform: none;
+    }
+}
+
+/* ==================== ACCESSIBILITY ENHANCEMENTS ==================== */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .hero-buttons .btn-primary.glitch-btn {
+        border: 3px solid currentColor;
+        background: linear-gradient(135deg, #00ffff 0%, #ff0080 100%);
+    }
+}
+
+/* Dark mode adjustments (if needed) */
+@media (prefers-color-scheme: dark) {
+    .hero-buttons .btn-primary.glitch-btn {
+        color: #000;
+    }
+}

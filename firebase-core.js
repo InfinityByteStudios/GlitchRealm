@@ -47,6 +47,30 @@
           // Store current user globally for immediate access
           window.currentFirebaseUser = user;
           
+          // Immediately update UI elements if they exist
+          setTimeout(() => {
+            const signInBtn = document.getElementById('sign-in-btn');
+            const userProfile = document.getElementById('user-profile');
+            const userName = document.getElementById('user-name');
+            
+            if (signInBtn && userProfile) {
+              signInBtn.style.display = 'none';
+              userProfile.style.display = 'flex';
+              
+              if (userName && !userName.textContent) {
+                userName.textContent = user.displayName || user.email?.split('@')[0] || 'User';
+              }
+              
+              // Update avatars (always update if photoURL exists)
+              const userAvatar = document.getElementById('user-avatar');
+              const userAvatarLarge = document.getElementById('user-avatar-large');
+              if (user.photoURL) {
+                if (userAvatar) userAvatar.src = user.photoURL;
+                if (userAvatarLarge) userAvatarLarge.src = user.photoURL;
+              }
+            }
+          }, 100);
+          
           // Broadcast auth state change to other tabs/windows
           try {
             localStorage.setItem('firebase_auth_state', JSON.stringify({

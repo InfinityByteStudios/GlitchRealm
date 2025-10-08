@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- PWA Manifest & Theming -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00fff9">
@@ -341,9 +344,16 @@
         window.firebaseAuth = auth;
         window.firebaseStorage = storage;
     </script>
+    
+    <!-- Accessibility & Performance Enhancements -->
+    <link rel="stylesheet" href="accessibility-performance.css">
+    <link rel="stylesheet" href="play-now-enhancement.css">
+    <script src="performance-optimization.js" defer></script>
+    <script src="accessibility-keyboard-nav.js" defer></script>
+    <script src="play-now-enhancement.js" defer></script>
 </head>
 <body>
-    <div class="background-animation"></div>
+    <div class="background-animation" aria-hidden="true"></div>
     
     <div id="header-placeholder"></div>
 
@@ -360,7 +370,8 @@
                     <a href="about.html" class="btn btn-secondary">Learn More</a>
                 </div>
             </div>
-        </section>        <section class="featured-game">
+        </section>        <main id="main-content" role="main">
+        <section class="featured-game">
             <div class="container">
                 <h2 class="section-title">Newest Game</h2>                <div class="featured-card">
                     <div class="featured-image">
@@ -526,6 +537,7 @@
             </div>
         </div>
     </div>
+    </main>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>

@@ -1,0 +1,371 @@
+/**
+ * GlitchRealm - Accessibility & Performance CSS
+ * 
+ * Styles for:
+ * - Skip links
+ * - Focus indicators
+ * - Keyboard navigation highlights
+ * - Image loading states
+ */
+
+/* ==================== SKIP LINK ==================== */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 999999;
+    padding: 1em 1.5em;
+    background: var(--primary-cyan, #16e1ff);
+    color: var(--bg-primary, #0a0e27);
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 0 0 8px 0;
+    box-shadow: 0 4px 12px rgba(22, 225, 255, 0.5);
+    transition: left 0.3s ease;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+}
+
+.skip-link:focus {
+    left: 0 !important;
+    outline: 3px solid var(--primary-magenta, #ff4d6d);
+    outline-offset: 2px;
+}
+
+/* ==================== FOCUS INDICATORS ==================== */
+/* Enhanced focus styles for keyboard navigation */
+*:focus-visible,
+*.focus-visible {
+    outline: 3px solid var(--primary-cyan, #16e1ff);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Buttons and interactive elements */
+button:focus-visible,
+a:focus-visible,
+.nav-link:focus-visible,
+.profile-action-btn:focus-visible {
+    outline: 3px solid var(--primary-cyan, #16e1ff);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(22, 225, 255, 0.2);
+}
+
+/* Form inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--primary-cyan, #16e1ff);
+    outline-offset: 1px;
+    border-color: var(--primary-cyan, #16e1ff);
+}
+
+/* Game cards */
+.game-card:focus-visible {
+    outline: 3px solid var(--primary-cyan, #16e1ff);
+    outline-offset: 4px;
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+        0 0 20px rgba(22, 225, 255, 0.4),
+        0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* Remove focus outline on mouse click (only show for keyboard) */
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ==================== NAVIGATION HIGHLIGHTS ==================== */
+/* Dropdown menu keyboard navigation */
+.nav-dropdown-link:focus {
+    background: rgba(22, 225, 255, 0.1);
+    color: var(--primary-cyan, #16e1ff);
+}
+
+.profile-action-btn:focus {
+    background: rgba(22, 225, 255, 0.08);
+    transform: translateX(4px);
+}
+
+/* Active menu item indicator */
+.nav-dropdown-menu[aria-hidden="false"] .nav-dropdown-link:focus::before,
+.profile-menu .profile-action-btn:focus::before {
+    content: '▸';
+    position: absolute;
+    left: 8px;
+    color: var(--primary-cyan, #16e1ff);
+    font-size: 14px;
+}
+
+/* ==================== LOADING STATES ==================== */
+/* Blur placeholder for lazy loading */
+img[loading="lazy"]:not(.loaded) {
+    filter: blur(10px);
+    transform: scale(1.02);
+    transition: filter 0.3s ease-out, transform 0.3s ease-out;
+}
+
+img.loaded {
+    filter: none;
+    transform: scale(1);
+}
+
+/* Skeleton loading animation */
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton-loading {
+    background: linear-gradient(
+        90deg,
+        rgba(22, 225, 255, 0.05) 25%,
+        rgba(22, 225, 255, 0.15) 50%,
+        rgba(22, 225, 255, 0.05) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+/* Image loading spinner */
+.image-loading {
+    position: relative;
+}
+
+.image-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 3px solid rgba(22, 225, 255, 0.2);
+    border-top-color: var(--primary-cyan, #16e1ff);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==================== SCREEN READER ONLY ==================== */
+.sr-only,
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Allow screen reader text to be focusable */
+.sr-only-focusable:focus,
+.visually-hidden-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}
+
+/* ==================== HIGH CONTRAST MODE ==================== */
+/* Support for Windows High Contrast Mode */
+@media (prefers-contrast: high) {
+    *:focus-visible {
+        outline: 3px solid;
+        outline-offset: 3px;
+    }
+
+    button,
+    .btn {
+        border: 2px solid currentColor;
+    }
+
+    .game-card {
+        border: 2px solid;
+    }
+}
+
+/* ==================== REDUCED MOTION ==================== */
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .skip-link {
+        transition: none;
+    }
+
+    img {
+        transition: none;
+    }
+
+    .game-card {
+        transition: none;
+    }
+}
+
+/* ==================== KEYBOARD SHORTCUTS HELP ==================== */
+.keyboard-shortcuts-help {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 14, 39, 0.98);
+    border: 2px solid var(--primary-cyan, #16e1ff);
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 500px;
+    z-index: 999999;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+.keyboard-shortcuts-help h3 {
+    color: var(--primary-cyan, #16e1ff);
+    margin-bottom: 1.5rem;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.keyboard-shortcuts-help dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+}
+
+.keyboard-shortcuts-help dt {
+    color: var(--primary-magenta, #ff4d6d);
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 77, 109, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.keyboard-shortcuts-help dd {
+    color: var(--text-primary, #d9f7ff);
+}
+
+/* ==================== ARIA LIVE REGIONS ==================== */
+/* Polite announcements */
+[aria-live="polite"] {
+    position: relative;
+}
+
+/* Ensure live regions are not visually hidden */
+[aria-live]:empty::before {
+    content: '';
+    display: block;
+}
+
+/* ==================== RESPONSIVE FOCUS INDICATORS ==================== */
+/* Larger touch targets on mobile */
+@media (max-width: 768px) {
+    button,
+    a,
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .nav-link,
+    .profile-action-btn {
+        padding: 1rem;
+    }
+
+    *:focus-visible {
+        outline-width: 4px;
+        outline-offset: 3px;
+    }
+}
+
+/* ==================== DARK MODE ADJUSTMENTS ==================== */
+@media (prefers-color-scheme: dark) {
+    .skip-link {
+        background: var(--primary-cyan, #16e1ff);
+        color: #000;
+    }
+
+    *:focus-visible {
+        outline-color: var(--primary-cyan, #16e1ff);
+    }
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+    .skip-link,
+    .nav,
+    .profile-dropdown,
+    .auth-overlay,
+    button {
+        display: none !important;
+    }
+
+    *:focus {
+        outline: none;
+    }
+}
+
+/* ==================== IMAGE OPTIMIZATION ==================== */
+/* Aspect ratio boxes to prevent layout shift */
+.img-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.img-wrapper::before {
+    content: '';
+    display: block;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+}
+
+.img-wrapper img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Progressive enhancement for WebP */
+.webp img[data-webp] {
+    content: attr(data-webp);
+}
+
+/* Native lazy loading fallback handled by JavaScript */
+
+/* ==================== CONNECTION QUALITY INDICATORS ==================== */
+/* Low quality mode indicator */
+body.low-quality-mode::before {
+    content: 'Low bandwidth mode active';
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 77, 109, 0.2);
+    color: var(--primary-magenta, #ff4d6d);
+    border: 1px solid var(--primary-magenta, #ff4d6d);
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 9999;
+    pointer-events: none;
+}

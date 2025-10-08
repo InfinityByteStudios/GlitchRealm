@@ -131,17 +131,38 @@ async function publishArticle({ draft }){
 
     const docRef = await addDoc(collection(db,'news_articles'), payload);
 
-    successMsg.textContent = draft ? 'Draft saved.' : 'Published successfully.';
+    // Show success message prominently
+    successMsg.textContent = draft ? '✓ Draft saved successfully!' : '✓ Article published successfully!';
     successMsg.style.display='block';
-    form.reset();
+    successMsg.style.animation = 'slideInRight 0.4s ease-out';
+    
+    // Reset form after short delay
+    setTimeout(() => {
+      form.reset();
+    }, 1500);
+    
+    // Scroll to top to show success message
     window.scrollTo({top:0,behavior:'smooth'});
-    setTimeout(()=> successMsg.style.display='none', 6000);
+    
+    // Hide success message after 6 seconds
+    setTimeout(() => {
+      successMsg.style.animation = 'slideOutRight 0.4s ease-in';
+      setTimeout(() => {
+        successMsg.style.display='none';
+        successMsg.style.animation = '';
+      }, 400);
+    }, 6000);
 
   } catch(err){
     console.error('Publish error:', err);
-    errorMsg.textContent = 'Error: ' + err.message;
+    errorMsg.textContent = '✗ Error: ' + err.message;
     errorMsg.style.display='block';
-    setTimeout(()=> errorMsg.style.display='none', 8000);
+    errorMsg.style.animation = 'shake 0.5s ease-in-out';
+    window.scrollTo({top:0,behavior:'smooth'});
+    setTimeout(() => {
+      errorMsg.style.animation = '';
+      errorMsg.style.display='none';
+    }, 8000);
   }
 }
 
