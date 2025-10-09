@@ -317,6 +317,136 @@ function showPasswordChangeSuccessNotification() {
     }
 }
 
+// Load newest game from Firebase for home page
+async function loadNewestGame() {
+    // Only run on index.html
+    if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') return;
+    
+    const featuredCard = document.querySelector('.featured-card');
+    if (!featuredCard) return;
+    
+    try {
+        console.log('[Home] Starting to load newest game...');
+        
+        // Wait for Firebase to be ready (with shorter timeout)
+        await new Promise((resolve) => {
+            if (window.firebaseFirestore) {
+                resolve();
+            } else {
+                const checkInterval = setInterval(() => {
+                    if (window.firebaseFirestore) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 50); // Check every 50ms instead of 100ms
+                
+                // Timeout after 3 seconds instead of 5
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    resolve();
+                }, 3000);
+            }
+        });
+        
+        // Import Firestore functions if not available
+        if (!window.firebaseFirestore || !window.firestoreCollection || !window.firestoreQuery) {
+            const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            if (!window.firebaseFirestore) window.firebaseFirestore = f.getFirestore();
+            if (!window.firestoreCollection) window.firestoreCollection = f.collection;
+            if (!window.firestoreQuery) window.firestoreQuery = f.query;
+            if (!window.firestoreOrderBy) window.firestoreOrderBy = f.orderBy;
+            if (!window.firestoreLimit) window.firestoreLimit = f.limit;
+            if (!window.firestoreWhere) window.firestoreWhere = f.where;
+            if (!window.firestoreGetDocs) window.firestoreGetDocs = f.getDocs;
+        }
+        
+        const db = window.firebaseFirestore;
+        const gamesRef = window.firestoreCollection(db, 'game_submissions');
+        
+        console.log('[Home] Querying for games...');
+        
+        // Get all games to check their status
+        const allGamesQuery = window.firestoreQuery(gamesRef);
+        const allGamesSnapshot = await window.firestoreGetDocs(allGamesQuery);
+        
+        console.log('[Home] Total games in database:', allGamesSnapshot.size);
+        
+        // Log the status of each game
+        const gamesByStatus = {};
+        allGamesSnapshot.forEach(doc => {
+            const data = doc.data();
+            const status = data.status || 'no-status';
+            if (!gamesByStatus[status]) gamesByStatus[status] = 0;
+            gamesByStatus[status]++;
+            console.log('[Home] Game:', data.title, 'Status:', status, 'Created:', data.createdAt);
+        });
+        
+        console.log('[Home] Games by status:', gamesByStatus);
+        
+        // Query for published/approved games (check multiple possible status values)
+        const validStatuses = ['approved', 'published', 'active'];
+        const games = [];
+        
+        allGamesSnapshot.forEach(doc => {
+            const data = doc.data();
+            // Include games that are approved, published, or have no status (legacy games)
+            if (!data.status || validStatuses.includes(data.status)) {
+                games.push({
+                    id: doc.id,
+                    data: data,
+                    createdAt: data.createdAt?.toMillis?.() || data.createdAt || 0
+                });
+            }
+        });
+        
+        console.log('[Home] Found', games.length, 'valid games to display');
+        
+        if (games.length > 0) {
+            // Sort by createdAt descending (newest first)
+            games.sort((a, b) => b.createdAt - a.createdAt);
+            
+            const newestGame = games[0];
+            const gameData = newestGame.data;
+            const gameId = newestGame.id;
+            
+            console.log('[Home] Newest game:', gameData.title, 'Created:', new Date(newestGame.createdAt));
+            
+            // Update the featured card with the newest game
+            featuredCard.innerHTML = `
+                <div class="featured-image">
+                    <img src="${gameData.coverImageUrl || 'assets/Game Logos/ByteSurge.png'}" 
+                         alt="${gameData.title || 'Game'}" 
+                         class="featured-logo-image" 
+                         decoding="async" 
+                         fetchpriority="high" 
+                         loading="eager"
+                         onerror="this.src='assets/Game Logos/ByteSurge.png'">
+                    <div class="game-badge new">NEW</div>
+                </div>
+                <div class="featured-info">
+                    <h3>${gameData.title || 'Untitled Game'}</h3>
+                    <p>${gameData.description || 'No description available.'}</p>
+                    <p class="featured-developer">Made by <strong>${gameData.ownerUsername || 'Unknown Developer'}</strong></p>
+                    <a href="game-detail.html?id=${gameId}" class="btn btn-primary">Play Now</a>
+                </div>
+            `;
+            
+            console.log('[Home] Successfully loaded newest game:', gameData.title);
+        } else {
+            console.log('[Home] No valid games found, keeping loading state');
+        }
+    } catch (error) {
+        console.error('[Home] Error loading newest game:', error);
+        // Show error message instead of loading
+        featuredCard.innerHTML = `
+            <div class="featured-info">
+                <h3>Unable to load</h3>
+                <p>Could not fetch the newest game. Please refresh the page.</p>
+            </div>
+        `;
+    }
+}
+
 // Error message mapping for Firebase auth errors
 function getErrorMessage(errorCode) {
     const errorMessages = {
@@ -498,6 +628,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check for password change success notification
     checkPasswordChangeSuccess();
+    
+    // Load newest game from Firebase on home page
+    loadNewestGame();
     
     // Initialize all effects
     initGlitchEffects();
