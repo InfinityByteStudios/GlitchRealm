@@ -718,7 +718,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 if (e.target.closest('.menu-item.edit')) {
                     closeAllGameMenus();
-                    if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
+                    // Navigate to edit page with step 2 (Basic Info)
+                    window.location.href = `submit-game.html?edit=${gameId}&step=2`;
                     return;
                 }
                 if (e.target.closest('.menu-item.report')) {
@@ -744,7 +745,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 switch (action) {
                     case 'edit':
-                        if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
+                        // Navigate to edit page with step 2 (Basic Info)
+                        window.location.href = `submit-game.html?edit=${gameId}&step=2`;
                         break;
                     case 'delete':
                         (async () => {
@@ -1473,13 +1475,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const anchorLinks = document.querySelectorAll('a[href^="#"]');
     anchorLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+            const href = this.getAttribute('href');
+            // Only process if it's a valid hash selector
+            if (href && href.startsWith('#') && href.length > 1) {
+                try {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                } catch (err) {
+                    // Invalid selector, skip
+                    console.warn('Invalid selector for smooth scroll:', href);
+                }
             }
         });
     });

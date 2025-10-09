@@ -212,6 +212,21 @@ service cloud.firestore {
       // - Admin/Developer can update including publishing/unpublishing
       // - Admin/Developer can add ownerUsername for migration purposes (username-only update)
       allow update: if request.auth != null && (
+                      // Developer/Admin can update anything with basic validation
+                      (
+                        (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) &&
+                        request.resource.data.ownerId == resource.data.ownerId &&
+                        request.resource.data.createdAt == resource.data.createdAt
+                      ) ||
+                      // Owner can update content fields but not status
+                      (
+                        request.auth.uid == resource.data.ownerId &&
+                        request.resource.data.ownerId == resource.data.ownerId &&
+                        request.resource.data.createdAt == resource.data.createdAt &&
+                        request.resource.data.status == resource.data.status &&
+                        request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120 &&
+                        request.resource.data.description is string && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 5000
+                      ) ||
                       // 0) Safe owner-claim for legacy/unowned docs: only ownerId (+ optional updatedAt) may be set
                       (
                         !(resource.data.keys().hasAny(['ownerId']) && resource.data.ownerId is string && resource.data.ownerId.size() > 0) &&
@@ -219,14 +234,6 @@ service cloud.firestore {
                         request.resource.data.ownerId == request.auth.uid &&
                         request.resource.data.diff(resource.data).changedKeys().hasOnly(['ownerId','updatedAt']) &&
                         (!request.resource.data.keys().hasAny(['updatedAt']) || request.resource.data.updatedAt is timestamp)
-                      ) ||
-                      (
-                        request.auth.uid == resource.data.ownerId &&
-                        isValidGameSubmissionUpdate() &&
-                        request.resource.data.status == resource.data.status
-                      ) || (
-                        (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) &&
-                        isValidGameSubmissionUpdate()
                       ) || (
                         // Migration: Admin/Developer can add ownerUsername field only
                         (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) &&
@@ -644,10 +651,10 @@ service cloud.firestore {
 
     function isValidGameSubmissionUpdate() {
       let d = request.resource.data.diff(resource.data);
-      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','coverImageUrl','tags','status','playUrl','badge','ownerUsername']) &&
+      let allowed = d.changedKeys().hasOnly(['title','updatedAt','description','extendedDescription','howToPlay','screenshots','coverImageUrl','tags','status','playUrl','badge','ownerUsername']) &&
           // Allow admins to add a missing 'status' field on legacy docs
-          d.addedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','status','ownerUsername']) &&
-          d.removedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','ownerUsername']);
+          d.addedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','status','ownerUsername','extendedDescription','howToPlay','screenshots']) &&
+          d.removedKeys().hasOnly(['coverImageUrl','tags','playUrl','badge','ownerUsername','extendedDescription','howToPlay','screenshots']);
       let immutableOk = request.resource.data.ownerId == resource.data.ownerId &&
                         request.resource.data.createdAt == resource.data.createdAt;
       return allowed && immutableOk &&
@@ -657,10 +664,13 @@ service cloud.firestore {
              (!request.resource.data.keys().hasAny(['status']) || request.resource.data.status in ['draft','published']) &&
              request.resource.data.description is string && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 5000 &&
        (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
-     (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 3 && request.resource.data.tags[0] is string)) &&
+     (!request.resource.data.keys().hasAny(['tags']) || (request.resource.data.tags is list && request.resource.data.tags.size() <= 3 && (request.resource.data.tags.size() == 0 || request.resource.data.tags[0] is string))) &&
      (!request.resource.data.keys().hasAny(['playUrl']) || (request.resource.data.playUrl is string && request.resource.data.playUrl.size() <= 2000 && request.resource.data.playUrl.matches('^https?://'))) &&
      (!request.resource.data.keys().hasAny(['badge']) || (request.resource.data.badge in ['new','updated','beta'])) &&
-     (!request.resource.data.keys().hasAny(['ownerUsername']) || (request.resource.data.ownerUsername is string && request.resource.data.ownerUsername.size() <= 100));
+     (!request.resource.data.keys().hasAny(['ownerUsername']) || (request.resource.data.ownerUsername is string && request.resource.data.ownerUsername.size() <= 100)) &&
+     (!request.resource.data.keys().hasAny(['extendedDescription']) || (request.resource.data.extendedDescription is string && request.resource.data.extendedDescription.size() <= 10000)) &&
+     (!request.resource.data.keys().hasAny(['howToPlay']) || (request.resource.data.howToPlay is string && request.resource.data.howToPlay.size() <= 5000)) &&
+     (!request.resource.data.keys().hasAny(['screenshots']) || (request.resource.data.screenshots is list && request.resource.data.screenshots.size() <= 10));
     }
   
     // Lighter validator used on create for drafts to prevent false negatives with serverTimestamp
@@ -673,7 +683,10 @@ service cloud.firestore {
          data.playUrl is string && data.playUrl.size() > 0 && data.playUrl.size() <= 2000 && data.playUrl.matches('^https?://') &&
          (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
          (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 3 && (data.tags.size() == 0 || data.tags[0] is string))) &&
-         (!data.keys().hasAny(['ownerUsername']) || (data.ownerUsername is string && data.ownerUsername.size() <= 100));
+         (!data.keys().hasAny(['ownerUsername']) || (data.ownerUsername is string && data.ownerUsername.size() <= 100)) &&
+         (!data.keys().hasAny(['extendedDescription']) || (data.extendedDescription is string && data.extendedDescription.size() <= 10000)) &&
+         (!data.keys().hasAny(['howToPlay']) || (data.howToPlay is string && data.howToPlay.size() <= 5000)) &&
+         (!data.keys().hasAny(['screenshots']) || (data.screenshots is list && data.screenshots.size() <= 10));
     }
   
     // Validate system status updates

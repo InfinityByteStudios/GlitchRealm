@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Details - GlitchRealm</title>
+  <link rel="icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="assets/Favicon and Icons/favicon.ico" type="image/x-icon" />
+  <link rel="icon" type="image/png" href="assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png" />
+  <link rel="preload" as="style" href="styles.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="styles.css"></noscript>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  </noscript>
+  <style>
+    .detail-wrapper { 
+      max-width: 1200px; 
+      margin: 120px auto 60px; 
+      padding: 0 20px; 
+    }
+    .detail-header { 
+      display: grid; 
+      grid-template-columns: 420px 1fr; 
+      gap: 40px; 
+      margin-bottom: 48px; 
+      padding: 32px;
+      background: linear-gradient(145deg, rgba(0,20,35,.95), rgba(0,50,70,.75));
+      border: 1px solid rgba(0,255,249,.15);
+      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.6);
+      position: relative;
+    }
+    .detail-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      background: radial-gradient(circle at 25% 25%, rgba(0,255,249,.08), transparent 60%);
+      pointer-events: none;
+    }
+    .detail-cover { 
+      width: 100%; 
+      border-radius: 16px; 
+      border: 2px solid rgba(0,255,249,.3); 
+      box-shadow: 
+        0 12px 40px rgba(0,0,0,.6),
+        0 4px 15px rgba(0,255,249,.2); 
+      position: relative; 
+      transition: all 0.3s ease;
+      padding-bottom: 16px;
+      background: linear-gradient(145deg, rgba(0,15,25,.9), rgba(0,45,65,.7));
+    }
+    .detail-cover:hover {
+      transform: scale(1.02);
+      border-color: rgba(0,255,249,.5);
+      box-shadow: 
+        0 20px 60px rgba(0,0,0,.8),
+        0 8px 25px rgba(0,255,249,.3);
+    }
+    .detail-cover img { 
+      width: 100%; 
+      aspect-ratio: 16/9;
+      object-fit: cover; 
+      transition: transform 0.3s ease;
+      border-radius: 14px 14px 0 0;
+    }
+    .detail-info h1 { 
+      font-family: 'Orbitron', monospace; 
+      font-size: 2.5rem; 
+      margin: 0 0 20px; 
+      letter-spacing: 1.5px; 
+      background: linear-gradient(135deg, #00fff9, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+    .detail-meta { 
+      display: flex; 
+      gap: 12px; 
+      flex-wrap: wrap; 
+      margin-bottom: 20px; 
+    }
+    .detail-badge { 
+      background: linear-gradient(135deg, rgba(0,255,249,.15), rgba(0,140,255,.15)); 
+      padding: 8px 16px; 
+      border-radius: 10px; 
+      font-size: 0.8rem; 
+      font-weight: 700; 
+      letter-spacing: 0.8px; 
+      text-transform: uppercase; 
+      border: 1px solid rgba(0,255,249,.4);
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+    }
+    .detail-badge:hover {
+      background: linear-gradient(135deg, rgba(0,255,249,.25), rgba(0,140,255,.25));
+      transform: translateY(-1px);
+    }
+    .detail-badge.new { 
+      background: linear-gradient(135deg, rgba(0,255,170,.9), rgba(0,200,140,.9)); 
+      color: #0a0d14; 
+      border-color: rgba(0,255,170,.6);
+    }
+    .detail-badge.updated { 
+      background: linear-gradient(135deg, rgba(255,165,0,.9), rgba(255,99,71,.9)); 
+      color: #0a0d14; 
+      border-color: rgba(255,165,0,.6);
+    }
+    .detail-badge.beta { 
+      background: linear-gradient(135deg, rgba(138,43,226,.9), rgba(75,0,130,.9)); 
+      color: #fff; 
+      border-color: rgba(138,43,226,.6);
+    }
+    .detail-tags { 
+      display: flex; 
+      gap: 10px; 
+      flex-wrap: wrap; 
+      margin-bottom: 24px; 
+    }
+    .detail-tag { 
+      background: rgba(0,255,249,.1); 
+      border: 1.5px solid rgba(0,255,249,.3); 
+      padding: 6px 16px; 
+      border-radius: 8px; 
+      font-size: 0.9rem; 
+      font-weight: 500;
+      transition: all 0.3s ease;
+      cursor: default;
+    }
+    .detail-tag:hover {
+      background: rgba(0,255,249,.15);
+      border-color: rgba(0,255,249,.5);
+      transform: translateY(-1px);
+    }
+    .detail-description { 
+      line-height: 1.8; 
+      opacity: 0.92; 
+      margin-bottom: 28px; 
+      font-size: 1.05rem;
+      font-weight: 400;
+    }
+    .play-btn { 
+      font-family: 'Rajdhani', sans-serif; 
+      font-size: 0.95rem; 
+      font-weight: 600;
+      padding: 10px 24px; 
+      border-radius: 6px; 
+      background: #4CAF50;
+      border: none;
+      color: white; 
+      cursor: pointer; 
+      transition: all 0.2s ease; 
+      display: block;
+      text-decoration: none;
+      text-align: center;
+      margin: 12px 16px 0;
+      width: calc(100% - 32px);
+    }
+    .play-btn:hover { 
+      background: #45a049;
+      transform: translateY(-1px);
+    }
+    .play-btn:active {
+      transform: translateY(0);
+      background: #3d8b40;
+    }
+    .edit-btn {
+      font-family: 'Orbitron', monospace; 
+      font-size: 0.95rem; 
+      font-weight: 700;
+      padding: 12px 28px; 
+      border-radius: 10px; 
+      background: linear-gradient(135deg, rgba(255,165,0,.2), rgba(255,99,71,.2));
+      border: 2px solid rgba(255,165,0,.6);
+      color: #ffa500; 
+      cursor: pointer; 
+      text-transform: uppercase; 
+      letter-spacing: 1px; 
+      transition: all 0.3s ease; 
+      display: inline-block; 
+      text-decoration: none;
+      margin-left: 12px;
+    }
+    .edit-btn:hover {
+      background: linear-gradient(135deg, rgba(255,165,0,.35), rgba(255,99,71,.35));
+      border-color: #ffa500;
+      box-shadow: 0 8px 20px rgba(255,165,0,.3);
+      transform: translateY(-2px);
+    }
+    .action-buttons {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      position: relative;
+    }
+    
+    /* 3-dot menu styles */
+    .menu-button {
+      background: none;
+      border: none;
+      color: rgba(0,255,249,0.8);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .menu-button:hover {
+      background: rgba(0,255,249,0.1);
+      color: #00fff9;
+    }
+    
+    .menu-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: linear-gradient(145deg, rgba(0,20,35,.95), rgba(0,50,70,.9));
+      border: 1px solid rgba(0,255,249,.3);
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.6);
+      backdrop-filter: blur(15px);
+      min-width: 120px;
+      z-index: 1000;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+    .menu-dropdown.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+    
+    .menu-item {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      color: rgba(255,255,255,0.9);
+      text-decoration: none;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: none;
+      background: none;
+      text-align: left;
+      cursor: pointer;
+    }
+    .menu-item:hover {
+      background: rgba(0,255,249,0.1);
+      color: #00fff9;
+    }
+
+    .detail-section { 
+      background: linear-gradient(145deg, rgba(0,15,25,.9), rgba(0,45,65,.7)); 
+      border: 1.5px solid rgba(0,255,249,.2); 
+      backdrop-filter: blur(15px); 
+      padding: 40px 36px; 
+      border-radius: 20px; 
+      margin-bottom: 36px; 
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+      transition: all 0.3s ease;
+    }
+    .detail-section:hover {
+      border-color: rgba(0,255,249,.3);
+      box-shadow: 0 12px 40px rgba(0,0,0,.6);
+      transform: translateY(-2px);
+    }
+    .detail-section:before { 
+      content: ""; 
+      position: absolute; 
+      inset: 0; 
+      pointer-events: none; 
+      border-radius: 20px; 
+      background: radial-gradient(circle at 25% 15%, rgba(0,255,249,.12), transparent 65%); 
+      opacity: .7; 
+    }
+    .detail-section h2 { 
+      font-family: 'Orbitron', monospace; 
+      font-size: 1.75rem; 
+      margin: 0 0 24px; 
+      letter-spacing: 1.2px; 
+      background: linear-gradient(135deg, #00fff9, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      padding-bottom: 12px;
+    }
+    .detail-section h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, #00fff9, transparent);
+    }
+    .detail-section h3 { 
+      font-family: 'Orbitron', monospace; 
+      font-size: 1.25rem; 
+      margin: 28px 0 16px; 
+      letter-spacing: 0.8px; 
+      color: rgba(0,255,249,.9); 
+      position: relative; 
+    }
+    .detail-section p, .detail-section ul, .detail-section ol { 
+      line-height: 1.9; 
+      opacity: 0.92; 
+      position: relative; 
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+    }
+    .detail-section ul, .detail-section ol { 
+      padding-left: 28px; 
+    }
+    .detail-section li { 
+      margin-bottom: 10px; 
+      padding-left: 4px;
+    }
+    .screenshots-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+      gap: 24px; 
+      position: relative; 
+    }
+    .screenshot { 
+      aspect-ratio: 16/9; 
+      border-radius: 16px; 
+      overflow: hidden; 
+      border: 2px solid rgba(0,255,249,.25); 
+      cursor: pointer; 
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+      position: relative;
+      box-shadow: 0 6px 25px rgba(0,0,0,.4);
+    }
+    .screenshot::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, rgba(0,255,249,.15), rgba(255,0,128,.15));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .screenshot img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+    }
+    .screenshot:hover { 
+      border-color: rgba(0,255,249,.6); 
+      box-shadow: 
+        0 12px 40px rgba(0,0,0,.6),
+        0 4px 20px rgba(0,255,249,.4); 
+      transform: translateY(-4px) scale(1.02);
+    }
+    .screenshot:hover::before {
+      opacity: 1;
+    }
+    .screenshot:hover img { 
+      transform: scale(1.08); 
+    }
+    .empty-state { 
+      text-align: center; 
+      padding: 80px 20px; 
+      opacity: 0.7; 
+      font-size: 1.1rem;
+    }
+    .back-link { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 10px; 
+      color: rgba(0,255,249,.85); 
+      text-decoration: none; 
+      font-family: 'Orbitron', monospace; 
+      font-size: 1rem; 
+      font-weight: 600;
+      margin-bottom: 32px; 
+      transition: all 0.3s ease; 
+      padding: 12px 20px;
+      border: 1px solid rgba(0,255,249,.3);
+      border-radius: 10px;
+      background: rgba(0,255,249,.05);
+    }
+    .back-link:hover { 
+      color: #00fff9; 
+      background: rgba(0,255,249,.1);
+      border-color: rgba(0,255,249,.5);
+      transform: translateX(-2px);
+    }
+    .back-link:before { 
+      content: "←"; 
+      font-size: 1.4rem; 
+      transition: transform 0.3s ease;
+    }
+    .back-link:hover:before {
+      transform: translateX(-3px);
+    }
+    .loading-state { 
+      text-align: center; 
+      padding: 120px 20px; 
+      background: linear-gradient(145deg, rgba(0,20,35,.9), rgba(0,50,70,.7));
+      border: 1px solid rgba(0,255,249,.2);
+      border-radius: 20px;
+      margin: 40px 0;
+    }
+    .loading-state h2 { 
+      font-family: 'Orbitron', monospace; 
+      opacity: 0.8; 
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #00fff9, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .not-found { 
+      text-align: center; 
+      padding: 120px 20px; 
+      background: linear-gradient(145deg, rgba(20,0,0,.9), rgba(50,20,20,.7));
+      border: 1px solid rgba(255,100,100,.3);
+      border-radius: 20px;
+      margin: 40px 0;
+    }
+    .not-found h2 { 
+      font-family: 'Orbitron', monospace; 
+      color: rgba(255,120,120,.95); 
+      margin-bottom: 20px; 
+      font-size: 1.8rem;
+    }
+    .not-found p {
+      font-size: 1.1rem;
+      opacity: 0.85;
+      margin-bottom: 30px;
+    }
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 10000; align-items: center; justify-content: center; cursor: pointer; }
+    .lightbox.active { display: flex; }
+    .lightbox img { max-width: 90%; max-height: 90vh; border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,.6); }
+    .lightbox-close { position: absolute; top: 20px; right: 30px; color: #fff; font-size: 3rem; font-weight: 300; cursor: pointer; line-height: 1; transition: .25s; }
+    .lightbox-close:hover { color: var(--primary-cyan, #0ff); transform: scale(1.1); }
+    @media (max-width: 900px) {
+      .detail-header { 
+        grid-template-columns: 1fr; 
+        gap: 28px; 
+        padding: 24px;
+      }
+      .detail-cover { 
+        max-width: 100%; 
+        margin: 0 auto; 
+      }
+      .detail-wrapper { 
+        margin-top: 100px; 
+        padding: 0 16px;
+      }
+      .detail-info h1 {
+        font-size: 2rem;
+      }
+      .detail-section {
+        padding: 28px 24px;
+      }
+      .screenshots-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .edit-btn {
+        text-align: center;
+        width: 100%;
+      }
+      .play-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        margin: 12px 12px 0;
+        width: calc(100% - 24px);
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .detail-info h1 {
+        font-size: 1.75rem;
+      }
+      .detail-section h2 {
+        font-size: 1.5rem;
+      }
+      .detail-section {
+        padding: 24px 20px;
+      }
+      .back-link {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+      .menu-dropdown {
+        right: -8px;
+        min-width: 140px;
+      }
+      .menu-button {
+        padding: 10px;
+        font-size: 18px;
+      }
+    }
+  </style>
+  <script type="module" src="firebase-core.js"></script>
+</head>
+<body>
+  <div class="background-animation"></div>
+  <div id="header-placeholder"></div>
+  
+  <div class="detail-wrapper">
+    <a href="games.html" class="back-link">Back to Games Library</a>
+    
+    <div id="loadingState" class="loading-state">
+      <h2>Loading game details...</h2>
+    </div>
+    
+    <div id="notFoundState" class="not-found" style="display:none;">
+      <h2>Game Not Found</h2>
+      <p>The game you are looking for does not exist or has been removed.</p>
+      <a href="games.html" class="play-btn" style="margin-top:20px;">Return to Games</a>
+    </div>
+    
+    <div id="gameContent" style="display:none;">
+      <div class="detail-header">
+        <div class="detail-cover">
+          <img id="gameCover" src="" alt="Game Cover">
+          <a id="playButton" href="#" target="_blank" class="play-btn" style="display:none;">Play Now</a>
+        </div>
+        <div class="detail-info">
+          <h1 id="gameTitle">Game Title</h1>
+          <div class="detail-meta">
+            <span id="gameBadge" class="detail-badge" style="display:none;"></span>
+            <span id="gameStatus" class="detail-badge"></span>
+          </div>
+          <div id="gameTags" class="detail-tags"></div>
+          <p id="gameDescription" class="detail-description"></p>
+          <div class="action-buttons">
+            <div class="menu-container" id="menuContainer" style="display:none;">
+              <button class="menu-button" id="menuButton" aria-label="Game options">⋯</button>
+              <div class="menu-dropdown" id="menuDropdown">
+                <a href="#" class="menu-item" id="editMenuItem">Edit Game</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        </div>
+      </div>
+      
+      <div id="extendedDescSection" class="detail-section" style="display:none;">
+        <h2>About This Game</h2>
+        <div id="extendedDescription"></div>
+      </div>
+      
+      <div id="howToPlaySection" class="detail-section" style="display:none;">
+        <h2>How to Play</h2>
+        <div id="howToPlay"></div>
+      </div>
+      
+      <div id="screenshotsSection" class="detail-section" style="display:none;">
+        <h2>Screenshots</h2>
+        <div id="screenshotsGrid" class="screenshots-grid"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="lightbox" class="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightboxImage" src="" alt="Screenshot">
+  </div>
+  
+  <div id="footer-placeholder"></div>
+  <script src="script.js" defer></script>
+  <script type="module">
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    // Wait for Firebase to be initialized by firebase-core.js
+    function waitForFirebase() {
+      return new Promise((resolve) => {
+        if (window.firebaseApp) {
+          resolve();
+        } else {
+          const checkInterval = setInterval(() => {
+            if (window.firebaseApp) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 50);
+        }
+      });
+    }
+
+    // Initialize after Firebase is ready
+    waitForFirebase().then(() => {
+      initGameDetail();
+    });
+
+    function initGameDetail() {
+      // Use globally initialized Firebase app from firebase-core.js
+      const db = getFirestore(window.firebaseApp);
+      const auth = getAuth(window.firebaseApp);
+
+      // Developer UIDs
+    const DEV_UIDS = new Set([
+      '6iZDTXC78aVwX22qrY43BOxDRLt1',
+      'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+    ]);
+
+    // Get game ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameId = urlParams.get('id');
+    let currentUser = null;
+    let gameData = null;
+
+    // Listen for auth state
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (gameData) {
+        checkOwnership();
+      }
+    });
+
+    async function loadGameDetails() {
+      const loadingState = document.getElementById('loadingState');
+      const notFoundState = document.getElementById('notFoundState');
+      const gameContent = document.getElementById('gameContent');
+
+      if (!gameId) {
+        loadingState.style.display = 'none';
+        notFoundState.style.display = 'block';
+        return;
+      }
+
+      try {
+        const gameRef = doc(db, 'game_submissions', gameId);
+        const gameSnap = await getDoc(gameRef);
+
+        if (!gameSnap.exists()) {
+          loadingState.style.display = 'none';
+          notFoundState.style.display = 'block';
+          return;
+        }
+
+        const game = gameSnap.data();
+        gameData = { id: gameId, ...game };
+        
+        // Update page title
+        document.title = `${game.title || 'Game'} - GlitchRealm`;
+
+        // Set basic info
+        document.getElementById('gameTitle').textContent = game.title || 'Untitled Game';
+        document.getElementById('gameDescription').textContent = game.description || 'No description provided.';
+        
+        // Set cover image
+        const coverImg = document.getElementById('gameCover');
+        if (game.coverImageUrl) {
+          coverImg.src = game.coverImageUrl;
+          coverImg.alt = game.title || 'Game Cover';
+        } else {
+          coverImg.src = 'assets/game logos/ByteSurge.webp';
+          coverImg.alt = 'Default Cover';
+        }
+
+        // Set badge
+        const badgeEl = document.getElementById('gameBadge');
+        if (game.badge && ['new', 'updated', 'beta'].includes(game.badge)) {
+          badgeEl.className = `detail-badge ${game.badge}`;
+          badgeEl.textContent = game.badge.toUpperCase();
+          badgeEl.style.display = '';
+        }
+
+        // Set status
+        const statusEl = document.getElementById('gameStatus');
+        statusEl.textContent = (game.status || 'draft').toUpperCase();
+        statusEl.className = 'detail-badge';
+
+        // Set tags
+        const tagsContainer = document.getElementById('gameTags');
+        if (game.tags && Array.isArray(game.tags) && game.tags.length > 0) {
+          tagsContainer.innerHTML = game.tags.map(tag => 
+            `<span class="detail-tag">${tag}</span>`
+          ).join('');
+        } else {
+          tagsContainer.style.display = 'none';
+        }
+
+        // Set play button
+        const playBtn = document.getElementById('playButton');
+        if (game.playUrl) {
+          playBtn.href = game.playUrl;
+          playBtn.style.display = '';
+        }
+
+        // Extended description
+        const extDescSection = document.getElementById('extendedDescSection');
+        const extDescContent = document.getElementById('extendedDescription');
+        if (game.extendedDescription) {
+          extDescContent.innerHTML = formatContent(game.extendedDescription);
+          extDescSection.style.display = '';
+        }
+
+        // How to play
+        const howToPlaySection = document.getElementById('howToPlaySection');
+        const howToPlayContent = document.getElementById('howToPlay');
+        if (game.howToPlay) {
+          howToPlayContent.innerHTML = formatContent(game.howToPlay);
+          howToPlaySection.style.display = '';
+        }
+
+        // Screenshots
+        const screenshotsSection = document.getElementById('screenshotsSection');
+        const screenshotsGrid = document.getElementById('screenshotsGrid');
+        if (game.screenshots && Array.isArray(game.screenshots) && game.screenshots.length > 0) {
+          screenshotsGrid.innerHTML = game.screenshots.map((url, index) => 
+            `<div class="screenshot" onclick="openLightbox('${url}')">
+              <img src="${url}" alt="Screenshot ${index + 1}" loading="lazy">
+            </div>`
+          ).join('');
+          screenshotsSection.style.display = '';
+        }
+
+        // Show content
+        loadingState.style.display = 'none';
+        gameContent.style.display = '';
+        
+        // Check ownership for edit button
+        checkOwnership();
+
+      } catch (error) {
+        console.error('Error loading game details:', error);
+        loadingState.style.display = 'none';
+        notFoundState.style.display = 'block';
+      }
+    }
+
+    function checkOwnership() {
+      if (!currentUser || !gameData) return;
+      
+      const isDeveloper = DEV_UIDS.has(currentUser.uid);
+      const isOwner = gameData.ownerId === currentUser.uid;
+      
+      if (isDeveloper || isOwner) {
+        const menuContainer = document.getElementById('menuContainer');
+        const editMenuItem = document.getElementById('editMenuItem');
+        
+        menuContainer.style.display = '';
+        editMenuItem.href = `submit-game.html?edit=${gameId}&step=3`;
+        
+        // Set up menu functionality
+        setupMenu();
+      }
+    }
+
+    function formatContent(content) {
+      // Convert line breaks to paragraphs
+      return content
+        .split('\n\n')
+        .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+        .join('');
+    }
+
+    // Lightbox functionality
+    window.openLightbox = function(imageUrl) {
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImage = document.getElementById('lightboxImage');
+      lightboxImage.src = imageUrl;
+      lightbox.classList.add('active');
+    };
+
+    document.getElementById('lightbox').addEventListener('click', function(e) {
+      if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-close')) {
+        this.classList.remove('active');
+      }
+    });
+
+    // Escape key to close lightbox
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.getElementById('lightbox').classList.remove('active');
+      }
+    });
+
+    function setupMenu() {
+      const menuButton = document.getElementById('menuButton');
+      const menuDropdown = document.getElementById('menuDropdown');
+      
+      if (!menuButton || !menuDropdown) return;
+      
+      // Toggle menu on button click
+      menuButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        menuDropdown.classList.toggle('show');
+      });
+      
+      // Close menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!menuButton.contains(e.target) && !menuDropdown.contains(e.target)) {
+          menuDropdown.classList.remove('show');
+        }
+      });
+      
+      // Close menu on escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          menuDropdown.classList.remove('show');
+        }
+      });
+    }
+
+    // Load game details on page load
+    loadGameDetails();
+    
+    } // End initGameDetail
+  </script>
+</body>
+</html>

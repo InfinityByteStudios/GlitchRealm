@@ -122,7 +122,10 @@
     </script>
     <style>
     /* Performance: avoid rendering offscreen cards until scrolled into view */
-    .game-card { content-visibility: auto; contain-intrinsic-size: 400px 1px; }
+    .game-card { content-visibility: auto; contain-intrinsic-size: 400px 1px; cursor: pointer; transition: transform 0.2s ease; }
+    .game-card:hover { transform: translateY(-4px); }
+    .game-card .card-image { position: relative; }
+    .game-card-link { text-decoration: none; color: inherit; display: block; }
 
     /* Review button styles */
         .review-btn {
@@ -3254,6 +3257,17 @@
             card.className = 'game-card is-submission';
             card.setAttribute('data-game', id);
             if (doc.ownerId) { try { card.setAttribute('data-owner', String(doc.ownerId)); } catch {} }
+            
+            // Make card clickable to view details
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', (e) => {
+                // Don't navigate if clicking buttons or menu
+                if (e.target.tagName === 'BUTTON' || e.target.closest('.game-card-menu') || e.target.closest('.card-btn')) {
+                    return;
+                }
+                window.location.href = `game-detail.html?id=${id}`;
+            });
+            
             card.innerHTML = `
                 <div class="card-image">
                     <img src="${cover}" alt="${title}" class="game-logo-image" loading="lazy" decoding="async">
