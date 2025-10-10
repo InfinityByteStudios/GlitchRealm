@@ -81,12 +81,10 @@ Used in: `submit-game.html`, `games.html`, `moderation.html`, `firestore.rules` 
 
 ### 7. Styling & Theme
 **CSS Variables** (`:root` in `styles.css`):
-```css
---primary-cyan: #00fff9;
---primary-magenta: #ff0080;
---dark-bg: #0a0a0a;
---success: #00ff41;
-```
+- `--primary-cyan`: cyan accent (hex: 00fff9)
+- `--primary-magenta`: magenta accent (hex: ff0080)
+- `--dark-bg`: background (hex: 0a0a0a)
+- `--success`: success green (hex: 00ff41)
 
 **Key CSS patterns:**
 - `.glitch`: Animated glitch text effect with `::before`/`::after` pseudo-elements
