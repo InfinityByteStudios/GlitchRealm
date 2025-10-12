@@ -21,7 +21,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signInWithCredential, signInWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, signInWithCredential, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, GithubAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
     const setStatus = (t) => { const el = document.getElementById('status'); if (el) el.textContent = t; };
 
@@ -59,6 +59,12 @@
           const cred = GithubAuthProvider.credential(accessToken);
           await signInWithCredential(auth, cred);
           console.log('[Auth Bridge] ✓ GitHub sign-in successful');
+        } else if (provider === 'anonymous') {
+          // Handle anonymous/guest sign-in
+          setStatus('Signing in as guest…');
+          console.log('[Auth Bridge] Starting anonymous sign-in');
+          await signInAnonymously(auth);
+          console.log('[Auth Bridge] ✓ Anonymous sign-in successful');
         } else {
           throw new Error('Unsupported provider.');
         }
