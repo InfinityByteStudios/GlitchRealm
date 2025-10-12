@@ -2751,6 +2751,30 @@ async function initializeAuth() {
                 console.log('User profile refreshed from Firebase');
                 updateUserProfile(currentUser);
                 
+                // Update moderation link visibility for developers
+                try {
+                    const moderationMenuBtn = document.getElementById('moderation-menu-btn');
+                    const DEV_UIDS = new Set([
+                        '6iZDTXC78aVwX22qrY43BOxDRLt1',
+                        'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+                        'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+                        '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+                        'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+                    ]);
+                    
+                    if (moderationMenuBtn) {
+                        const show = DEV_UIDS.has(currentUser.uid);
+                        if (show) {
+                            moderationMenuBtn.style.display = 'flex';
+                            console.log('Moderation link shown for developer');
+                        } else {
+                            moderationMenuBtn.style.display = 'none';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error updating moderation link:', e);
+                }
+                
                 // Update SSO state
                 if (window.sharedAuth) {
                     window.sharedAuth.storeAuthState(currentUser);
