@@ -1445,18 +1445,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Initialize modal functionality immediately
-    document.body.addEventListener('click', function(e) {
-        const closeModal = document.getElementById('close-modal');
-        const signInModal = document.getElementById('signin-modal');
-        if (closeModal && signInModal && (e.target === closeModal || closeModal.contains(e.target))) {
-            e.preventDefault();
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            if (typeof resetAuthButtonsText === 'function') resetAuthButtonsText();
-        }
-    });
-    initializeBasicModal();
+    // Modal functionality disabled - all sign-in now redirects to auth.glitchrealm.ca
+    // initializeBasicModal();
     
     // Initialize shared authentication system for SSO
     initializeSharedAuth();
@@ -1705,120 +1695,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Firebase Authentication - called from main DOMContentLoaded
 
-// Basic modal functionality that works without Firebase
+// Modal functionality completely disabled - redirect to auth subdomain instead
 function initializeBasicModal() {
-    // DOM elements
-    const signInBtn = document.getElementById('sign-in-btn');
-    const signInModal = document.getElementById('signin-modal');
-    const closeModal = document.getElementById('close-modal');
-      // Initialize Google button text helper function
-    function initializeGoogleButtonText() {
-        const googleButtonText = document.getElementById('google-button-text');
-        const githubButtonText = document.getElementById('github-button-text');
-        const activeTab = document.querySelector('.auth-tab.active');
-        if (googleButtonText && activeTab) {
-            const tabType = activeTab.getAttribute('data-tab');
-            if (tabType === 'signin') {
-                googleButtonText.textContent = 'Sign in with Google';
-            } else if (tabType === 'signup') {
-                googleButtonText.textContent = 'Sign up with Google';
-            }
-        }
-        if (githubButtonText && activeTab) {
-            const tabType = activeTab.getAttribute('data-tab');
-            if (tabType === 'signin') {
-                githubButtonText.textContent = 'Sign in with GitHub';
-            } else if (tabType === 'signup') {
-                githubButtonText.textContent = 'Sign up with GitHub';
-            }
-        }
-    }
-      // Sign-in button now handled by direct link in header.html (no JavaScript needed)
-    // signInBtn?.addEventListener('click', (e) => {
-    //     e.preventDefault();
-    //     window.location.href = 'https://auth.glitchrealm.ca/';
-    // });
-
-    if (closeModal) {
-        // Remove all previous click listeners to avoid duplicate/conflicting handlers
-        const newCloseModal = closeModal.cloneNode(true);
-        closeModal.parentNode.replaceChild(newCloseModal, closeModal);
-        newCloseModal.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (signInModal) {
-                signInModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                resetAuthButtonsText();
-            }
-        });
-    }
-
-    signInModal?.addEventListener('click', (e) => {
-        if (e.target === signInModal) {
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            resetAuthButtonsText();
-        }
-    });    // Close modal with Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && signInModal && signInModal.style.display === 'flex') {
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            resetAuthButtonsText();
-        }
-    });    // Tab switching functionality for neural modal
-    const authTabs = document.querySelectorAll('.auth-tab');
-    const authForms = document.querySelectorAll('.auth-form-container');
-    const googleButtonText = document.getElementById('google-button-text');
-    const githubButtonText = document.getElementById('github-button-text');
-    
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabType = tab.getAttribute('data-tab');
-            
-            // Update tab states
-            authTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Update form visibility
-            authForms.forEach(form => {
-                form.classList.remove('active');
-                if (form.id === `${tabType}-form`) {
-                    form.classList.add('active');
-                }
-            });
-            
-            // Update Google button text based on active tab
-            if (googleButtonText) {
-                if (tabType === 'signin') {
-                    googleButtonText.textContent = 'Sign in with Google';
-                } else if (tabType === 'signup') {
-                    googleButtonText.textContent = 'Sign up with Google';
-                }
-            }
-            
-            // Update GitHub button text based on active tab
-            if (githubButtonText) {
-                if (tabType === 'signin') {
-                    githubButtonText.textContent = 'Sign in with GitHub';
-                } else if (tabType === 'signup') {
-                    githubButtonText.textContent = 'Sign up with GitHub';
-                }
-            }
-        });
-    });
-
-    // Input focus effects for neural inputs
-    const neuralInputs = document.querySelectorAll('.neural-input');
-    neuralInputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.parentElement.classList.add('focused');
-        });
-        
-        input.addEventListener('blur', function() {
-            this.parentElement.classList.remove('focused');
-        });
-    });
+    // All sign-in functionality now redirects to https://auth.glitchrealm.ca/
+    // No popup modal is used anymore
+    console.log('Modal functionality disabled - using auth subdomain redirect');
 }
 
 async function initializeAuth() {
