@@ -166,4 +166,32 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = 'https://glitchrealm.ca/forgot-password.html';
     });
   }
+
+  // Guest/Anonymous sign-in
+  const guestBtn = document.getElementById('continueAsGuestBtn');
+  if (guestBtn) {
+    guestBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!firebaseReady) return showMessage('Loading auth…', 'info');
+      
+      try {
+        // Import signInAnonymously
+        const { signInAnonymously } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        
+        showMessage('Signing in as guest...', 'info');
+        
+        // Sign in anonymously on auth subdomain
+        const result = await signInAnonymously(window.firebaseAuth);
+        
+        // Now we need to sign in anonymously on the main domain too
+        // We'll redirect to the bridge with a special flag
+        const bridgeUrl = new URL('https://glitchrealm.ca/auth-bridge.html');
+        bridgeUrl.hash = 'provider=anonymous';
+        location.replace(bridgeUrl.toString());
+      } catch (err) {
+        console.error(err);
+        showMessage(err.message || 'Guest sign-in failed', 'error');
+      }
+    });
+  }
 });
