@@ -1,5 +1,56 @@
 // GlitchRealm Games - Interactive Effects
 
+// Early auth state restoration (before DOM loads)
+;(function(){
+    // Check if we have a cached auth state
+    try {
+        const cachedAuthState = localStorage.getItem('firebase_auth_state');
+        if (cachedAuthState) {
+            const authData = JSON.parse(cachedAuthState);
+            // If auth state exists and is recent (within 24 hours), show user profile immediately
+            if (authData.timestamp && (Date.now() - authData.timestamp) < 86400000) {
+                console.log('[News Auth] Found cached auth state, will restore UI on Firebase init');
+                window.__cachedAuthState = authData;
+            }
+        }
+    } catch(e) {
+        console.warn('[News Auth] Failed to check cached auth state:', e);
+    }
+})();
+
+/**
+ * Load Supabase avatar if available (higher priority than cached Firebase photoURL)
+ * This ensures custom uploaded avatars are shown instead of provider avatars
+ */
+async function loadSupabaseAvatarIfAvailable(userId) {
+    if (!userId) return;
+    
+    try {
+        // Dynamically import Supabase avatar utilities if not already loaded
+        if (!window.getProfile || !window.getAvatarUrl) {
+            const module = await import('../supabase-avatar.js');
+            window.getProfile = module.getProfile;
+            window.getAvatarUrl = module.getAvatarUrl;
+        }
+        
+        // Get Supabase profile
+        const profile = await window.getProfile(userId);
+        
+        // If custom avatar exists, update all avatar elements
+        if (profile?.custom_photo_url) {
+            console.log('[News Auth] Found Supabase custom avatar, updating UI');
+            const userAvatar = document.getElementById('user-avatar');
+            const userAvatarLarge = document.getElementById('user-avatar-large');
+            
+            if (userAvatar) userAvatar.src = profile.custom_photo_url;
+            if (userAvatarLarge) userAvatarLarge.src = profile.custom_photo_url;
+        }
+    } catch (err) {
+        // Graceful failure - just use the cached photoURL
+        console.warn('[News Auth] Could not load Supabase avatar:', err);
+    }
+}
+
 // --- Global helpers: define early so they're callable from the console anytime ---
 ;(function(){
     // Accessor for the Terms Update version used in localStorage keys
@@ -403,6 +454,44 @@ function resetAuthButtonsText() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // IMMEDIATELY restore UI from cached auth state if available
+    try {
+        if (window.__cachedAuthState) {
+            console.log('[News Auth] Restoring UI from cached auth state on DOMContentLoaded');
+            const signInBtn = document.getElementById('sign-in-btn');
+            const userProfile = document.getElementById('user-profile');
+            const userName = document.getElementById('user-name');
+            
+            if (signInBtn && userProfile) {
+                signInBtn.style.display = 'none';
+                userProfile.style.display = 'flex';
+                
+                if (userName) {
+                    userName.textContent = window.__cachedAuthState.displayName || 
+                                          window.__cachedAuthState.email?.split('@')[0] || 
+                                          'User';
+                }
+                
+                // Also update avatar if available
+                const userAvatar = document.getElementById('user-avatar');
+                const userAvatarLarge = document.getElementById('user-avatar-large');
+                if (window.__cachedAuthState.photoURL) {
+                    if (userAvatar) userAvatar.src = window.__cachedAuthState.photoURL;
+                    if (userAvatarLarge) userAvatarLarge.src = window.__cachedAuthState.photoURL;
+                }
+                
+                console.log('[News Auth] UI restored successfully from cache');
+                
+                // Check for Supabase custom avatar asynchronously (higher priority than cached photoURL)
+                loadSupabaseAvatarIfAvailable(window.__cachedAuthState.uid).catch(err => {
+                    console.warn('[News Auth] Could not check for Supabase avatar:', err);
+                });
+            }
+        }
+    } catch(e) {
+        console.warn('[News Auth] Failed to restore UI from cache:', e);
+    }
     
     // Check for password change success notification
     checkPasswordChangeSuccess();
@@ -1479,17 +1568,17 @@ function initializeBasicModal() {
             }
         }
     }
-      // Modal controls - basic functionality
-    signInBtn?.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (signInModal) {
-            signInModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            
-            // Initialize Google button text based on active tab
-            initializeGoogleButtonText();
-        }
-    });
+      // Sign-in button now redirects to auth.glitchrealm.ca (no JavaScript needed)
+    // signInBtn?.addEventListener('click', (e) => {
+    //     e.preventDefault();
+    //     if (signInModal) {
+    //         signInModal.style.display = 'flex';
+    //         document.body.style.overflow = 'hidden';
+    //         
+    //         // Initialize Google button text based on active tab
+    //         initializeGoogleButtonText();
+    //     }
+    // });
 
     if (closeModal) {
         // Remove all previous click listeners to avoid duplicate/conflicting handlers
@@ -1896,7 +1985,9 @@ async function initializeAuth() {
                 console.error('Error checking other games for auth:', error);
             });
         }
-    }    // Auth state observer with profile monitoring
+    }
+
+    // Auth state observer with profile monitoring
     onAuthStateChanged(auth, (user) => {
         const notificationBell = document.getElementById('notification-bell');
         const moderationMenuBtn = document.getElementById('moderation-menu-btn');
