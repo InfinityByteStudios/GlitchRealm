@@ -76,3 +76,22 @@
 
 [build.processing.images]
   compress = true
+
+# Redirects to auth subdomain
+[[redirects]]
+  from = "/signin.html"
+  to = "https://auth.glitchrealm.ca"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/signin"
+  to = "https://auth.glitchrealm.ca"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/login"
+  to = "https://auth.glitchrealm.ca"
+  status = 301
+  force = true
