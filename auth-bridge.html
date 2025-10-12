@@ -65,43 +65,43 @@
     }
 
     async function handleHashSignIn() {
-      // Parse provider from hash fragment: #provider=google or #provider=github
+      // Parse tokens from hash fragment: #provider=google&access_token=...&id_token=...
       const params = new URLSearchParams(location.hash.slice(1));
       const provider = params.get('provider');
       if (!provider) return false;
+      const accessToken = params.get('access_token') || '';
+      const idToken = params.get('id_token') || '';
 
       try {
-        setStatus('Checking sign-in status…');
-        console.log('[Auth Bridge] OAuth flow detected for provider:', provider);
+        setStatus('Verifying credentials…');
+        console.log('[Auth Bridge] Starting OAuth sign-in with provider:', provider);
         
-        // Since all sites use the same Firebase project (shared-sign-in),
-        // the user is already signed in after OAuth on auth.glitchrealm.ca
-        // Just wait for auth state to sync, then redirect
-        
-        return new Promise((resolve) => {
-          const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-              console.log('[Auth Bridge] ✓ User signed in:', user.uid);
-              setStatus('Signed in. Redirecting…');
-              console.log('[Auth Bridge] ✓ Redirect successful - navigating to', getRedirectUrl());
-              history.replaceState({}, document.title, location.pathname);
-              location.replace(getRedirectUrl());
-              unsubscribe();
-              resolve(true);
-            }
-          });
-          
-          // Timeout after 5 seconds
-          setTimeout(() => {
-            unsubscribe();
-            console.error('[Auth Bridge] ✗ Timeout waiting for auth state');
-            setStatus('Could not complete sign-in. You can try again from the sign-in page.');
-            resolve(false);
-          }, 5000);
-        });
+        if (provider === 'google' && idToken) {
+          // Use the fresh ID token to create a credential
+          const cred = GoogleAuthProvider.credential(idToken, accessToken || null);
+          await signInWithCredential(auth, cred);
+          console.log('[Auth Bridge] ✓ Google sign-in successful');
+        } else if (provider === 'github' && accessToken) {
+          const cred = GithubAuthProvider.credential(accessToken);
+          await signInWithCredential(auth, cred);
+          console.log('[Auth Bridge] ✓ GitHub sign-in successful');
+        } else if (provider === 'anonymous') {
+          // Handle anonymous/guest sign-in
+          setStatus('Signing in as guest…');
+          console.log('[Auth Bridge] Starting anonymous sign-in');
+          await signInAnonymously(auth);
+          console.log('[Auth Bridge] ✓ Anonymous sign-in successful');
+        } else {
+          throw new Error('Missing required credentials for ' + provider);
+        }
+
+        setStatus('Signed in. Redirecting…');
+        console.log('[Auth Bridge] ✓ Sign-in complete - navigating to', getRedirectUrl());
+        history.replaceState({}, document.title, location.pathname);
+        location.replace(getRedirectUrl());
       } catch (e) {
-        console.error('[Auth Bridge] ✗ Auth check failed:', e);
-        setStatus('Could not complete sign-in. You can try again from the sign-in page.');
+        console.error('[Auth Bridge] ✗ Sign-in failed:', e);
+        setStatus('Could not complete sign-in. Error: ' + e.message);
       }
       return true;
     }

@@ -56,16 +56,20 @@
         window.firebaseCreateUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.firebaseSignInWithPopup = signInWithPopup;
         
-        // Don't auto-redirect - always show the auth page
-        // Users can manually sign in even if already signed in (to switch accounts)
-        /*
-        onAuthStateChanged(auth, (user) => {
+        // Sign out any existing user when landing on auth page
+        // This allows users to switch accounts
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Send users back to main site
-                window.location.replace('https://glitchrealm.ca/');
+                console.log('[Auth Page] User already signed in, signing out to allow account switching:', user.email || user.uid);
+                try {
+                    const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                    await signOut(auth);
+                    console.log('[Auth Page] Sign out successful, user can now sign in with different account');
+                } catch (e) {
+                    console.error('[Auth Page] Sign out failed:', e);
+                }
             }
         });
-        */
 
         // Dispatch a custom event when Firebase is ready
         window.dispatchEvent(new Event('firebaseReady'));
