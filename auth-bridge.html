@@ -41,7 +41,15 @@
 
     // Determine where to redirect after sign-in
     function getRedirectUrl() {
-      // Check sessionStorage first (saved when user landed on auth page)
+      // Check hash for return parameter FIRST (passed from auth page)
+      const params = new URLSearchParams(location.hash.slice(1));
+      const returnParam = params.get('return');
+      if (returnParam) {
+        console.log('[Auth Bridge] Return URL from hash:', returnParam);
+        return returnParam;
+      }
+      
+      // Fallback: check sessionStorage (won't work cross-domain but try anyway)
       try {
         const savedReturn = sessionStorage.getItem('gr.returnTo');
         if (savedReturn) {
@@ -50,14 +58,6 @@
           return savedReturn;
         }
       } catch (e) {}
-      
-      // Fallback: check hash for return parameter (e.g., #provider=google&...&return=/path)
-      const params = new URLSearchParams(location.hash.slice(1));
-      const returnParam = params.get('return');
-      if (returnParam) {
-        console.log('[Auth Bridge] Return URL from hash:', returnParam);
-        return returnParam;
-      }
       
       // Default to home page
       console.log('[Auth Bridge] No return URL found, using /');

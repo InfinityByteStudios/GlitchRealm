@@ -192,9 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('[Auth] Could not extract access token:', e);
       }
       
-      // Redirect to bridge with fresh tokens
+      // Get the return URL from sessionStorage (saved when page loaded)
+      const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
+      console.log('[Auth] Return URL to pass to bridge:', returnTo);
+      
+      // Redirect to bridge with fresh tokens AND return URL
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}`;
+      bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}&return=${encodeURIComponent(returnTo)}`;
       console.log('[Auth] Redirecting to bridge:', bridgeUrl.toString().substring(0, 100) + '...');
       location.replace(bridgeUrl.toString());
     } catch (err) {
@@ -222,9 +226,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('[Auth] Could not extract access token:', e);
       }
       
-      // Redirect to bridge with access token
+      // Get the return URL from sessionStorage (saved when page loaded)
+      const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
+      console.log('[Auth] Return URL to pass to bridge:', returnTo);
+      
+      // Redirect to bridge with access token AND return URL
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}`;
+      bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}&return=${encodeURIComponent(returnTo)}`;
       console.log('[Auth] Redirecting to bridge:', bridgeUrl.toString().substring(0, 100) + '...');
       location.replace(bridgeUrl.toString());
     } catch (err) {
@@ -259,10 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sign in anonymously on auth subdomain
         await signInAnonymously(window.firebaseAuth);
         
-        // For anonymous sign-in, we can't pass tokens
-        // The bridge will need to sign in anonymously on the target domain too
+        // Get the return URL from sessionStorage (saved when page loaded)
+        const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
+        console.log('[Auth] Return URL to pass to bridge:', returnTo);
+        
+        // For anonymous sign-in, pass the return URL
         const bridgeUrl = new URL(getBridgeUrl());
-        bridgeUrl.hash = 'provider=anonymous';
+        bridgeUrl.hash = `provider=anonymous&return=${encodeURIComponent(returnTo)}`;
         location.replace(bridgeUrl.toString());
       } catch (err) {
         console.error(err);
