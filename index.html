@@ -56,13 +56,16 @@
         window.firebaseCreateUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.firebaseSignInWithPopup = signInWithPopup;
         
-        // Auto-redirect if already signed in on this subdomain
+        // Don't auto-redirect - always show the auth page
+        // Users can manually sign in even if already signed in (to switch accounts)
+        /*
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 // Send users back to main site
                 window.location.replace('https://glitchrealm.ca/');
             }
         });
+        */
 
         // Dispatch a custom event when Firebase is ready
         window.dispatchEvent(new Event('firebaseReady'));
