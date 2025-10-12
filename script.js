@@ -1733,16 +1733,10 @@ function initializeBasicModal() {
             }
         }
     }
-      // Modal controls - basic functionality
+      // Modal controls - redirect to auth subdomain
     signInBtn?.addEventListener('click', (e) => {
         e.preventDefault();
-        if (signInModal) {
-            signInModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            
-            // Initialize Google button text based on active tab
-            initializeGoogleButtonText();
-        }
+        window.location.href = 'https://auth.glitchrealm.ca/';
     });
 
     if (closeModal) {

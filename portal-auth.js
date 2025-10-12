@@ -12,16 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 console.log('Sign-in button in header clicked');
                 
-                // Get auth overlay
-                const authOverlay = document.getElementById('signin-modal');
-                if (authOverlay) {
-                    console.log('Found auth overlay, displaying it');
-                    authOverlay.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    console.log('Auth overlay not found, redirecting to signin page');
-                    window.location.href = 'signin.html';
-                }
+                // Redirect to dedicated auth subdomain
+                window.location.href = 'https://auth.glitchrealm.ca/';
             });
             
             console.log('Event listener attached to sign-in button');
