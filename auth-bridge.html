@@ -39,6 +39,31 @@
     const auth = getAuth(app);
     await setPersistence(auth, browserLocalPersistence).catch(()=>{});
 
+    // Determine where to redirect after sign-in
+    function getRedirectUrl() {
+      // Check hash for return parameter (e.g., #provider=google&...&return=/path)
+      const params = new URLSearchParams(location.hash.slice(1));
+      const returnParam = params.get('return');
+      if (returnParam) {
+        console.log('[Auth Bridge] Return URL from hash:', returnParam);
+        return returnParam;
+      }
+      
+      // Check sessionStorage for saved return URL
+      try {
+        const savedReturn = sessionStorage.getItem('gr.returnTo');
+        if (savedReturn) {
+          console.log('[Auth Bridge] Return URL from sessionStorage:', savedReturn);
+          sessionStorage.removeItem('gr.returnTo'); // Clean up
+          return savedReturn;
+        }
+      } catch (e) {}
+      
+      // Default to home page
+      console.log('[Auth Bridge] No return URL found, using /');
+      return '/';
+    }
+
     async function handleHashSignIn() {
       // Parse tokens from hash fragment: #provider=google&access_token=...&id_token=...
       const params = new URLSearchParams(location.hash.slice(1));
@@ -70,9 +95,9 @@
         }
 
         setStatus('Signed in. Redirecting…');
-        console.log('[Auth Bridge] ✓ Redirect successful - navigating to /');
+        console.log('[Auth Bridge] ✓ Redirect successful - navigating to', getRedirectUrl());
         history.replaceState({}, document.title, location.pathname);
-        location.replace('/');
+        location.replace(getRedirectUrl());
       } catch (e) {
         console.error('[Auth Bridge] ✗ Redirect failed:', e);
         setStatus('Could not complete sign-in. You can try again from the sign-in page.');
@@ -95,8 +120,8 @@
           
           setStatus('Signed in. Redirecting…');
           event.source?.postMessage({ type: 'signedIn' }, allowedOrigin);
-          console.log('[Auth Bridge] ✓ Redirect successful - navigating to /');
-          location.replace('/');
+          console.log('[Auth Bridge] ✓ Redirect successful - navigating to', getRedirectUrl());
+          location.replace(getRedirectUrl());
         }
       } catch (e) {
         console.error('[Auth Bridge] ✗ Password sign-in failed:', e);

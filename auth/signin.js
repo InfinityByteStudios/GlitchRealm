@@ -66,6 +66,13 @@ function openBridgeAndPostPassword(email, password) {
   const returnUrl = getReturnUrl();
   const targetOrigin = new URL(returnUrl).origin;
   
+  // Save return URL to sessionStorage so the bridge can access it
+  try {
+    sessionStorage.setItem('gr.returnTo', returnUrl);
+  } catch (e) {
+    console.warn('Could not save return URL to sessionStorage:', e);
+  }
+  
   const bridge = window.open(bridgeUrl, 'gr-auth-bridge', 'width=520,height=640');
   if (!bridge) {
     showMessage('Please allow popups to continue login', 'info');
@@ -178,7 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
         idToken = res?._tokenResponse?.idToken || '';
       } catch {}
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}`;
+      const returnUrl = getReturnUrl();
+      bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}&return=${encodeURIComponent(returnUrl)}`;
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error(err);
@@ -196,7 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
         accessToken = credObj?.accessToken || '';
       } catch {}
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}`;
+      const returnUrl = getReturnUrl();
+      bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}&return=${encodeURIComponent(returnUrl)}`;
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error(err);
@@ -233,7 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Now we need to sign in anonymously on the main domain too
         // We'll redirect to the bridge with a special flag
         const bridgeUrl = new URL(getBridgeUrl());
-        bridgeUrl.hash = 'provider=anonymous';
+        const returnUrl = getReturnUrl();
+        bridgeUrl.hash = `provider=anonymous&return=${encodeURIComponent(returnUrl)}`;
         location.replace(bridgeUrl.toString());
       } catch (err) {
         console.error(err);
