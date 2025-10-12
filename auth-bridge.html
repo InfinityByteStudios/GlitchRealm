@@ -68,21 +68,35 @@
       // Parse tokens from hash fragment: #provider=google&access_token=...&id_token=...
       const params = new URLSearchParams(location.hash.slice(1));
       const provider = params.get('provider');
-      if (!provider) return false;
+      if (!provider) {
+        console.log('[Auth Bridge] No provider found in hash, skipping OAuth flow');
+        return false;
+      }
       const accessToken = params.get('access_token') || '';
       const idToken = params.get('id_token') || '';
+
+      console.log('[Auth Bridge] Hash params:', { provider, hasAccessToken: !!accessToken, hasIdToken: !!idToken });
 
       try {
         setStatus('Verifying credentials…');
         console.log('[Auth Bridge] Starting OAuth sign-in with provider:', provider);
         
-        if (provider === 'google' && idToken) {
-          // Use the fresh ID token to create a credential
+        if (provider === 'google') {
+          if (!idToken) {
+            throw new Error('Google sign-in requires an ID token');
+          }
+          console.log('[Auth Bridge] Creating Google credential...');
           const cred = GoogleAuthProvider.credential(idToken, accessToken || null);
+          console.log('[Auth Bridge] Signing in with Google credential...');
           await signInWithCredential(auth, cred);
           console.log('[Auth Bridge] ✓ Google sign-in successful');
-        } else if (provider === 'github' && accessToken) {
+        } else if (provider === 'github') {
+          if (!accessToken) {
+            throw new Error('GitHub sign-in requires an access token');
+          }
+          console.log('[Auth Bridge] Creating GitHub credential...');
           const cred = GithubAuthProvider.credential(accessToken);
+          console.log('[Auth Bridge] Signing in with GitHub credential...');
           await signInWithCredential(auth, cred);
           console.log('[Auth Bridge] ✓ GitHub sign-in successful');
         } else if (provider === 'anonymous') {
@@ -92,16 +106,22 @@
           await signInAnonymously(auth);
           console.log('[Auth Bridge] ✓ Anonymous sign-in successful');
         } else {
-          throw new Error('Missing required credentials for ' + provider);
+          throw new Error('Unsupported provider: ' + provider);
         }
 
         setStatus('Signed in. Redirecting…');
-        console.log('[Auth Bridge] ✓ Sign-in complete - navigating to', getRedirectUrl());
+        const redirectUrl = getRedirectUrl();
+        console.log('[Auth Bridge] ✓ Sign-in complete - navigating to', redirectUrl);
+        
+        // Small delay to ensure auth state is fully synced
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         history.replaceState({}, document.title, location.pathname);
-        location.replace(getRedirectUrl());
+        location.replace(redirectUrl);
       } catch (e) {
         console.error('[Auth Bridge] ✗ Sign-in failed:', e);
-        setStatus('Could not complete sign-in. Error: ' + e.message);
+        console.error('[Auth Bridge] Error details:', e.code, e.message);
+        setStatus('Could not complete sign-in. Error: ' + (e.code || e.message));
       }
       return true;
     }

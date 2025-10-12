@@ -172,25 +172,33 @@ document.addEventListener('DOMContentLoaded', () => {
   googleBtn?.addEventListener('click', async () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
+      console.log('[Auth] Starting Google sign-in popup...');
       // Sign in with Google OAuth popup
       const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
       
+      console.log('[Auth] Google sign-in successful, user:', res.user.email || res.user.uid);
+      
       // Get a fresh ID token from the signed-in user
       const idToken = await res.user.getIdToken();
+      console.log('[Auth] Got ID token, length:', idToken?.length);
       
       // Get access token from the credential
       let accessToken = '';
       try {
         const credObj = window.FirebaseGoogleAuthProvider.credentialFromResult(res);
         accessToken = credObj?.accessToken || '';
-      } catch {}
+        console.log('[Auth] Got access token, length:', accessToken?.length);
+      } catch (e) {
+        console.warn('[Auth] Could not extract access token:', e);
+      }
       
       // Redirect to bridge with fresh tokens
       const bridgeUrl = new URL(getBridgeUrl());
       bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}`;
+      console.log('[Auth] Redirecting to bridge:', bridgeUrl.toString().substring(0, 100) + '...');
       location.replace(bridgeUrl.toString());
     } catch (err) {
-      console.error(err);
+      console.error('[Auth] Google sign-in error:', err);
       showMessage(err.message || 'Google sign-in failed', 'error');
     }
   });
@@ -198,22 +206,29 @@ document.addEventListener('DOMContentLoaded', () => {
   githubBtn?.addEventListener('click', async () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
+      console.log('[Auth] Starting GitHub sign-in popup...');
       // Sign in with GitHub OAuth popup
       const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.githubProvider);
+      
+      console.log('[Auth] GitHub sign-in successful, user:', res.user.email || res.user.uid);
       
       // Get access token from the credential
       let accessToken = '';
       try {
         const credObj = window.FirebaseGithubAuthProvider.credentialFromResult(res);
         accessToken = credObj?.accessToken || '';
-      } catch {}
+        console.log('[Auth] Got access token, length:', accessToken?.length);
+      } catch (e) {
+        console.warn('[Auth] Could not extract access token:', e);
+      }
       
       // Redirect to bridge with access token
       const bridgeUrl = new URL(getBridgeUrl());
       bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}`;
+      console.log('[Auth] Redirecting to bridge:', bridgeUrl.toString().substring(0, 100) + '...');
       location.replace(bridgeUrl.toString());
     } catch (err) {
-      console.error(err);
+      console.error('[Auth] GitHub sign-in error:', err);
       showMessage(err.message || 'GitHub sign-in failed', 'error');
     }
   });
