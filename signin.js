@@ -206,22 +206,29 @@ document.addEventListener('DOMContentLoaded', () => {
   githubBtn?.addEventListener('click', async () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
+      console.log('[Auth] Starting GitHub sign-in popup...');
       // Sign in with GitHub OAuth popup
       const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.githubProvider);
+      
+      console.log('[Auth] GitHub sign-in successful, user:', res.user.email || res.user.uid);
       
       // Get access token from the credential
       let accessToken = '';
       try {
         const credObj = window.FirebaseGithubAuthProvider.credentialFromResult(res);
         accessToken = credObj?.accessToken || '';
-      } catch {}
+        console.log('[Auth] Got access token, length:', accessToken?.length);
+      } catch (e) {
+        console.warn('[Auth] Could not extract access token:', e);
+      }
       
       // Redirect to bridge with access token
       const bridgeUrl = new URL(getBridgeUrl());
       bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}`;
+      console.log('[Auth] Redirecting to bridge:', bridgeUrl.toString().substring(0, 100) + '...');
       location.replace(bridgeUrl.toString());
     } catch (err) {
-      console.error(err);
+      console.error('[Auth] GitHub sign-in error:', err);
       showMessage(err.message || 'GitHub sign-in failed', 'error');
     }
   });
