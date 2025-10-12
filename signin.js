@@ -66,6 +66,9 @@ function openBridgeAndPostPassword(email, password) {
   const returnUrl = getReturnUrl();
   const targetOrigin = new URL(returnUrl).origin;
   
+  // Return URL already saved to sessionStorage by auth page on load
+  // No need to save again here
+  
   const bridge = window.open(bridgeUrl, 'gr-auth-bridge', 'width=520,height=640');
   if (!bridge) {
     showMessage('Please allow popups to continue login', 'info');
@@ -169,16 +172,15 @@ document.addEventListener('DOMContentLoaded', () => {
   googleBtn?.addEventListener('click', async () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
-      const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
-      // Extract credential and tokens
-      let idToken = '', accessToken = '';
-      try {
-        const credObj = window.FirebaseGoogleAuthProvider.credentialFromResult(res);
-        accessToken = credObj?.accessToken || '';
-        idToken = res?._tokenResponse?.idToken || '';
-      } catch {}
+      // Sign in with Google OAuth popup
+      await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
+      
+      // User is now signed in on auth.glitchrealm.ca
+      // Since all sites use the same Firebase project (shared-sign-in),
+      // the user is automatically signed in everywhere!
+      // Just redirect to the bridge, which will detect the signed-in user
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}`;
+      bridgeUrl.hash = 'provider=google'; // Just for logging purposes
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error(err);
@@ -189,14 +191,15 @@ document.addEventListener('DOMContentLoaded', () => {
   githubBtn?.addEventListener('click', async () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
-      const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.githubProvider);
-      let accessToken = '';
-      try {
-        const credObj = window.FirebaseGithubAuthProvider.credentialFromResult(res);
-        accessToken = credObj?.accessToken || '';
-      } catch {}
+      // Sign in with GitHub OAuth popup
+      await window.firebaseSignInWithPopup(window.firebaseAuth, window.githubProvider);
+      
+      // User is now signed in on auth.glitchrealm.ca
+      // Since all sites use the same Firebase project (shared-sign-in),
+      // the user is automatically signed in everywhere!
+      // Just redirect to the bridge, which will detect the signed-in user
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}`;
+      bridgeUrl.hash = 'provider=github'; // Just for logging purposes
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error(err);
@@ -228,12 +231,14 @@ document.addEventListener('DOMContentLoaded', () => {
         showMessage('Signing in as guest...', 'info');
         
         // Sign in anonymously on auth subdomain
-        const result = await signInAnonymously(window.firebaseAuth);
+        await signInAnonymously(window.firebaseAuth);
         
-        // Now we need to sign in anonymously on the main domain too
-        // We'll redirect to the bridge with a special flag
+        // User is now signed in anonymously on auth.glitchrealm.ca
+        // Since all sites use the same Firebase project (shared-sign-in),
+        // the user is automatically signed in everywhere!
+        // Just redirect to the bridge, which will detect the signed-in user
         const bridgeUrl = new URL(getBridgeUrl());
-        bridgeUrl.hash = 'provider=anonymous';
+        bridgeUrl.hash = 'provider=anonymous'; // Just for logging purposes
         location.replace(bridgeUrl.toString());
       } catch (err) {
         console.error(err);
