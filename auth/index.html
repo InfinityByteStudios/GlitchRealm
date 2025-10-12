@@ -241,6 +241,36 @@
     
     <!-- Benefits Popup Script -->
     <script>
+        // Store the referrer URL when landing on the auth page
+        (function() {
+            // Save where user came from for redirect after sign-in
+            if (document.referrer) {
+                try {
+                    const referrerUrl = new URL(document.referrer);
+                    // Only save glitchrealm.ca domains
+                    if (referrerUrl.hostname.endsWith('glitchrealm.ca') || referrerUrl.hostname === 'glitchrealm.ca') {
+                        sessionStorage.setItem('gr.returnTo', document.referrer);
+                        console.log('[Auth Page] Saved return URL:', document.referrer);
+                    }
+                } catch (e) {
+                    console.warn('[Auth Page] Could not parse referrer:', e);
+                }
+            }
+            
+            // Also check URL parameter for explicit return URL
+            const params = new URLSearchParams(window.location.search);
+            const returnParam = params.get('return') || params.get('redirect');
+            if (returnParam) {
+                try {
+                    const url = new URL(returnParam);
+                    if (url.hostname.endsWith('glitchrealm.ca') || url.hostname === 'glitchrealm.ca') {
+                        sessionStorage.setItem('gr.returnTo', returnParam);
+                        console.log('[Auth Page] Saved return URL from parameter:', returnParam);
+                    }
+                } catch (e) {}
+            }
+        })();
+        
         // Set "Back to Home" link based on referrer
         (function() {
             const backLink = document.getElementById('back-home-link');
