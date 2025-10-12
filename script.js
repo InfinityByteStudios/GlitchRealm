@@ -4292,23 +4292,24 @@ document.addEventListener('DOMContentLoaded', function() {
         forceInitializeDropdowns();
         
         // Also force sign-in button if it exists
-        const signInBtn = document.getElementById('sign-in-btn');
-        const signInModal = document.getElementById('signin-modal');
-        if (signInBtn) {
-            signInBtn.onclick = function(e) {
-                e.preventDefault();
-                console.log('Sign in clicked (backup handler)');
-                const overlay = document.getElementById('signin-modal');
-                if (overlay) {
-                    overlay.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    const currentUrl = window.location.href;
-                    try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
-                    window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
-                }
-            };
-        }
+        // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
+        // const signInBtn = document.getElementById('sign-in-btn');
+        // const signInModal = document.getElementById('signin-modal');
+        // if (signInBtn) {
+        //     signInBtn.onclick = function(e) {
+        //         e.preventDefault();
+        //         console.log('Sign in clicked (backup handler)');
+        //         const overlay = document.getElementById('signin-modal');
+        //         if (overlay) {
+        //             overlay.style.display = 'flex';
+        //             document.body.style.overflow = 'hidden';
+        //         } else {
+        //             const currentUrl = window.location.href;
+        //             try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
+        //             window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+        //         }
+        //     };
+        // }
         
         // Force profile functions as backup
         setTimeout(() => {
@@ -4376,36 +4377,38 @@ function initializeAuthElements() {
     
     console.log('Auth elements found:', { signInBtn, signOutBtn, userProfile });
     
-    if (signInBtn) {
-        console.log('Setting up sign-in modal event listeners...');
-        
-        // Remove existing listeners by cloning buttons
-        const newSignInBtn = signInBtn.cloneNode(true);
-        signInBtn.parentNode.replaceChild(newSignInBtn, signInBtn);
-        
-        // Add event listener to the sign-in button
-        newSignInBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Sign in button clicked!');
-
-            // If the centralized header modal exists, open it inline
-            const authOverlay = document.getElementById('signin-modal');
-            if (authOverlay) {
-                console.log('Opening centralized sign-in modal');
-                authOverlay.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-                return;
-            }
-
-            // Fallback: navigate to the standalone Sign In page with redirect parameter
-            const currentUrl = window.location.href;
-            try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
-            const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
-            console.log('Modal not found, redirecting to standalone sign-in:', target);
-            window.location.href = target;
-        });
-        
-        console.log('Auth event listeners attached');
+    // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
+    // if (signInBtn) {
+    //     console.log('Setting up sign-in modal event listeners...');
+    //     
+    //     // Remove existing listeners by cloning buttons
+    //     const newSignInBtn = signInBtn.cloneNode(true);
+    //     signInBtn.parentNode.replaceChild(newSignInBtn, signInBtn);
+    //     
+    //     // Add event listener to the sign-in button
+    //     newSignInBtn.addEventListener('click', function(e) {
+    //         e.preventDefault();
+    //         console.log('Sign in button clicked!');
+    //
+    //         // If the centralized header modal exists, open it inline
+    //         const authOverlay = document.getElementById('signin-modal');
+    //         if (authOverlay) {
+    //             console.log('Opening centralized sign-in modal');
+    //             authOverlay.style.display = 'flex';
+    //             document.body.style.overflow = 'hidden';
+    //             return;
+    //         }
+    //
+    //         // Fallback: navigate to the standalone Sign In page with redirect parameter
+    //         const currentUrl = window.location.href;
+    //         try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
+    //         const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+    //         console.log('Modal not found, redirecting to standalone sign-in:', target);
+    //         window.location.href = target;
+    //     });
+    //     
+    //     console.log('Auth event listeners attached');
+    // }
         
     // Find and handle close modal button (specific to sign-in modal)
     const closeModal = document.querySelector('#close-modal');
@@ -4458,9 +4461,6 @@ function initializeAuthElements() {
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
         }
-    } else {
-        console.log('Some auth elements not found, skipping initialization');
-    }
 }
 
 // Function to initialize dropdown functionality
