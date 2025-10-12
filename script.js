@@ -1733,11 +1733,11 @@ function initializeBasicModal() {
             }
         }
     }
-      // Modal controls - redirect to auth subdomain
-    signInBtn?.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.location.href = 'https://auth.glitchrealm.ca/';
-    });
+      // Sign-in button now handled by direct link in header.html (no JavaScript needed)
+    // signInBtn?.addEventListener('click', (e) => {
+    //     e.preventDefault();
+    //     window.location.href = 'https://auth.glitchrealm.ca/';
+    // });
 
     if (closeModal) {
         // Remove all previous click listeners to avoid duplicate/conflicting handlers
@@ -4537,6 +4537,8 @@ function initializeAuthElements() {
     
     console.log('Auth elements found:', { signInBtn, signOutBtn, userProfile });
     
+    // Sign-in button now uses direct link - JavaScript disabled to allow natural navigation
+    /*
     if (signInBtn) {
         console.log('Setting up sign-in modal event listeners...');
         
@@ -4567,6 +4569,8 @@ function initializeAuthElements() {
         });
         
         console.log('Auth event listeners attached');
+    }
+    */
         
     // Find and handle close modal button (specific to sign-in modal)
     const closeModal = document.querySelector('#close-modal');
@@ -4619,9 +4623,6 @@ function initializeAuthElements() {
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
         }
-    } else {
-        console.log('Some auth elements not found, skipping initialization');
-    }
 }
 
 // Function to initialize dropdown functionality
