@@ -15,17 +15,62 @@ function showMessage(msg, type = 'info') {
   el.classList.remove('hidden');
 }
 
+// Detect which site the user came from and return there after sign-in
+function getReturnUrl() {
+  // Check URL parameter first (e.g., ?return=https://news.glitchrealm.ca)
+  const params = new URLSearchParams(window.location.search);
+  const returnParam = params.get('return') || params.get('redirect');
+  if (returnParam) {
+    try {
+      const url = new URL(returnParam);
+      // Only allow glitchrealm.ca domains for security
+      if (url.hostname.endsWith('glitchrealm.ca') || url.hostname === 'glitchrealm.ca') {
+        return returnParam;
+      }
+    } catch (e) {
+      console.warn('Invalid return URL parameter:', returnParam);
+    }
+  }
+  
+  // Check referrer (where user came from)
+  if (document.referrer) {
+    try {
+      const referrerUrl = new URL(document.referrer);
+      // Only allow glitchrealm.ca domains
+      if (referrerUrl.hostname.endsWith('glitchrealm.ca') || referrerUrl.hostname === 'glitchrealm.ca') {
+        return document.referrer;
+      }
+    } catch (e) {
+      console.warn('Invalid referrer URL:', document.referrer);
+    }
+  }
+  
+  // Default to main site
+  return 'https://glitchrealm.ca/';
+}
+
 function redirectHome() {
-  window.location.replace('https://glitchrealm.ca/');
+  const returnUrl = getReturnUrl();
+  console.log('[Auth] Redirecting to:', returnUrl);
+  window.location.replace(returnUrl);
+}
+
+function getBridgeUrl() {
+  const returnUrl = getReturnUrl();
+  const bridgeOrigin = new URL(returnUrl).origin;
+  return `${bridgeOrigin}/auth-bridge.html`;
 }
 
 function openBridgeAndPostPassword(email, password) {
-  const bridge = window.open('https://glitchrealm.ca/auth-bridge.html', 'gr-auth-bridge', 'width=520,height=640');
+  const bridgeUrl = getBridgeUrl();
+  const returnUrl = getReturnUrl();
+  const targetOrigin = new URL(returnUrl).origin;
+  
+  const bridge = window.open(bridgeUrl, 'gr-auth-bridge', 'width=520,height=640');
   if (!bridge) {
     showMessage('Please allow popups to continue login', 'info');
     return false;
   }
-  const targetOrigin = 'https://glitchrealm.ca';
 
   let acknowledged = false;
   const handleMessage = (event) => {
@@ -132,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         accessToken = credObj?.accessToken || '';
         idToken = res?._tokenResponse?.idToken || '';
       } catch {}
-      const bridgeUrl = new URL('https://glitchrealm.ca/auth-bridge.html');
+      const bridgeUrl = new URL(getBridgeUrl());
       bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}`;
       location.replace(bridgeUrl.toString());
     } catch (err) {
@@ -150,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const credObj = window.FirebaseGithubAuthProvider.credentialFromResult(res);
         accessToken = credObj?.accessToken || '';
       } catch {}
-      const bridgeUrl = new URL('https://glitchrealm.ca/auth-bridge.html');
+      const bridgeUrl = new URL(getBridgeUrl());
       bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}`;
       location.replace(bridgeUrl.toString());
     } catch (err) {
@@ -159,11 +204,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Forgot password: send to main site page
+  // Forgot password: send to origin site's forgot password page
   const forgotBtn = document.querySelector('.forgot-password-btn');
   if (forgotBtn) {
     forgotBtn.addEventListener('click', () => {
-      window.location.href = 'https://glitchrealm.ca/forgot-password.html';
+      const returnUrl = getReturnUrl();
+      const origin = new URL(returnUrl).origin;
+      window.location.href = `${origin}/forgot-password.html`;
     });
   }
 
@@ -185,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Now we need to sign in anonymously on the main domain too
         // We'll redirect to the bridge with a special flag
-        const bridgeUrl = new URL('https://glitchrealm.ca/auth-bridge.html');
+        const bridgeUrl = new URL(getBridgeUrl());
         bridgeUrl.hash = 'provider=anonymous';
         location.replace(bridgeUrl.toString());
       } catch (err) {

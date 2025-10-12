@@ -232,7 +232,7 @@
                 
                 <!-- Back to home -->
                 <div class="back-home">
-                    <a href="https://glitchrealm.ca">← Back to Home</a>
+                    <a href="#" id="back-home-link">← Back to Home</a>
                 </div>
             </div>
         </div>
@@ -241,6 +241,35 @@
     
     <!-- Benefits Popup Script -->
     <script>
+        // Set "Back to Home" link based on referrer
+        (function() {
+            const backLink = document.getElementById('back-home-link');
+            if (backLink) {
+                // Check URL parameter first
+                const params = new URLSearchParams(window.location.search);
+                const returnParam = params.get('return') || params.get('redirect');
+                let returnUrl = 'https://glitchrealm.ca/';
+                
+                if (returnParam) {
+                    try {
+                        const url = new URL(returnParam);
+                        if (url.hostname.endsWith('glitchrealm.ca') || url.hostname === 'glitchrealm.ca') {
+                            returnUrl = returnParam;
+                        }
+                    } catch (e) {}
+                } else if (document.referrer) {
+                    try {
+                        const referrerUrl = new URL(document.referrer);
+                        if (referrerUrl.hostname.endsWith('glitchrealm.ca') || referrerUrl.hostname === 'glitchrealm.ca') {
+                            returnUrl = document.referrer;
+                        }
+                    } catch (e) {}
+                }
+                
+                backLink.href = returnUrl;
+            }
+        })();
+        
         // Benefits modal functionality
         const openBenefitsBtn = document.getElementById('openBenefitsBtn');
         const closeBenefitsBtn = document.getElementById('closeBenefitsBtn');

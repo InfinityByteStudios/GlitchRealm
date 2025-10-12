@@ -1568,17 +1568,17 @@ function initializeBasicModal() {
             }
         }
     }
-      // Modal controls - basic functionality
-    signInBtn?.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (signInModal) {
-            signInModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            
-            // Initialize Google button text based on active tab
-            initializeGoogleButtonText();
-        }
-    });
+      // Sign-in button now redirects to auth.glitchrealm.ca (no JavaScript needed)
+    // signInBtn?.addEventListener('click', (e) => {
+    //     e.preventDefault();
+    //     if (signInModal) {
+    //         signInModal.style.display = 'flex';
+    //         document.body.style.overflow = 'hidden';
+    //         
+    //         // Initialize Google button text based on active tab
+    //         initializeGoogleButtonText();
+    //     }
+    // });
 
     if (closeModal) {
         // Remove all previous click listeners to avoid duplicate/conflicting handlers
