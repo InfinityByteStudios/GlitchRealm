@@ -172,18 +172,33 @@ document.addEventListener('DOMContentLoaded', () => {
   googleBtn?.addEventListener('click', async () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
+      console.log('[Auth] Starting Google sign-in popup...');
       // Sign in with Google OAuth popup
-      await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
+      const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
       
-      // User is now signed in on auth.glitchrealm.ca
-      // Since all sites use the same Firebase project (shared-sign-in),
-      // the user is automatically signed in everywhere!
-      // Just redirect to the bridge, which will detect the signed-in user
+      console.log('[Auth] Google sign-in successful, user:', res.user.email || res.user.uid);
+      
+      // Get a fresh ID token from the signed-in user
+      const idToken = await res.user.getIdToken();
+      console.log('[Auth] Got ID token, length:', idToken?.length);
+      
+      // Get access token from the credential
+      let accessToken = '';
+      try {
+        const credObj = window.FirebaseGoogleAuthProvider.credentialFromResult(res);
+        accessToken = credObj?.accessToken || '';
+        console.log('[Auth] Got access token, length:', accessToken?.length);
+      } catch (e) {
+        console.warn('[Auth] Could not extract access token:', e);
+      }
+      
+      // Redirect to bridge with fresh tokens
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = 'provider=google'; // Just for logging purposes
+      bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}`;
+      console.log('[Auth] Redirecting to bridge:', bridgeUrl.toString().substring(0, 100) + '...');
       location.replace(bridgeUrl.toString());
     } catch (err) {
-      console.error(err);
+      console.error('[Auth] Google sign-in error:', err);
       showMessage(err.message || 'Google sign-in failed', 'error');
     }
   });
@@ -192,14 +207,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
       // Sign in with GitHub OAuth popup
-      await window.firebaseSignInWithPopup(window.firebaseAuth, window.githubProvider);
+      const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.githubProvider);
       
-      // User is now signed in on auth.glitchrealm.ca
-      // Since all sites use the same Firebase project (shared-sign-in),
-      // the user is automatically signed in everywhere!
-      // Just redirect to the bridge, which will detect the signed-in user
+      // Get access token from the credential
+      let accessToken = '';
+      try {
+        const credObj = window.FirebaseGithubAuthProvider.credentialFromResult(res);
+        accessToken = credObj?.accessToken || '';
+      } catch {}
+      
+      // Redirect to bridge with access token
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = 'provider=github'; // Just for logging purposes
+      bridgeUrl.hash = `provider=github&access_token=${encodeURIComponent(accessToken)}`;
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error(err);
@@ -233,12 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sign in anonymously on auth subdomain
         await signInAnonymously(window.firebaseAuth);
         
-        // User is now signed in anonymously on auth.glitchrealm.ca
-        // Since all sites use the same Firebase project (shared-sign-in),
-        // the user is automatically signed in everywhere!
-        // Just redirect to the bridge, which will detect the signed-in user
+        // For anonymous sign-in, we can't pass tokens
+        // The bridge will need to sign in anonymously on the target domain too
         const bridgeUrl = new URL(getBridgeUrl());
-        bridgeUrl.hash = 'provider=anonymous'; // Just for logging purposes
+        bridgeUrl.hash = 'provider=anonymous';
         location.replace(bridgeUrl.toString());
       } catch (err) {
         console.error(err);
