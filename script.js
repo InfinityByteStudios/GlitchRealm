@@ -4452,24 +4452,24 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Independent dropdown initialization...');
         forceInitializeDropdowns();
         
-        // Also force sign-in button if it exists
-        const signInBtn = document.getElementById('sign-in-btn');
-        const signInModal = document.getElementById('signin-modal');
-        if (signInBtn) {
-            signInBtn.onclick = function(e) {
-                e.preventDefault();
-                console.log('Sign in clicked (backup handler)');
-                const overlay = document.getElementById('signin-modal');
-                if (overlay) {
-                    overlay.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    const currentUrl = window.location.href;
-                    try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
-                    window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
-                }
-            };
-        }
+        // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
+        // const signInBtn = document.getElementById('sign-in-btn');
+        // const signInModal = document.getElementById('signin-modal');
+        // if (signInBtn) {
+        //     signInBtn.onclick = function(e) {
+        //         e.preventDefault();
+        //         console.log('Sign in clicked (backup handler)');
+        //         const overlay = document.getElementById('signin-modal');
+        //         if (overlay) {
+        //             overlay.style.display = 'flex';
+        //             document.body.style.overflow = 'hidden';
+        //         } else {
+        //             const currentUrl = window.location.href;
+        //             try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
+        //             window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+        //         }
+        //     };
+        // }
         
         // Force profile functions as backup
         setTimeout(() => {
