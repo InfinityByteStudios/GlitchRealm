@@ -637,7 +637,11 @@
         if (game.title) $('submissionTitle').value = game.title;
         if (game.description) $('submissionDescription').value = game.description;
         if (game.playUrl) $('submissionPlayUrl').value = game.playUrl;
-        if (game.coverImageUrl) $('submissionCoverUrl').value = game.coverImageUrl;
+        if (game.coverImageUrl) {
+          $('submissionCoverUrl').value = game.coverImageUrl;
+          // Store the original cover URL so we can detect if it changed
+          window._originalCoverUrl = game.coverImageUrl;
+        }
         if (game.extendedDescription) $('submissionExtendedDesc').value = game.extendedDescription;
         if (game.howToPlay) $('submissionHowToPlay').value = game.howToPlay;
         
@@ -656,11 +660,6 @@
           });
         }
         
-        // Set badge
-        if (game.badge && ['new', 'updated', 'beta'].includes(game.badge)) {
-          const badgeSelect = $('submissionBadge');
-          if (badgeSelect) badgeSelect.value = game.badge;
-        }
         
         // Update page title
         document.title = 'Edit Game - GlitchRealm';
@@ -1082,7 +1081,13 @@
         if(!description){ if(msg) msg.innerHTML='<div class="error-message">Description is required.</div>'; return; }
         if(!playUrl || !/^https?:\/\//i.test(playUrl)){ if(msg) msg.innerHTML='<div class="error-message">Valid Play URL required (http/https)</div>'; return; }
         try { btn.disabled=true; btn.textContent = isEditMode ? 'Updating...' : 'Submitting...';
-          if(file || coverImageUrl){
+          // Only upload a new cover image if:
+          // 1. User selected a new file, OR
+          // 2. User changed the URL field (not just the existing Supabase URL)
+          const originalCoverUrl = window._originalCoverUrl || '';
+          const shouldUploadCover = file || (coverImageUrl && coverImageUrl !== originalCoverUrl);
+          
+          if(shouldUploadCover){
             const safeName=(file?.name||'cover').replace(/[^a-zA-Z0-9_.-]/g,'_'); const uid=user.uid; if(!uid) throw new Error('No UID'); if(navigator && navigator.onLine===false) throw new Error('Offline');
             try {
               async function ensureSupabase(){
@@ -1142,6 +1147,9 @@
               // Abort submission if upload fails
               throw uploadErr;
             }
+          } else if (isEditMode && originalCoverUrl) {
+            // If editing and didn't upload a new cover, preserve the original
+            coverImageUrl = originalCoverUrl;
           }
           // NOTE: Cover image already uploaded to Supabase above (no Firebase Storage fallback). Only metadata goes to Firestore below.
           const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
