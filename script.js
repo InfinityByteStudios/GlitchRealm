@@ -317,6 +317,30 @@ function showPasswordChangeSuccessNotification() {
     }
 }
 
+// Helper function to display newest game in the featured card
+function displayNewestGame(featuredCard, gameData) {
+    if (!featuredCard || !gameData) return;
+    
+    featuredCard.innerHTML = `
+        <div class="featured-image">
+            <img src="${gameData.coverImageUrl || 'assets/Game Logos/ByteSurge.png'}" 
+                 alt="${gameData.title || 'Game'}" 
+                 class="featured-logo-image" 
+                 decoding="async" 
+                 fetchpriority="high" 
+                 loading="eager"
+                 onerror="this.src='assets/Game Logos/ByteSurge.png'">
+            <div class="game-badge new">NEW</div>
+        </div>
+        <div class="featured-info">
+            <h3>${gameData.title || 'Untitled Game'}</h3>
+            <p>${gameData.description || 'No description available.'}</p>
+            <p class="featured-developer">Made by <strong>${gameData.ownerUsername || 'Unknown Developer'}</strong></p>
+            <a href="game-detail.html?id=${gameData.id}" class="btn btn-primary">Play Now</a>
+        </div>
+    `;
+}
+
 // Load newest game from Firebase for home page
 async function loadNewestGame() {
     // Only run on index.html
@@ -327,6 +351,27 @@ async function loadNewestGame() {
     
     try {
         console.log('[Home] Starting to load newest game...');
+        
+        // Check cache first and display immediately
+        const CACHE_KEY = 'gr.newestGame';
+        const CACHE_TIMESTAMP_KEY = 'gr.newestGame.timestamp';
+        let cachedGame = null;
+        let cachedTimestamp = 0;
+        
+        try {
+            const cached = localStorage.getItem(CACHE_KEY);
+            const timestampStr = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+            if (cached && timestampStr) {
+                cachedGame = JSON.parse(cached);
+                cachedTimestamp = parseInt(timestampStr, 10);
+                
+                // Display cached game immediately
+                console.log('[Home] Displaying cached newest game:', cachedGame.title);
+                displayNewestGame(featuredCard, cachedGame);
+            }
+        } catch (e) {
+            console.warn('[Home] Failed to load cache:', e);
+        }
         
         // Wait for Firebase to be ready (with shorter timeout)
         await new Promise((resolve) => {
@@ -364,6 +409,32 @@ async function loadNewestGame() {
         const gamesRef = window.firestoreCollection(db, 'game_submissions');
         
         console.log('[Home] Querying for games...');
+        
+        // Quick check: Just get the most recent game to see if there's anything newer
+        const quickCheckQuery = window.firestoreQuery(
+            gamesRef,
+            window.firestoreOrderBy('createdAt', 'desc'),
+            window.firestoreLimit(1)
+        );
+        const quickSnapshot = await window.firestoreGetDocs(quickCheckQuery);
+        
+        // Check if we have a newer game than cached
+        if (quickSnapshot.size > 0) {
+            const latestDoc = quickSnapshot.docs[0];
+            const latestData = latestDoc.data();
+            const latestTimestamp = latestData.createdAt?.toMillis?.() || 0;
+            
+            console.log('[Home] Latest game in DB:', latestData.title, 'Created:', new Date(latestTimestamp));
+            console.log('[Home] Cached game timestamp:', cachedTimestamp ? new Date(cachedTimestamp) : 'none');
+            
+            // If we have a cached game and it's still the newest, skip full fetch
+            if (cachedGame && cachedTimestamp >= latestTimestamp) {
+                console.log('[Home] Cache is up to date, skipping full fetch');
+                return;
+            }
+            
+            console.log('[Home] New game detected or cache outdated, fetching full data...');
+        }
         
         // Get all games to check their status
         const allGamesQuery = window.firestoreQuery(gamesRef);
@@ -411,25 +482,30 @@ async function loadNewestGame() {
             
             console.log('[Home] Newest game:', gameData.title, 'Created:', new Date(newestGame.createdAt));
             
-            // Update the featured card with the newest game
-            featuredCard.innerHTML = `
-                <div class="featured-image">
-                    <img src="${gameData.coverImageUrl || 'assets/Game Logos/ByteSurge.png'}" 
-                         alt="${gameData.title || 'Game'}" 
-                         class="featured-logo-image" 
-                         decoding="async" 
-                         fetchpriority="high" 
-                         loading="eager"
-                         onerror="this.src='assets/Game Logos/ByteSurge.png'">
-                    <div class="game-badge new">NEW</div>
-                </div>
-                <div class="featured-info">
-                    <h3>${gameData.title || 'Untitled Game'}</h3>
-                    <p>${gameData.description || 'No description available.'}</p>
-                    <p class="featured-developer">Made by <strong>${gameData.ownerUsername || 'Unknown Developer'}</strong></p>
-                    <a href="game-detail.html?id=${gameId}" class="btn btn-primary">Play Now</a>
-                </div>
-            `;
+            // Cache the newest game data
+            try {
+                const cacheData = {
+                    id: gameId,
+                    title: gameData.title,
+                    description: gameData.description,
+                    coverImageUrl: gameData.coverImageUrl,
+                    ownerUsername: gameData.ownerUsername
+                };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+                localStorage.setItem(CACHE_TIMESTAMP_KEY, newestGame.createdAt.toString());
+                console.log('[Home] Cached newest game data');
+            } catch (e) {
+                console.warn('[Home] Failed to cache game data:', e);
+            }
+            
+            // Update the featured card display
+            displayNewestGame(featuredCard, {
+                id: gameId,
+                title: gameData.title,
+                description: gameData.description,
+                coverImageUrl: gameData.coverImageUrl,
+                ownerUsername: gameData.ownerUsername
+            });
             
             console.log('[Home] Successfully loaded newest game:', gameData.title);
         } else {
