@@ -336,7 +336,7 @@ function displayNewestGame(featuredCard, gameData) {
             <h3>${gameData.title || 'Untitled Game'}</h3>
             <p>${gameData.description || 'No description available.'}</p>
             <p class="featured-developer">Made by <strong>${gameData.ownerUsername || 'Unknown Developer'}</strong></p>
-            <a href="game-detail.html?id=${gameData.id}" class="btn btn-primary">Play Now</a>
+            <a href="${gameData.playUrl ? gameData.playUrl : `game-detail.html?id=${gameData.id}` }" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Play Now</a>
         </div>
     `;
 }
@@ -489,6 +489,7 @@ async function loadNewestGame() {
                     title: gameData.title,
                     description: gameData.description,
                     coverImageUrl: gameData.coverImageUrl,
+                    playUrl: gameData.playUrl,
                     ownerUsername: gameData.ownerUsername
                 };
                 localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
@@ -504,6 +505,7 @@ async function loadNewestGame() {
                 title: gameData.title,
                 description: gameData.description,
                 coverImageUrl: gameData.coverImageUrl,
+                playUrl: gameData.playUrl,
                 ownerUsername: gameData.ownerUsername
             });
             
