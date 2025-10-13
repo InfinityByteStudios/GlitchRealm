@@ -595,6 +595,42 @@
         viewGameBtn.style.display = '';
         viewGameBtn.textContent = isEdit ? 'View Updated Game' : 'View Your Submission';
       }
+
+      // If this was an edit, remove the moderation/details block entirely and reuse the
+      // existing view button so the moderation steps never appear after an edit.
+      const successDetails = successCard.querySelector('.success-details');
+      if (isEdit) {
+        if (successTitle) successTitle.textContent = 'Edit Successful!';
+        if (successMessage) successMessage.textContent = 'Your changes were saved.';
+
+        // Ensure the View Game button is available outside the removed details block
+        if (viewGameBtn && gameId) {
+          viewGameBtn.href = `game-detail.html?id=${gameId}`;
+          viewGameBtn.textContent = 'View Updated Game';
+          viewGameBtn.style.display = '';
+          // Move viewGameBtn to be a direct child of successCard (so it remains visible)
+          try { successCard.appendChild(viewGameBtn); } catch (e) { /* ignore */ }
+        }
+
+        // Also show a simple library link
+        const libLink = document.createElement('a');
+        libLink.href = 'games.html';
+        libLink.className = 'btn btn-primary';
+        libLink.textContent = 'View Library';
+        // Avoid duplicating if already added
+        if (!successCard.querySelector('.btn.btn-primary[__gr_lib]')) {
+          libLink.setAttribute('__gr_lib','1');
+          successCard.appendChild(libLink);
+        }
+
+        // Remove the details block so moderation text cannot reappear
+        if (successDetails && successDetails.parentNode) {
+          successDetails.parentNode.removeChild(successDetails);
+        }
+      } else {
+        // New submission - ensure the full details block is visible
+        if (successDetails) successDetails.style.display = '';
+      }
       
       // Scroll to top smoothly
       window.scrollTo({top: 0, behavior: 'smooth'});
