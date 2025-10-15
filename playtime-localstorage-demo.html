@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playtime LocalStorage Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.tracking { background: #d4edda; color: #155724; }
+        .status.stopped { background: #f8d7da; color: #721c24; }
+        .status.synced { background: #cce7ff; color: #004085; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .data-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log {
+            background: #343a40;
+            color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Playtime LocalStorage Demo</h1>
+        <p>This demo shows how the LocalPlaytimeTracker saves data to localStorage.</p>
+        
+        <div id="status" class="status stopped">
+            Tracker Status: Not Started
+        </div>
+        
+        <div>
+            <button id="startBtn" onclick="startTracking()">Start Tracking</button>
+            <button id="stopBtn" onclick="stopTracking()" disabled>Stop Tracking</button>
+            <button onclick="viewData()">View LocalStorage Data</button>
+            <button onclick="clearData()">Clear Data</button>
+            <button onclick="simulateActivity()">Simulate Activity</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Current Data</h2>
+        <div id="dataDisplay" class="data-display">
+            No data yet. Start tracking to see playtime data.
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Activity Log</h2>
+        <div id="log" class="log"></div>
+    </div>
+
+    <!-- Include the LocalPlaytimeTracker -->
+    <script src="playtime-local-storage.js"></script>
+    
+    <script>
+        let tracker = null;
+        let activitySimulator = null;
+        
+        // Override console.log to show in our log display
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${args.join(' ')}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+        
+        function startTracking() {
+            if (tracker) {
+                console.log('Tracker already running');
+                return;
+            }
+            
+            // Create tracker for demo game
+            tracker = new LocalPlaytimeTracker('demo-game-001', 'LocalStorage Demo Game');
+            
+            // Update UI
+            document.getElementById('status').textContent = 'Tracker Status: Tracking Active';
+            document.getElementById('status').className = 'status tracking';
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            console.log('Started tracking for Demo Game');
+            
+            // Auto-update data display every 5 seconds
+            updateDataDisplay();
+            setInterval(updateDataDisplay, 5000);
+        }
+        
+        function stopTracking() {
+            if (!tracker) {
+                console.log('No tracker running');
+                return;
+            }
+            
+            tracker.stopTracking();
+            tracker.destroy();
+            tracker = null;
+            
+            // Update UI
+            document.getElementById('status').textContent = 'Tracker Status: Stopped';
+            document.getElementById('status').className = 'status stopped';
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            console.log('Stopped tracking');
+            updateDataDisplay();
+        }
+        
+        function viewData() {
+            updateDataDisplay();
+        }
+        
+        function updateDataDisplay() {
+            const data = LocalPlaytimeTracker.getAllPlaytimeData();
+            const display = document.getElementById('dataDisplay');
+            
+            if (data) {
+                display.textContent = JSON.stringify(data, null, 2);
+            } else {
+                display.textContent = 'No data in localStorage';
+            }
+        }
+        
+        function clearData() {
+            if (confirm('Clear all playtime data from localStorage?')) {
+                localStorage.removeItem('glitchrealm_playtime_data');
+                console.log('Cleared all playtime data');
+                updateDataDisplay();
+            }
+        }
+        
+        function simulateActivity() {
+            if (activitySimulator) {
+                clearInterval(activitySimulator);
+                activitySimulator = null;
+                console.log('Stopped activity simulation');
+                return;
+            }
+            
+            console.log('Starting activity simulation (mouse movements every 2 seconds)');
+            activitySimulator = setInterval(() => {
+                // Dispatch a fake mouse event to trigger activity
+                const event = new MouseEvent('mousemove', {
+                    clientX: Math.random() * window.innerWidth,
+                    clientY: Math.random() * window.innerHeight
+                });
+                document.dispatchEvent(event);
+            }, 2000);
+            
+            // Stop after 30 seconds
+            setTimeout(() => {
+                if (activitySimulator) {
+                    clearInterval(activitySimulator);
+                    activitySimulator = null;
+                    console.log('Activity simulation ended');
+                }
+            }, 30000);
+        }
+        
+        // Listen for playtime update events
+        window.addEventListener('playtimeDataUpdated', (event) => {
+            console.log(`Playtime updated: ${event.detail.gameName} - ${event.detail.totalMinutes.toFixed(2)} minutes`);
+            updateDataDisplay();
+        });
+        
+        // Initial data display
+        updateDataDisplay();
+        
+        // Instructions
+        console.log('=== Playtime LocalStorage Demo ===');
+        console.log('1. Click "Start Tracking" to begin');
+        console.log('2. Move mouse or press keys to simulate activity');
+        console.log('3. Data saves automatically every 30 seconds');
+        console.log('4. View localStorage data anytime');
+        console.log('5. Try switching tabs to test visibility handling');
+    </script>
+</body>
+</html>

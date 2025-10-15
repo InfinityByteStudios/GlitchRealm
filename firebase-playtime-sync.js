@@ -6,8 +6,104 @@
  * 1. A global document in the 'playtime' collection that contains all games
  * 2. Individual game documents in a sub-collection that track specific game playtime
  * 
- * This utility ensures both stay in sync.
+ * This utility ensures both stay in sync and also handles localStorage data from the new tracking system.
  */
+
+// Check for localStorage playtime data and sync it
+function syncLocalStorageData() {
+    try {
+        const { user, db } = validateFirebaseEnvironment();
+        const userId = user.uid;
+        
+        // Check for localStorage data
+        const localData = localStorage.getItem('glitchrealm_playtime_data');
+        if (!localData) {
+            console.log('No localStorage playtime data found');
+            return Promise.resolve(null);
+        }
+        
+        const playtimeData = JSON.parse(localData);
+        if (!playtimeData.needsSync) {
+            console.log('LocalStorage data already synced');
+            return Promise.resolve(null);
+        }
+        
+        const gamesToSync = Object.values(playtimeData.games).filter(game => game.needsSync);
+        if (gamesToSync.length === 0) {
+            console.log('No games need syncing from localStorage');
+            return Promise.resolve(null);
+        }
+        
+        console.log(`Syncing ${gamesToSync.length} games from localStorage to Firestore`);
+        
+        const batch = window.firestoreBatch(db);
+        const globalDocRef = window.firestoreDoc(db, 'playtime', userId);
+        
+        return window.firestoreGetDoc(globalDocRef)
+            .then(globalDoc => {
+                const globalData = globalDoc.exists() ? globalDoc.data() : { games: {} };
+                const globalGames = globalData.games || {};
+                
+                // Process each game from localStorage
+                gamesToSync.forEach(game => {
+                    const gameId = game.gameId;
+                    const gameDocRef = window.firestoreDoc(db, 'playtime', userId, 'games', gameId);
+                    
+                    // Add to existing totals if game already exists
+                    const existingGlobal = globalGames[gameId];
+                    const totalMinutes = (existingGlobal?.totalMinutes || 0) + game.totalMinutes;
+                    const sessionCount = (existingGlobal?.sessionCount || 0) + game.sessionCount;
+                    
+                    // Update individual game document
+                    batch.set(gameDocRef, {
+                        gameId: gameId,
+                        gameName: game.gameName,
+                        totalMinutes: totalMinutes,
+                        sessionCount: sessionCount,
+                        lastPlayed: new Date(game.lastPlayed)
+                    }, { merge: true });
+                    
+                    // Update global games object
+                    globalGames[gameId] = {
+                        gameId: gameId,
+                        gameName: game.gameName,
+                        totalMinutes: totalMinutes,
+                        sessionCount: sessionCount,
+                        lastPlayed: new Date(game.lastPlayed)
+                    };
+                });
+                
+                // Update global document
+                batch.set(globalDocRef, {
+                    userId: userId,
+                    lastUpdated: new Date(),
+                    games: globalGames
+                }, { merge: true });
+                
+                return batch.commit();
+            })
+            .then(() => {
+                console.log('✅ Successfully synced localStorage data to Firestore');
+                
+                // Mark localStorage data as synced
+                playtimeData.needsSync = false;
+                Object.values(playtimeData.games).forEach(game => {
+                    game.needsSync = false;
+                });
+                localStorage.setItem('glitchrealm_playtime_data', JSON.stringify(playtimeData));
+                
+                return true;
+            })
+            .catch(error => {
+                console.error('❌ Error syncing localStorage data:', error);
+                throw error;
+            });
+            
+    } catch (error) {
+        console.error('Error syncing localStorage data: ' + error.message);
+        return Promise.reject(error);
+    }
+}
 
 // Helper function to validate Firebase environment and user authentication
 function validateFirebaseEnvironment() {
@@ -318,4 +414,7 @@ console.log('');
 console.log('2. For a complete rebuild: rebuildPlaytimeData()');
 console.log('   This will consolidate all playtime data from all possible locations');
 console.log('   and ensure the correct data structure is in place');
+console.log('');
+console.log('3. To sync localStorage data: syncLocalStorageData()');
+console.log('   This will sync any unsynced data from localStorage to Firestore');
 console.log('--------------------------------');
