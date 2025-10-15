@@ -333,7 +333,7 @@
 
     // ==================== IMAGE OPTIMIZATION REPORT ====================
     function generateOptimizationReport() {
-        const allImages = document.images; // Use document.images instead of querySelectorAll
+        const allImages = Array.from(document.images); // Convert HTMLCollection to Array
         const report = {
             total: allImages.length,
             lazyLoaded: 0,
