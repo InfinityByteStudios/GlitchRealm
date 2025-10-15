@@ -4,15 +4,19 @@
   let currentUser = null;
   let isAdmin = false;
   let isMod = false; // admins or developer UIDs can access moderation panel
-  // Role UIDs (keep in sync with firestore.rules isDeveloper + extend for artists as needed)
-  const ROLE_UIDS = {
-    developers: new Set([
+  // Use centralized dev config if available, fallback to hardcoded
+  const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || new Set([
       '6iZDTXC78aVwX22qrY43BOxDRLt1',
       'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
       'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
       '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
       'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-    ]),
+  ]);
+  const logger = window.GlitchRealmDev?.logger || console;
+
+  // Role UIDs (keep in sync with firestore.rules isDeveloper + extend for artists as needed)
+  const ROLE_UIDS = {
+    developers: DEV_UIDS,
     artists: new Set([
       'cuGtyQvqilcWmxS859eta41Plak2'
     ])
@@ -21,8 +25,8 @@
   function roleBadgesFor(uid){
     if (!uid) return '';
     const out = [];
-    if (ROLE_UIDS.developers.has(uid)) out.push('<span class="role-badge dev" title="Developer">DEV</span>');
-    if (ROLE_UIDS.artists.has(uid)) out.push('<span class="role-badge artist" title="Artist">ART</span>');
+    if (ROLE_UIDS.developers.has(uid)) out.push(BADGE_TEMPLATES.developer);
+    if (ROLE_UIDS.artists.has(uid)) out.push(BADGE_TEMPLATES.artist);
     return out.join(' ');
   }
   // Modular Firestore helpers (lazy-loaded)
@@ -45,16 +49,46 @@
     onSnapshot: null,
     Timestamp: null
   };
-  // Cache for verified users to avoid repeated lookups
-  const verifiedCache = new Map(); // uid -> boolean
   let lastCursor = null;
   const pageSize = 10;
-  const postsList = document.getElementById('posts-list');
-  const emptyEl = document.getElementById('posts-empty');
-  const loadMoreBtn = document.getElementById('load-more');
-  const createBtn = document.getElementById('create-post-btn');
-  const filterTag = document.getElementById('filter-tag');
-  const sortOrder = document.getElementById('sort-order');
+  
+  // Cache DOM references in long-lived contexts for better performance
+  const DOM_REFS = {
+    postsList: null,
+    emptyEl: null,
+    loadMoreBtn: null,
+    createBtn: null,
+    filterTag: null,
+    sortOrder: null,
+    
+    init() {
+      this.postsList = document.getElementById('posts-list');
+      this.emptyEl = document.getElementById('posts-empty');
+      this.loadMoreBtn = document.getElementById('load-more');
+      this.createBtn = document.getElementById('create-post-btn');
+      this.filterTag = document.getElementById('filter-tag');
+      this.sortOrder = document.getElementById('sort-order');
+    }
+  };
+  
+  // These will be updated to use cached references after DOM_REFS.init()
+  let postsList, emptyEl, loadMoreBtn, createBtn, filterTag, sortOrder;
+  
+  // Hoisted utilities for better performance - avoid recreating on each call
+  const HTML_ESCAPE_REGEX = /[&<>"']/g;
+  const HTML_ESCAPE_MAP = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'};
+  
+  // Pre-compiled verified badge SVG template to avoid recreation
+  const VERIFIED_BADGE_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="#00ffc3"/>
+    <path d="M12 6L12.5 10.5L17 11L12.5 11.5L12 16L11.5 11.5L7 11L11.5 10.5L12 6Z" fill="#ffffff"/>
+  </svg>`;
+  
+  // Pre-compiled badge HTML templates
+  const BADGE_TEMPLATES = {
+    developer: '<span class="role-badge dev" title="Developer">DEV</span>',
+    artist: '<span class="role-badge artist" title="Artist">ART</span>'
+  };
   // Track hidden posts for the signed-in user
   const hiddenPosts = new Set();
   let hiddenUnsub = null;
@@ -157,7 +191,7 @@
   }
 
   function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+    return String(s).replace(HTML_ESCAPE_REGEX, c => HTML_ESCAPE_MAP[c]);
   }
 
   async function loadPosts(reset){
@@ -179,7 +213,7 @@
   const snap = await f.getDocs(q);
   renderSnap(snap, reset);
     } catch (err) {
-      console.warn('Primary Firestore query failed, falling back (likely missing indexes locally):', err && err.message ? err.message : err);
+      logger.warn('Primary Firestore query failed, falling back (likely missing indexes locally):', err && err.message ? err.message : err);
       await fallbackLoadPosts(reset, tag);
     } finally {
       postsList.setAttribute('aria-busy','false');
@@ -311,7 +345,7 @@
         setupNewPostsListener();
       }
     } catch (e) {
-      console.error('Fallback load failed:', e);
+      logger.error('Fallback load failed:', e);
       if (reset) postsList.innerHTML = '';
       emptyEl.style.display = 'block';
       loadMoreBtn.style.display = 'none';
@@ -574,6 +608,17 @@
 
 
   document.addEventListener('DOMContentLoaded', function(){
+    // Initialize DOM reference cache for better performance
+    DOM_REFS.init();
+    
+    // Update variables to use cached references
+    postsList = DOM_REFS.postsList;
+    emptyEl = DOM_REFS.emptyEl;
+    loadMoreBtn = DOM_REFS.loadMoreBtn;
+    createBtn = DOM_REFS.createBtn;
+    filterTag = DOM_REFS.filterTag;
+    sortOrder = DOM_REFS.sortOrder;
+    
     // Wire UI
     createBtn && createBtn.addEventListener('click', openCreateModal);
     document.getElementById('close-create-post')?.addEventListener('click', closeCreateModal);
@@ -847,7 +892,7 @@
       desc.setAttribute('data-state', 'truncated');
             }
           } catch (err) {
-            console.warn('Toggle read failed:', err);
+            logger.warn('Toggle read failed:', err);
           }
         }
         return; // don't fall through to comment handlers
@@ -1310,17 +1355,98 @@
     }
   }
 
-  async function ensureVerified(uid){
+  // Optimized verified badge cache with batch loading
+  const verifiedCache = {
+    cache: new Map(),
+    pending: new Map(), // Track in-flight requests
+    
+    async get(uid) {
     if (!uid) return false;
-    if (verifiedCache.has(uid)) return verifiedCache.get(uid);
+      if (this.cache.has(uid)) return this.cache.get(uid);
+      
+      // Dedupe concurrent requests
+      if (this.pending.has(uid)) {
+        return this.pending.get(uid);
+      }
+      
+      const promise = this._fetch(uid);
+      this.pending.set(uid, promise);
+      
+      const result = await promise;
+      this.pending.delete(uid);
+      return result;
+    },
+    
+    async batchGet(uids) {
+      // Batch fetch multiple UIDs at once
+      const uncached = uids.filter(uid => !this.cache.has(uid));
+      if (uncached.length === 0) return;
+      
+      try {
+        await ensureModFirestore();
+        // Firestore allows up to 10 docs in a single query
+        const chunks = [];
+        for (let i = 0; i < uncached.length; i += 10) {
+          chunks.push(uncached.slice(i, i + 10));
+        }
+        
+        await Promise.all(chunks.map(chunk => this._fetchBatch(chunk)));
+      } catch (e) {
+        logger.error('Batch verified fetch failed:', e);
+        // Fallback to individual fetches
+        await Promise.all(uncached.map(uid => this._fetch(uid)));
+      }
+    },
+    
+    async _fetch(uid) {
     try {
       await ensureModFirestore();
       const ref = mfs.doc(mfs.db, `verified_users/${uid}`);
       const snap = await mfs.getDoc(ref);
       const ok = !!(snap.exists() && snap.data()?.verified === true);
-      verifiedCache.set(uid, ok);
+        this.cache.set(uid, ok);
       return ok;
-    } catch(e){ verifiedCache.set(uid, false); return false; }
+      } catch (e) {
+        this.cache.set(uid, false);
+        return false;
+      }
+    },
+    
+    async _fetchBatch(uids) {
+      try {
+        // Use Firestore 'in' query for batch fetching (max 10 docs)
+        const q = mfs.query(
+          mfs.collection(mfs.db, 'verified_users'), 
+          mfs.where(mfs.documentId(), 'in', uids)
+        );
+        const snaps = await mfs.getDocs(q);
+        
+        // Process results
+        const results = new Map();
+        snaps.forEach(snap => {
+          const uid = snap.id;
+          const ok = !!(snap.exists() && snap.data()?.verified === true);
+          results.set(uid, ok);
+          this.cache.set(uid, ok);
+        });
+        
+        // Set false for UIDs not found in the query results
+        uids.forEach(uid => {
+          if (!results.has(uid)) {
+            this.cache.set(uid, false);
+          }
+        });
+      } catch (e) {
+        logger.error('Batch fetch failed:', e);
+        // Fallback to individual fetches on error
+        await Promise.all(uids.map(uid => this._fetch(uid)));
+      }
+    }
+  };
+
+  // Legacy function for backward compatibility
+  async function ensureVerified(uid) {
+    return await verifiedCache.get(uid);
   }
 
   function attachVerifiedBadge(afterEl){
@@ -1335,7 +1461,7 @@
     badge.className = 'verified-badge';
     badge.setAttribute('title','Verified');
     badge.setAttribute('aria-label','Verified');
-  badge.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z" fill="#00ffc3"/></svg>';
+  badge.innerHTML = VERIFIED_BADGE_SVG;
   badge.style.cssText = 'display:inline-flex;margin-left:6px;width:16px;height:16px;align-items:center;justify-content:center;';
     // Insert after the name element
     if (afterEl.nextSibling) parent.insertBefore(badge, afterEl.nextSibling); else parent.appendChild(badge);
@@ -1352,7 +1478,7 @@
     badge.setAttribute('title','Verified');
     badge.setAttribute('aria-label','Verified');
     badge.dataset.pending = '1';
-    badge.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z" fill="#00ffc3"/></svg>';
+    badge.innerHTML = VERIFIED_BADGE_SVG;
     badge.style.cssText = 'display:inline-flex;margin-left:6px;width:16px;height:16px;align-items:center;justify-content:center;opacity:.35;filter:grayscale(1);';
     if (nameEl.nextSibling) parent.insertBefore(badge, nameEl.nextSibling); else parent.appendChild(badge);
   }
@@ -1388,10 +1514,14 @@
     const pairs = nodes.map(n => [n, n.getAttribute('data-author-uid') || '']).filter(([,u]) => !!u);
     const seen = new Set();
     for (const [, uid] of pairs) seen.add(uid);
-    // Prime cache
-    await Promise.all(Array.from(seen).map(u => ensureVerified(u)));
+    
+    // Use batch loading for better performance
+    await verifiedCache.batchGet(Array.from(seen));
+    
     // Attach badges
-    pairs.forEach(([el, uid]) => { if (verifiedCache.get(uid)) attachVerifiedBadge(el); });
+    pairs.forEach(([el, uid]) => { 
+      if (verifiedCache.cache.get(uid)) attachVerifiedBadge(el); 
+    });
   }
 })();
 

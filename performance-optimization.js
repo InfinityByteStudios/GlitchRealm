@@ -15,6 +15,7 @@
 
     // ==================== CONFIGURATION ====================
     const config = {
+        autoInit: true, // NEW: Allow disabling auto-init
         rootMargin: '50px', // Start loading 50px before entering viewport
         threshold: 0.01,
         enableWebP: true,
@@ -272,19 +273,37 @@
 
     // ==================== MUTATION OBSERVER FOR DYNAMIC IMAGES ====================
     function observeNewImages() {
+        let pendingNodes = [];
+        let processingScheduled = false;
+        
+        const processBatch = () => {
+            const nodesToProcess = pendingNodes.slice();
+            pendingNodes = [];
+            processingScheduled = false;
+            
+            nodesToProcess.forEach(node => {
+                if (node.tagName === 'IMG') {
+                    processNewImage(node);
+                } else if (node.querySelectorAll) {
+                    const images = node.querySelectorAll('img');
+                    images.forEach(processNewImage);
+                }
+            });
+        };
+        
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === 1) { // Element node
-                        if (node.tagName === 'IMG') {
-                            processNewImage(node);
-                        } else if (node.querySelectorAll) {
-                            const images = node.querySelectorAll('img');
-                            images.forEach(processNewImage);
-                        }
+                        pendingNodes.push(node);
                     }
                 });
             });
+            
+            if (!processingScheduled) {
+                processingScheduled = true;
+                requestAnimationFrame(processBatch);
+            }
         });
 
         observer.observe(document.body, {
@@ -314,7 +333,7 @@
 
     // ==================== IMAGE OPTIMIZATION REPORT ====================
     function generateOptimizationReport() {
-        const allImages = document.querySelectorAll('img');
+        const allImages = document.images; // Use document.images instead of querySelectorAll
         const report = {
             total: allImages.length,
             lazyLoaded: 0,
@@ -325,22 +344,54 @@
             missingWebP: 0
         };
 
+        // Process immediate checks first
         allImages.forEach(img => {
             if (img.loading === 'lazy' || img.dataset.src) report.lazyLoaded++;
             if (!img.alt) report.withoutAlt++;
             if (!img.width || !img.height) report.withoutDimensions++;
-            if (img.naturalWidth > 1920) report.largeImages++;
             if (img.src && img.src.startsWith('http') && !img.src.includes(window.location.hostname)) {
                 report.externalImages++;
             }
         });
 
+        // Defer expensive naturalWidth checks to idle time
+        const checkImageSizes = () => {
+            allImages.forEach(img => {
+                if (!img.complete) return; // Skip incomplete images
+                
+                // Use cached data attributes if available
+                const cachedWidth = img.dataset.width;
+                if (cachedWidth && parseInt(cachedWidth) > 1920) {
+                    report.largeImages++;
+                } else if (img.complete && img.naturalWidth > 1920) {
+                    report.largeImages++;
+                }
+            });
+            
+            // Update the report display if still visible
+            console.group('[Perf] Image Optimization Report (Updated)');
+            console.log(`Total images: ${report.total}`);
+            console.log(`Lazy loaded: ${report.lazyLoaded} (${(report.lazyLoaded/report.total*100).toFixed(1)}%)`);
+            console.log(`Missing alt text: ${report.withoutAlt}`);
+            console.log(`Missing dimensions: ${report.withoutDimensions}`);
+            console.log(`Large images (>1920px): ${report.largeImages}`);
+            console.log(`External images: ${report.externalImages}`);
+            console.groupEnd();
+        };
+        
+        if (window.requestIdleCallback) {
+            requestIdleCallback(checkImageSizes, { timeout: 2500 });
+        } else {
+            setTimeout(checkImageSizes, 100);
+        }
+
+        // Return report immediately with pending data
         console.group('[Perf] Image Optimization Report');
         console.log(`Total images: ${report.total}`);
         console.log(`Lazy loaded: ${report.lazyLoaded} (${(report.lazyLoaded/report.total*100).toFixed(1)}%)`);
         console.log(`Missing alt text: ${report.withoutAlt}`);
         console.log(`Missing dimensions: ${report.withoutDimensions}`);
-        console.log(`Large images (>1920px): ${report.largeImages}`);
+        console.log(`Large images (>1920px): ${report.largeImages} (checking...)`);
         console.log(`External images: ${report.externalImages}`);
         console.groupEnd();
 
@@ -383,16 +434,19 @@
         console.log('[Perf] ✅ Performance optimizations initialized');
     }
 
-    // Auto-initialize
-    init();
-
     // Expose API
     window.GlitchRealmPerf = {
         reinit: initAll,
         report: generateOptimizationReport,
         observeImage: processNewImage,
         getConnectionQuality: getConnectionQuality,
-        supportsWebP: () => webpSupport
+        supportsWebP: () => webpSupport,
+        config: config // Allow external config changes
     };
+
+    // Conditional auto-initialize
+    if (config.autoInit) {
+        init();
+    }
 
 })();

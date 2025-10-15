@@ -19,6 +19,10 @@
     <link rel="preconnect" href="https://cdnjs.buymeacoffee.com">
     <link rel="dns-prefetch" href="//cdnjs.buymeacoffee.com">
     <link rel="preload" as="script" href="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" crossorigin>
+    <!-- Preload critical images for better LCP -->
+    <link rel="preload" as="image" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="preload" as="image" href="/assets/Game Logos/ByteSurge.png">
+    <link rel="preload" as="image" href="/assets/Game Logos/CodeRunner Logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games - GlitchRealm Games</title>
     <!-- Google CMP + Consent Mode v2: load early (replace PUB_ID inside cmp-consent.js) -->
@@ -87,15 +91,126 @@
         }, 2000);
     </script>
     <script>
-    // Show "Submit your game here" CTA for verified users or developer UIDs
-    (function(){
-        const DEV_UIDS = new Set([
+    // Performance optimizations: Hoist patterns and utilities to module scope
+    (function() {
+        // Pre-compiled moderation patterns for better performance
+        const MODERATION_PATTERNS = {
+            // Banned words patterns - pre-compiled for performance
+            bannedWords: [
+                'spam', 'hate', 'stupid', 'dumb', 'sucks', 'terrible', 'worst', 'garbage',
+                'trash', 'crap', 'shit', 'damn', 'hell', 'fuck', 'bitch', 'ass', 'dick',
+                'idiot', 'moron', 'loser', 'noob', 'scrub', 'toxic', 'cancer', 'retard',
+                'gay', 'fag', 'nigger', 'nazi', 'hitler', 'kill', 'die', 'suicide'
+            ],
+            
+            // Suspicious words that require moderation
+            suspiciousWords: [
+                'maybe', 'might', 'could be', 'not sure', 'uncertain', 'confusing',
+                'hard to understand', 'complicated', 'difficult', 'boring', 'meh',
+                'okay', 'average', 'mediocre', 'unsure', 'doubt', 'questionable'
+            ],
+            
+            // Pre-compiled regex patterns for bypass detection
+            bannedPatterns: [
+                // F-word variations - with word boundaries
+                /\bf+[*@#$%^&+=_\-~`|\\\/\s]*[aeiou*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
+                /\bf+[*@#$%^&+=_\-~`|\\\/\s]*[aeiou4*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
+                /\bf+[u*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
+                
+                // S-word variations - with word boundaries
+                /\bs+[*@#$%^&+=_\-~`|\\\/\s]*h+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*t+\b/i,
+                /\bsh[*@#$%^&+=_\-~`|\\\/\s]*t\b/i,
+                
+                // B-word variations - with word boundaries
+                /\bb+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*t+[*@#$%^&+=_\-~`|\\\/\s]*c+h+\b/i,
+                /\bb[*@#$%^&+=_\-~`|\\\/\s]*tch\b/i,
+                
+                // A-word variations - more specific to avoid false positives
+                /\bass+\b/i, // Only match "ass" as a standalone word
+                /\ba+[*@#$%^&+=_\-~`|\\\/\s]*s+[*@#$%^&+=_\-~`|\\\/\s]*s+\b/i,
+                
+                // D-word variations - with word boundaries
+                /\bd+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*m+n+\b/i,
+                /\bd[*@#$%^&+=_\-~`|\\\/\s]*mn\b/i,
+                
+                // Hell variations - much more specific to avoid "bullets" -> "b*ll*ts"
+                /\bhell+\b/i, // Only match "hell" as standalone
+                /\bh+[*@#$%^&+=_\-~`|\\\/]*e+[*@#$%^&+=_\-~`|\\\/]*l+[*@#$%^&+=_\-~`|\\\/]*l+\b/i, // Must start with H and have double L
+                
+                // Other offensive terms with bypass patterns - all with word boundaries
+                /\b[ck]+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*p+\b/i,
+                /\bt+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*s+h+\b/i,
+                /\bs+t+[*@#$%^&+=_\-~`|\\\/\s]*u+p+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*d+\b/i,
+                /\bd+u+m+b+\b/i,
+                /\b[i1*@#$%^&+=_\-~`|\\\/\s]*d+[i1*@#$%^&+=_\-~`|\\\/\s]*[o0*@#$%^&+=_\-~`|\\\/\s]*t+\b/i,
+                /\bm+[o0*@#$%^&+=_\-~`|\\\/\s]*r+[o0*@#$%^&+=_\-~`|\\\/\s]*n+\b/i,
+                /\bl+[o0*@#$%^&+=_\-~`|\\\/\s]*s+[e3*@#$%^&+=_\-~`|\\\/\s]*r+\b/i,
+                /\bn+[o0*@#$%^&+=_\-~`|\\\/\s]*[o0*@#$%^&+=_\-~`|\\\/\s]*b+\b/i,
+                /\bs+[ck]+r+u+b+\b/i,
+                /\bt+[o0*@#$%^&+=_\-~`|\\\/\s]*x+[i1*@#$%^&+=_\-~`|\\\/\s]*[ck]+\b/i
+            ]
+        };
+
+        // Cached text normalizer with LRU cache
+        const TEXT_NORMALIZER = (() => {
+            const cache = new Map();
+            const maxCacheSize = 500;
+            
+            return {
+                normalize: (input) => {
+                    if (cache.has(input)) return cache.get(input);
+                    
+                    const normalized = input
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s]/g, '') // Remove all special characters
+                        .replace(/\s+/g, ' ') // Multiple spaces to single space
+                        .replace(/(.)\1{2,}/g, '$1$1') // Reduce repeated characters (aaa -> aa)
+                        .trim();
+                    
+                    if (cache.size >= maxCacheSize) {
+                        const firstKey = cache.keys().next().value;
+                        cache.delete(firstKey);
+                    }
+                    
+                    cache.set(input, normalized);
+                    return normalized;
+                },
+                
+                createVariations: (input) => {
+                    const baseVariations = [
+                        input.toLowerCase(),
+                        TEXT_NORMALIZER.normalize(input),
+                        input.replace(/[*@#$%^&+=_\-~`|\\\/]/g, ''), // Remove common mask characters
+                        input.replace(/[0-9]/g, (match) => { // Replace numbers with letters
+                            const numMap = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b'};
+                            return numMap[match] || match;
+                        }),
+                        input.replace(/(.)/g, '$1 ').trim(), // Spaced out text
+                        input.replace(/\s+/g, ''), // No spaces
+                    ];
+                    
+                    // Only add vowel masking and reverse for shorter suspicious text (likely actual bypass attempts)
+                    if (input.length < 20 && /[*@#$%^&+=_\-~`|\\\/]/.test(input)) {
+                        baseVariations.push(input.replace(/[aeiou]/g, '*')); // Vowel masking detection
+                        baseVariations.push(input.split('').reverse().join('')); // Reverse bypass attempts
+                    }
+                    
+                    return [...new Set(baseVariations)]; // Remove duplicates
+                }
+            };
+        })();
+
+        // DOM_REFS caching system moved to community.js where it's actually needed
+
+        // Use centralized dev config if available, fallback to hardcoded
+        const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || new Set([
             '6iZDTXC78aVwX22qrY43BOxDRLt1',
             'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
             'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
             '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
             'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
         ]);
+        const logger = window.GlitchRealmDev?.logger || console;
         async function checkAndShowCTA(){
             try{
                 const cta = document.getElementById('verified-submit-cta');
@@ -111,7 +226,7 @@
                 const snap = await f.getDoc(f.doc(db,'verified_users',user.uid));
                 const isVerified = snap.exists() && snap.data() && snap.data().verified === true;
                 if(isVerified){ cta.style.display = 'block'; }
-            }catch(e){ console.warn('CTA verification check failed:', e); }
+            }catch(e){ logger.warn('CTA verification check failed:', e); }
         }
         // Run once Firebase likely initialized
         window.addEventListener('DOMContentLoaded', ()=> setTimeout(checkAndShowCTA, 1200));
@@ -1239,7 +1354,12 @@
                     <!-- ByteSurge Game Card -->
                     <div class="game-card" data-game="bytesurge">
                         <div class="card-image">
-                            <img src="assets/Game Logos/ByteSurge.png" alt="ByteSurge" class="game-logo-image" loading="lazy" decoding="async">
+                            <img src="assets/Game Logos/ByteSurge.png" 
+                                 srcset="assets/Game%20Logos/ByteSurge.png 320w, 
+                                         assets/Game%20Logos/ByteSurge.png 640w, 
+                                         assets/Game%20Logos/ByteSurge.png 960w" 
+                                 sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px"
+                                 alt="ByteSurge" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
                             <div class="card-overlay"></div>
                             <div class="game-badge new">NEW</div>
                             <!-- Game Card Menu Buttons (top right) -->
@@ -1268,7 +1388,12 @@
 
                     <!-- NeuroCore: Byte Wars Game Card -->
                     <div class="game-card" data-game="neurocore">                        <div class="card-image">
-                            <img src="assets/Game Logos/NeuroCore Byte Wars Logo.png" alt="NeuroCore: Byte Wars" class="game-logo-image" loading="lazy" decoding="async">
+                            <img src="assets/Game Logos/NeuroCore Byte Wars Logo.png" 
+                                 srcset="assets/Game%20Logos/NeuroCore%20Byte%20Wars%20Logo.png 320w, 
+                                         assets/Game%20Logos/NeuroCore%20Byte%20Wars%20Logo.png 640w, 
+                                         assets/Game%20Logos/NeuroCore%20Byte%20Wars%20Logo.png 960w" 
+                                 sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px"
+                                 alt="NeuroCore: Byte Wars" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
                             <div class="card-overlay"></div>
                             <div class="game-badge coming-soon" style="display: none;">UPDATE SOON</div>
                             <!-- Game Card Menu Buttons (top right) -->
@@ -1297,7 +1422,12 @@
                     <!-- CodeRunner Game Card -->
                     <div class="game-card" data-game="coderunner">
                         <div class="card-image">
-                            <img src="assets/Game Logos/CodeRunner Logo.png" alt="CodeRunner" class="game-logo-image" loading="lazy" decoding="async">
+                            <img src="assets/Game Logos/CodeRunner Logo.png" 
+                                 srcset="assets/Game%20Logos/CodeRunner%20Logo.png 320w, 
+                                         assets/Game%20Logos/CodeRunner%20Logo.png 640w, 
+                                         assets/Game%20Logos/CodeRunner%20Logo.png 960w" 
+                                 sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px"
+                                 alt="CodeRunner" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
                             <div class="card-overlay"></div>
                             
                             <!-- Game Card Menu Buttons (top right) -->
@@ -1714,6 +1844,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
+    <script src="dev-config.js" defer></script>
     <script src="script.js" defer></script>
 
     <script>
@@ -1722,20 +1853,7 @@
         let currentGameId = '';
         let currentGameName = '';
 
-        // Banned words for content filtering
-        const bannedWords = [
-            'spam', 'hate', 'stupid', 'dumb', 'sucks', 'terrible', 'worst', 'garbage',
-            'trash', 'crap', 'shit', 'damn', 'hell', 'fuck', 'bitch', 'ass', 'dick',
-            'idiot', 'moron', 'loser', 'noob', 'scrub', 'toxic', 'cancer', 'retard',
-            'gay', 'fag', 'nigger', 'nazi', 'hitler', 'kill', 'die', 'suicide'
-        ];
-
-        // Suspicious words that require moderation
-        const suspiciousWords = [
-            'maybe', 'might', 'could be', 'not sure', 'uncertain', 'confusing',
-            'hard to understand', 'complicated', 'difficult', 'boring', 'meh',
-            'okay', 'average', 'mediocre', 'unsure', 'doubt', 'questionable'
-        ];
+        // Note: Banned words and suspicious words are now in MODERATION_PATTERNS above
 
         // Make functions globally available immediately
         window.openReviewModal = function(gameId, gameName) {
@@ -2061,86 +2179,17 @@
                 return { status: 'approved', reason: 'no comment provided' };
             }
 
-            // Normalize text to catch variations and bypasses
-            function normalizeText(input) {
-                return input
-                    .toLowerCase()
-                    .replace(/[^a-z0-9\s]/g, '') // Remove all special characters
-                    .replace(/\s+/g, ' ') // Multiple spaces to single space
-                    .replace(/(.)\1{2,}/g, '$1$1') // Reduce repeated characters (aaa -> aa)
-                    .trim();
-            }
+            // Use hoisted TEXT_NORMALIZER for better performance (avoids function recreation)
 
-            // Create variations of the text to catch bypasses - but exclude problematic vowel masking for legitimate words
-            function createVariations(input) {
-                const baseVariations = [
-                    input.toLowerCase(),
-                    normalizeText(input),
-                    input.replace(/[*@#$%^&+=_\-~`|\\\/]/g, ''), // Remove common mask characters
-                    input.replace(/[0-9]/g, (match) => { // Replace numbers with letters
-                        const numMap = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b'};
-                        return numMap[match] || match;
-                    }),
-                    input.replace(/(.)/g, '$1 ').trim(), // Spaced out text
-                    input.replace(/\s+/g, ''), // No spaces
-                ];
-                
-                // Only add vowel masking and reverse for shorter suspicious text (likely actual bypass attempts)
-                if (input.length < 20 && /[*@#$%^&+=_\-~`|\\\/]/.test(input)) {
-                    baseVariations.push(input.replace(/[aeiou]/g, '*')); // Vowel masking detection
-                    baseVariations.push(input.split('').reverse().join('')); // Reverse bypass attempts
-                }
-                
-                return [...new Set(baseVariations)]; // Remove duplicates
-            }
+            // Use pre-compiled patterns from MODERATION_PATTERNS for better performance
 
-            // Enhanced banned words patterns with common bypasses - made more specific to avoid false positives
-            const bannedPatterns = [
-                // F-word variations - with word boundaries
-                /\bf+[*@#$%^&+=_\-~`|\\\/\s]*[aeiou*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
-                /\bf+[*@#$%^&+=_\-~`|\\\/\s]*[aeiou4*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
-                /\bf+[u*@#$%^&+=_\-~`|\\\/\s]*c+[*@#$%^&+=_\-~`|\\\/\s]*k+\b/i,
-                
-                // S-word variations - with word boundaries
-                /\bs+[*@#$%^&+=_\-~`|\\\/\s]*h+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*t+\b/i,
-                /\bsh[*@#$%^&+=_\-~`|\\\/\s]*t\b/i,
-                
-                // B-word variations - with word boundaries
-                /\bb+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*t+[*@#$%^&+=_\-~`|\\\/\s]*c+h+\b/i,
-                /\bb[*@#$%^&+=_\-~`|\\\/\s]*tch\b/i,
-                
-                // A-word variations - more specific to avoid matching legitimate words
-                /\bass+\b/i, // Only match "ass" as a standalone word
-                /\ba+[*@#$%^&+=_\-~`|\\\/\s]*s+[*@#$%^&+=_\-~`|\\\/\s]*s+\b/i,
-                
-                // D-word variations - with word boundaries
-                /\bd+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*m+n+\b/i,
-                /\bd[*@#$%^&+=_\-~`|\\\/\s]*mn\b/i,
-                
-                // Hell variations - much more specific to avoid "bullets" -> "b*ll*ts"
-                /\bhell+\b/i, // Only match "hell" as standalone
-                /\bh+[*@#$%^&+=_\-~`|\\\/]*e+[*@#$%^&+=_\-~`|\\\/]*l+[*@#$%^&+=_\-~`|\\\/]*l+\b/i, // Must start with H and have double L
-                
-                // Other offensive terms with bypass patterns - all with word boundaries
-                /\b[ck]+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*p+\b/i,
-                /\bt+r+[*@#$%^&+=_\-~`|\\\/\s]*[a4@*#$%^&+=_\-~`|\\\/\s]*s+h+\b/i,
-                /\bs+t+[*@#$%^&+=_\-~`|\\\/\s]*u+p+[*@#$%^&+=_\-~`|\\\/\s]*[i1*@#$%^&+=_\-~`|\\\/\s]*d+\b/i,
-                /\bd+u+m+b+\b/i,
-                /\b[i1*@#$%^&+=_\-~`|\\\/\s]*d+[i1*@#$%^&+=_\-~`|\\\/\s]*[o0*@#$%^&+=_\-~`|\\\/\s]*t+\b/i,
-                /\bm+[o0*@#$%^&+=_\-~`|\\\/\s]*r+[o0*@#$%^&+=_\-~`|\\\/\s]*n+\b/i,
-                /\bl+[o0*@#$%^&+=_\-~`|\\\/\s]*s+[e3*@#$%^&+=_\-~`|\\\/\s]*r+\b/i,
-                /\bn+[o0*@#$%^&+=_\-~`|\\\/\s]*[o0*@#$%^&+=_\-~`|\\\/\s]*b+\b/i,
-                /\bs+[ck]+r+u+b+\b/i,
-                /\bt+[o0*@#$%^&+=_\-~`|\\\/\s]*x+[i1*@#$%^&+=_\-~`|\\\/\s]*[ck]+\b/i
-            ];
-
-            const textVariations = createVariations(text);
+            const textVariations = TEXT_NORMALIZER.createVariations(text);
             
-            // Check against regex patterns for bypasses
+            // Check against pre-compiled regex patterns for bypasses
             for (let variation of textVariations) {
-                for (let pattern of bannedPatterns) {
+                for (let pattern of MODERATION_PATTERNS.bannedPatterns) {
                     if (pattern.test(variation)) {
-                        console.log(`🚫 Blocked bypass attempt: "${text}" -> detected pattern in variation: "${variation}"`);
+                        logger.log(`🚫 Blocked bypass attempt: "${text}" -> detected pattern in variation: "${variation}"`);
                         return { status: 'blocked', reason: 'inappropriate content detected (bypass attempt)' };
                     }
                 }
@@ -2148,11 +2197,11 @@
             
             // Original banned words check (fallback) - with word boundaries to prevent false positives
             for (let variation of textVariations) {
-                for (let word of bannedWords) {
+                for (let word of MODERATION_PATTERNS.bannedWords) {
                     // Use word boundaries to prevent false positives like "hell" in "bullets"
                     const wordPattern = new RegExp('\\b' + word.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
                     if (wordPattern.test(variation)) {
-                        console.log(`🚫 Blocked word: "${text}" -> contains: "${word}"`);
+                        logger.log(`🚫 Blocked word: "${text}" -> contains: "${word}"`);
                         return { status: 'blocked', reason: 'inappropriate content detected' };
                     }
                 }
@@ -2160,52 +2209,52 @@
             
             // Check for suspicious content that needs moderation
             for (let variation of textVariations) {
-                for (let word of suspiciousWords) {
+                for (let word of MODERATION_PATTERNS.suspiciousWords) {
                     if (variation.includes(word.toLowerCase())) {
-                        console.log(`⚠️  Flagged for review: "${text}" -> suspicious: "${word}"`);
+                        logger.log(`⚠️  Flagged for review: "${text}" -> suspicious: "${word}"`);
                         return { status: 'pending', reason: 'content requires manual review' };
                     }
                 }
             }
             
-            console.log(`✅ Content approved: "${text}"`);
+            logger.log(`✅ Content approved: "${text}"`);
             return { status: 'approved', reason: 'content approved automatically' };
         }
 
         function submitReview() {
-            console.log('🔍 submitReview() called');
+            logger.log('🔍 submitReview() called');
             
             // Double-check authentication before submitting
             if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
-                console.log('❌ No authenticated user found');
+                logger.log('❌ No authenticated user found');
                 showMessage('❌ Error: You must be signed in to submit a review. Please sign in and try again.', 'error');
                 closeReviewModal();
                 showSignInError(currentGameName);
                 return;
             }
 
-            console.log('✅ User authenticated:', window.firebaseAuth.currentUser.uid);
+            logger.log('✅ User authenticated:', window.firebaseAuth.currentUser.uid);
 
             if (currentRating === 0) {
-                console.log('❌ No rating selected');
+                logger.log('❌ No rating selected');
                 showMessage('Please select a rating!', 'error');
                 return;
             }
 
-            console.log('✅ Rating selected:', currentRating);
+            logger.log('✅ Rating selected:', currentRating);
 
             const comment = document.getElementById('reviewComment').value.trim();
             const submitBtn = document.getElementById('submitReview');
             
-            console.log('📝 Comment:', comment);
-            console.log('🎮 Game:', currentGameName, '(ID:', currentGameId + ')');
+            logger.log('📝 Comment:', comment);
+            logger.log('🎮 Game:', currentGameName, '(ID:', currentGameId + ')');
             
             // Show loading
             submitBtn.innerHTML = '<span class="loading-spinner"></span> Submitting...';
             submitBtn.disabled = true;
 
             const contentCheck = checkContent(comment);
-            console.log('🔍 Content check result:', contentCheck);
+            logger.log('🔍 Content check result:', contentCheck);
             
             const authUser = window.firebaseAuth.currentUser;
             const derivedDisplayName = authUser.displayName || (authUser.email ? authUser.email.split('@')[0] : 'Anonymous User');
@@ -2226,25 +2275,25 @@
                 reason: contentCheck.reason.substring(0,200)
             };
 
-            console.log('📋 Review object created:', review);
+            logger.log('📋 Review object created:', review);
 
             // Check for blocked content before attempting to submit
             if (contentCheck.status === 'blocked') {
-                console.log('🚫 Content blocked - not submitting to Firestore');
+                logger.log('🚫 Content blocked - not submitting to Firestore');
                 showMessage('❌ Your review contains inappropriate content and cannot be submitted. Please revise your comment and try again.', 'error');
                 submitBtn.innerHTML = 'Submit Review';
                 submitBtn.disabled = false;
                 return;
             }
 
-            console.log('🚀 Attempting to submit to Firestore...');
+            logger.log('🚀 Attempting to submit to Firestore...');
 
             // Submit to Firestore using the same method that worked for test review
             window.firestoreAddDoc(window.firestoreCollection(window.firebaseFirestore, 'reviews'), review)
                 .then(async (docRef) => {
-                    console.log('✅ SUCCESS! Review written with ID: ', docRef.id);
-                    console.log('🔗 Document reference:', docRef);
-                    console.log('📊 Check Firebase Console - review should be in reviews collection!');
+                    logger.log('✅ SUCCESS! Review written with ID: ', docRef.id);
+                    logger.log('🔗 Document reference:', docRef);
+                    logger.log('📊 Check Firebase Console - review should be in reviews collection!');
                     
                     // Also save to localStorage for demo purposes
                     saveReview({...review, id: docRef.id});
@@ -2276,7 +2325,7 @@
                 })
                 .catch((error) => {
                     console.error('❌ FIRESTORE ERROR:', error);
-                    console.log('Full error details:', error.message);
+                    logger.log('Full error details:', error.message);
                     showMessage('❌ Error submitting review: ' + error.message, 'error');
                     submitBtn.innerHTML = 'Submit Review';
                     submitBtn.disabled = false;
@@ -2289,8 +2338,8 @@
             localStorage.setItem('gameReviews', JSON.stringify(reviews));
             
             // Also log review stats
-            console.log(`Total reviews saved: ${reviews.length}`);
-            console.log(`Reviews for ${review.gameName}: ${reviews.filter(r => r.gameId === review.gameId).length}`);
+            logger.log(`Total reviews saved: ${reviews.length}`);
+            logger.log(`Reviews for ${review.gameName}: ${reviews.filter(r => r.gameId === review.gameId).length}`);
         }
 
         function showMessage(message, type) {
@@ -2301,21 +2350,21 @@
         // Function to view stored reviews (for testing)
         function viewStoredReviews() {
             const reviews = JSON.parse(localStorage.getItem('gameReviews')) || [];
-            console.log('All stored reviews:', reviews);
+            logger.log('All stored reviews:', reviews);
             return reviews;
         }
 
         // Function to clear all reviews (for testing)
         function clearAllReviews() {
             localStorage.removeItem('gameReviews');
-            console.log('All reviews cleared!');
+            logger.log('All reviews cleared!');
         }
 
         // Function to calculate average rating for a game
         async function calculateAverageRating(gameId) {
             try {
                 if (!window.firebaseFirestore || !window.firestoreCollection || !window.firestoreQuery) {
-                    console.log('Firebase not available, checking localStorage...');
+                    logger.log('Firebase not available, checking localStorage...');
                     return calculateLocalAverageRating(gameId);
                 }
 
@@ -2343,7 +2392,7 @@
                 return { average, count: reviews.length };
                 
             } catch (error) {
-                console.log('Error calculating average rating from Firestore, falling back to localStorage:', error);
+                logger.log('Error calculating average rating from Firestore, falling back to localStorage:', error);
                 return calculateLocalAverageRating(gameId);
             }
         }
@@ -2377,7 +2426,7 @@
                     const ratingData = await calculateAverageRating(gameId);
                     updateRatingDisplay(gameId, ratingData);
                 } catch (e) {
-                    console.warn('Failed to update rating for', gameId, e);
+                    logger.warn('Failed to update rating for', gameId, e);
                 }
             }
         }
@@ -2464,7 +2513,7 @@
         // Function to clear remembered preference (for testing/resetting)
         window.clearGamePreference = function() {
             localStorage.removeItem('gamePlayPreference');
-            console.log('Game preference cleared!');
+            logger.log('Game preference cleared!');
         };
 
         // Close modal on outside click
@@ -2692,7 +2741,7 @@
         }
         async function loadModalReviews(gameId) {
             try {
-                console.log(`🔍 Loading reviews for game in modal: ${gameId}`);
+                logger.log(`🔍 Loading reviews for game in modal: ${gameId}`);
                 
                 // Reset modal reviews display
                 const countElement = document.getElementById('modal-reviews-count');
@@ -2753,7 +2802,7 @@
                 // Load replies for all reviews
                 const reviewsWithReplies = await loadRepliesForReviews(reviews);
                 
-                console.log(`✅ Loaded ${reviewsWithReplies.length} reviews for ${gameId} in modal`);
+                logger.log(`✅ Loaded ${reviewsWithReplies.length} reviews for ${gameId} in modal`);
                 displayModalReviews(reviewsWithReplies);
                 
             } catch (error) {
@@ -2765,7 +2814,7 @@
                     !window.firebaseFirestore || 
                     !window.firestoreCollection) {
                     
-                    console.log('🔒 Permission denied or Firebase unavailable, showing placeholder');
+                    logger.log('🔒 Permission denied or Firebase unavailable, showing placeholder');
                     const countElement = document.getElementById('modal-reviews-count');
                     const listElement = document.getElementById('modal-reviews-list');
                     
@@ -2816,7 +2865,7 @@
                     replies: repliesMap[review.id] || []
                 }));
                 
-                console.log(`📨 Loaded replies for ${Object.keys(repliesMap).length} reviews`);
+                logger.log(`📨 Loaded replies for ${Object.keys(repliesMap).length} reviews`);
                 return reviewsWithReplies;
                 
             } catch (error) {
@@ -2830,7 +2879,7 @@
             const listElement = document.getElementById('modal-reviews-list');
             
             if (!countElement || !listElement) {
-                console.warn('Modal review elements not found');
+                logger.warn('Modal review elements not found');
                 return;
             }
             
@@ -3119,10 +3168,10 @@
         function refreshModalReviews() {
             // With realtime listeners, manual refresh is unnecessary
             if (__modalReviews && __modalReviews.active) {
-                console.log(`🔄 Realtime active for ${currentGameId}; no manual refresh needed`);
+                logger.log(`🔄 Realtime active for ${currentGameId}; no manual refresh needed`);
                 return;
             }
-            console.log(`🔄 Refreshing reviews for ${currentGameId} in modal (fallback one-time load)`);
+            logger.log(`🔄 Refreshing reviews for ${currentGameId} in modal (fallback one-time load)`);
             setTimeout(() => {
                 try { loadModalReviews(currentGameId); } catch {}
             }, 800);
@@ -3169,7 +3218,7 @@
             }
 
             try {
-                console.log(`🔧 Developer replying to review ${reviewId}:`, replyText);
+                logger.log(`🔧 Developer replying to review ${reviewId}:`, replyText);
                 
                 // Create reply object
                 const reply = {
@@ -3183,7 +3232,7 @@
                 // Save to Firestore
                 await window.firestoreAddDoc(window.firestoreCollection(window.firebaseFirestore, 'review_replies'), reply);
                 
-                console.log('✅ Developer reply posted successfully');
+                logger.log('✅ Developer reply posted successfully');
                 
                 // Hide reply form and clear textarea
                 hideDeveloperReply(reviewId);
@@ -3271,7 +3320,10 @@
             
             card.innerHTML = `
                 <div class="card-image">
-                    <img src="${cover}" alt="${title}" class="game-logo-image" loading="lazy" decoding="async">
+                    <img src="${cover}" 
+                         srcset="${encodeURI(cover)} 320w, ${encodeURI(cover)} 640w, ${encodeURI(cover)} 960w" 
+                         sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px"
+                         alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
                     <div class="card-overlay"></div>
                     ${badge ? `<div class="game-badge ${badge}">${badgeLabel}</div>` : `<div class=\"game-badge new\" style=\"display:${doc.featured ? 'block' : 'none'};\">NEW</div>`}
                     <!-- Game Card Menu Buttons (top right) for submissions -->
@@ -3304,7 +3356,7 @@
             (async function init(){
                 try{
                     if(!window.firebaseFirestore || !window.firestoreCollection || !window.firestoreWhere){
-                        console.log('[games grid] Firestore not ready – retrying...');
+                        logger.log('[games grid] Firestore not ready – retrying...');
                         return setTimeout(startRealtimePublishedIntoMainGrid, 600);
                     }
                     const container = document.querySelector('.game-cards');

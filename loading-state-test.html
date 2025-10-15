@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading State Reliability Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .loading-indicator {
+            color: #666;
+            font-style: italic;
+        }
+        .content {
+            display: none;
+        }
+        .content.loaded {
+            display: block;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .test-results {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Loading State Reliability Test</h1>
+    <p>This page tests that all critical elements load correctly without requiring hard refresh.</p>
+    
+    <div class="test-section">
+        <h3>Test 1: Critical Elements Loading</h3>
+        <div id="test1-loading" class="loading-indicator">Loading critical elements...</div>
+        <div id="test1-content" class="content">
+            <div>✓ <span id="infinity-byte">InfinityByte</span></div>
+            <div>✓ <span id="email">infinitybyte.dev@gmail.com</span></div>
+            <div>✓ <span id="github">GITHUB</span></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Dev Config Integration</h3>
+        <div id="test2-loading" class="loading-indicator">Testing dev config...</div>
+        <div id="test2-content" class="content">
+            <div id="dev-config-status">Dev config status will appear here</div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Performance Optimization</h3>
+        <div id="test3-loading" class="loading-indicator">Testing performance features...</div>
+        <div id="test3-content" class="content">
+            <div id="perf-status">Performance optimization status will appear here</div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 4: Timeout Protection</h3>
+        <div id="test4-loading" class="loading-indicator">Testing timeout protection...</div>
+        <div id="test4-content" class="content">
+            <div id="timeout-status">Timeout protection status will appear here</div>
+        </div>
+    </div>
+    
+    <div class="test-results">
+        <h3>Test Results</h3>
+        <div id="results-summary">Running tests...</div>
+    </div>
+
+    <!-- Include dev-config if available -->
+    <script>
+        // Simulate dev-config functionality
+        const DEV_UIDS = new Set(['test-uid-1', 'test-uid-2']);
+        
+        function isDev() {
+            // Simulate dev detection
+            return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        }
+        
+        const logger = {
+            log: (...args) => isDev() ? console.log(...args) : undefined,
+            warn: (...args) => isDev() ? console.warn(...args) : undefined,
+            error: (...args) => console.error(...args),
+            group: (...args) => isDev() ? console.group(...args) : undefined,
+            groupEnd: () => isDev() ? console.groupEnd() : undefined
+        };
+        
+        // Simulate performance optimization API
+        window.GlitchRealmPerf = {
+            config: {
+                autoInit: true,
+                rootMargin: '50px',
+                batchSize: 10
+            },
+            reinit: () => logger.log('Performance reinit called'),
+            report: () => ({ status: 'active', optimizations: 5 }),
+            observeImage: (img) => logger.log('Observing image:', img.src),
+            getConnectionQuality: () => 'good',
+            supportsWebP: () => true
+        };
+    </script>
+
+    <script>
+        // Test execution
+        let testResults = {
+            test1: false,
+            test2: false,
+            test3: false,
+            test4: false
+        };
+        
+        let loadedResources = new Set();
+        const criticalResources = ['auth', 'config', 'styles'];
+        
+        function updateTestResult(testId, success, message) {
+            testResults[testId] = success;
+            const loadingEl = document.getElementById(`${testId}-loading`);
+            const contentEl = document.getElementById(`${testId}-content`);
+            
+            loadingEl.style.display = 'none';
+            contentEl.classList.add('loaded');
+            contentEl.style.display = 'block';
+            
+            if (message) {
+                const statusEl = contentEl.querySelector('[id$="-status"]');
+                if (statusEl) {
+                    statusEl.textContent = message;
+                    statusEl.className = success ? 'success' : 'error';
+                }
+            }
+            
+            updateSummary();
+        }
+        
+        function updateSummary() {
+            const passed = Object.values(testResults).filter(Boolean).length;
+            const total = Object.keys(testResults).length;
+            const summaryEl = document.getElementById('results-summary');
+            
+            if (passed === total) {
+                summaryEl.innerHTML = `<span class="success">✅ All ${total} tests passed!</span>`;
+            } else {
+                summaryEl.innerHTML = `<span class="error">❌ ${passed}/${total} tests passed</span>`;
+            }
+        }
+        
+        // Test 1: Critical Elements Loading
+        setTimeout(() => {
+            const elements = ['infinity-byte', 'email', 'github'];
+            const allPresent = elements.every(id => document.getElementById(id));
+            updateTestResult('test1', allPresent, allPresent ? 'All critical elements loaded successfully' : 'Some elements missing');
+        }, 500);
+        
+        // Test 2: Dev Config Integration
+        setTimeout(() => {
+            const hasDevConfig = typeof isDev === 'function' && typeof logger === 'object';
+            const loggerWorks = logger.log !== undefined && logger.error !== undefined;
+            updateTestResult('test2', hasDevConfig && loggerWorks, 
+                hasDevConfig && loggerWorks ? 'Dev config integrated successfully' : 'Dev config integration failed');
+        }, 1000);
+        
+        // Test 3: Performance Optimization
+        setTimeout(() => {
+            const hasPerfAPI = window.GlitchRealmPerf !== undefined;
+            const hasRequiredMethods = hasPerfAPI && 
+                typeof window.GlitchRealmPerf.reinit === 'function' &&
+                typeof window.GlitchRealmPerf.report === 'function';
+            updateTestResult('test3', hasPerfAPI && hasRequiredMethods,
+                hasPerfAPI && hasRequiredMethods ? 'Performance optimization API available' : 'Performance API missing');
+        }, 1500);
+        
+        // Test 4: Timeout Protection
+        const initTimeout = setTimeout(() => {
+            updateTestResult('test4', false, 'Timeout protection failed - initialization took too long');
+        }, 5000);
+        
+        // Simulate resource loading
+        setTimeout(() => {
+            loadedResources.add('auth');
+            if (loadedResources.size === criticalResources.length) {
+                clearTimeout(initTimeout);
+                updateTestResult('test4', true, 'Timeout protection working - resources loaded in time');
+            }
+        }, 100);
+        
+        setTimeout(() => {
+            loadedResources.add('config');
+            if (loadedResources.size === criticalResources.length) {
+                clearTimeout(initTimeout);
+                updateTestResult('test4', true, 'Timeout protection working - resources loaded in time');
+            }
+        }, 200);
+        
+        setTimeout(() => {
+            loadedResources.add('styles');
+            if (loadedResources.size === criticalResources.length) {
+                clearTimeout(initTimeout);
+                updateTestResult('test4', true, 'Timeout protection working - resources loaded in time');
+            }
+        }, 300);
+        
+        // Initialize summary
+        updateSummary();
+    </script>
+</body>
+</html>

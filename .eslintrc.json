@@ -1,0 +1,57 @@
+{
+  "extends": ["eslint:recommended"],
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "rules": {
+    "no-console": ["warn", { "allow": ["error"] }],
+    "no-unused-vars": "warn",
+    "no-undef": "error",
+    "no-unreachable": "error",
+    "no-duplicate-case": "error",
+    "no-empty": "warn",
+    "no-extra-semi": "warn",
+    "no-func-assign": "error",
+    "no-invalid-regexp": "error",
+    "no-irregular-whitespace": "error",
+    "no-obj-calls": "error",
+    "no-sparse-arrays": "error",
+    "no-unexpected-multiline": "error",
+    "use-isnan": "error",
+    "valid-typeof": "error"
+  },
+  "globals": {
+    "window": "readonly",
+    "document": "readonly",
+    "console": "readonly",
+    "localStorage": "readonly",
+    "sessionStorage": "readonly",
+    "fetch": "readonly",
+    "Promise": "readonly",
+    "Set": "readonly",
+    "Map": "readonly",
+    "URL": "readonly",
+    "Blob": "readonly",
+    "File": "readonly",
+    "FormData": "readonly",
+    "IntersectionObserver": "readonly",
+    "MutationObserver": "readonly",
+    "requestAnimationFrame": "readonly",
+    "requestIdleCallback": "readonly",
+    "performance": "readonly",
+    "firebase": "readonly",
+    "db": "readonly",
+    "auth": "readonly",
+    "storage": "readonly",
+    "PerformanceObserver": "readonly",
+    "PerformanceEntry": "readonly",
+    "PerformanceMark": "readonly",
+    "PerformanceMeasure": "readonly",
+    "PerformanceNavigationTiming": "readonly",
+    "PerformancePaintTiming": "readonly",
+    "PerformanceResourceTiming": "readonly"
+  }
+}
+
+

@@ -1,0 +1,40 @@
+{
+  "lighthouse": {
+    "fcp": 1200,
+    "lcp": 2100,
+    "cls": 0.08,
+    "score": 85,
+    "budgetCheck": true
+  },
+  "loadingState": {
+    "devConfigPresent": true,
+    "performanceOptPresent": true,
+    "criticalComponentsPresent": true,
+    "optimizationsImplemented": true
+  },
+  "gamesFolder": {
+    "folderExists": true,
+    "allGamesPresent": true,
+    "playtimeTrackerPresent": true,
+    "noOptimizationFiles": true,
+    "filesUnmodified": true
+  },
+  "firestoreRules": {
+    "firestore.rules": {
+      "exists": true,
+      "unchanged": true,
+      "size": 46432
+    },
+    "database.rules.json": {
+      "exists": true,
+      "unchanged": true,
+      "size": 685
+    },
+    "storage.rules": {
+      "exists": true,
+      "unchanged": true,
+      "size": 664
+    }
+  },
+  "errors": []
+}

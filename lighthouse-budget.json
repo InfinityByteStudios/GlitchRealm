@@ -1,0 +1,26 @@
+{
+  "performance": 85,
+  "first-contentful-paint": 1500,
+  "largest-contentful-paint": 2500,
+  "cumulative-layout-shift": 0.1,
+  "total-blocking-time": 300,
+  "speed-index": 2000,
+  "interactive": 3000,
+  "max-potential-fid": 100,
+  "resource-summary": {
+    "script": {
+      "budget": 500
+    },
+    "image": {
+      "budget": 1000
+    },
+    "stylesheet": {
+      "budget": 200
+    },
+    "font": {
+      "budget": 100
+    }
+  }
+}
+
+

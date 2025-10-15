@@ -457,28 +457,31 @@
     <div class="auth-redirect" id="postSubmitHint" style="display:none;">Return to the <a href="games.html">Games Library</a>.</div>
   </div>
   <div id="footer-placeholder"></div>
+  <script src="dev-config.js" defer></script>
   <script src="script.js" defer></script>
   <script>
   (function(){
-    const DEV_UIDS = new Set([
+    // Use centralized dev config if available, fallback to hardcoded
+    const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || new Set([
       '6iZDTXC78aVwX22qrY43BOxDRLt1',
       'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
       'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
       '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
       'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
     ]);
+    const logger = window.GlitchRealmDev?.logger || console;
     
     // Wait for global Firebase to be ready, or initialize if not available
     async function waitForFirebase() {
       if (window.firebaseApp && window.firebaseAuth) {
-        console.log('Using global Firebase instance');
+        logger.log('Using global Firebase instance');
         return {
           app: window.firebaseApp,
           auth: window.firebaseAuth,
           storage: window.firebaseStorage
         };
       } else {
-        console.log('Global Firebase not ready, using fallback');
+        logger.log('Global Firebase not ready, using fallback');
         return {
           app: window.firebaseApp,
           auth: window.firebaseAuth,
@@ -1079,11 +1082,11 @@
           return; 
         }
         
-        console.log('Firebase initialized, user authenticated:', user.uid);
+        logger.log('Firebase initialized, user authenticated:', user.uid);
         
         // Debug authentication state
-        console.log('User object:', user);
-        console.log('Auth state:', {
+        logger.debug('User object:', user);
+        logger.debug('Auth state:', {
           uid: user.uid,
           email: user.email,
           emailVerified: user.emailVerified,
@@ -1200,7 +1203,7 @@
               ownerUsername = verifiedSnap.data().username;
             }
           } catch (err) {
-            console.warn('Could not fetch verified username, using fallback:', err);
+            logger.warn('Could not fetch verified username, using fallback:', err);
           }
           
           const payloadDoc = { title, ownerId:user.uid, ownerUsername, description, playUrl, createdAt: f.serverTimestamp(), updatedAt: f.serverTimestamp() };
@@ -1216,7 +1219,7 @@
             payloadDoc.status = 'draft';
           }
           
-          console.log('Attempting Firestore write with payload:', payloadDoc);
+          logger.debug('Attempting Firestore write with payload:', payloadDoc);
           
           // Update or create based on edit mode
           if (isEditMode && editGameId) {
@@ -1224,21 +1227,21 @@
             const gameRef = f.doc(db, 'game_submissions', editGameId);
             
             // Debug: Check current user and document
-            console.log('Current user UID:', user.uid);
-            console.log('Edit game ID:', editGameId);
-            console.log('Firestore instance:', db);
-            console.log('Firestore app:', db.app);
-            console.log('Project ID:', db.app.options.projectId);
-            console.log('Game reference:', gameRef);
-            console.log('Game reference path:', gameRef.path);
+            logger.log('Current user UID:', user.uid);
+            logger.log('Edit game ID:', editGameId);
+            logger.log('Firestore instance:', db);
+            logger.log('Firestore app:', db.app);
+            logger.log('Project ID:', db.app.options.projectId);
+            logger.log('Game reference:', gameRef);
+            logger.log('Game reference path:', gameRef.path);
             
             // Get current document to check ownership
             const currentDoc = await f.getDoc(gameRef);
             if (currentDoc.exists()) {
               const currentData = currentDoc.data();
-              console.log('Current document ownerId:', currentData.ownerId);
-              console.log('Current document status:', currentData.status);
-              console.log('User is owner:', user.uid === currentData.ownerId);
+              logger.log('Current document ownerId:', currentData.ownerId);
+              logger.log('Current document status:', currentData.status);
+              logger.log('User is owner:', user.uid === currentData.ownerId);
               
               // Check if user is developer
               const DEV_UIDS = new Set([
@@ -1248,7 +1251,7 @@
                 '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
                 'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
               ]);
-              console.log('User is developer:', DEV_UIDS.has(user.uid));
+              logger.log('User is developer:', DEV_UIDS.has(user.uid));
               
               // Build update payload - only send fields that are changing
               const { createdAt, status, ownerId, ...updateFields } = payloadDoc;
@@ -1264,33 +1267,33 @@
                 }
               }
               
-              console.log('Final update payload (only changed fields):', finalPayload);
+              logger.log('Final update payload (only changed fields):', finalPayload);
               
               // Try a minimal update first to test permissions
               // Test if we can read the document first
-              console.log('Testing document read access...');
+              logger.log('Testing document read access...');
               try {
                 const testRead = await f.getDoc(gameRef);
-                console.log('Document read successful:', testRead.exists());
+                logger.log('Document read successful:', testRead.exists());
               } catch (readError) {
                 console.error('Document read failed:', readError);
                 throw new Error('Cannot read document - check authentication');
               }
               
               // Test minimal update with explicit rule debugging
-              console.log('Testing minimal update with debugging...');
-              console.log('Rule conditions to check:');
-              console.log('- request.auth != null:', true);
-              console.log('- request.auth.uid:', user.uid);
-              console.log('- resource.data.ownerId:', currentData.ownerId);
-              console.log('- request.auth.uid == resource.data.ownerId:', user.uid === currentData.ownerId);
-              console.log('- isDeveloper(request.auth.uid):', DEV_UIDS.has(user.uid));
+              logger.log('Testing minimal update with debugging...');
+              logger.log('Rule conditions to check:');
+              logger.log('- request.auth != null:', true);
+              logger.log('- request.auth.uid:', user.uid);
+              logger.log('- resource.data.ownerId:', currentData.ownerId);
+              logger.log('- request.auth.uid == resource.data.ownerId:', user.uid === currentData.ownerId);
+              logger.log('- isDeveloper(request.auth.uid):', DEV_UIDS.has(user.uid));
               
               try {
                 await f.updateDoc(gameRef, {
                   updatedAt: f.serverTimestamp()
                 });
-                console.log('Minimal update successful! Now trying full update...');
+                logger.log('Minimal update successful! Now trying full update...');
                 
                 await f.updateDoc(gameRef, finalPayload);
               } catch (minimalError) {
@@ -1298,13 +1301,13 @@
                 console.error('Full error details:', minimalError);
                 
                 // Let's try using setDoc with merge instead of updateDoc
-                console.log('Trying setDoc with merge as fallback...');
+                logger.log('Trying setDoc with merge as fallback...');
                 try {
                   await f.setDoc(gameRef, {
                     ...finalPayload,
                     updatedAt: f.serverTimestamp()
                   }, { merge: true });
-                  console.log('setDoc with merge succeeded!');
+                  logger.log('setDoc with merge succeeded!');
                 } catch (setDocError) {
                   console.error('setDoc with merge also failed:', setDocError);
                   throw minimalError;

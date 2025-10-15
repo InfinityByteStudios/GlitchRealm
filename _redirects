@@ -5,3 +5,6 @@ https://portal.glitchrealm.ca/*  /user-portal.html  200
 # Retire legacy Community Games page -> send to main Games
 /community-games        /games.html   301
 /community-games.html   /games.html   301
+
+# SPA routing fallback - catch-all for client-side routing
+/*    /index.html   200
