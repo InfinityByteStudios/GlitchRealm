@@ -15,13 +15,18 @@
 		"perf:test": "npm run serve:static & sleep 15 && npm run lighthouse:ci",
 		"perf:budget": "lighthouse http://localhost:5000 --budget-path=lighthouse-budget.json --output=json --output-path=budget-report.json",
 		"serve:static": "serve -s . -l 5000",
-		"test:performance": "npm run serve:static & sleep 10 && npm run perf:budget && pkill -f serve"
+		"test:performance": "npm run serve:static & sleep 10 && npm run perf:budget && pkill -f serve",
+		"optimize:images": "node scripts/optimize-images.js",
+		"update:html": "node scripts/update-html-images.js",
+		"add:preloads": "node scripts/add-critical-preloads.js",
+		"build:images": "npm run optimize:images && npm run update:html && npm run add:preloads"
 	},
 	"dependencies": {
 		"cors": "^2.8.5",
 		"express": "^4.19.2",
 		"firebase-admin": "^12.5.0",
-		"firebase-functions": "^5.1.1"
+		"firebase-functions": "^5.1.1",
+		"sharp": "^0.33.0"
 	},
 	"devDependencies": {
 		"eslint": "^9.11.1",

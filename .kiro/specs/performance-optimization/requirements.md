@@ -100,6 +100,7 @@ This feature implements comprehensive performance optimizations for the GlitchRe
 ### Requirement 9
 
 **User Story:** As a developer deploying to Netlify, I want optimizations that work seamlessly with Netlify's open source hosting plan, so that performance improvements don't conflict with the hosting environment.
+DO NOT TOUCH GAMES FOLDER
 
 #### Acceptance Criteria
 

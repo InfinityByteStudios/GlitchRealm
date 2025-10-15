@@ -252,26 +252,32 @@
     - Add fallbacks for requestIdleCallback, IntersectionObserver, WebP support
     - _Requirements: 1.5, 1.6, 8.2_
 
-- [ ] 9. Write comprehensive tests for performance optimizations
-  - [ ] 9.1 Create unit tests for dev config system
+- [x] 9. Write comprehensive tests for performance optimizations
+  - [x] 9.1 Create unit tests for dev config system
     - Test isDev() function with various auth states
     - Verify logger no-ops in production mode
     - Test fallback mechanisms for missing Firebase auth
     - _Requirements: 3.1, 3.2, 3.3_
 
-  - [ ] 9.2 Create integration tests for loading state fixes
+  - [x] 9.2 Create integration tests for loading state fixes
     - Test full loading sequence without hard refresh requirement
     - Verify InfinityByte, email, and GITHUB text appear correctly
     - Test timeout protection and fallback rendering
- _Requirements: 1.5, 1.6_
+    - _Requirements: 1.5, 1.6_
 
-  - [ ] 9te performance measurement tests
-    - Test Core W meet budget requirements (FCP, LCP, CLS)
-    -me drops duri   - Test bundle size increase <= 5%
-    - _Requireme1.2, 1.3, 2.1, 8.3_
+  - [x] 9.3 Create performance measurement tests
+    - Test Core Web Vitals meet budget requirements (FCP, LCP, CLS)
+    - Test frame drops during gameplay
+    - Test bundle size increase <= 5%
+    - _Requirements: 1.1, 1.2, 1.3, 2.1, 8.3_
+
+
+
 
 - [ ] 10. Final integration and validation
   - [x] 10.1 Validate all optimizations work together
+
+
 
 
 
@@ -284,7 +290,8 @@
     - _Requirements: 8.1, 8.4, 8.5_
 
   - [ ] 10.2 Create rollback documentation and test rollback procedures
-    - Document rollback steps for each PR
+    - Document rollback steps for each optimization category
+    - Create step-by-step rollback procedures for each major change
     - Test that rollbacks restore original functionality
     - Verify rollback procedures work on Netlify deployment
-    -ments: 8.5, 9.3_
+    - _Requirements: 8.5, 9.3_
