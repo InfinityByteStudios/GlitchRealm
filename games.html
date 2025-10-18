@@ -46,6 +46,10 @@
     <link rel="dns-prefetch" href="//www.gstatic.com">
             <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
         <script type="module" src="firebase-core.js"></script>
+        <!-- Enhanced auth redirect handler -->
+        <script src="auth-redirect-handler.js"></script>
+        <!-- Game analytics tracker -->
+        <script src="game-analytics-tracker.js"></script>
             <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
         <script type="module">        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -1999,9 +2003,18 @@
                 if (headerSignInBtn) {
                     headerSignInBtn.click();
                 } else {
-                    // Last resort fallback to direct navigation with redirect
-                    try { sessionStorage.setItem('gr.returnTo', window.location.href); } catch {}
-                    window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}`;
+                    // Use improved auth redirect handler if available
+                    if (window.authRedirectHandler) {
+                        window.authRedirectHandler.redirectToSignIn();
+                    } else {
+                        // Last resort fallback to direct navigation with redirect
+                        const currentUrl = window.location.href;
+                        try { 
+                            sessionStorage.setItem('gr.returnTo', currentUrl); 
+                            localStorage.setItem('gr.returnTo', currentUrl); // Also save to localStorage as backup
+                        } catch {}
+                        window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+                    }
                 }
             }
         }
@@ -2469,9 +2482,17 @@
             const rememberedChoice = localStorage.getItem('gamePlayPreference');
             if (rememberedChoice) {
                 if (rememberedChoice === 'local') {
+                    // Track game play analytics
+                    if (window.trackGamePlay) {
+                        window.trackGamePlay(gameId, gameName, localPath);
+                    }
                     window.location.href = localPath;
                     return;
                 } else if (rememberedChoice === 'external') {
+                    // Track game play analytics
+                    if (window.trackGamePlay) {
+                        window.trackGamePlay(gameId, gameName, externalUrl);
+                    }
                     window.open(externalUrl, '_blank');
                     return;
                 }
@@ -2492,6 +2513,12 @@
                 if (rememberChoice) {
                     localStorage.setItem('gamePlayPreference', 'local');
                 }
+                
+                // Track game play analytics
+                if (window.trackGamePlay) {
+                    window.trackGamePlay(gameId, gameName, localPath);
+                }
+                
                 window.location.href = localPath;
             };
             
@@ -2500,6 +2527,12 @@
                 if (rememberChoice) {
                     localStorage.setItem('gamePlayPreference', 'external');
                 }
+                
+                // Track game play analytics
+                if (window.trackGamePlay) {
+                    window.trackGamePlay(gameId, gameName, externalUrl);
+                }
+                
                 window.open(externalUrl, '_blank');
                 closeGameOptionsModal();
             };

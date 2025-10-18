@@ -757,7 +757,49 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.firebaseAuth && typeof window.firebaseAuth.onAuthStateChanged === 'function') {
             window.firebaseAuth.onAuthStateChanged(() => {
                 setTimeout(setupGameCardMenus, 300);
+                // Check if user should see developer dashboard
+                setTimeout(checkDeveloperDashboardVisibility, 500);
             });
+        }
+        
+        // Check developer dashboard visibility on initial load
+        setTimeout(checkDeveloperDashboardVisibility, 1000);
+        
+        // Function to check if user should see developer dashboard
+        async function checkDeveloperDashboardVisibility() {
+            const dashboardLink = document.getElementById('developer-dashboard-link');
+            if (!dashboardLink) return;
+            
+            try {
+                const currentUser = window.firebaseAuth?.currentUser;
+                if (!currentUser) {
+                    dashboardLink.style.display = 'none';
+                    return;
+                }
+                
+                // Check if user has submitted any games
+                if (window.firestoreCollection && window.firestoreQuery && window.firestoreWhere && window.firestoreGetDocs) {
+                    const gamesQuery = window.firestoreQuery(
+                        window.firestoreCollection(window.firebaseFirestore, 'games'),
+                        window.firestoreWhere('submittedBy', '==', currentUser.uid)
+                    );
+                    
+                    const gamesSnapshot = await window.firestoreGetDocs(gamesQuery);
+                    
+                    if (!gamesSnapshot.empty) {
+                        dashboardLink.style.display = 'block';
+                        console.log('[Developer Dashboard] User has submitted games, showing dashboard link');
+                    } else {
+                        dashboardLink.style.display = 'none';
+                    }
+                } else {
+                    // Firestore not available, hide dashboard
+                    dashboardLink.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('[Developer Dashboard] Error checking visibility:', error);
+                dashboardLink.style.display = 'none';
+            }
         }
 
         // Report modal wiring (games)

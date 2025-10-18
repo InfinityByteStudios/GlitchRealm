@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Redirect Test - GlitchRealm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        .container {
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #cce7ff; color: #004085; }
+        .code {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #333;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Auth Redirect Test</h1>
+        <p>This page tests the improved auth redirect system for GlitchRealm.</p>
+        
+        <div id="authStatus" class="status info">
+            Auth Status: Checking...
+        </div>
+        
+        <div>
+            <h3>Test Auth Redirects:</h3>
+            <button onclick="testSignInRedirect()">Test Sign In Redirect</button>
+            <button onclick="testGoogleRedirect()">Test Google OAuth</button>
+            <button onclick="testGitHubRedirect()">Test GitHub OAuth</button>
+            <button onclick="testAnonymousRedirect()">Test Anonymous Auth</button>
+        </div>
+        
+        <div>
+            <h3>Utility Functions:</h3>
+            <button onclick="checkStoredUrls()">Check Stored URLs</button>
+            <button onclick="clearStoredUrls()">Clear Stored URLs</button>
+            <button onclick="showCurrentUrl()">Show Current URL</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Debug Info</h2>
+        <div id="debugInfo" class="code">
+            Loading debug information...
+        </div>
+    </div>
+
+    <!-- Include Firebase and auth redirect handler -->
+    <script type="module" src="firebase-core.js"></script>
+    <script src="auth-redirect-handler.js"></script>
+    
+    <script>
+        // Test functions
+        function testSignInRedirect() {
+            if (window.authRedirectHandler) {
+                window.authRedirectHandler.redirectToSignIn();
+            } else {
+                alert('Auth redirect handler not available');
+            }
+        }
+        
+        function testGoogleRedirect() {
+            if (window.authRedirectHandler) {
+                window.authRedirectHandler.redirectToOAuth('google');
+            } else {
+                alert('Auth redirect handler not available');
+            }
+        }
+        
+        function testGitHubRedirect() {
+            if (window.authRedirectHandler) {
+                window.authRedirectHandler.redirectToOAuth('github');
+            } else {
+                alert('Auth redirect handler not available');
+            }
+        }
+        
+        function testAnonymousRedirect() {
+            if (window.authRedirectHandler) {
+                window.authRedirectHandler.redirectToOAuth('anonymous');
+            } else {
+                alert('Auth redirect handler not available');
+            }
+        }
+        
+        function checkStoredUrls() {
+            const debug = document.getElementById('debugInfo');
+            let info = 'Stored URLs:\n\n';
+            
+            try {
+                const sessionUrl = sessionStorage.getItem('gr.returnTo');
+                const localUrl = localStorage.getItem('gr.returnTo');
+                
+                info += `SessionStorage: ${sessionUrl || 'None'}\n`;
+                info += `LocalStorage: ${localUrl || 'None'}\n`;
+                
+                if (window.authRedirectHandler) {
+                    info += `Handler Return URL: ${window.authRedirectHandler.getReturnUrl()}\n`;
+                }
+            } catch (e) {
+                info += `Error: ${e.message}\n`;
+            }
+            
+            debug.textContent = info;
+        }
+        
+        function clearStoredUrls() {
+            try {
+                sessionStorage.removeItem('gr.returnTo');
+                localStorage.removeItem('gr.returnTo');
+                alert('Cleared stored URLs');
+                checkStoredUrls();
+            } catch (e) {
+                alert('Error clearing URLs: ' + e.message);
+            }
+        }
+        
+        function showCurrentUrl() {
+            const debug = document.getElementById('debugInfo');
+            debug.textContent = `Current URL: ${window.location.href}`;
+        }
+        
+        // Update auth status
+        function updateAuthStatus() {
+            const statusEl = document.getElementById('authStatus');
+            
+            if (window.firebaseAuth) {
+                const user = window.firebaseAuth.currentUser;
+                if (user) {
+                    statusEl.textContent = `Auth Status: Signed in as ${user.email || user.uid}`;
+                    statusEl.className = 'status success';
+                } else {
+                    statusEl.textContent = 'Auth Status: Not signed in';
+                    statusEl.className = 'status error';
+                }
+            } else {
+                statusEl.textContent = 'Auth Status: Firebase not loaded';
+                statusEl.className = 'status info';
+            }
+        }
+        
+        // Listen for auth state changes
+        function setupAuthListener() {
+            if (window.firebaseAuth) {
+                window.firebaseAuth.onAuthStateChanged(user => {
+                    updateAuthStatus();
+                    if (user) {
+                        console.log('User signed in:', user.uid);
+                    } else {
+                        console.log('User signed out');
+                    }
+                });
+            } else {
+                setTimeout(setupAuthListener, 1000);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupAuthListener();
+            checkStoredUrls();
+            
+            // Check URL parameters
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get('redirect');
+            if (redirect) {
+                const debug = document.getElementById('debugInfo');
+                debug.textContent += `\nURL Redirect Parameter: ${redirect}`;
+            }
+        });
+        
+        // Update debug info every 5 seconds
+        setInterval(checkStoredUrls, 5000);
+    </script>
+</body>
+</html>

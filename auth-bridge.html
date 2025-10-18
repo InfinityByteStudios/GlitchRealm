@@ -46,16 +46,34 @@
       const returnParam = params.get('return');
       if (returnParam) {
         console.log('[Auth Bridge] Return URL from hash:', returnParam);
-        return returnParam;
+        return decodeURIComponent(returnParam);
       }
       
-      // Fallback: check sessionStorage (won't work cross-domain but try anyway)
+      // Check URL search params as fallback
+      const searchParams = new URLSearchParams(location.search);
+      const redirectParam = searchParams.get('redirect');
+      if (redirectParam) {
+        console.log('[Auth Bridge] Return URL from search params:', redirectParam);
+        return decodeURIComponent(redirectParam);
+      }
+      
+      // Check sessionStorage (won't work cross-domain but try anyway)
       try {
         const savedReturn = sessionStorage.getItem('gr.returnTo');
         if (savedReturn) {
           console.log('[Auth Bridge] Return URL from sessionStorage:', savedReturn);
           sessionStorage.removeItem('gr.returnTo'); // Clean up
           return savedReturn;
+        }
+      } catch (e) {}
+      
+      // Check localStorage as additional fallback
+      try {
+        const localReturn = localStorage.getItem('gr.returnTo');
+        if (localReturn) {
+          console.log('[Auth Bridge] Return URL from localStorage:', localReturn);
+          localStorage.removeItem('gr.returnTo'); // Clean up
+          return localReturn;
         }
       } catch (e) {}
       

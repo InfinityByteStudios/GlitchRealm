@@ -122,8 +122,10 @@
                 const redirect = params.get('redirect');
                 try {
                     const stored = sessionStorage.getItem('gr.returnTo');
+                    const localStored = localStorage.getItem('gr.returnTo');
                     if (redirect) return decodeURIComponent(redirect);
                     if (stored) return stored;
+                    if (localStored) return localStored;
                 } catch {}
                 return '../index.html';
             }

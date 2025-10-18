@@ -122,7 +122,9 @@ try {
     const params = new URLSearchParams(window.location.search);
     const redirect = params.get('redirect');
     if (redirect) {
-        sessionStorage.setItem('gr.returnTo', decodeURIComponent(redirect));
+        const decodedRedirect = decodeURIComponent(redirect);
+        sessionStorage.setItem('gr.returnTo', decodedRedirect);
+        localStorage.setItem('gr.returnTo', decodedRedirect); // Backup
     }
 } catch {}
 
@@ -185,34 +187,32 @@ emailSignupForm?.addEventListener('submit', async (e) => {
     }
 });
 
-// Google sign in
-document.getElementById('google-signin')?.addEventListener('click', async () => {
-    showMessage('Connecting to Google...', 'info');
+// Google sign in - redirect to auth subdomain
+document.getElementById('google-signin')?.addEventListener('click', () => {
+    const returnUrl = getReturnUrl();
     
-    try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        showMessage('GOOGLE ACCESS GRANTED', 'success');
-        goBackAfterAuth(600);
-    } catch (error) {
-        console.error('Google sign in error:', error);
-        showMessage(getErrorMessage(error.code), 'error');
-    }
+    // Determine auth URL based on environment
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1');
+    const authBaseUrl = isDev ? 
+        `${window.location.protocol}//${window.location.host}/auth` : 
+        'https://auth.glitchrealm.ca';
+    
+    const authUrl = `${authBaseUrl}/google?return=${encodeURIComponent(returnUrl)}`;
+    window.location.href = authUrl;
 });
 
-// GitHub sign in
-document.getElementById('github-signin')?.addEventListener('click', async () => {
-    showMessage('Connecting to GitHub...', 'info');
+// GitHub sign in - redirect to auth subdomain  
+document.getElementById('github-signin')?.addEventListener('click', () => {
+    const returnUrl = getReturnUrl();
     
-    try {
-        const provider = new GithubAuthProvider();
-        await signInWithPopup(auth, provider);
-        showMessage('GITHUB ACCESS GRANTED', 'success');
-        goBackAfterAuth(600);
-    } catch (error) {
-        console.error('GitHub sign in error:', error);
-        showMessage(getErrorMessage(error.code), 'error');
-    }
+    // Determine auth URL based on environment
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1');
+    const authBaseUrl = isDev ? 
+        `${window.location.protocol}//${window.location.host}/auth` : 
+        'https://auth.glitchrealm.ca';
+    
+    const authUrl = `${authBaseUrl}/github?return=${encodeURIComponent(returnUrl)}`;
+    window.location.href = authUrl;
 });
 
 // Forgot password (link under sign-in form)
@@ -235,9 +235,18 @@ document.querySelector('.forgot-link')?.addEventListener('click', async () => {
     }
 });
 
-// Continue as guest (anonymous mode button just goes back)
+// Continue as guest - redirect to auth subdomain for anonymous auth
 document.getElementById('anonymous-signin')?.addEventListener('click', () => {
-    window.location.href = getReturnUrl();
+    const returnUrl = getReturnUrl();
+    
+    // Determine auth URL based on environment
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1');
+    const authBaseUrl = isDev ? 
+        `${window.location.protocol}//${window.location.host}/auth` : 
+        'https://auth.glitchrealm.ca';
+    
+    const authUrl = `${authBaseUrl}/anonymous?return=${encodeURIComponent(returnUrl)}`;
+    window.location.href = authUrl;
 });
 
 // If already signed in, redirect immediately
