@@ -62,6 +62,30 @@
 [build.processing]
   skip_processing = false
 
+############################################
+# Plugin configuration overrides
+# Add explicit plugin blocks here so we can disable or tune plugins
+# installed via the Netlify UI while we investigate plugin failures.
+# Note: UI-installed plugins are merged with this list; specifying
+# an inputs value here can prevent the plugin from running if the
+# plugin honours a disable flag. This is a defensive measure to
+# avoid failed builds while we diagnose the root cause.
+[[plugins]]
+  package = "@netlify/plugin-emails"
+
+[[plugins]]
+  package = "netlify-plugin-image-optim"
+  [plugins.inputs]
+    # Try a defensive disable flag -- many plugins check a boolean
+    # like `disable` or `enabled`. We'll provide both common options
+    # to increase the chance the plugin respects the override.
+    disable = true
+    enabled = false
+
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+
 [build.processing.css]
   bundle = true
   minify = true
