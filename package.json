@@ -6,6 +6,7 @@
 	},
 	"main": "index.js",
 	"scripts": {
+		"build": "echo 'No build - static site'",
 		"serve": "firebase emulators:start --only functions",
 		"deploy": "firebase deploy --only functions",
 		"lint": "eslint .",
