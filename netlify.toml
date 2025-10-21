@@ -75,12 +75,6 @@
 
 [[plugins]]
   package = "netlify-plugin-image-optim"
-  [plugins.inputs]
-    # Try a defensive disable flag -- many plugins check a boolean
-    # like `disable` or `enabled`. We'll provide both common options
-    # to increase the chance the plugin respects the override.
-    disable = true
-    enabled = false
 
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
