@@ -98,7 +98,7 @@
     // Performance optimizations: Hoist patterns and utilities to module scope
     (function() {
         // Pre-compiled moderation patterns for better performance
-        const MODERATION_PATTERNS = {
+        window.MODERATION_PATTERNS = {
             // Banned words patterns - pre-compiled for performance
             bannedWords: [
                 'spam', 'hate', 'stupid', 'dumb', 'sucks', 'terrible', 'worst', 'garbage',
@@ -156,7 +156,7 @@
         };
 
         // Cached text normalizer with LRU cache
-        const TEXT_NORMALIZER = (() => {
+        window.TEXT_NORMALIZER = (() => {
             const cache = new Map();
             const maxCacheSize = 500;
             
@@ -183,7 +183,7 @@
                 createVariations: (input) => {
                     const baseVariations = [
                         input.toLowerCase(),
-                        TEXT_NORMALIZER.normalize(input),
+                        window.TEXT_NORMALIZER.normalize(input),
                         input.replace(/[*@#$%^&+=_\-~`|\\\/]/g, ''), // Remove common mask characters
                         input.replace(/[0-9]/g, (match) => { // Replace numbers with letters
                             const numMap = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b'};
@@ -2196,11 +2196,11 @@
 
             // Use pre-compiled patterns from MODERATION_PATTERNS for better performance
 
-            const textVariations = TEXT_NORMALIZER.createVariations(text);
+            const textVariations = window.TEXT_NORMALIZER.createVariations(text);
             
             // Check against pre-compiled regex patterns for bypasses
             for (let variation of textVariations) {
-                for (let pattern of MODERATION_PATTERNS.bannedPatterns) {
+                for (let pattern of window.MODERATION_PATTERNS.bannedPatterns) {
                     if (pattern.test(variation)) {
                         logger.log(`🚫 Blocked bypass attempt: "${text}" -> detected pattern in variation: "${variation}"`);
                         return { status: 'blocked', reason: 'inappropriate content detected (bypass attempt)' };
@@ -2210,7 +2210,7 @@
             
             // Original banned words check (fallback) - with word boundaries to prevent false positives
             for (let variation of textVariations) {
-                for (let word of MODERATION_PATTERNS.bannedWords) {
+                for (let word of window.MODERATION_PATTERNS.bannedWords) {
                     // Use word boundaries to prevent false positives like "hell" in "bullets"
                     const wordPattern = new RegExp('\\b' + word.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
                     if (wordPattern.test(variation)) {
@@ -2222,7 +2222,7 @@
             
             // Check for suspicious content that needs moderation
             for (let variation of textVariations) {
-                for (let word of MODERATION_PATTERNS.suspiciousWords) {
+                for (let word of window.MODERATION_PATTERNS.suspiciousWords) {
                     if (variation.includes(word.toLowerCase())) {
                         logger.log(`⚠️  Flagged for review: "${text}" -> suspicious: "${word}"`);
                         return { status: 'pending', reason: 'content requires manual review' };
