@@ -1,12 +1,10 @@
-<!-- Newsletter Modal Component (self-contained) -->
+<!-- Newsletter Modal Component (Netlify Forms) -->
 <!--
 USAGE:
 1. Load this file once (e.g. fetch('news/newsletter-modal.html').then(r=>r.text()).then(h=>document.body.insertAdjacentHTML('beforeend',h)); )
 2. Add a button somewhere: <button onclick="window.openNewsletterModal()">Subscribe</button>
-3. The MailerLite script will handle JSONP submission. On success we show an in-modal success state.
+3. Netlify Forms will handle submission and send notifications.
 -->
-
-<style>@import url("https://assets.mlcdn.com/fonts.css?version=1759388");</style>
 <style>
 /* --- Modal Shell Styling --- */
 .newsletter-modal{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.85);align-items:center;justify-content:center;font-family:'Open Sans',Arial,Helvetica,sans-serif;}
@@ -20,19 +18,15 @@ USAGE:
 .newsletter-modal h2{font-family:'Orbitron','Open Sans',sans-serif;margin:0 0 10px;font-size:1.9rem;letter-spacing:1px;color:#00fff9;text-align:center;}
 .newsletter-modal p.desc{color:#b8d4d8;margin:0 0 22px;font-size:.95rem;line-height:1.5;text-align:center;}
 
-/* --- MailerLite form overrides (keep minimal) --- */
-#mlb2-31687852.ml-form-embedContainer{box-sizing:border-box;width:100%!important;margin:0 auto;}
-#mlb2-31687852 .ml-form-embedWrapper{background:#00505c;border:0;border-radius:6px;display:block;margin:0 auto;padding:0;}
-#mlb2-31687852 .ml-form-embedBody{padding:18px 18px 6px;}
-#mlb2-31687852 .ml-form-embedContent h4{display:none;}
-#mlb2-31687852 input[type=email]{width:100%;padding:14px 16px;background:#072028;border:1px solid #12313d;border-radius:8px;color:#d7e5e8;font-size:.95rem;box-sizing:border-box;transition:border-color .3s, box-shadow .3s;}
-#mlb2-31687852 input[type=email]:focus{outline:none;border-color:#00fff9;box-shadow:0 0 0 2px rgba(0,255,249,.25);}
-#mlb2-31687852 button.primary{width:100%;padding:14px 20px;background:linear-gradient(90deg,#00fff9,#008cff);border:none;border-radius:8px;color:#02141c;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:'Rajdhani','Open Sans',sans-serif;transition:transform .2s, box-shadow .2s;}
-#mlb2-31687852 button.primary:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,255,249,.5);}
-#mlb2-31687852 button.loading{background:#00505c;cursor:default;}
-.ml-form-embedSubmitLoad{display:inline-block;width:20px;height:20px;}
-.ml-form-embedSubmitLoad:after{content:"";display:block;width:11px;height:11px;margin:1px;border-radius:50%;border:4px solid #fff;border-color:#ffffff #ffffff #ffffff transparent;animation:mlSpin 1.2s linear infinite;}
-@keyframes mlSpin{to{transform:rotate(360deg);}}
+/* --- Newsletter Form Styling --- */
+.newsletter-form{width:100%;margin:0 auto;}
+.newsletter-form input[type=email]{width:100%;padding:14px 16px;background:#072028;border:1px solid #12313d;border-radius:8px;color:#d7e5e8;font-size:.95rem;box-sizing:border-box;transition:border-color .3s, box-shadow .3s;font-family:'Rajdhani','Open Sans',sans-serif;margin-bottom:14px;}
+.newsletter-form input[type=email]:focus{outline:none;border-color:#00fff9;box-shadow:0 0 0 2px rgba(0,255,249,.25);}
+.newsletter-form button[type=submit]{width:100%;padding:14px 20px;background:linear-gradient(90deg,#00fff9,#008cff);border:none;border-radius:8px;color:#02141c;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:'Rajdhani','Open Sans',sans-serif;transition:transform .2s, box-shadow .2s;}
+.newsletter-form button[type=submit]:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,255,249,.5);}
+.newsletter-form button[type=submit]:disabled{background:#00505c;cursor:not-allowed;opacity:0.6;}
+.loading-spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
 
 /* Success message */
@@ -51,37 +45,34 @@ USAGE:
     <h2 id="newsletterModalTitle">Newsletter</h2>
     <p class="desc">Signup for news and special offers!</p>
 
-    <!-- MailerLite Embed Container -->
-    <div id="mlb2-31687852" class="ml-form-embedContainer ml-subscribe-form ml-subscribe-form-31687852">
-      <div class="ml-form-align-center">
-        <div class="ml-form-embedWrapper embedForm">
-          <div class="ml-form-embedBody ml-form-embedBodyHorizontal row-form">
-            <form class="ml-block-form" data-code="" action="https://assets.mailerlite.com/jsonp/1836682/forms/167354636185896415/subscribe" method="post" novalidate>
-              <div class="ml-form-formContent horozintalForm">
-                <div class="ml-form-horizontalRow">
-                  <div class="ml-input-horizontal" style="width:100%;">
-                    <div class="horizontal-fields">
-                      <div class="ml-field-group ml-field-email ml-validate-required ml-validate-email" style="margin-bottom:14px;">
-                        <input aria-label="Email address" required type="email" name="fields[email]" placeholder="Email address" autocomplete="email" />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="ml-button-horizontal primary">
-                    <button type="submit" class="primary" data-submit>Subscribe</button>
-                    <button disabled style="display:none;" type="button" class="loading" data-loading>
-                      <div class="ml-form-embedSubmitLoad"></div>
-                      <span class="sr-only">Loading...</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <input type="hidden" name="ml-submit" value="1" />
-              <input type="hidden" name="anticsrf" value="true" />
-            </form>
-          </div>
-        </div>
+    <!-- Netlify Form -->
+    <form name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="newsletter-form" id="newsletterForm">
+      <!-- Honeypot field for spam protection -->
+      <p style="display:none;">
+        <label>Don't fill this out if you're human: <input name="bot-field" /></label>
+      </p>
+      
+      <input type="hidden" name="form-name" value="newsletter" />
+      
+      <div>
+        <input 
+          type="email" 
+          name="email" 
+          id="newsletter-email"
+          placeholder="Enter your email address" 
+          required 
+          autocomplete="email"
+          aria-label="Email address"
+        />
       </div>
-    </div>
+      
+      <button type="submit" id="newsletter-submit">
+        <span id="submit-text">Subscribe Now</span>
+        <span id="submit-loading" style="display:none;">
+          <span class="loading-spinner"></span> Subscribing...
+        </span>
+      </button>
+    </form>
 
     <div class="newsletter-success" id="newsletterSuccess" role="status" aria-live="polite">
       <h3>You're In! ✅</h3>
@@ -92,21 +83,15 @@ USAGE:
 </div>
 
 <script>
-// Success callback (called by MailerLite script when JSONP returns success)
-function ml_webform_success_31687852() {
-  const form = document.querySelector('#mlb2-31687852 form');
-  const success = document.getElementById('newsletterSuccess');
-  if (form) form.style.display = 'none';
-  if (success) success.classList.add('active');
-}
-
 (function initNewsletterModal(){
   const modal = document.getElementById('newsletterModal');
   if (!modal) return;
   const closeBtn = modal.querySelector('[data-close]');
-  const form = modal.querySelector('form');
-  const submitBtn = modal.querySelector('[data-submit]');
-  const loadingBtn = modal.querySelector('[data-loading]');
+  const form = document.getElementById('newsletterForm');
+  const submitBtn = document.getElementById('newsletter-submit');
+  const submitText = document.getElementById('submit-text');
+  const submitLoading = document.getElementById('submit-loading');
+  const successDiv = document.getElementById('newsletterSuccess');
   let lastFocused = null;
 
   function open(){
@@ -115,14 +100,19 @@ function ml_webform_success_31687852() {
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden','false');
     document.body.style.overflow='hidden';
-    setTimeout(()=>{ const email = modal.querySelector('input[type=email]'); email && email.focus(); }, 60);
+    setTimeout(()=>{ 
+      const email = document.getElementById('newsletter-email'); 
+      email && email.focus(); 
+    }, 60);
   }
+  
   function close(){
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden','true');
     document.body.style.overflow='';
     if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
   }
+  
   window.openNewsletterModal = open;
   window.closeNewsletterModal = close;
 
@@ -130,16 +120,62 @@ function ml_webform_success_31687852() {
   modal.addEventListener('click', e=>{ if(e.target===modal) close(); });
   document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.classList.contains('is-open')) close(); });
 
+  // Handle Netlify form submission
   if(form){
-    form.addEventListener('submit', ()=>{
-      if(submitBtn && loadingBtn){
-        submitBtn.style.display='none';
-        loadingBtn.style.display='inline-block';
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Show loading state
+      if(submitText && submitLoading){
+        submitText.style.display='none';
+        submitLoading.style.display='inline';
+      }
+      submitBtn.disabled = true;
+      
+      try {
+        // Submit to Netlify
+        const formData = new FormData(form);
+        const response = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(formData).toString()
+        });
+        
+        if (response.ok) {
+          // Show success message
+          form.style.display = 'none';
+          if (successDiv) successDiv.classList.add('active');
+          
+          // Close modal after 3 seconds
+          setTimeout(() => {
+            close();
+            // Reset form for next time
+            setTimeout(() => {
+              form.reset();
+              form.style.display = 'block';
+              if (successDiv) successDiv.classList.remove('active');
+              if(submitText && submitLoading){
+                submitText.style.display='inline';
+                submitLoading.style.display='none';
+              }
+              submitBtn.disabled = false;
+            }, 500);
+          }, 3000);
+        } else {
+          throw new Error('Submission failed');
+        }
+      } catch (error) {
+        console.error('Newsletter submission error:', error);
+        alert('Failed to subscribe. Please try again.');
+        
+        // Reset button state
+        if(submitText && submitLoading){
+          submitText.style.display='inline';
+          submitLoading.style.display='none';
+        }
+        submitBtn.disabled = false;
       }
     });
   }
 })();
 </script>
-<script src="https://groot.mailerlite.com/js/w/webforms.min.js" data-consent="false" type="text/javascript"></script>
-<!-- Optional lightweight prefetch; safe to remove if causing issues -->
-<script>try{fetch("https://assets.mailerlite.com/jsonp/1836682/forms/167354636185896415/take",{mode:'no-cors'});}catch(e){}</script>

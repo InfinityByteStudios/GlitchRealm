@@ -105,6 +105,17 @@
             <button id="openNewsletterModal" style="width:100%; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:12px 16px; font-size:.8rem; font-weight:600; letter-spacing:.6px; color:#02141c; cursor:pointer; text-transform:uppercase; transition: transform 0.2s;">Subscribe to Newsletter</button>
             <p style="margin:10px 0 0; font-size:.65rem; opacity:.65; line-height:1.4;"><a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9;">Privacy Policy</a></p>
           </section>
+          <!-- Inline Netlify sidebar form (hidden by default) -->
+          <form name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="news-subscribe-inline" style="display:none; margin-top:12px;">
+            <input type="hidden" name="form-name" value="newsletter">
+            <input type="hidden" name="source" value="news_sidebar">
+            <p style="display:none; margin:0"><label>Don’t fill this out if you're human: <input name="bot-field"></label></p>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="email" name="email" placeholder="your@email.com" required style="flex:1; padding:10px 12px; border-radius:8px; background:#08131b; border:1px solid #12313d; color:#d7e5e8;">
+              <button type="submit" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:10px 14px; font-weight:600; color:#02141c;">Subscribe</button>
+            </div>
+            <p style="font-size:.65rem; opacity:.75; margin-top:8px;">By subscribing you agree to receive emails. Unsubscribe anytime.</p>
+          </form>
           <section class="news-latest">
             <h3>Latest</h3>
             <div id="latest-list" style="display:flex; flex-direction:column; gap:10px; font-size:.75rem; line-height:1.35;"></div>
@@ -140,11 +151,15 @@
         <h2 style="font-family:Orbitron; color:#00fff9; margin:0 0 10px; font-size:1.8rem; letter-spacing:1px;">Newsletter</h2>
         <p style="color:#b8d4d8; margin:0 0 25px; font-size:0.95rem; line-height:1.5;">Signup for news and special offers!</p>
         
-        <form id="modalNewsletterForm" action="https://assets.mailerlite.com/jsonp/1836682/forms/167354636185896415/subscribe" method="post" target="_blank" style="margin-bottom:20px;">
+        <form id="modalNewsletterForm" name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/" style="margin-bottom:20px;">
+          <input type="hidden" name="form-name" value="newsletter">
+          <input type="hidden" name="source" value="news_modal">
+          <p style="display:none; margin:0"><label>Don’t fill this out if you're human: <input name="bot-field"></label></p>
+
           <div style="margin-bottom:15px;">
-            <input type="email" name="fields[email]" placeholder="Enter your email address" required autocomplete="email" style="width:100%; padding:14px 16px; background:#08131b; border:1px solid #12313d; border-radius:8px; color:#d7e5e8; font-size:0.95rem; font-family:Rajdhani; box-sizing:border-box; transition:border-color 0.3s;">
+            <input type="email" name="email" placeholder="Enter your email address" required autocomplete="email" style="width:100%; padding:14px 16px; background:#08131b; border:1px solid #12313d; border-radius:8px; color:#d7e5e8; font-size:0.95rem; font-family:Rajdhani; box-sizing:border-box; transition:border-color 0.3s;">
           </div>
-          
+
           <div style="margin-bottom:20px; text-align:left; padding:15px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.15); border-radius:8px;">
             <p style="margin:0 0 10px; color:#b8d4d8; font-size:0.85rem; font-weight:600;">Marketing Permissions</p>
             <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; color:#b8d4d8; font-size:0.8rem; line-height:1.4;">
@@ -152,9 +167,9 @@
               <span>I agree to receive promotional emails about new products, updates, and special offers.</span>
             </label>
           </div>
-          
+
           <button type="submit" style="width:100%; padding:14px 20px; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; color:#02141c; font-size:0.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; font-family:Rajdhani; transition:transform 0.2s, box-shadow 0.2s;">Subscribe Now</button>
-          
+
           <input type="hidden" name="ml-submit" value="1">
           <input type="hidden" name="anticsrf" value="true">
         </form>
