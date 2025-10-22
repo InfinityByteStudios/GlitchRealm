@@ -949,6 +949,92 @@
             text-align: center;
             font-family: 'Rajdhani', sans-serif;
         }
+        
+        /* Success Notification Overlay */
+        .success-notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .success-notification-card {
+            background: linear-gradient(145deg, var(--gray-800), var(--darker-bg));
+            border: 2px solid var(--success);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.3);
+            animation: successPulse 0.5s ease-out;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--success), #00cc44);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #000;
+            margin: 0 auto 20px;
+            font-weight: 900;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
+            animation: successIconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .success-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            color: var(--success);
+            margin: 0 0 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .success-notification-card .success-message {
+            color: #b8d4d8;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        @keyframes successPulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes successIconPop {
+            0% {
+                transform: scale(0) rotate(-180deg);
+            }
+            70% {
+                transform: scale(1.2) rotate(10deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
 
         .loading-spinner {
             display: inline-block;
@@ -2317,7 +2403,11 @@
 
                     // Show appropriate message based on content check
                     if (contentCheck.status === 'pending') {
-                        showMessage('⏳ Your review has been submitted and is pending moderation. It will be visible once approved by our team.', 'warning');
+                        showMessage('⏳ Review Submitted! Your review is pending moderation and will be visible once approved by our team. Thank you!', 'warning');
+                        
+                        // Show a notification for pending review
+                        showSuccessNotification('Review Submitted for Moderation', 'Your review has been received and will be reviewed by our team shortly.');
+                        
                         // Update rating display after a short delay
                         setTimeout(async () => {
                             const ratingData = await calculateAverageRating(currentGameId);
@@ -2325,7 +2415,11 @@
                         }, 500);
                         setTimeout(() => closeReviewModal(), 3000);
                     } else {
-                        showMessage('✅ Your review has been submitted successfully and is now live!', 'success');
+                        showMessage('✅ SUCCESS! Your review has been submitted and is now live! Thank you for sharing your feedback.', 'success');
+                        
+                        // Show a prominent success notification
+                        showSuccessNotification('Review Submitted Successfully!', 'Your review is now visible to everyone. Thank you for contributing to the community!');
+                        
                         // Refresh the reviews display in the modal
                         refreshModalReviews();
                         // Update the rating display for this game
@@ -2333,7 +2427,7 @@
                             const ratingData = await calculateAverageRating(currentGameId);
                             updateRatingDisplay(currentGameId, ratingData);
                         }, 500);
-                        setTimeout(() => closeReviewModal(), 2000);
+                        setTimeout(() => closeReviewModal(), 3000);
                     }
                 })
                 .catch((error) => {
@@ -2358,6 +2452,36 @@
         function showMessage(message, type) {
             const messageDiv = document.getElementById('reviewMessage');
             messageDiv.innerHTML = `<div class="${type}-message">${message}</div>`;
+        }
+        
+        function showSuccessNotification(title, message) {
+            // Create a prominent success notification overlay
+            const notification = document.createElement('div');
+            notification.className = 'success-notification-overlay';
+            notification.innerHTML = `
+                <div class="success-notification-card">
+                    <div class="success-icon">✓</div>
+                    <h3 class="success-title">${title}</h3>
+                    <p class="success-message">${message}</p>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 10);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
         }
 
         // Function to view stored reviews (for testing)
