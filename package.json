@@ -2,7 +2,7 @@
 	"name": "glitchrealm-functions",
 	"description": "Firebase Cloud Functions for GlitchRealm",
 	"engines": {
-		"node": "20"
+		"node": "20.x"
 	},
 	"main": "index.js",
 	"scripts": {
