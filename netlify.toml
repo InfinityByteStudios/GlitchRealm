@@ -73,8 +73,8 @@
 [[plugins]]
   package = "@netlify/plugin-emails"
 
-[[plugins]]
-  package = "netlify-plugin-image-optim"
+# Removed netlify-plugin-image-optim due to build errors
+# Using Netlify's built-in image optimization instead
 
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
