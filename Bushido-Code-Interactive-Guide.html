@@ -1,0 +1,306 @@
+<!doctype html>
+<!--
+  Bushido Code Interactive Guide
+  Single-file HTML, CSS, and JavaScript page.
+  - Teaches the seven virtues of Bushido
+  - Each virtue button shows: definition, historical samurai example, modern-day example
+  - Styled with soft beige, red, and black tones, rounded corners, and smooth transitions
+  - All code is inline and commented for clarity
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bushido Code Interactive Guide</title>
+      <!-- Favicon: uses the provided Supabase-hosted PNG -->
+      <link rel="icon" type="image/png" href="https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/GlitchRealm/Bushido%20Coding%20Favicon.png">
+      <!-- Optional: theme color for some browsers/tasks -->
+      <meta name="theme-color" content="#b22222">
+    <style>
+      /* Palette: soft beige background, warm red accents, deep black text */
+      :root{
+        --beige:#f2e9df;
+        --accent:#b22222; /* firebrick red */
+        --muted:#7a5a4f; /* brownish muted tone for contrast */
+        --black:#0b0b0b;
+        --card:#fffaf6;
+        --radius:12px;
+        --transition:300ms cubic-bezier(.2,.9,.2,1);
+      }
+
+      /* Basic layout and typography */
+      html,body{height:100%;}
+      body{
+        margin:0; padding:28px; background:linear-gradient(180deg,var(--beige),#efe6db 60%);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        color:var(--black); -webkit-font-smoothing:antialiased;
+      }
+
+      .wrap{max-width:980px;margin:0 auto}
+      header{display:flex;align-items:center;gap:18px;margin-bottom:18px}
+      .logo{width:68px;height:68px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;border:2px solid rgba(0,0,0,0.06);box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+      h1{font-size:1.6rem;margin:0}
+      p.lead{margin:6px 0 0;color:var(--muted)}
+
+      /* Grid for buttons + display area */
+      .grid{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start}
+
+      /* Buttons column */
+      .virtues{background:var(--card);padding:14px;border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.04)}
+      .virtues h2{margin:0 0 8px;font-size:1.05rem}
+      .btn-list{display:flex;flex-direction:column;gap:8px}
+      .virt-btn{
+        display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:linear-gradient(180deg,#fff,#fffaf6);
+        cursor:pointer;transition:transform var(--transition), box-shadow var(--transition), background var(--transition);
+      }
+      .virt-btn:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,0.08)}
+      .virt-btn.active{background:linear-gradient(180deg,#fff6f6,#fff0ef);border-color:rgba(178,34,34,0.2);box-shadow:0 14px 36px rgba(178,34,34,0.06)}
+  /* Make sure kanji render nicely by preferring Japanese-capable fonts here */
+  .virt-symbol{width:56px;height:56px;border-radius:8px;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 6px 14px rgba(178,34,34,0.12);font-size:22px;line-height:1;font-family: 'Meiryo','Yu Gothic','Noto Sans JP', system-ui, sans-serif}
+    /* Nice-looking fun-fact button styles. Left-column small fun buttons removed; only the in-panel button remains.
+      .fun-btn is the base, .fun-btn.primary is used for the main in-panel button */
+  /* base fun button (no fixed width so primary variant can size naturally) */
+  .fun-btn{border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:linear-gradient(180deg,#fff,#fffaf6);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:18px;transition:transform var(--transition),box-shadow var(--transition);padding:6px}
+    .fun-btn:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(0,0,0,0.06)}
+    .fun-btn:focus{outline:3px solid rgba(178,34,34,0.12);outline-offset:3px}
+    .fun-btn.primary{padding:10px 14px;border-radius:10px;background:linear-gradient(180deg,var(--accent),#a31818);color:white;border:0;box-shadow:0 12px 30px rgba(178,34,34,0.18);font-weight:600;display:inline-flex;align-items:center;gap:8px}
+    .fun-btn.primary .fun-icon{font-size:18px}
+  /* modal popup for fun facts */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:40}
+  .modal-backdrop.show{display:flex}
+  .modal{background:var(--card);padding:18px;border-radius:12px;max-width:720px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.25);border:1px solid rgba(0,0,0,0.06);position:relative}
+  .modal h4{margin:0 0 8px;color:var(--accent)}
+  .modal .modal-body{color:var(--muted)}
+  .modal .modal-close{position:absolute;right:18px;top:14px;background:transparent;border:0;font-size:20px;cursor:pointer}
+      .virt-meta{display:flex;flex-direction:column}
+      .virt-meta small{color:var(--muted)}
+
+      /* Display panel */
+      .panel{background:var(--card);padding:18px;border-radius:var(--radius);min-height:220px;border:1px solid rgba(0,0,0,0.04);box-shadow:0 8px 30px rgba(0,0,0,0.06);transition:transform var(--transition),opacity var(--transition)}
+      .panel h3{margin-top:0;color:var(--accent)}
+      .panel .section{margin-top:12px}
+      .section-title{font-weight:600;color:var(--muted);font-size:0.9rem}
+      .example{margin-top:6px;background:rgba(11,11,11,0.02);padding:10px;border-radius:8px}
+
+      /* Small screens: stack columns */
+      @media (max-width:820px){
+        .grid{grid-template-columns:1fr;}
+      }
+
+      /* subtle focus outline for accessibility */
+      .virt-btn:focus{outline:3px solid rgba(178,34,34,0.12);outline-offset:3px}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- Header: title and short description -->
+      <header>
+        <div class="logo" aria-hidden="true">🌸</div>
+        <div>
+          <h1>Bushido Code Interactive Guide</h1>
+          <p class="lead">Explore the seven virtues of Bushido. Click a virtue to read its definition, a historical samurai example, and a modern-day parallel.</p>
+        </div>
+      </header>
+
+      <!-- Main grid: left column for virtue buttons, right column for content display -->
+      <div class="grid" role="region" aria-label="Bushido virtues">
+        <aside class="virtues" aria-label="Virtues list">
+          <h2>Seven virtues</h2>
+          <div class="btn-list" id="btnList">
+            <!-- Buttons are generated by JavaScript. Each button contains a short symbol and label. -->
+          </div>
+        </aside>
+
+        <!-- Display panel: definition, historical example, modern example -->
+        <main class="panel" id="display" aria-live="polite">
+          <h3 id="virtTitle">Select a virtue</h3>
+          <div class="section">
+            <div class="section-title">Definition</div>
+            <div id="virtDef" class="example">Click a virtue on the left to see its definition and examples.</div>
+          </div>
+          <div class="section">
+            <div class="section-title">Historical samurai example</div>
+            <div id="virtHist" class="example"></div>
+          </div>
+          <div class="section">
+            <div class="section-title">Modern-day example</div>
+            <div id="virtModern" class="example"></div>
+            <!-- Fun fact button placed under the modern example; opens a modal popup -->
+              <div style="margin-top:10px">
+                <button id="virtFunBtn" class="fun-btn primary" type="button"><span style="margin-left:6px">Fun fact</span></button>
+              </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      /*
+        Data: the seven virtues with definition, historical example, and modern example.
+        Note: Historical examples are brief, commonly cited figures or incidents used for educational purposes.
+      */
+      const virtues = [
+        {
+          id: 'gi', short: 'Gi', kanji: '義', name: 'Gi   Rectitude',
+          definition: 'Rectitude (Gi) means moral righteousness and integrity: doing what is right, even when it is difficult.',
+          historical: 'Kusunoki Masashige (13th c.) is often celebrated in Japanese history for his steadfast loyalty and moral conviction an icon of rectitude.',
+          modern: 'A modern-day example: a public official who refuses bribes and acts according to principle rather than personal gain.',
+          funFact: 'The kanji 義 combines the characters for “sheep” (羊) and “I” (我) in older forms   sheep were historically seen as virtuous offerings.'
+        },
+        {
+          id: 'yu', short: 'Yu', kanji: '勇', name: 'Yu   Courage',
+          definition: 'Courage (Yu) is bravery in the face of danger or hardship, tempered by wisdom and discipline.',
+          historical: 'Miyamoto Musashi (c.1584–1645), the famed swordsman, is commonly cited for his courage and mastery in duels and battles.',
+          modern: 'A modern-day example: firefighters or rescue workers who risk their own safety to save others.',
+          funFact: 'The kanji 勇 originally depicted a man advancing and was used to convey bold action   a visual reminder of forward courage.'
+        },
+        {
+          id: 'jin', short: 'Jin', kanji: '仁', name: 'Jin   Benevolence',
+          definition: 'Benevolence (Jin) emphasizes compassion and kindness toward others; a samurai should be merciful when possible.',
+          historical: 'Uesugi Kenshin (16th c.) was noted for acts of generosity and his reputation for fair treatment of both allies and foes.',
+          modern: 'A modern-day example: humanitarian workers or community leaders who prioritize care and aid for others.',
+          funFact: 'The kanji 仁 pairs the person radical (亻) with a second element implying two people   symbolizing caring between people.'
+        },
+        {
+          id: 'rei', short: 'Rei', kanji: '礼', name: 'Rei   Respect',
+          definition: 'Respect (Rei) means politeness, courtesy, and proper etiquette; it sustains social harmony and mutual dignity.',
+          historical: 'Yamamoto Tsunetomo (17th–18th c.), author of the Hagakure, emphasized the importance of proper conduct and respect in samurai life.',
+          modern: 'A modern-day example: professionals who treat colleagues and opponents with courtesy and thoughtful consideration.',
+          funFact: '礼 originally referred to ritual bows and ceremony   the character still evokes formal courtesy and manners.'
+        },
+        {
+          id: 'makoto', short: 'Makoto', kanji: '誠', name: 'Makoto   Honesty',
+          definition: 'Honesty (Makoto) is speaking and acting sincerely truthfulness was central to trust between a samurai and those they served.',
+          historical: 'Examples in samurai chronicles often praise leaders and retainers who kept their word and accepted responsibility for failures rather than hide them.',
+          modern: 'A modern-day example: a journalist or auditor who reports facts clearly and resists pressure to distort the truth.',
+          funFact: '誠 contains the speech radical (言)   linking honesty to truthful speech; it emphasizes words matched by action.'
+        },
+        {
+          id: 'meiyo', short: 'Meiyo', kanji: '名誉', name: 'Meiyo   Honor',
+          definition: 'Honor (Meiyo) refers to personal reputation and moral worth; a samurai preserved honor through actions and the consequences they accepted.',
+          historical: 'The story of the 47 Rōnin (Ako incident) is often cited as an example where considerations of honor motivated difficult, sacrificial choices.',
+          modern: 'A modern-day example: someone accepting responsibility for mistakes publicly to maintain integrity, even when it is costly.',
+          funFact: '名誉 literally combines characters meaning “name” (名) and “reputation/esteem” (誉), reflecting the social nature of honour.'
+        },
+        {
+          id: 'chugi', short: 'Chūgi', kanji: '忠義', name: 'Chūgi   Loyalty',
+          definition: 'Loyalty (Chūgi) emphasizes faithfulness to one’s lord, family, or principles placing duty above personal advantage.',
+          historical: 'Many samurai tales highlight loyalty: retainers who remained faithful to a lord or cause even under hardship (e.g., the 47 Rōnin are also cited for loyalty).',
+          modern: 'A modern-day example: long-serving staff who stand by a team or mission during challenging times, or veterans who serve their communities after service.',
+          funFact: '忠義 combines characters for “loyalty” and “righteousness”   together they form the compound often used in samurai texts.'
+        }
+      ];
+
+      // Create buttons dynamically and wire interactions
+      const btnList = document.getElementById('btnList');
+      const display = {
+        title: document.getElementById('virtTitle'),
+        def: document.getElementById('virtDef'),
+        hist: document.getElementById('virtHist'),
+        modern: document.getElementById('virtModern')
+      };
+
+      let activeBtn = null;
+
+      function createButton(v){
+        // Create only the main virtue button (left-column fun buttons removed per request)
+        const btn = document.createElement('button');
+        btn.className = 'virt-btn';
+        btn.type = 'button';
+        btn.setAttribute('data-id', v.id);
+        btn.setAttribute('aria-pressed', 'false');
+        // Show the kanji as the prominent symbol and keep the romaji/name in the metadata
+        btn.innerHTML = `
+          <div class="virt-symbol" aria-hidden="true">${v.kanji}</div>
+          <div class="virt-meta"><strong>${v.name}</strong><small>${v.short}   ${v.definition.slice(0,70)}...</small></div>
+        `;
+
+        // clicking the main button selects the virtue
+        btn.addEventListener('click', () => selectVirtue(v, btn));
+        btn.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); btn.click(); }
+        });
+
+        return btn;
+      }
+
+      function selectVirtue(v, btn){
+        // Update active style
+        if(activeBtn) {
+          activeBtn.classList.remove('active');
+          activeBtn.setAttribute('aria-pressed','false');
+        }
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed','true');
+        activeBtn = btn;
+
+        // Smoothly update display content
+        display.title.style.opacity = 0.0; display.def.style.opacity = 0.0; display.hist.style.opacity = 0.0; display.modern.style.opacity = 0.0;
+        setTimeout(()=>{
+          // Include the kanji prominently next to the title
+          display.title.innerHTML = `${v.name} <span style="font-size:1.15rem;margin-left:10px;color:var(--muted);font-family:'Meiryo','Noto Sans JP',sans-serif">${v.kanji}</span>`;
+          display.def.textContent = v.definition;
+          display.hist.textContent = v.historical;
+          display.modern.textContent = v.modern;
+          display.title.style.opacity = 1; display.def.style.opacity = 1; display.hist.style.opacity = 1; display.modern.style.opacity = 1;
+
+          // set the in-panel Fun fact button to open the modal for this virtue
+          const inPanelBtn = document.getElementById('virtFunBtn');
+          if(inPanelBtn){
+            inPanelBtn.onclick = (e) => { e.preventDefault(); openModal(v.funFact || 'No fun fact available.'); };
+            inPanelBtn.onkeydown = (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openModal(v.funFact || 'No fun fact available.'); } };
+            inPanelBtn.style.visibility = v.funFact ? 'visible' : 'hidden';
+            inPanelBtn.title = v.funFact ? `Fun fact about ${v.short}` : 'No fun fact available';
+          }
+        }, 180);
+      }
+      
+      // Modal: open and close functions
+      function openModal(text){
+        let backdrop = document.getElementById('modalBackdrop');
+        let modalText = document.getElementById('modalText');
+        if(!backdrop){
+          // create modal elements on demand (in case HTML was not present)
+          backdrop = document.createElement('div');
+          backdrop.id = 'modalBackdrop';
+          backdrop.className = 'modal-backdrop';
+          backdrop.innerHTML = `
+            <div class="modal" role="dialog" aria-modal="true">
+              <button class="modal-close" aria-label="Close">×</button>
+              <h4>Fun fact</h4>
+              <div class="modal-body" id="modalText"></div>
+            </div>`;
+          document.body.appendChild(backdrop);
+          backdrop.querySelector('.modal-close').addEventListener('click', closeModal);
+          backdrop.addEventListener('click', (e) => { if(e.target === backdrop) closeModal(); });
+          document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+          modalText = document.getElementById('modalText');
+        }
+        modalText.textContent = text || 'No fun fact available.';
+        backdrop.classList.add('show');
+        backdrop.setAttribute('aria-hidden','false');
+      }
+
+      function closeModal(){
+        const backdrop = document.getElementById('modalBackdrop');
+        if(backdrop){ backdrop.classList.remove('show'); backdrop.setAttribute('aria-hidden','true'); }
+      }
+
+      // Populate list
+      virtues.forEach(v => btnList.appendChild(createButton(v)));
+
+      // Optionally select the first virtue on load
+      window.addEventListener('DOMContentLoaded', ()=>{
+        const firstBtn = btnList.querySelector('button');
+        if(firstBtn) firstBtn.click();
+      });
+
+      /*
+        Future enhancements (notes for maintainers/users):
+        - Add localStorage autosave for user notes on each virtue
+        - Add print-friendly styles
+        - Add expandable "learn more" sections with sources/references
+      */
+    </script>
+  </body>
+</html>
