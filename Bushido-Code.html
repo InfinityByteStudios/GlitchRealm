@@ -66,7 +66,10 @@
     .fun-btn:focus{outline:3px solid rgba(178,34,34,0.12);outline-offset:3px}
     .fun-btn.primary{padding:10px 14px;border-radius:10px;background:linear-gradient(180deg,var(--accent),#a31818);color:white;border:0;box-shadow:0 12px 30px rgba(178,34,34,0.18);font-weight:600;display:inline-flex;align-items:center;gap:8px}
     .fun-btn.primary .fun-icon{font-size:18px}
-  /* modal popup for fun facts */
+  /* Ensure the in-panel Fun fact button text is centered (override inline span margin) */
+  #virtFunBtn { justify-content: center; }
+  #virtFunBtn > span { margin-left: 0 !important; display:inline-block; width:100%; text-align:center; }
+  /* modal popup for Fun Facts */
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:40}
   .modal-backdrop.show{display:flex}
   .modal{background:var(--card);padding:18px;border-radius:12px;max-width:720px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.25);border:1px solid rgba(0,0,0,0.06);position:relative}
@@ -78,7 +81,7 @@
 
       /* Display panel */
       .panel{background:var(--card);padding:18px;border-radius:var(--radius);min-height:220px;border:1px solid rgba(0,0,0,0.04);box-shadow:0 8px 30px rgba(0,0,0,0.06);transition:transform var(--transition),opacity var(--transition)}
-      .panel h3{margin-top:0;color:var(--accent)}
+        /* track which virtue button is currently active (selected) -- JS variable moved to script */
       .panel .section{margin-top:12px}
       .section-title{font-weight:600;color:var(--muted);font-size:0.9rem}
       .example{margin-top:6px;background:rgba(11,11,11,0.02);padding:10px;border-radius:8px}
@@ -103,7 +106,7 @@
         </div>
         <div>
           <h1>Bushido Code Interactive Guide</h1>
-          <p class="lead">Explore the seven virtues of Bushido. Click a virtue to read its definition, a historical samurai example, and a modern-day parallel.</p>
+          <p class="lead">Explore the seven virtues of Bushido. Click a virtue to learn its meaning, a historical samurai example, and a modern-day application.</p>
         </div>
       </header>
 
@@ -121,7 +124,7 @@
           <h3 id="virtTitle">Select a virtue</h3>
           <div class="section">
             <div class="section-title">Definition</div>
-            <div id="virtDef" class="example">Click a virtue on the left to see its definition and examples.</div>
+            <div id="virtDef" class="example">Click a virtue on the left to see what it means and examples.</div>
           </div>
           <div class="section">
             <div class="section-title">Historical samurai example</div>
@@ -130,9 +133,12 @@
           <div class="section">
             <div class="section-title">Modern-day example</div>
             <div id="virtModern" class="example"></div>
-            <!-- Fun fact button placed under the modern example; opens a modal popup -->
-              <div style="margin-top:10px">
-                <button id="virtFunBtn" class="fun-btn primary" type="button"><span style="margin-left:6px">Fun fact</span></button>
+            <!-- Fun Fact button placed under the modern example; opens a modal popup -->
+              <div style="margin-top:10px;display:flex;flex-direction:column;align-items:center;">
+                <button id="virtFunBtn" class="fun-btn primary" type="button"><span style="margin-left:6px">Fun Fact</span></button>
+                <!-- small hint on top, visible before first click -->
+                <div id="virtFunSmallHint" style="margin-top:6px;font-size:12px;color:var(--muted);text-align:center">Click me</div>
+                <div id="virtFunHint" style="margin-top:6px;font-size:12px;color:var(--muted);text-align:center">After you click the button for the first time, this hint will disappear.</div>
               </div>
           </div>
         </main>
@@ -146,69 +152,62 @@
       */
       const virtues = [
         {
-          id: 'gi', short: 'Gi', kanji: '義', name: 'Gi   Rectitude',
-          definition: 'Rectitude (Gi) means moral righteousness and integrity: doing what is right, even when it is difficult.',
-          historical: 'Kusunoki Masashige (13th c.) is often celebrated in Japanese history for his steadfast loyalty and moral conviction an icon of rectitude.',
-          modern: 'A modern-day example: a public official who refuses bribes and acts according to principle rather than personal gain.',
-          funFact: 'The kanji 義 combines the characters for “sheep” (羊) and “I” (我) in older forms   sheep were historically seen as virtuous offerings.'
+          id: 'gi', short: 'Gi', kanji: '義', name: 'Gi  - Rectitude',
+          definition: 'Gi (Rectitude) signifies making morally correct choices and acting with fairness and integrity.',
+          historical: 'Kusunoki Masashige is remembered for staying loyal to his principles even under extreme pressure.',
+          modern: 'A public official who resists corruption and makes impartial decisions shows rectitude today.',
+          funFact: 'The kanji 義 combines elements that once suggested a person and an animal; over time it came to represent righteousness.'
         },
         {
-          id: 'yu', short: 'Yu', kanji: '勇', name: 'Yu   Courage',
-          definition: 'Courage (Yu) is bravery in the face of danger or hardship, tempered by wisdom and discipline.',
-          historical: 'Miyamoto Musashi (c.1584–1645), the famed swordsman, is commonly cited for his courage and mastery in duels and battles.',
-          modern: 'A modern-day example: firefighters or rescue workers who risk their own safety to save others.',
-          funFact: 'The kanji 勇 originally depicted a man advancing and was used to convey bold action   a visual reminder of forward courage.'
+          id: 'yu', short: 'Yu', kanji: '勇', name: 'Yu  - Courage',
+          definition: 'Yu (Courage) describes showing bravery when facing danger or hard choices, not just physical daring but moral resolve.',
+          historical: 'Miyamoto Musashi became famous for his fearless duels and strategic skill in combat.',
+          modern: 'Emergency responders who enter dangerous situations to help others exemplify courage today.',
+          funFact: 'The kanji 勇 historically suggested moving forward boldly; it evokes decisive action.'
         },
         {
-          id: 'jin', short: 'Jin', kanji: '仁', name: 'Jin   Benevolence',
-          definition: 'Benevolence (Jin) emphasizes compassion and kindness toward others; a samurai should be merciful when possible.',
-          historical: 'Uesugi Kenshin (16th c.) was noted for acts of generosity and his reputation for fair treatment of both allies and foes.',
-          modern: 'A modern-day example: humanitarian workers or community leaders who prioritize care and aid for others.',
-          funFact: 'The kanji 仁 pairs the person radical (亻) with a second element implying two people   symbolizing caring between people.'
+          id: 'jin', short: 'Jin', kanji: '仁', name: 'Jin  - Benevolence',
+          definition: 'Jin (Benevolence) involves kindness, compassion, and helping others with sincere concern.',
+          historical: 'Uesugi Kenshin earned a reputation for generosity and fair treatment of people during times of conflict.',
+          modern: 'Volunteers and social workers who support communities demonstrate benevolence today.',
+          funFact: 'The kanji 仁 shows a person next to another person, symbolizing empathy and human connection.'
         },
         {
-          id: 'rei', short: 'Rei', kanji: '礼', name: 'Rei   Respect',
-          definition: 'Respect (Rei) means politeness, courtesy, and proper etiquette; it sustains social harmony and mutual dignity.',
-          historical: 'Yamamoto Tsunetomo (17th–18th c.), author of the Hagakure, emphasized the importance of proper conduct and respect in samurai life.',
-          modern: 'A modern-day example: professionals who treat colleagues and opponents with courtesy and thoughtful consideration.',
-          funFact: '礼 originally referred to ritual bows and ceremony   the character still evokes formal courtesy and manners.'
+          id: 'rei', short: 'Rei', kanji: '礼', name: 'Rei  - Respect',
+          definition: 'Rei (Respect) emphasizes courteous behavior, proper etiquette, and valuing others’ dignity.',
+          historical: 'Samurai observed formal bows and strict manners to maintain social order and discipline.',
+          modern: 'People who listen carefully, use polite language, and honour commitments show respect today.',
+          funFact: '礼 originally referred to formal rituals and bowing; it continues to represent courtesy and decorum.',
+          personalFunFact: 'I practice Aikido: at the start of class the most senior student says "Rei" (礼) as we bow. It means "respect" and shows honor, discipline, and proper etiquette.'
         },
         {
-          id: 'makoto', short: 'Makoto', kanji: '誠', name: 'Makoto   Honesty',
-          definition: 'Honesty (Makoto) is speaking and acting sincerely truthfulness was central to trust between a samurai and those they served.',
-          historical: 'Examples in samurai chronicles often praise leaders and retainers who kept their word and accepted responsibility for failures rather than hide them.',
-          modern: 'A modern-day example: a journalist or auditor who reports facts clearly and resists pressure to distort the truth.',
-          funFact: '誠 contains the speech radical (言)   linking honesty to truthful speech; it emphasizes words matched by action.'
+          id: 'makoto', short: 'Makoto', kanji: '誠', name: 'Makoto  - Honesty',
+          definition: 'Makoto (Honesty) means telling the truth, keeping promises, and acting with sincere intent.',
+          historical: 'Many samurai tales honour those who accepted responsibility and remained truthful in hard times.',
+          modern: 'Journalists and auditors who present accurate facts and admit errors model honesty today.',
+          funFact: 'The kanji 誠 contains a speech element, connecting honest action with truthful words.'
         },
         {
-          id: 'meiyo', short: 'Meiyo', kanji: '名誉', name: 'Meiyo   Honor',
-          definition: 'Honor (Meiyo) refers to personal reputation and moral worth; a samurai preserved honor through actions and the consequences they accepted.',
-          historical: 'The story of the 47 Rōnin (Ako incident) is often cited as an example where considerations of honor motivated difficult, sacrificial choices.',
-          modern: 'A modern-day example: someone accepting responsibility for mistakes publicly to maintain integrity, even when it is costly.',
-          funFact: '名誉 literally combines characters meaning “name” (名) and “reputation/esteem” (誉), reflecting the social nature of honour.'
+          id: 'meiyo', short: 'Meiyo', kanji: '名誉', name: 'Meiyo  - Honor',
+          definition: 'Meiyo (Honor) refers to reputation earned through dignified actions and moral conduct.',
+          historical: 'The tale of the 47 Rōnin highlights how the pursuit of honor shaped difficult, sometimes tragic choices.',
+          modern: 'Someone who takes responsibility to preserve trust and dignity demonstrates honor today.',
+          funFact: '名誉 pairs characters for "name" and "esteem", illustrating how honor relates to one’s social standing.'
         },
         {
-          id: 'chugi', short: 'Chūgi', kanji: '忠義', name: 'Chūgi   Loyalty',
-          definition: 'Loyalty (Chūgi) emphasizes faithfulness to one’s lord, family, or principles placing duty above personal advantage.',
-          historical: 'Many samurai tales highlight loyalty: retainers who remained faithful to a lord or cause even under hardship (e.g., the 47 Rōnin are also cited for loyalty).',
-          modern: 'A modern-day example: long-serving staff who stand by a team or mission during challenging times, or veterans who serve their communities after service.',
-          funFact: '忠義 combines characters for “loyalty” and “righteousness”   together they form the compound often used in samurai texts.'
+          id: 'chugi', short: 'Chūgi', kanji: '忠義', name: 'Chūgi  - Loyalty',
+          definition: 'Chūgi (Loyalty) means faithful support for family, friends, or leaders, even during challenges.',
+          historical: 'Many samurai maintained steadfast loyalty to their lords in times of hardship and conflict.',
+          modern: 'A colleague who supports their team through difficulties is an example of loyalty today.',
+          funFact: '忠義 combines characters for devotion and righteousness; it frequently appears in samurai texts.'
         }
       ];
-
-      // Create buttons dynamically and wire interactions
-      const btnList = document.getElementById('btnList');
-      const display = {
-        title: document.getElementById('virtTitle'),
-        def: document.getElementById('virtDef'),
-        hist: document.getElementById('virtHist'),
-        modern: document.getElementById('virtModern')
-      };
-
-      let activeBtn = null;
-
+  // track which virtue button is currently active (selected)
+  let activeBtn = null;
+  // will hold references to the display elements once the DOM is ready
+  let display = null;
       function createButton(v){
-        // Create only the main virtue button (left-column fun buttons removed per request)
+        // Create only the main virtue button (text-only changes allowed)
         const btn = document.createElement('button');
         btn.className = 'virt-btn';
         btn.type = 'button';
@@ -249,19 +248,28 @@
           display.modern.textContent = v.modern;
           display.title.style.opacity = 1; display.def.style.opacity = 1; display.hist.style.opacity = 1; display.modern.style.opacity = 1;
 
-          // set the in-panel Fun fact button to open the modal for this virtue
+          // set the in-panel Fun Fact button to open the modal for this virtue
           const inPanelBtn = document.getElementById('virtFunBtn');
           if(inPanelBtn){
-            inPanelBtn.onclick = (e) => { e.preventDefault(); openModal(v.funFact || 'No fun fact available.'); };
-            inPanelBtn.onkeydown = (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openModal(v.funFact || 'No fun fact available.'); } };
+            // Pass the entire virtue object so the modal can show both the main funFact and a personalFunFact section
+            inPanelBtn.onclick = (e) => {
+              e.preventDefault();
+              // hide the hints the first time the button is clicked
+              const hint = document.getElementById('virtFunHint');
+              if(hint) hint.style.display = 'none';
+              const small = document.getElementById('virtFunSmallHint');
+              if(small) small.style.display = 'none';
+              openModal(v);
+            };
+            inPanelBtn.onkeydown = (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); const hint = document.getElementById('virtFunHint'); if(hint) hint.style.display = 'none'; const small = document.getElementById('virtFunSmallHint'); if(small) small.style.display = 'none'; openModal(v); } };
             inPanelBtn.style.visibility = v.funFact ? 'visible' : 'hidden';
-            inPanelBtn.title = v.funFact ? `Fun fact about ${v.short}` : 'No fun fact available';
+            inPanelBtn.title = v.funFact ? `Fun Fact about ${v.short}` : 'No Fun Fact available';
           }
         }, 180);
       }
       
-      // Modal: open and close functions
-      function openModal(text){
+      // Modal: open and close functions. openModal accepts either a string (legacy) or a virtue object
+      function openModal(vOrText){
         let backdrop = document.getElementById('modalBackdrop');
         let modalText = document.getElementById('modalText');
         if(!backdrop){
@@ -272,7 +280,7 @@
           backdrop.innerHTML = `
             <div class="modal" role="dialog" aria-modal="true">
               <button class="modal-close" aria-label="Close">×</button>
-              <h4>Fun fact</h4>
+              <h4>Fun Fact</h4>
               <div class="modal-body" id="modalText"></div>
             </div>`;
           document.body.appendChild(backdrop);
@@ -281,7 +289,21 @@
           document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
           modalText = document.getElementById('modalText');
         }
-        modalText.textContent = text || 'No fun fact available.';
+
+        if(typeof vOrText === 'object' && vOrText !== null){
+          const main = vOrText.funFact || 'No Fun Fact available.';
+          const personal = vOrText.personalFunFact;
+          let html = `<p>${escapeHtml(main)}</p>`;
+          if(personal){
+            html += `<hr style="border:none;border-top:1px solid rgba(0,0,0,0.06);margin:10px 0">`;
+            html += `<div style="font-weight:700;margin-bottom:6px">Personal Fun Fact</div>`;
+            html += `<p style="margin:0">${escapeHtml(personal)}</p>`;
+          }
+          modalText.innerHTML = html;
+        } else {
+          modalText.textContent = String(vOrText || 'No Fun Fact available.');
+        }
+
         backdrop.classList.add('show');
         backdrop.setAttribute('aria-hidden','false');
       }
@@ -291,11 +313,25 @@
         if(backdrop){ backdrop.classList.remove('show'); backdrop.setAttribute('aria-hidden','true'); }
       }
 
-      // Populate list
-      virtues.forEach(v => btnList.appendChild(createButton(v)));
+      function escapeHtml(str){
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      }
 
-      // Optionally select the first virtue on load
+      // Wait for DOM so we can safely query elements and populate buttons
       window.addEventListener('DOMContentLoaded', ()=>{
+        const btnList = document.getElementById('btnList');
+        // Populate the left column with virtue buttons
+        virtues.forEach(v => btnList.appendChild(createButton(v)));
+
+        // Cache the display area elements for use by selectVirtue
+        display = {
+          title: document.getElementById('virtTitle'),
+          def: document.getElementById('virtDef'),
+          hist: document.getElementById('virtHist'),
+          modern: document.getElementById('virtModern')
+        };
+
+        // Optionally select the first virtue on load
         const firstBtn = btnList.querySelector('button');
         if(firstBtn) firstBtn.click();
       });
