@@ -26,6 +26,37 @@
         import(AUTH_URL)
       ]);
       const app = initializeApp(config);
+      // Initialize Performance Monitoring (optional). This is the modular, tree-shakeable API.
+      try {
+        const perfModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-performance.js');
+        try {
+          const { getPerformance } = perfModule;
+          const perf = getPerformance(app);
+          // Expose for diagnostic use elsewhere in the site
+          window.firebasePerf = perf;
+          console.log('[Firebase Core] Performance Monitoring initialized');
+        } catch (perfErr) {
+          console.warn('[Firebase Core] Failed to init Performance Monitoring:', perfErr);
+        }
+
+        // Optional: attempt to load First Input Delay polyfill (recommended by Firebase
+        // to measure the FID metric on older browsers). This is best added explicitly
+        // during your build or via a local vendor file; here we attempt a best-effort
+        // dynamic load from unpkg and silently ignore failures.
+        try {
+          const fidScript = document.createElement('script');
+          fidScript.src = 'https://unpkg.com/first-input-delay@latest/dist/first-input-delay.iife.js';
+          fidScript.async = true;
+          fidScript.onload = () => console.log('[Firebase Core] FID polyfill loaded');
+          fidScript.onerror = () => console.warn('[Firebase Core] Failed to load FID polyfill (optional)');
+          document.head.appendChild(fidScript);
+        } catch (e) {
+          // ignore
+        }
+      } catch (e) {
+        // If module import is blocked, don't break initialization — performance is optional
+        console.warn('[Firebase Core] Performance module load failed:', e);
+      }
       const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = authMod;
       const auth = getAuth(app);
       
