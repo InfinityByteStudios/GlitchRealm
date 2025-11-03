@@ -65,7 +65,7 @@
   <div id="header-placeholder"></div>
   <main class="main">
     <div class="publish-wrap">
-      <div class="publish-header">
+      <div class="publish-header" style="display:none;">
         <h1>Publish Article</h1>
         <p style="max-width:720px; font-size:.9rem; color:#b7c9cd;">Create a news post: updates, patch notes, dev log, event, or community spotlight. Media is optional—images upload to Supabase storage. Videos should be hosted externally (YouTube, etc.) and embedded.</p>
       </div>
@@ -73,7 +73,12 @@
       <div id="status-success" class="status-msg success">✓ Published successfully!</div>
       <div id="status-error" class="status-msg error">✗ Error publishing.</div>
       
-      <form class="publish-form" id="publish-form">
+      <div id="loading-check" style="padding:80px 30px; text-align:center; border:1px solid rgba(0,255,249,0.2); border-radius:14px; background:linear-gradient(135deg,#001015, #001820);">
+        <h2 style="margin:0 0 10px; font-size:1.4rem; color:#00fff9;">Loading...</h2>
+        <p style="margin:0; font-size:.9rem; opacity:.6;">Verifying access permissions...</p>
+      </div>
+      
+      <form class="publish-form" id="publish-form" style="display:none;">
         <div class="field">
           <label>Title</label>
           <input type="text" id="title" maxlength="140" required placeholder="GlitchRealm v1.2 Performance Update" />
