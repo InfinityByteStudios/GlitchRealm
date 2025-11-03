@@ -77,9 +77,9 @@
         }
       } catch (e) {}
       
-      // Default to home page
-      console.log('[Auth Bridge] No return URL found, using /');
-      return '/';
+      // Default to news subdomain
+      console.log('[Auth Bridge] No return URL found, using https://news.glitchrealm.ca');
+      return 'https://news.glitchrealm.ca';
     }
 
     async function handleHashSignIn() {
