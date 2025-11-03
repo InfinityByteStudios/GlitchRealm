@@ -1866,12 +1866,6 @@ async function initializeAuth() {
     const googleProvider = new GoogleAuthProvider();
     const githubProvider = new GithubAuthProvider();
     try { githubProvider.setCustomParameters({ allow_signup: 'true' }); } catch {}
-    try {
-        // Prompt account chooser to avoid silent sign-in issues when switching accounts/browsers
-        googleProvider.setCustomParameters({ prompt: 'select_account' });
-    } catch (e) {
-        console.warn('Failed to set Google provider parameters:', e);
-    }
 
     // DOM elements (with null checks for dynamic loading)
     const signInBtn = document.getElementById('sign-in-btn');
@@ -1971,17 +1965,6 @@ async function initializeAuth() {
         } catch (error) {
             console.error('Google sign-in error:', error);
             const code = String(error?.code || error?.message || '');
-            // Handle common account/credential errors with clearer guidance
-            if (/account-exists-with-different-credential/i.test(code)) {
-                showAuthMessage('An account already exists with a different provider. Try signing in with the original provider.', 'error');
-                alert('An account with that email already exists under a different sign-in method. Try signing in with the original provider (e.g., GitHub) or use password sign-in.');
-                return;
-            }
-            if (/credential-already-in-use/i.test(code)) {
-                showAuthMessage('This credential is already linked to another account.', 'error');
-                alert('This credential is already linked to another account. If you think this is an error, try signing out from other browsers or use account recovery.');
-                return;
-            }
             const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
             if (shouldRedirect) {
                 try {
