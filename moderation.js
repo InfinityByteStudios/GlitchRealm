@@ -10,6 +10,7 @@
   const vControlsEl = document.getElementById('mod-verify-controls');
   const vListEl = document.getElementById('mod-verify-list');
   const vFilterEl = document.getElementById('mod-verify-filter');
+  const vSourceEl = document.getElementById('mod-verify-source');
   // Game submissions elements
   const gsControlsEl = document.getElementById('mod-gamesub-controls');
   const gsListEl = document.getElementById('mod-gamesub-list');
@@ -261,6 +262,107 @@
     gsListEl.innerHTML = rows.join('');
   }
 
+  function renderWriterVerificationList(snap){
+    if (!snap || snap.empty) {
+      vListEl.innerHTML = '<div style="opacity:.8; padding:8px;">No writer verification requests found.</div>';
+      return;
+    }
+    
+    // Get current filter
+    const filter = vFilterEl?.value || 'pending';
+    
+    // Filter results client-side
+    const filteredDocs = [];
+    snap.forEach(d => {
+      const status = d.data().status || 'pending';
+      if (filter === 'all' || 
+          filter === status || 
+          (filter === 'rejected' && status === 'rejected') ||
+          (filter === 'approved' && status === 'approved') ||
+          (filter === 'pending' && status === 'pending')) {
+        filteredDocs.push(d);
+      }
+    });
+    
+    if (filteredDocs.length === 0) {
+      vListEl.innerHTML = '<div style="opacity:.8; padding:8px;">No writer verification requests found.</div>';
+      return;
+    }
+    
+    const rows = [];
+    filteredDocs.forEach(d => {
+      const r = d.data();
+      const when = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : '';
+      const displayName = esc(r.displayName || 'Unknown');
+      const email = esc(r.email || '');
+      const message = esc(r.message || 'No message provided');
+      const status = r.status || 'pending';
+      const statusClass = status === 'approved' ? 'status-closed' : (status === 'rejected' ? 'status-chip' : 'status-pending');
+      
+      rows.push(`<div class="mod-report-row" data-wvid="${esc(d.id)}">
+        <div class="mrr-main">
+          <div class="mrr-title">${displayName}</div>
+          <div class="mrr-meta">
+            Email: <code>${email}</code> • UID: <code style="font-size:0.7rem;">${esc(d.id)}</code> • ${esc(when)}
+            <br/><span class="status-chip ${statusClass}">Status: <strong>${esc(status)}</strong></span>
+          </div>
+          ${message !== 'No message provided' ? `<div style="margin-top:8px; padding:10px; background:rgba(0,255,249,0.05); border-left:3px solid #00fff9; border-radius:4px; white-space:pre-wrap; opacity:.9;">${message}</div>` : ''}
+          <div class="status-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="neural-button secondary wv-approve" style="color:#00ff41;"><span class="button-text">✓ Approve</span></button>
+            <button class="neural-button secondary wv-reject" style="color:#ff6b6b;"><span class="button-text">✗ Reject</span></button>
+          </div>
+        </div>
+      </div>`);
+    });
+    vListEl.innerHTML = rows.join('');
+    
+    // Add click handlers for approve/reject
+    vListEl.addEventListener('click', async (e) => {
+      const approve = e.target.closest('.wv-approve');
+      const reject = e.target.closest('.wv-reject');
+      
+      if (approve || reject) {
+        const row = e.target.closest('.mod-report-row');
+        const wvid = row?.getAttribute('data-wvid');
+        if (!wvid) return;
+        
+        try {
+          const vmod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const db = vmod.getFirestore();
+          
+          if (approve) {
+            // Create verified_writers doc and mark request approved
+            await vmod.setDoc(vmod.doc(db, 'verified_writers', wvid), {
+              verified: true,
+              verifiedAt: vmod.serverTimestamp(),
+              verifiedBy: auth?.currentUser?.uid || null
+            });
+            await vmod.updateDoc(vmod.doc(db, 'writer_verification_requests', wvid), {
+              status: 'approved',
+              approvedAt: vmod.serverTimestamp(),
+              approvedBy: auth?.currentUser?.uid || null
+            });
+            alert('✓ Writer verified successfully!');
+          } else if (reject) {
+            const reason = prompt('Rejection reason (optional):');
+            if (reason === null) return; // Cancelled
+            
+            await vmod.updateDoc(vmod.doc(db, 'writer_verification_requests', wvid), {
+              status: 'rejected',
+              rejectedAt: vmod.serverTimestamp(),
+              rejectedBy: auth?.currentUser?.uid || null,
+              rejectionReason: reason || 'No reason provided'
+            });
+            alert('✗ Request rejected.');
+          }
+        } catch(e) {
+          console.error('Writer verification error:', e);
+          alert('Failed to process request: ' + (e.message || 'Unknown error'));
+        }
+      }
+    }, { once: false });
+  }
+
   async function ensureReportsListener(){
     if (!auth || !auth.currentUser) return;
     const uid = auth.currentUser.uid;
@@ -305,23 +407,31 @@
       document.getElementById('mod-refresh')?.addEventListener('click', async () => {
         try { const snap = await getDocs(q); renderReportsList(snap); } catch(e) {}
       });
-      sourceEl?.addEventListener('change', () => {
+      sourceEl?.addEventListener('change', async () => {
         try {
           if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
           q = buildQuery();
           reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
-        } catch(e) {}
+        } catch(e) { console.error('Source change error:', e); }
       });
 
   // Verification requests query + handlers
       const vmod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
       const vdb = vmod.getFirestore();
-      const buildVQuery = (filter) => {
-        const base = vmod.collection(vdb, 'verification_requests');
+      const buildVQuery = (filter, source) => {
+        const collectionName = (source === 'writer-verification') ? 'writer_verification_requests' : 'verification_requests';
+        const base = vmod.collection(vdb, collectionName);
         const f = (filter || 'pending');
-        if (f === 'denied') {
-          // Show ALL denied requests (no limit), ordered by newest first
-          return vmod.query(base, vmod.where('status','==','denied'), vmod.orderBy('createdAt','desc'));
+        
+        // For writer verification, use simple orderBy like admin.js (no status filter in query)
+        if (source === 'writer-verification') {
+          return vmod.query(base, vmod.orderBy('createdAt','desc'));
+        }
+        
+        // For user verification, use status filtering
+        if (f === 'denied' || f === 'rejected') {
+          // Show ALL denied/rejected requests (no limit), ordered by newest first
+          return vmod.query(base, vmod.where('status','==', f === 'denied' ? 'denied' : 'rejected'), vmod.orderBy('createdAt','desc'));
         }
         if (f === 'all') {
           return vmod.query(base, vmod.orderBy('createdAt','desc'), vmod.limit(50));
@@ -330,16 +440,46 @@
       };
       const refreshV = async () => {
         try {
-          const snap = await vmod.getDocs(buildVQuery(vFilterEl?.value || 'pending'));
-          renderVerifyList(snap);
+          const source = vSourceEl?.value || 'verified-users';
+          const snap = await vmod.getDocs(buildVQuery(vFilterEl?.value || 'pending', source));
+          if (source === 'writer-verification') {
+            renderWriterVerificationList(snap);
+          } else {
+            renderVerifyList(snap);
+          }
         } catch(e) { vListEl.innerHTML = '<div style="opacity:.8; padding:8px;">Failed to load.</div>'; }
       };
       if (vUnsub) { try { vUnsub(); } catch(e){} vUnsub = null; }
-      vUnsub = vmod.onSnapshot(buildVQuery(vFilterEl?.value || 'pending'), (snap) => renderVerifyList(snap));
+      const initialSource = vSourceEl?.value || 'verified-users';
+      vUnsub = vmod.onSnapshot(buildVQuery(vFilterEl?.value || 'pending', initialSource), (snap) => {
+        if (initialSource === 'writer-verification') {
+          renderWriterVerificationList(snap);
+        } else {
+          renderVerifyList(snap);
+        }
+      });
       document.getElementById('mod-verify-refresh')?.addEventListener('click', refreshV);
       vFilterEl?.addEventListener('change', () => {
         if (vUnsub) { try { vUnsub(); } catch(e){} vUnsub = null; }
-        vUnsub = vmod.onSnapshot(buildVQuery(vFilterEl.value || 'pending'), (snap) => renderVerifyList(snap));
+        const source = vSourceEl?.value || 'verified-users';
+        vUnsub = vmod.onSnapshot(buildVQuery(vFilterEl.value || 'pending', source), (snap) => {
+          if (source === 'writer-verification') {
+            renderWriterVerificationList(snap);
+          } else {
+            renderVerifyList(snap);
+          }
+        });
+      });
+      vSourceEl?.addEventListener('change', () => {
+        if (vUnsub) { try { vUnsub(); } catch(e){} vUnsub = null; }
+        const source = vSourceEl.value || 'verified-users';
+        vUnsub = vmod.onSnapshot(buildVQuery(vFilterEl.value || 'pending', source), (snap) => {
+          if (source === 'writer-verification') {
+            renderWriterVerificationList(snap);
+          } else {
+            renderVerifyList(snap);
+          }
+        });
       });
 
       vListEl.addEventListener('click', (e) => {

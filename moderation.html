@@ -125,8 +125,15 @@
                 <hr style="margin:24px 0; border-color: var(--gray-800);">
 
                 <div id="mod-verify-controls" style="display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin:12px 0; display:none;">
-                    <div style="opacity:.85;">Verification requests</div>
-                    <div style="display:flex; gap:8px; align-items:center;">
+                    <div style="display:flex; gap:10px; align-items:center; opacity:.95; flex-wrap:wrap;">
+                        <div style="opacity:.85;">Verification requests</div>
+                        <label style="display:flex; align-items:center; gap:6px; opacity:.85;">
+                            <span>Source:</span>
+                            <select id="mod-verify-source" class="neural-input" style="min-width:170px;">
+                                <option value="verified-users">User Verification</option>
+                                <option value="writer-verification">Writer Verification</option>
+                            </select>
+                        </label>
                         <label style="display:flex; align-items:center; gap:6px; opacity:.85;">
                             <span>Show:</span>
                             <select id="mod-verify-filter" class="neural-input" style="min-width:140px;">
@@ -136,6 +143,8 @@
                                 <option value="all">All</option>
                             </select>
                         </label>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
                         <button id="mod-verify-refresh" class="neural-button secondary"><span class="button-text">Refresh</span></button>
                     </div>
                 </div>

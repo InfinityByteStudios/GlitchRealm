@@ -287,14 +287,14 @@ async function showRequestVerificationModal(user) {
     const status = data.status || 'pending';
     
     container.innerHTML = `
-      <div style="padding:60px 30px; text-align:center; border:1px solid rgba(0,255,249,0.3); border-radius:14px; background:linear-gradient(135deg,#001a1a, #002020);">
-        <h2 style="margin:0 0 10px; font-size:1.4rem; color:#00fff9;">Verification Request ${status === 'pending' ? 'Pending' : status === 'approved' ? 'Approved' : 'Reviewed'}</h2>
+      <div style="padding:60px 30px; text-align:center; border:1px solid ${status === 'rejected' ? 'rgba(255,80,80,0.3)' : 'rgba(0,255,249,0.3)'}; border-radius:14px; background:linear-gradient(135deg,${status === 'rejected' ? '#200,#300' : '#001a1a, #002020'});">
+        <h2 style="margin:0 0 10px; font-size:1.4rem; color:${status === 'rejected' ? '#ff6b6b' : '#00fff9'};">Verification Request ${status === 'pending' ? 'Pending' : status === 'approved' ? 'Approved' : 'Denied'}</h2>
         <p style="margin:0 0 20px; font-size:.9rem; opacity:.8;">
           ${status === 'pending' ? 'Your request to become a verified writer is under review.' : 
             status === 'approved' ? 'Your request was approved! Refresh the page to access publishing.' :
-            status === 'rejected' ? `Your request was not approved. ${data.rejectionReason ? 'Reason: ' + data.rejectionReason : ''}` : 'Status unknown.'}
+            status === 'rejected' ? `Your request was denied.${data.rejectionReason ? '<br/><strong>Reason:</strong> ' + data.rejectionReason : ''}` : 'Status unknown.'}
         </p>
-        ${status === 'rejected' ? '<button onclick="location.reload()" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; color:#02141c; cursor:pointer;">Request Again</button>' : ''}
+        ${status === 'rejected' ? '<button onclick="deleteAndResubmit(\'' + user.uid + '\')" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; color:#02141c; cursor:pointer; text-transform:uppercase; letter-spacing:0.5px;">Resubmit Request</button>' : ''}
       </div>
     `;
     return;
@@ -381,6 +381,18 @@ async function showRequestForm(user) {
     }
   });
 }
+
+// Delete rejected request and allow resubmission
+window.deleteAndResubmit = async function(userId) {
+  try {
+    const { deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    await deleteDoc(doc(db, 'writer_verification_requests', userId));
+    location.reload();
+  } catch (err) {
+    console.error('Error deleting request:', err);
+    alert('Failed to reset request. Please try again.');
+  }
+};
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {

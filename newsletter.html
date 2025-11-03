@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -144,18 +144,21 @@
     <!-- Newsletter Hero Section -->
     <section class="newsletter-hero">
         <div class="newsletter-hero-content">
-            <h1 class="newsletter-title glitch" data-text="Stay in the Loop">Stay in the Loop</h1>
+            <h1 class="newsletter-title glitch" data-text="Coming Soon">Coming Soon</h1>
             <p class="newsletter-subtitle">
-                Join thousands of players in the GlitchRealm community. Get exclusive updates, early access to new games, and special offers delivered straight to your inbox.
+                Our newsletter is currently under development. Check back soon for exclusive updates, early access to new games, and special offers delivered straight to your inbox.
             </p>
         </div>
     </section>
 
     <!-- Benefits Section -->
-    <section class="newsletter-benefits">
+    <section class="newsletter-benefits" style="opacity: 0.5; pointer-events: none;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <span style="font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: #00fff9;">&#128679; Under Construction &#128679;</span>
+        </div>
         <div class="benefits-grid">
             <div class="benefit-item">
-                <span class="benefit-icon">🎮</span>
+                <span class="benefit-icon">&#128276;</span>
                 <h3 class="benefit-title">New Game Alerts</h3>
                 <p class="benefit-description">
                     Be the first to know when we launch new games and updates to your favorites.
@@ -163,7 +166,7 @@
             </div>
             
             <div class="benefit-item">
-                <span class="benefit-icon">🎉</span>
+                <span class="benefit-icon">&#127918;</span>
                 <h3 class="benefit-title">Community Events</h3>
                 <p class="benefit-description">
                     Get exclusive invites to tournaments, challenges, and community gatherings.
@@ -171,7 +174,7 @@
             </div>
             
             <div class="benefit-item">
-                <span class="benefit-icon">💎</span>
+                <span class="benefit-icon">&#127873;</span>
                 <h3 class="benefit-title">Special Offers</h3>
                 <p class="benefit-description">
                     Unlock subscriber-only content, beta access, and promotional rewards.
@@ -179,7 +182,7 @@
             </div>
             
             <div class="benefit-item">
-                <span class="benefit-icon">📰</span>
+                <span class="benefit-icon">&#128240;</span>
                 <h3 class="benefit-title">Platform News</h3>
                 <p class="benefit-description">
                     Stay updated on new features, improvements, and behind-the-scenes insights.
@@ -189,7 +192,7 @@
     </section>
 
     <!-- Newsletter Form Section -->
-    <section class="newsletter-form-section">
+    <section class="newsletter-form-section" style="display: none;">
         <div class="form-container">
             <!-- MailerLite Form Embed Code -->
             <style type="text/css">@import url("https://assets.mlcdn.com/fonts.css?version=1759388");</style>
@@ -228,8 +231,8 @@
               margin: 1px;
               border-radius: 50%;
               border: 4px solid #fff;
-            border-color: #ffffff #ffffff #ffffff transparent;
-            animation: ml-form-embedSubmitLoad 1.2s linear infinite;
+              border-color: #ffffff #ffffff #ffffff transparent;
+              animation: ml-form-embedSubmitLoad 1.2s linear infinite;
             }
             @keyframes ml-form-embedSubmitLoad {
               0% {
@@ -279,7 +282,6 @@
                 height: auto;
                 margin: 0 auto !important;
                 max-width: 100%;
-                width: undefinedpx;
               }
               #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody,
               #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-successBody {
@@ -313,4 +315,25 @@
                 margin: 0 0 10px 0;
                 text-align: left;
               }
-[File content truncated. Use read_file with offset/limit to see more.]
+            </style>
+            <!-- MailerLite form code truncated - form hidden with display:none in section above -->
+        </div>
+    </section>
+
+    <!-- Footer (load dynamically) -->
+    <div id="footer-container"></div>
+
+    <!-- Scripts -->
+    <script src="firebase-core.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Load header and footer
+        fetch('header.html').then(r => r.text()).then(html => {
+            document.getElementById('header-container').innerHTML = html;
+        });
+        fetch('footer.html').then(r => r.text()).then(html => {
+            document.getElementById('footer-container').innerHTML = html;
+        });
+    </script>
+</body>
+</html>
