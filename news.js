@@ -107,9 +107,20 @@ function renderArticles(){
 function articleCardHTML(a){
   const tagsHTML = (a.tags||[]).map(t=>`<span>${t}</span>`).join('');
   const mediaHTML = a.coverImageUrl ? `<div style="margin:-10px -14px 18px; overflow:hidden; border-radius:12px; border:1px solid rgba(0,255,249,0.15);"><img src="${a.coverImageUrl}" alt="Cover" style="display:block; width:100%; max-height:300px; object-fit:cover;"></div>` : '';
+  
+  // Add verified writer badge if applicable
+  let authorHTML = '';
+  if (a.authorUsername) {
+    authorHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">By ${escapeHTML(a.authorUsername)}`;
+    if (a.isVerifiedWriter) {
+      authorHTML += `<span style="display:inline-block;background:linear-gradient(135deg,#0099ff,#00d4ff);padding:2px 7px;border-radius:8px;font-size:0.5rem;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#fff;box-shadow:0 2px 6px rgba(0,153,255,0.4);">Verified Writer</span>`;
+    }
+    authorHTML += `</span> · `;
+  }
+  
   return `<article class="article-card" data-id="${a.id}">
     ${mediaHTML}
-    <div class="article-meta">${formatDate(a.publishedAt)} · ${ (a.categories||[]).join(', ') }</div>
+    <div class="article-meta">${authorHTML}${formatDate(a.publishedAt)} · ${ (a.categories||[]).join(', ') }</div>
     <h2>${escapeHTML(a.title||'Untitled')}</h2>
     <p class="article-summary">${escapeHTML(a.summary||'')}</p>
     <div class="article-tags">${tagsHTML}</div>
@@ -151,13 +162,23 @@ async function initializeFirebase() {
   TAGS_COL = collection(db, 'news_tags');
 }
 
-// Show create button if editor
+// Show create button if verified writer
 async function checkEditorAccess() {
   await waitForFirebase();
   if (window.firebaseAuth) {
-    window.firebaseAuth.onAuthStateChanged(user => {
-      if (user && EDITOR_UIDS.includes(user.uid)) {
-        if (createFirstBtn) createFirstBtn.style.display = 'inline-block';
+    window.firebaseAuth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Check if user is a verified writer
+        try {
+          const writerDoc = await getDoc(doc(db, 'verified_writers', user.uid));
+          const isVerifiedWriter = writerDoc.exists() && writerDoc.data()?.verified === true;
+          
+          if (isVerifiedWriter && createFirstBtn) {
+            createFirstBtn.style.display = 'inline-block';
+          }
+        } catch (err) {
+          console.warn('Error checking writer status:', err);
+        }
       }
     });
   }

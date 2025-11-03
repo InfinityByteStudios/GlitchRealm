@@ -16,6 +16,17 @@ const EDITOR_UIDS = [
   'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
 ];
 
+// Check if a user is a verified writer
+async function isVerifiedWriter(uid) {
+  try {
+    const writerDoc = await getDoc(doc(db, 'verified_writers', uid));
+    return writerDoc.exists() && writerDoc.data()?.verified === true;
+  } catch (err) {
+    console.warn('Error checking verified writer status:', err);
+    return false;
+  }
+}
+
 const form = document.getElementById('publish-form');
 const titleEl = document.getElementById('title');
 const summaryEl = document.getElementById('summary');
@@ -87,10 +98,11 @@ async function uploadCoverIfAny(){
 }
 
 function requireEditor(user){
-  if(!user || !EDITOR_UIDS.includes(user.uid)){
-    form.innerHTML = '<div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);"><h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Access Restricted</h2><p style="margin:0; font-size:.9rem; opacity:.8;">You must be an authorized editor to publish news.</p></div>';
-    throw new Error('Not authorized');
+  if(!user){
+    form.innerHTML = '<div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);"><h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Access Restricted</h2><p style="margin:0; font-size:.9rem; opacity:.8;">You must be signed in as a verified writer to publish news.</p></div>';
+    throw new Error('Not authenticated');
   }
+  // We'll check verified writer status async in publishArticle
   
   // Update image upload access based on dev status
   updateImageUploadAccess(user);
@@ -103,6 +115,19 @@ async function publishArticle({ draft }){
 
     const user = auth.currentUser;
     requireEditor(user);
+    
+    // Check if user is a verified writer
+    const isWriter = await isVerifiedWriter(user.uid);
+    if (!isWriter) {
+      errorMsg.textContent = '✗ You must be a verified writer to publish articles. Contact an admin to get verified.';
+      errorMsg.style.display='block';
+      errorMsg.style.animation = 'shake 0.5s ease-in-out';
+      window.scrollTo({top:0,behavior:'smooth'});
+      setTimeout(() => {
+        errorMsg.style.animation = '';
+      }, 500);
+      return;
+    }
 
     if(!titleEl.value.trim()) throw new Error('Title required');
     if(!summaryEl.value.trim()) throw new Error('Summary required');
@@ -126,7 +151,8 @@ async function publishArticle({ draft }){
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       authorUid: user.uid,
-      authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous'
+      authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous',
+      isVerifiedWriter: true // Store badge status with article
     };
 
     const docRef = await addDoc(collection(db,'news_articles'), payload);
@@ -169,12 +195,17 @@ async function publishArticle({ draft }){
 form?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
 saveDraftBtn?.addEventListener('click', () => publishArticle({ draft:true }));
 
-onAuthStateChanged(auth, (user) => {
-  if(user && EDITOR_UIDS.includes(user.uid)){
-    // Update image upload access for authorized users
-    updateImageUploadAccess(user);
-  } else if (user) {
-    // Non-editor users: disable image upload
-    updateImageUploadAccess(user);
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    // Check verified writer status
+    const isWriter = await isVerifiedWriter(user.uid);
+    if (isWriter) {
+      // Update image upload access for verified writers
+      updateImageUploadAccess(user);
+    } else {
+      // Non-writer users: show access restricted message
+      form.innerHTML = '<div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,180,80,0.3); border-radius:14px; background:linear-gradient(135deg,#1a1a00, #2a2010);"><h2 style="margin:0 0 10px; font-size:1.4rem; color:#ffb366;">Verified Writer Required</h2><p style="margin:0; font-size:.9rem; opacity:.8;">You must be a verified writer to publish news articles. Contact an admin to request verification.</p></div>';
+      updateImageUploadAccess(user);
+    }
   }
 });
