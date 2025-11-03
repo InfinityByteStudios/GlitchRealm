@@ -16,8 +16,19 @@ const EDITOR_UIDS = [
   'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
 ];
 
-// Check if a user is a verified writer
+// Check if user is admin/dev
+function isDevUID(uid) {
+  return EDITOR_UIDS.includes(uid);
+}
+
+// Check if a user is a verified writer OR admin/dev
 async function isVerifiedWriter(uid) {
+  // Admins/devs always have access
+  if (isDevUID(uid)) {
+    return true;
+  }
+  
+  // Check verified_writers collection
   try {
     const writerDoc = await getDoc(doc(db, 'verified_writers', uid));
     return writerDoc.exists() && writerDoc.data()?.verified === true;
@@ -120,10 +131,6 @@ if (imageRestrictionMsg) imageRestrictionMsg.style.display = 'inline';
 
 function getSelectedCategories(){
   return Array.from(categoriesEl.selectedOptions).map(o=>o.value);
-}
-
-function isDevUID(uid) {
-  return EDITOR_UIDS.includes(uid);
 }
 
 function updateImageUploadAccess(user) {
