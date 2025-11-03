@@ -1,8 +1,7 @@
-import { SUPABASE_CONFIG } from '../supabase-config.js';
+import { SUPABASE_CONFIG } from './supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/+esm';
 import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getVerifiedUsername } from '../verified-user-helper.js';
 
 const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 const db = getFirestore(window.firebaseApp);
@@ -213,8 +212,8 @@ async function publishArticle({ draft }){
 
     const coverUrl = await uploadCoverIfAny();
     
-    // Get the verified username for the author
-    const authorUsername = await getVerifiedUsername(user.uid);
+    // Get author username (use display name or email)
+    const authorUsername = user.displayName || user.email?.split('@')[0] || 'Anonymous';
 
     const payload = {
       title: titleEl.value.trim(),
@@ -395,7 +394,7 @@ onAuthStateChanged(auth, async (user) => {
       <div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);">
         <h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Sign In Required</h2>
         <p style="margin:0 0 20px; font-size:.9rem; opacity:.8;">You must be signed in as a verified writer to publish news articles.</p>
-        <a href="../signin.html" style="display:inline-block; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; text-decoration:none; cursor:pointer;">Sign In</a>
+        <a href="..auth.glitchrealm.ca" style="display:inline-block; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; text-decoration:none; cursor:pointer;">Sign In</a>
       </div>
     `;
     return;
