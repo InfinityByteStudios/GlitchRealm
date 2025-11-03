@@ -28,6 +28,8 @@ async function isVerifiedWriter(uid) {
 }
 
 const form = document.getElementById('publish-form');
+const loadingCheck = document.getElementById('loading-check');
+const publishHeader = document.querySelector('.publish-header');
 const titleEl = document.getElementById('title');
 const summaryEl = document.getElementById('summary');
 const categoriesEl = document.getElementById('categories');
@@ -41,6 +43,75 @@ const errorMsg = document.getElementById('status-error');
 const saveDraftBtn = document.getElementById('save-draft');
 const imageBadge = document.getElementById('image-badge');
 const imageRestrictionMsg = document.getElementById('image-restriction-msg');
+
+// Initialize: hide form and show loading
+if (form) form.style.display = 'none';
+if (publishHeader) publishHeader.style.display = 'none';
+if (loadingCheck) loadingCheck.style.display = 'block';
+
+// Show the actual publish form (only for verified writers)
+function showPublishForm() {
+  if (loadingCheck) loadingCheck.style.display = 'none';
+  if (publishHeader) publishHeader.style.display = 'block';
+  if (form) {
+    // Restore original form HTML if it was replaced
+    if (!form.querySelector('#title')) {
+      form.innerHTML = `
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="title" maxlength="140" required placeholder="GlitchRealm v1.2 Performance Update" />
+        </div>
+        <div class="field">
+          <label>Summary / Intro</label>
+          <textarea id="summary" maxlength="400" placeholder="Short overview (1–3 sentences) explaining the article focus." required></textarea>
+          <small style="opacity:.6; font-size:.65rem;">Max 400 chars. Appears in listings.</small>
+        </div>
+        <div class="inline">
+          <div class="field">
+            <label>Categories (select multiple)</label>
+            <select id="categories" multiple size="6">
+              <option value="updates">Platform Update</option>
+              <option value="patches">Patch Notes</option>
+              <option value="games">Game Release</option>
+              <option value="community">Community</option>
+              <option value="devlogs">Dev Log</option>
+              <option value="events">Event</option>
+              <option value="esports">Esports</option>
+            </select>
+            <small style="opacity:.55; font-size:.6rem;">Hold CTRL / CMD to multi-select.</small>
+          </div>
+          <div class="field">
+            <label>Tags (comma separated)</label>
+            <input type="text" id="tags" placeholder="performance, backend, rollout" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Cover Image (optional) <span id="image-badge" class="coming-soon-badge">Coming Soon</span></label>
+          <input type="file" id="cover" accept="image/*" disabled />
+          <small style="opacity:.55; font-size:.6rem;">Uploaded to Supabase storage bucket <code>news-media</code>. <span id="image-restriction-msg" style="color:#ff9393;">Image uploads currently restricted to developers.</span></small>
+        </div>
+        <div class="field">
+          <label>Main Content (Markdown)</label>
+          <textarea id="content" placeholder="## Overview\nDetails here..." required></textarea>
+        </div>
+        <div class="field">
+          <label>External Video / Media Embed (optional)</label>
+          <input type="text" id="embed" placeholder="YouTube / external embed link" />
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary">Publish</button>
+          <button type="button" id="save-draft" class="secondary">Save Draft</button>
+        </div>
+      `;
+      
+      // Re-attach event listeners
+      const newForm = document.getElementById('publish-form');
+      newForm?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
+      document.getElementById('save-draft')?.addEventListener('click', () => publishArticle({ draft:true }));
+    }
+    form.style.display = 'flex';
+  }
+}
 
 // Initialize: show badge and disable upload by default (until we verify user is dev)
 if (coverEl) coverEl.disabled = true;
@@ -197,13 +268,19 @@ saveDraftBtn?.addEventListener('click', () => publishArticle({ draft:true }));
 
 // Request verification modal
 async function showRequestVerificationModal(user) {
+  if (loadingCheck) loadingCheck.style.display = 'none';
+  if (publishHeader) publishHeader.style.display = 'none';
+  if (form) form.style.display = 'none';
+  
   const existingRequest = await getDoc(doc(db, 'writer_verification_requests', user.uid));
+  
+  const container = document.querySelector('.publish-wrap');
   
   if (existingRequest.exists()) {
     const data = existingRequest.data();
     const status = data.status || 'pending';
     
-    form.innerHTML = `
+    container.innerHTML = `
       <div style="padding:60px 30px; text-align:center; border:1px solid rgba(0,255,249,0.3); border-radius:14px; background:linear-gradient(135deg,#001a1a, #002020);">
         <h2 style="margin:0 0 10px; font-size:1.4rem; color:#00fff9;">Verification Request ${status === 'pending' ? 'Pending' : status === 'approved' ? 'Approved' : 'Reviewed'}</h2>
         <p style="margin:0 0 20px; font-size:.9rem; opacity:.8;">
@@ -217,7 +294,7 @@ async function showRequestVerificationModal(user) {
     return;
   }
   
-  form.innerHTML = `
+  container.innerHTML = `
     <div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,180,80,0.3); border-radius:14px; background:linear-gradient(135deg,#1a1a00, #2a2010);">
       <h2 style="margin:0 0 10px; font-size:1.4rem; color:#ffb366;">Verified Writer Required</h2>
       <p style="margin:0 0 20px; font-size:.9rem; opacity:.8;">You must be a verified writer to publish news articles.</p>
@@ -229,7 +306,9 @@ async function showRequestVerificationModal(user) {
 }
 
 async function showRequestForm(user) {
-  form.innerHTML = `
+  const container = document.querySelector('.publish-wrap');
+  
+  container.innerHTML = `
     <div style="max-width:600px; margin:0 auto; padding:40px 30px; border:1px solid rgba(0,255,249,0.3); border-radius:14px; background:linear-gradient(135deg,#001a1a, #002020);">
       <h2 style="margin:0 0 20px; font-size:1.6rem; color:#00fff9; text-align:center;">Request Writer Verification</h2>
       <form id="verification-request-form">
@@ -298,16 +377,32 @@ async function showRequestForm(user) {
 }
 
 onAuthStateChanged(auth, async (user) => {
-  if(user){
-    // Check verified writer status
-    const isWriter = await isVerifiedWriter(user.uid);
-    if (isWriter) {
-      // Update image upload access for verified writers
-      updateImageUploadAccess(user);
-    } else {
-      // Non-writer users: show request verification option
-      showRequestVerificationModal(user);
-      updateImageUploadAccess(user);
-    }
+  if (!user) {
+    // Not signed in - show sign in required message
+    if (loadingCheck) loadingCheck.style.display = 'none';
+    if (publishHeader) publishHeader.style.display = 'none';
+    if (form) form.style.display = 'none';
+    
+    const container = document.querySelector('.publish-wrap');
+    container.innerHTML = `
+      <div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);">
+        <h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Sign In Required</h2>
+        <p style="margin:0 0 20px; font-size:.9rem; opacity:.8;">You must be signed in as a verified writer to publish news articles.</p>
+        <a href="../signin.html" style="display:inline-block; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; text-decoration:none; cursor:pointer;">Sign In</a>
+      </div>
+    `;
+    return;
+  }
+  
+  // User is signed in - check verified writer status
+  const isWriter = await isVerifiedWriter(user.uid);
+  if (isWriter) {
+    // Verified writer - show form
+    showPublishForm();
+    updateImageUploadAccess(user);
+  } else {
+    // Non-writer users: show request verification option
+    showRequestVerificationModal(user);
+    updateImageUploadAccess(user);
   }
 });
