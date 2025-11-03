@@ -1275,19 +1275,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     })();
-    // Register service worker (skip on localhost/file to avoid dev caching issues)
-    if ('serviceWorker' in navigator) {
-        try {
-            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
-            if (!isLocal) {
-                navigator.serviceWorker.register('/sw.js');
-            } else {
-                console.log('Skipping SW registration in local development');
-            }
-        } catch (e) {
-            console.log('SW registration failed:', e);
-        }
-    }
+    // Service worker not available on news subdomain (no sw.js)
+    // Main site handles caching and offline support
     
     // Initialize modal functionality immediately
     document.body.addEventListener('click', function(e) {
