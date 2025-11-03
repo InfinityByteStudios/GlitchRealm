@@ -83,9 +83,22 @@
   
   <main class="main">
     <div class="admin-wrap">
-      <div class="admin-header">
-        <h1>Writer Administration</h1>
-        <p>Manage verified writers and review verification requests.</p>
+      <div class="admin-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+          <h1>Writer Administration</h1>
+          <p>Manage verified writers and review verification requests.</p>
+        </div>
+        <button onclick="location.reload()" class="neural-button secondary" style="padding:8px 12px; font-size:0.85rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; transition:transform 0.3s ease;">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+          <span class="button-text">Refresh</span>
+        </button>
+        <style>
+          button[onclick*="reload"]:hover svg {
+            transform: rotate(180deg);
+          }
+        </style>
       </div>
       
       <div class="admin-tabs">

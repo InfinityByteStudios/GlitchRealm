@@ -220,7 +220,10 @@ async function loadVerificationRequests() {
 function renderRequests(requests) {
   const listEl = document.getElementById('requests-list');
   
-  if (!requests.length) {
+  // Filter to only show pending requests
+  const pendingRequests = requests.filter(r => !r.status || r.status === 'pending');
+  
+  if (!pendingRequests.length) {
     listEl.innerHTML = `
       <div class="empty-state">
         <h3>No Pending Requests</h3>
@@ -230,7 +233,7 @@ function renderRequests(requests) {
     return;
   }
   
-  listEl.innerHTML = requests.map(r => `
+  listEl.innerHTML = pendingRequests.map(r => `
     <div class="request-card">
       <div class="request-header">
         <h3>${escapeHTML(r.displayName || r.email || 'Unknown User')}</h3>
@@ -245,12 +248,10 @@ function renderRequests(requests) {
           <div class="request-message">${escapeHTML(r.message)}</div>
         ` : ''}
       </div>
-      ${r.status === 'pending' || !r.status ? `
-        <div class="request-actions">
-          <button class="approve" onclick="approveRequest('${r.id}', '${r.userId}', '${escapeHTML(r.displayName || r.email || 'User')}')">Approve</button>
-          <button class="reject" onclick="rejectRequest('${r.id}', '${escapeHTML(r.displayName || r.email || 'User')}')">Reject</button>
-        </div>
-      ` : ''}
+      <div class="request-actions">
+        <button class="approve" onclick="approveRequest('${r.id}', '${r.userId}', '${escapeHTML(r.displayName || r.email || 'User')}')">Approve</button>
+        <button class="reject" onclick="rejectRequest('${r.id}', '${escapeHTML(r.displayName || r.email || 'User')}')">Reject</button>
+      </div>
     </div>
   `).join('');
 }
