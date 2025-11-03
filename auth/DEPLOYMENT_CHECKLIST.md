@@ -46,7 +46,7 @@ Use this checklist to track your deployment progress.
 
 ## Testing - Redirects & Integration
 - [ ] glitchrealm.ca/signin redirects to auth.glitchrealm.ca
-- [ ] glitchrealm.ca/signin.html redirects to auth.glitchrealm.ca
+- [ ] glitchrealm.caauth.glitchrealm.ca redirects to auth.glitchrealm.ca
 - [ ] glitchrealm.ca/login redirects to auth.glitchrealm.ca
 - [ ] After sign-in, user is returned to main site
 - [ ] Auth state persists on main site after sign-in
@@ -94,7 +94,7 @@ Use this checklist to track your deployment progress.
 ## Rollback Plan (If Needed)
 - [ ] Remove CNAME record for auth.glitchrealm.ca
 - [ ] Remove redirects from main netlify.toml
-- [ ] Revert to /signin.html on main domain
+- [ ] Revert to auth.glitchrealm.ca on main domain
 - [ ] Notify users if necessary
 
 ---

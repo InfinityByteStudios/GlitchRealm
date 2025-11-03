@@ -48,7 +48,7 @@ auth/
 
 ### Redirects
 Main site (`glitchrealm.ca`) redirects:
-- `/signin.html` → `https://auth.glitchrealm.ca`
+- `auth.glitchrealm.ca` → `https://auth.glitchrealm.ca`
 - `/signin` → `https://auth.glitchrealm.ca`
 - `/login` → `https://auth.glitchrealm.ca`
 

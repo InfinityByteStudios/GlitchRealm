@@ -35,7 +35,7 @@ I've set up a dedicated authentication subdomain `auth.glitchrealm.ca` for your 
 ### Files Modified
 
 1. **`netlify.toml`** (main site)
-   - Added redirects: `/signin.html`, `/signin`, `/login` → `https://auth.glitchrealm.ca`
+   - Added redirects: `auth.glitchrealm.ca`, `/signin`, `/login` → `https://auth.glitchrealm.ca`
    - Force redirects to ensure old links work
 
 ## How It Works
@@ -107,7 +107,7 @@ After deployment:
 - [ ] GitHub sign-in works
 - [ ] After login, user returns to main site
 - [ ] Auth state persists on glitchrealm.ca
-- [ ] Old links (glitchrealm.ca/signin.html) redirect properly
+- [ ] Old links (glitchrealm.caauth.glitchrealm.ca) redirect properly
 - [ ] SSL certificate shows as valid
 
 ## Benefits

@@ -97,7 +97,7 @@
 
 # Redirects to auth subdomain
 [[redirects]]
-  from = "/signin.html"
+  from = "auth.glitchrealm.ca"
   to = "https://auth.glitchrealm.ca"
   status = 301
   force = true
