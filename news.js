@@ -48,6 +48,8 @@ const latestListEl = document.getElementById('latest-list');
 const tagCloudEl = document.getElementById('tag-cloud');
 const emptyPlaceholderEl = document.getElementById('empty-placeholder');
 const createFirstBtn = document.getElementById('create-first-article');
+const publishArticleBtn = document.getElementById('publish-article-btn');
+const getVerifiedBtn = document.getElementById('get-verified-btn');
 
 // Filter buttons
 const filterButtons = Array.from(document.querySelectorAll('.news-actions button'));
@@ -173,8 +175,19 @@ async function checkEditorAccess() {
           const writerDoc = await getDoc(doc(db, 'verified_writers', user.uid));
           const isVerifiedWriter = writerDoc.exists() && writerDoc.data()?.verified === true;
           
-          if (isVerifiedWriter && createFirstBtn) {
-            createFirstBtn.style.display = 'inline-block';
+          if (isVerifiedWriter) {
+            // Show publish button for verified writers
+            if (createFirstBtn) {
+              createFirstBtn.style.display = 'inline-block';
+            }
+            if (publishArticleBtn) {
+              publishArticleBtn.style.display = 'inline-block';
+            }
+          } else {
+            // Show get verified button for non-verified users
+            if (getVerifiedBtn) {
+              getVerifiedBtn.style.display = 'inline-block';
+            }
           }
         } catch (err) {
           console.warn('Error checking writer status:', err);
@@ -186,6 +199,14 @@ async function checkEditorAccess() {
 
 createFirstBtn?.addEventListener('click', () => {
   window.location.href = 'publish.html';
+});
+
+publishArticleBtn?.addEventListener('click', () => {
+  window.location.href = 'publish.html';
+});
+
+getVerifiedBtn?.addEventListener('click', () => {
+  window.location.href = 'request-verification.html';
 });
 
 (async function init() {

@@ -38,6 +38,8 @@
     .news-actions { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 26px; }
     .news-actions button { background:rgba(0,255,249,0.1); border:1px solid rgba(0,255,249,0.35); color:#00fff9; font-size:.7rem; letter-spacing:.6px; text-transform:uppercase; padding:10px 16px; border-radius:30px; cursor:pointer; font-weight:600; transition:.25s; }
     .news-actions button:hover { background:rgba(0,255,249,0.2); border-color:rgba(0,255,249,0.65); transform:translateY(-2px); }
+    #publish-article-btn:hover { filter:brightness(1.15); box-shadow:0 4px 12px rgba(0,255,249,0.5); }
+    #get-verified-btn:hover { background:rgba(255,180,80,0.25); border-color:rgba(255,180,80,0.7); transform:translateY(-2px); box-shadow:0 4px 12px rgba(255,180,80,0.4); }
     .article-list { display:flex; flex-direction:column; gap:28px; }
     .article-card { position:relative; background:linear-gradient(135deg,#0b1822,#061019); border:1px solid rgba(0,255,249,0.18); border-radius:18px; padding:22px 26px 24px; overflow:hidden; transition:.35s ease; }
     .article-card:hover { border-color:rgba(0,255,249,0.45); box-shadow:0 6px 26px -6px rgba(0,255,249,0.25); transform:translateY(-3px); }
@@ -84,6 +86,19 @@
         <h1>GlitchRealm News</h1>
         <p>The official hub for platform updates, game launches, community spotlights, developer insights, and event announcements.</p>
         <div class="news-actions">
+          <button id="publish-article-btn" style="display:none; background:linear-gradient(90deg,#00fff9,#008cff); border:none; color:#02141c; font-weight:700;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Publish Article
+          </button>
+          <button id="get-verified-btn" style="display:none; background:rgba(255,180,80,0.15); border:1px solid rgba(255,180,80,0.4); color:#ffb366; font-weight:700;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            Get Verified
+          </button>
           <button id="filter-all">All</button>
           <button id="filter-updates">Updates</button>
           <button id="filter-games">Game Releases</button>
