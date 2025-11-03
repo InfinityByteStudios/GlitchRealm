@@ -135,6 +135,11 @@ function getSelectedCategories(){
 function updateImageUploadAccess(user) {
   const isDev = user && isDevUID(user.uid);
   
+  // Get fresh element references
+  const coverEl = document.getElementById('cover');
+  const imageBadge = document.getElementById('image-badge');
+  const imageRestrictionMsg = document.getElementById('image-restriction-msg');
+  
   console.log('[Image Upload Access]', {
     user: user?.uid || 'not signed in',
     isDev,
@@ -144,19 +149,20 @@ function updateImageUploadAccess(user) {
   
   if (isDev) {
     // Enable image upload for developers
-    coverEl.disabled = false;
+    if (coverEl) coverEl.disabled = false;
     if (imageBadge) imageBadge.style.display = 'none';
     if (imageRestrictionMsg) imageRestrictionMsg.style.display = 'none';
   } else {
     // Disable image upload for non-developers
-    coverEl.disabled = true;
+    if (coverEl) coverEl.disabled = true;
     if (imageBadge) imageBadge.style.display = 'inline-block';
     if (imageRestrictionMsg) imageRestrictionMsg.style.display = 'inline';
   }
 }
 
 async function uploadCoverIfAny(){
-  const file = coverEl.files?.[0];
+  const coverEl = document.getElementById('cover');
+  const file = coverEl?.files?.[0];
   if(!file) return null;
   
   // Double-check: only devs can upload images
@@ -206,6 +212,14 @@ async function publishArticle({ draft }){
       return;
     }
 
+    // Get fresh element references (in case form HTML was replaced)
+    const titleEl = document.getElementById('title');
+    const summaryEl = document.getElementById('summary');
+    const contentEl = document.getElementById('content');
+    const categoriesEl = document.getElementById('categories');
+    const tagsEl = document.getElementById('tags');
+    const embedEl = document.getElementById('embed');
+
     if(!titleEl.value.trim()) throw new Error('Title required');
     if(!summaryEl.value.trim()) throw new Error('Summary required');
     if(!contentEl.value.trim()) throw new Error('Content required');
@@ -214,12 +228,15 @@ async function publishArticle({ draft }){
     
     // Get author username (use display name or email)
     const authorUsername = user.displayName || user.email?.split('@')[0] || 'Anonymous';
+    
+    // Get selected categories from fresh element reference
+    const selectedCategories = Array.from(categoriesEl.selectedOptions).map(o=>o.value);
 
     const payload = {
       title: titleEl.value.trim(),
       summary: summaryEl.value.trim(),
       content: contentEl.value,
-      categories: getSelectedCategories(),
+      categories: selectedCategories,
       tags: tagsEl.value.split(',').map(t=>t.trim()).filter(Boolean).slice(0,25),
       coverImageUrl: coverUrl || null,
       embed: embedEl.value.trim() || null,
@@ -239,9 +256,10 @@ async function publishArticle({ draft }){
     successMsg.style.display='block';
     successMsg.style.animation = 'slideInRight 0.4s ease-out';
     
-    // Reset form after short delay
+    // Reset form after short delay (get fresh form reference)
     setTimeout(() => {
-      form.reset();
+      const currentForm = document.getElementById('publish-form');
+      if (currentForm) currentForm.reset();
     }, 1500);
     
     // Scroll to top to show success message

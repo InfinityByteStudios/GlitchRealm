@@ -66,7 +66,7 @@ exports.moderateSubmission = functions.https.onCall(async (data, context) => {
 });
 
 // Scheduled cleanup for expired community_post_reports
-exports.cleanupExpiredReports = functions.pubsub.schedule('every 60 minutes').onRun(async () => {
+exports.cleanupExpiredReports = functions.scheduler.onSchedule('every 60 minutes', async () => {
 	const now = admin.firestore.Timestamp.now();
 	const q = await db.collection('community_post_reports')
 		.where('status', '==', 'closed')
@@ -538,3 +538,85 @@ exports.exportUserData = functions.https.onCall(async (data, context) => {
 });
 
 exports.api = functions.https.onRequest(api);
+
+// ========= Identity Platform Blocking Functions ========= //
+// These are HTTP Cloud Functions called by Firebase Auth Identity Platform
+// They must return specific JSON responses as per Firebase blocking functions spec
+
+// Before user creation - validate and optionally block user registration
+exports.beforeCreate = functions.https.onRequest(async (req, res) => {
+	// Set CORS headers
+	res.set('Access-Control-Allow-Origin', '*');
+	res.set('Access-Control-Allow-Methods', 'POST');
+	res.set('Access-Control-Allow-Headers', 'Content-Type');
+	
+	// Handle preflight
+	if (req.method === 'OPTIONS') {
+		res.status(204).send('');
+		return;
+	}
+	
+	// Validate POST method
+	if (req.method !== 'POST') {
+		res.status(405).json({ error: 'Method not allowed' });
+		return;
+	}
+	
+	try {
+		const { data } = req.body;
+		// data contains: uid, email, emailVerified, displayName, photoURL, etc.
+		
+		// You can add validation here:
+		// - Block disposable email domains
+		// - Require email verification
+		// - Set custom claims
+		// - Etc.
+		
+		// Allow the registration to proceed
+		res.json({
+			// No userRecord modifications needed - just allow through
+		});
+	} catch (error) {
+		functions.logger.error('beforeCreate error:', error);
+		res.status(500).json({ error: 'Internal error' });
+	}
+});
+
+// Before user sign-in - validate and optionally block sign-in attempts
+exports.beforeSignIn = functions.https.onRequest(async (req, res) => {
+	// Set CORS headers
+	res.set('Access-Control-Allow-Origin', '*');
+	res.set('Access-Control-Allow-Methods', 'POST');
+	res.set('Access-Control-Allow-Headers', 'Content-Type');
+	
+	// Handle preflight
+	if (req.method === 'OPTIONS') {
+		res.status(204).send('');
+		return;
+	}
+	
+	// Validate POST method
+	if (req.method !== 'POST') {
+		res.status(405).json({ error: 'Method not allowed' });
+		return;
+	}
+	
+	try {
+		const { data } = req.body;
+		// data contains: uid, email, emailVerified, displayName, photoURL, signInMethod, etc.
+		
+		// You can add validation here:
+		// - Require email verification
+		// - Block suspended users
+		// - Add custom session claims
+		// - Etc.
+		
+		// Allow the sign-in to proceed
+		res.json({
+			// No sessionClaims modifications needed - just allow through
+		});
+	} catch (error) {
+		functions.logger.error('beforeSignIn error:', error);
+		res.status(500).json({ error: 'Internal error' });
+	}
+});
