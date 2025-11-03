@@ -16,6 +16,17 @@ const EDITOR_UIDS = [
   'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
 ];
 
+// Check if a user is a verified writer
+async function isVerifiedWriter(uid) {
+  try {
+    const writerDoc = await getDoc(doc(db, 'verified_writers', uid));
+    return writerDoc.exists() && writerDoc.data()?.verified === true;
+  } catch (err) {
+    console.warn('Error checking verified writer status:', err);
+    return false;
+  }
+}
+
 const form = document.getElementById('publish-form');
 const titleEl = document.getElementById('title');
 const summaryEl = document.getElementById('summary');
@@ -87,10 +98,11 @@ async function uploadCoverIfAny(){
 }
 
 function requireEditor(user){
-  if(!user || !EDITOR_UIDS.includes(user.uid)){
-    form.innerHTML = '<div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);"><h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Access Restricted</h2><p style="margin:0; font-size:.9rem; opacity:.8;">You must be an authorized editor to publish news.</p></div>';
-    throw new Error('Not authorized');
+  if(!user){
+    form.innerHTML = '<div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);"><h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Access Restricted</h2><p style="margin:0; font-size:.9rem; opacity:.8;">You must be signed in as a verified writer to publish news.</p></div>';
+    throw new Error('Not authenticated');
   }
+  // We'll check verified writer status async in publishArticle
   
   // Update image upload access based on dev status
   updateImageUploadAccess(user);
@@ -103,6 +115,19 @@ async function publishArticle({ draft }){
 
     const user = auth.currentUser;
     requireEditor(user);
+    
+    // Check if user is a verified writer
+    const isWriter = await isVerifiedWriter(user.uid);
+    if (!isWriter) {
+      errorMsg.textContent = '✗ You must be a verified writer to publish articles. Contact an admin to get verified.';
+      errorMsg.style.display='block';
+      errorMsg.style.animation = 'shake 0.5s ease-in-out';
+      window.scrollTo({top:0,behavior:'smooth'});
+      setTimeout(() => {
+        errorMsg.style.animation = '';
+      }, 500);
+      return;
+    }
 
     if(!titleEl.value.trim()) throw new Error('Title required');
     if(!summaryEl.value.trim()) throw new Error('Summary required');
@@ -126,7 +151,8 @@ async function publishArticle({ draft }){
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       authorUid: user.uid,
-      authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous'
+      authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous',
+      isVerifiedWriter: true // Store badge status with article
     };
 
     const docRef = await addDoc(collection(db,'news_articles'), payload);
@@ -169,12 +195,119 @@ async function publishArticle({ draft }){
 form?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
 saveDraftBtn?.addEventListener('click', () => publishArticle({ draft:true }));
 
-onAuthStateChanged(auth, (user) => {
-  if(user && EDITOR_UIDS.includes(user.uid)){
-    // Update image upload access for authorized users
-    updateImageUploadAccess(user);
-  } else if (user) {
-    // Non-editor users: disable image upload
-    updateImageUploadAccess(user);
+// Request verification modal
+async function showRequestVerificationModal(user) {
+  const existingRequest = await getDoc(doc(db, 'writer_verification_requests', user.uid));
+  
+  if (existingRequest.exists()) {
+    const data = existingRequest.data();
+    const status = data.status || 'pending';
+    
+    form.innerHTML = `
+      <div style="padding:60px 30px; text-align:center; border:1px solid rgba(0,255,249,0.3); border-radius:14px; background:linear-gradient(135deg,#001a1a, #002020);">
+        <h2 style="margin:0 0 10px; font-size:1.4rem; color:#00fff9;">Verification Request ${status === 'pending' ? 'Pending' : status === 'approved' ? 'Approved' : 'Reviewed'}</h2>
+        <p style="margin:0 0 20px; font-size:.9rem; opacity:.8;">
+          ${status === 'pending' ? 'Your request to become a verified writer is under review.' : 
+            status === 'approved' ? 'Your request was approved! Refresh the page to access publishing.' :
+            status === 'rejected' ? `Your request was not approved. ${data.rejectionReason ? 'Reason: ' + data.rejectionReason : ''}` : 'Status unknown.'}
+        </p>
+        ${status === 'rejected' ? '<button onclick="location.reload()" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; color:#02141c; cursor:pointer;">Request Again</button>' : ''}
+      </div>
+    `;
+    return;
+  }
+  
+  form.innerHTML = `
+    <div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,180,80,0.3); border-radius:14px; background:linear-gradient(135deg,#1a1a00, #2a2010);">
+      <h2 style="margin:0 0 10px; font-size:1.4rem; color:#ffb366;">Verified Writer Required</h2>
+      <p style="margin:0 0 20px; font-size:.9rem; opacity:.8;">You must be a verified writer to publish news articles.</p>
+      <button id="request-verification-btn" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; cursor:pointer;">Request Verification</button>
+    </div>
+  `;
+  
+  document.getElementById('request-verification-btn')?.addEventListener('click', () => showRequestForm(user));
+}
+
+async function showRequestForm(user) {
+  form.innerHTML = `
+    <div style="max-width:600px; margin:0 auto; padding:40px 30px; border:1px solid rgba(0,255,249,0.3); border-radius:14px; background:linear-gradient(135deg,#001a1a, #002020);">
+      <h2 style="margin:0 0 20px; font-size:1.6rem; color:#00fff9; text-align:center;">Request Writer Verification</h2>
+      <form id="verification-request-form">
+        <div style="margin-bottom:20px;">
+          <label style="display:block; margin-bottom:8px; font-size:.72rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0;">Email</label>
+          <input type="text" value="${user.email || ''}" disabled style="width:100%; background:#08131b; border:1px solid #12313d; border-radius:10px; padding:12px 14px; color:#999; font-size:.85rem; opacity:0.6;">
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="display:block; margin-bottom:8px; font-size:.72rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0;">Display Name</label>
+          <input type="text" id="request-display-name" required value="${user.displayName || ''}" placeholder="Your name" style="width:100%; background:#08131b; border:1px solid #12313d; border-radius:10px; padding:12px 14px; color:#d7e5e8; font-size:.85rem;">
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="display:block; margin-bottom:8px; font-size:.72rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0;">Why do you want to become a verified writer? (optional)</label>
+          <textarea id="request-message" placeholder="Tell us about your writing experience, what you'd like to cover, etc." style="width:100%; min-height:120px; background:#08131b; border:1px solid #12313d; border-radius:10px; padding:12px 14px; color:#d7e5e8; font-size:.85rem; line-height:1.5; resize:vertical;"></textarea>
+        </div>
+        <div id="request-status-msg" style="display:none; margin-bottom:15px; padding:12px; border-radius:8px; font-size:.85rem; text-align:center;"></div>
+        <div style="display:flex; gap:12px; justify-content:center;">
+          <button type="submit" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; cursor:pointer;">Submit Request</button>
+          <button type="button" id="cancel-request-btn" style="background:rgba(255,80,80,0.12); border:1px solid rgba(255,80,80,0.4); color:#ff8080; border-radius:30px; padding:12px 24px; font-size:.7rem; letter-spacing:.6px; font-weight:600; cursor:pointer;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.getElementById('cancel-request-btn')?.addEventListener('click', () => location.reload());
+  
+  document.getElementById('verification-request-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusMsg = document.getElementById('request-status-msg');
+    
+    try {
+      const displayName = document.getElementById('request-display-name').value.trim();
+      const message = document.getElementById('request-message').value.trim();
+      
+      if (!displayName) {
+        throw new Error('Display name is required');
+      }
+      
+      // Create verification request
+      await setDoc(doc(db, 'writer_verification_requests', user.uid), {
+        userId: user.uid,
+        email: user.email || '',
+        displayName,
+        message: message || '',
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      
+      statusMsg.textContent = '✓ Request submitted successfully! Admins will review your request.';
+      statusMsg.style.display = 'block';
+      statusMsg.style.background = 'rgba(0,255,100,0.15)';
+      statusMsg.style.border = '2px solid rgba(0,255,100,0.5)';
+      statusMsg.style.color = '#58ff9c';
+      
+      setTimeout(() => location.reload(), 2000);
+      
+    } catch (err) {
+      console.error('Error submitting request:', err);
+      statusMsg.textContent = '✗ Error: ' + err.message;
+      statusMsg.style.display = 'block';
+      statusMsg.style.background = 'rgba(255,100,100,0.15)';
+      statusMsg.style.border = '2px solid rgba(255,100,100,0.5)';
+      statusMsg.style.color = '#ff6d6d';
+    }
+  });
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    // Check verified writer status
+    const isWriter = await isVerifiedWriter(user.uid);
+    if (isWriter) {
+      // Update image upload access for verified writers
+      updateImageUploadAccess(user);
+    } else {
+      // Non-writer users: show request verification option
+      showRequestVerificationModal(user);
+      updateImageUploadAccess(user);
+    }
   }
 });

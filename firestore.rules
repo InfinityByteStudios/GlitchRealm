@@ -183,6 +183,50 @@ service cloud.firestore {
     }
 
     // ================================
+    // Verified Writers (for news subdomain - Public read, admin/dev write)
+    // ================================
+    match /verified_writers/{uid} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid));
+    }
+
+    // ================================
+    // Writer Verification Requests (for news subdomain)
+    // ================================
+    match /writer_verification_requests/{requestId} {
+      // Read: Request owner, admins, and developers
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin(request.auth.uid) ||
+        isDeveloper(request.auth.uid)
+      );
+      
+      // Create: Authenticated users can create requests for themselves
+      allow create: if request.auth != null &&
+                     request.resource.data.userId == request.auth.uid &&
+                     isValidWriterVerificationRequest(request.resource.data);
+      
+      // Update: Request owner can update their pending requests, admins/devs can update status and review fields
+      allow update: if request.auth != null && (
+        (
+          resource.data.userId == request.auth.uid &&
+          resource.data.status == 'pending' &&
+          isValidWriterVerificationRequestUserUpdate()
+        ) || (
+          (isAdmin(request.auth.uid) || isDeveloper(request.auth.uid)) &&
+          isValidWriterVerificationRequestAdminUpdate()
+        )
+      );
+      
+      // Delete: Request owner or admins/devs
+      allow delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin(request.auth.uid) ||
+        isDeveloper(request.auth.uid)
+      );
+    }
+
+    // ================================
     // Community Games (legacy; kept for backward compatibility)
     // ================================
     match /community_games/{gameId} {
@@ -737,6 +781,64 @@ service cloud.firestore {
              (!request.resource.data.keys().hasAny(['embed']) || (request.resource.data.embed is string && request.resource.data.embed.size() <= 2000)) &&
              (!request.resource.data.keys().hasAny(['publishedAt']) || request.resource.data.publishedAt is timestamp || request.resource.data.publishedAt == null) &&
              (!request.resource.data.keys().hasAny(['authorUsername']) || (request.resource.data.authorUsername is string && request.resource.data.authorUsername.size() <= 100));
+    }
+
+    // Validate writer verification request creation
+    function isValidWriterVerificationRequest(data) {
+      return data.keys().hasAll(['userId','email','displayName','status','createdAt']) &&
+             data.userId is string && data.userId.size() > 0 &&
+             data.email is string && data.email.size() > 0 && data.email.size() <= 200 &&
+             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100 &&
+             data.status == 'pending' &&
+             data.createdAt is timestamp &&
+             (!data.keys().hasAny(['message']) || (data.message is string && data.message.size() <= 2000)) &&
+             // Admin-only fields must not be present on creation
+             !data.keys().hasAny(['approvedAt','approvedBy','rejectedAt','rejectedBy','rejectionReason']);
+    }
+
+    // Validate writer verification request user updates
+    function isValidWriterVerificationRequestUserUpdate() {
+      let d = request.resource.data.diff(resource.data);
+      // User can only update message
+      let allowedChanges = d.changedKeys().hasOnly(['message']) &&
+                           d.addedKeys().hasOnly(['message']) &&
+                           d.removedKeys().hasOnly(['message']);
+      // Immutable fields
+      let baseUnchanged = request.resource.data.userId == resource.data.userId &&
+                          request.resource.data.email == resource.data.email &&
+                          request.resource.data.displayName == resource.data.displayName &&
+                          request.resource.data.status == resource.data.status &&
+                          request.resource.data.createdAt == resource.data.createdAt;
+      // No admin fields
+      let noAdminFields = !request.resource.data.keys().hasAny(['approvedAt','approvedBy','rejectedAt','rejectedBy','rejectionReason']);
+      return allowedChanges && baseUnchanged && noAdminFields &&
+             (!request.resource.data.keys().hasAny(['message']) || (request.resource.data.message is string && request.resource.data.message.size() <= 2000));
+    }
+
+    // Validate writer verification request admin updates
+    function isValidWriterVerificationRequestAdminUpdate() {
+      let d = request.resource.data.diff(resource.data);
+      // Admin can change status and add review fields
+      let allowedChanges = d.changedKeys().hasOnly(['status','approvedAt','approvedBy','rejectedAt','rejectedBy','rejectionReason']) &&
+                           d.addedKeys().hasOnly(['approvedAt','approvedBy','rejectedAt','rejectedBy','rejectionReason']) &&
+                           d.removedKeys().hasOnly(['approvedAt','approvedBy','rejectedAt','rejectedBy','rejectionReason']);
+      // Immutable base fields
+      let baseUnchanged = request.resource.data.userId == resource.data.userId &&
+                          request.resource.data.email == resource.data.email &&
+                          request.resource.data.displayName == resource.data.displayName &&
+                          request.resource.data.createdAt == resource.data.createdAt &&
+                          request.resource.data.message == resource.data.message;
+      // Status must be valid
+      let statusOk = request.resource.data.status in ['pending','approved','rejected'];
+      // Timestamps valid if present
+      let timestampsOk = (!request.resource.data.keys().hasAny(['approvedAt']) || request.resource.data.approvedAt is timestamp) &&
+                         (!request.resource.data.keys().hasAny(['rejectedAt']) || request.resource.data.rejectedAt is timestamp);
+      // UIDs valid if present
+      let uidsOk = (!request.resource.data.keys().hasAny(['approvedBy']) || (request.resource.data.approvedBy is string && request.resource.data.approvedBy.size() > 0)) &&
+                   (!request.resource.data.keys().hasAny(['rejectedBy']) || (request.resource.data.rejectedBy is string && request.resource.data.rejectedBy.size() > 0));
+      // Rejection reason valid if present
+      let reasonOk = !request.resource.data.keys().hasAny(['rejectionReason']) || (request.resource.data.rejectionReason is string && request.resource.data.rejectionReason.size() <= 500);
+      return allowedChanges && baseUnchanged && statusOk && timestampsOk && uidsOk && reasonOk;
     }
   }
 }

@@ -40,7 +40,24 @@ async function loadArticle(){
     }
     const data = snap.data();
     document.getElementById('article-title').textContent = data.title || 'Untitled';
-    document.getElementById('article-meta').textContent = `${data.categories?.join(', ') || ''}  ·  ${data.publishedAt?.toDate ? data.publishedAt.toDate().toLocaleDateString() : ''}`;
+    
+    // Build meta line with optional verified writer badge
+    let metaHTML = '';
+    if (data.authorUsername) {
+      metaHTML += `<span style="display:inline-flex;align-items:center;gap:6px;">By ${escapeHTML(data.authorUsername)}`;
+      if (data.isVerifiedWriter) {
+        metaHTML += `<span style="display:inline-block;background:linear-gradient(135deg,#0099ff,#00d4ff);padding:3px 8px;border-radius:10px;font-size:0.5rem;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#fff;box-shadow:0 2px 6px rgba(0,153,255,0.4);">Verified Writer</span>`;
+      }
+      metaHTML += `</span>`;
+    }
+    if (data.categories?.length) {
+      metaHTML += ` · ${data.categories.join(', ')}`;
+    }
+    if (data.publishedAt?.toDate) {
+      metaHTML += ` · ${data.publishedAt.toDate().toLocaleDateString()}`;
+    }
+    
+    document.getElementById('article-meta').innerHTML = metaHTML;
 
     if(data.coverImageUrl){
       const cover = document.getElementById('cover-container');
