@@ -1,13 +1,15 @@
-/* GlitchRealm Service Worker */
-const CACHE_PREFIX = 'gr-v4'; // Incremented to bust old caches
+/* GlitchRealm Service Worker - Advanced Optimizations */
+const CACHE_PREFIX = 'gr-v5'; // Incremented for advanced optimizations
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
+const IMAGE_CACHE = `${CACHE_PREFIX}-images`;
 
 const PRECACHE_URLS = [
   '/offline.html',
-  '/index.html',
   '/styles.css',
-  '/assets/Favicon and Icons/favicon.ico'
+  '/assets/Favicon and Icons/favicon.svg',
+  '/assets/Favicon and Icons/favicon.ico',
+  '/assets/Favicon and Icons/web-app-manifest-192x192.png'
 ];
 
 // External resources we want to cache-fast-path (opaque responses ok)
@@ -61,8 +63,8 @@ self.addEventListener('activate', (event) => {
 });
 
 // Strategy helpers
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(RUNTIME_CACHE);
+async function staleWhileRevalidate(request, cacheName = RUNTIME_CACHE) {
+  const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   const networkPromise = fetch(request).then((response) => {
     if (response && response.status === 200 && request.method === 'GET') {
@@ -73,13 +75,29 @@ async function staleWhileRevalidate(request) {
   return cached || networkPromise;
 }
 
-async function cacheFirst(request) {
-  const cache = await caches.open(RUNTIME_CACHE);
+async function cacheFirst(request, cacheName = RUNTIME_CACHE) {
+  const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
   if (response && response.status === 200) cache.put(request, response.clone());
   return response;
+}
+
+async function networkFirst(request, cacheName = RUNTIME_CACHE, timeout = 3000) {
+  const cache = await caches.open(cacheName);
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const response = await fetch(request, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (response && response.status === 200) cache.put(request, response.clone());
+    return response;
+  } catch (e) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    throw e;
+  }
 }
 
 self.addEventListener('fetch', (event) => {
@@ -173,8 +191,8 @@ self.addEventListener('fetch', (event) => {
         const transformURL = new URL('/.netlify/images', self.location.origin);
         transformURL.searchParams.set('url', url.pathname);
         transformURL.searchParams.set('fm', fm);
-        transformURL.searchParams.set('q', '75');
-        // Optionally set width based on device pixel ratio? Keep default to avoid over-processing.
+        transformURL.searchParams.set('q', '80'); // Increased quality to 80
+        transformURL.searchParams.set('w', '1200'); // Max width to reduce oversized images
 
         const transformedRequest = new Request(transformURL.toString(), {
           method: 'GET',
@@ -183,13 +201,13 @@ self.addEventListener('fetch', (event) => {
           mode: 'cors'
         });
 
-        event.respondWith(cacheFirst(transformedRequest));
+        event.respondWith(cacheFirst(transformedRequest, IMAGE_CACHE));
         return;
       }
     }
 
     // Fallback: standard cache-first for images and /assets
-    event.respondWith(cacheFirst(request));
+    event.respondWith(cacheFirst(request, IMAGE_CACHE));
     return;
   }
   if (request.destination === 'style' || request.destination === 'script') {

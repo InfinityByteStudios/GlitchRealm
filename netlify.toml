@@ -95,6 +95,17 @@
 [build.processing.images]
   compress = true
 
+# Enable Brotli compression for all text assets
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Enable Brotli/Gzip
+    Vary = "Accept-Encoding"
+
 # Redirects to auth subdomain
 [[redirects]]
   from = "auth.glitchrealm.ca"
