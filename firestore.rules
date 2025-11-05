@@ -306,14 +306,14 @@ service cloud.firestore {
                      request.resource.data.authorUid == request.auth.uid &&
                      isValidNewsArticle(request.resource.data);
       
-      // Update: Only author or other verified writers/developers can update
+      // Update: Only article author (or developers) can update their own article
       allow update: if request.auth != null &&
-                     (isVerifiedWriter(request.auth.uid) || isDeveloper(request.auth.uid)) &&
+                     (request.auth.uid == resource.data.authorUid || isDeveloper(request.auth.uid)) &&
                      isValidNewsArticleUpdate();
       
-      // Delete: Only verified writers or developers can delete
+      // Delete: Only article author (or developers) can delete their own article
       allow delete: if request.auth != null && 
-                     (isVerifiedWriter(request.auth.uid) || isDeveloper(request.auth.uid));
+                     (request.auth.uid == resource.data.authorUid || isDeveloper(request.auth.uid));
     }
     
     // ================================
@@ -765,15 +765,16 @@ service cloud.firestore {
              (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() > 0 && data.coverImageUrl.size() <= 2000)) &&
              (!data.keys().hasAny(['embed']) || (data.embed is string && data.embed.size() > 0 && data.embed.size() <= 2000)) &&
              (!data.keys().hasAny(['publishedAt']) || data.publishedAt is timestamp || data.publishedAt == null) &&
+             (!data.keys().hasAny(['lastEditedAt']) || data.lastEditedAt is timestamp) &&
              (!data.keys().hasAny(['authorUsername']) || (data.authorUsername is string && data.authorUsername.size() > 0 && data.authorUsername.size() <= 100));
     }
 
     // Validate news article updates
     function isValidNewsArticleUpdate() {
       let d = request.resource.data.diff(resource.data);
-      let allowed = d.changedKeys().hasOnly(['title','summary','content','categories','tags','coverImageUrl','embed','draft','publishedAt','updatedAt','authorUsername']) &&
-                    d.addedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt','authorUsername']) &&
-                    d.removedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt','authorUsername']);
+      let allowed = d.changedKeys().hasOnly(['title','summary','content','categories','tags','coverImageUrl','embed','draft','publishedAt','updatedAt','lastEditedAt','authorUsername']) &&
+                    d.addedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt','lastEditedAt','authorUsername']) &&
+                    d.removedKeys().hasOnly(['categories','tags','coverImageUrl','embed','publishedAt','lastEditedAt','authorUsername']);
       let immutableOk = request.resource.data.authorUid == resource.data.authorUid &&
                         request.resource.data.createdAt == resource.data.createdAt;
       return allowed && immutableOk &&
@@ -787,6 +788,7 @@ service cloud.firestore {
              (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
              (!request.resource.data.keys().hasAny(['embed']) || (request.resource.data.embed is string && request.resource.data.embed.size() <= 2000)) &&
              (!request.resource.data.keys().hasAny(['publishedAt']) || request.resource.data.publishedAt is timestamp || request.resource.data.publishedAt == null) &&
+             (!request.resource.data.keys().hasAny(['lastEditedAt']) || request.resource.data.lastEditedAt is timestamp) &&
              (!request.resource.data.keys().hasAny(['authorUsername']) || (request.resource.data.authorUsername is string && request.resource.data.authorUsername.size() <= 100));
     }
 

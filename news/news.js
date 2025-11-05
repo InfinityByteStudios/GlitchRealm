@@ -3,7 +3,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { redirectToAuth, onAuthChange } from './auth-sync.js';
 
 // Firestore (for structured article metadata) & Supabase (for media storage)
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Wait for Firebase to initialize
 async function waitForFirebase() {
@@ -43,6 +43,46 @@ const EDITOR_UIDS = [
 let ARTICLES_COL;
 let TAGS_COL;
 
+// Developer UIDs
+const DEV_UIDS = new Set([
+  '6iZDTXC78aVwX22qrY43BOxDRLt1',
+  'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+]);
+
+// Cache verified writer status
+const verifiedWritersCache = new Map();
+
+async function checkVerifiedWriter(uid) {
+  if (!uid) return false;
+  
+  console.log(`[checkVerifiedWriter] Checking UID: ${uid}, Is in DEV_UIDS: ${DEV_UIDS.has(uid)}`);
+  
+  if (DEV_UIDS.has(uid)) {
+    console.log(`[checkVerifiedWriter] UID ${uid} is a developer - returning true`);
+    verifiedWritersCache.set(uid, true);
+    return true;
+  }
+  
+  if (verifiedWritersCache.has(uid)) {
+    return verifiedWritersCache.get(uid);
+  }
+  
+  try {
+    const writerDoc = await getDoc(doc(db, 'verified_writers', uid));
+    const isVerified = writerDoc.exists() && writerDoc.data()?.verified === true;
+    console.log(`[checkVerifiedWriter] Firestore check for ${uid}: exists=${writerDoc.exists()}, verified=${isVerified}`);
+    verifiedWritersCache.set(uid, isVerified);
+    return isVerified;
+  } catch (err) {
+    console.warn('Error checking verified writer:', err);
+    verifiedWritersCache.set(uid, false);
+    return false;
+  }
+}
+
 // DOM refs
 const articleListEl = document.getElementById('article-list');
 const latestListEl = document.getElementById('latest-list');
@@ -79,9 +119,19 @@ if(subscribeForm){
 let articlesCache = [];
 
 async function loadArticles(){
-  const q = query(ARTICLES_COL, orderBy('publishedAt','desc'), limit(100));
+  // Query only published articles (draft == false) so unauthenticated users can read
+  const q = query(
+    ARTICLES_COL, 
+    where('draft', '==', false),
+    orderBy('publishedAt','desc'), 
+    limit(100)
+  );
   const snap = await getDocs(q);
   articlesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  
+  // Pre-load verified status for all authors
+  const uniqueAuthors = [...new Set(articlesCache.map(a => a.authorUid).filter(Boolean))];
+  await Promise.all(uniqueAuthors.map(uid => checkVerifiedWriter(uid)));
 }
 
 function formatDate(ts){
@@ -111,12 +161,21 @@ function articleCardHTML(a){
   const tagsHTML = (a.tags||[]).map(t=>`<span>${t}</span>`).join('');
   const mediaHTML = a.coverImageUrl ? `<div style="margin:-10px -14px 18px; overflow:hidden; border-radius:12px; border:1px solid rgba(0,255,249,0.15);"><img src="${a.coverImageUrl}" alt="Cover" style="display:block; width:100%; max-height:300px; object-fit:cover;"></div>` : '';
   
+  // Check if author is verified (from cache)
+  const isVerified = a.authorUid ? verifiedWritersCache.get(a.authorUid) || false : false;
+  
+  // Debug logging
+  if (a.authorUid) {
+    console.log(`[Badge Debug] Article: ${a.title}, Author: ${a.authorUsername}, UID: ${a.authorUid}, Verified: ${isVerified}, Cache has: ${verifiedWritersCache.has(a.authorUid)}`);
+  }
+  
   // Add verified writer badge if applicable
   let authorHTML = '';
   if (a.authorUsername) {
     authorHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">By ${escapeHTML(a.authorUsername)}`;
-    if (a.isVerifiedWriter) {
-      authorHTML += `<span style="display:inline-block;background:linear-gradient(135deg,#0099ff,#00d4ff);padding:2px 7px;border-radius:8px;font-size:0.5rem;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#fff;box-shadow:0 2px 6px rgba(0,153,255,0.4);">Verified Writer</span>`;
+    if (isVerified) {
+      // Simple SVG with solid blue color (more reliable than gradient in innerHTML)
+      authorHTML += `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border-radius:50%;" title="Verified Writer" aria-label="Verified Writer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:16px;height:16px;fill:#0099ff;filter:drop-shadow(0 0 4px rgba(0,153,255,0.6));"><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z"/></svg></span>`;
     }
     authorHTML += `</span> · `;
   }
