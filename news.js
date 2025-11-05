@@ -121,13 +121,13 @@ function articleCardHTML(a){
     authorHTML += `</span> · `;
   }
   
-  return `<article class="article-card" data-id="${a.id}">
+  return `<article class="article-card" data-id="${a.id}" onclick="window.location.href='news-article.html?id=${a.id}'" style="cursor:pointer;">
     ${mediaHTML}
     <div class="article-meta">${authorHTML}${formatDate(a.publishedAt)} · ${ (a.categories||[]).join(', ') }</div>
     <h2>${escapeHTML(a.title||'Untitled')}</h2>
     <p class="article-summary">${escapeHTML(a.summary||'')}</p>
     <div class="article-tags">${tagsHTML}</div>
-    <a href="news-article.html?id=${a.id}" class="read-more">Read More</a>
+    <a href="news-article.html?id=${a.id}" class="read-more" onclick="event.stopPropagation()">Read More</a>
   </article>`;
 }
 
