@@ -124,12 +124,12 @@ function showPublishForm() {
         </div>
         <div class="field">
           <label>Social Media Links (optional)</label>
-          <textarea id="socialLinks" placeholder="Twitter|https://twitter.com/glitchrealm\nDiscord|https://discord.gg/example\nYouTube|https://youtube.com/@glitchrealm" rows="3"></textarea>
+          <textarea id="socialLinks" placeholder="Twitter|https://twitter.com/glitchrealm&#10;Discord|https://discord.gg/example&#10;YouTube|https://youtube.com/@glitchrealm" rows="3"></textarea>
           <small style="opacity:.6; font-size:.65rem;">One link per line. Format: <code>Platform|URL</code> - Displays with icons at bottom of article.</small>
         </div>
         <div class="field">
           <label>Related Links (optional)</label>
-          <textarea id="links" placeholder="Game Page|https://glitchrealm.ca/games.html\nPatch Notes|https://example.com/patch" rows="3"></textarea>
+          <textarea id="links" placeholder="Game Page|https://glitchrealm.ca/games.html&#10;Patch Notes|https://example.com/patch" rows="3"></textarea>
           <small style="opacity:.6; font-size:.65rem;">One link per line. Format: <code>Link Title|URL</code> - General links displayed below social media.</small>
         </div>
         <div class="actions">
@@ -315,17 +315,19 @@ async function publishArticle({ draft }){
         payload.embed = originalArticle.embed;
       }
       
-      // Add links if provided
+      // Add links if provided (or preserve existing)
       if (linksArray.length > 0) {
         payload.links = linksArray;
-      } else if (originalArticle.links) {
+      } else if (originalArticle.links && linksEl && !linksEl.value.trim()) {
+        // Preserve existing links if field is empty
         payload.links = originalArticle.links;
       }
       
-      // Add social links if provided
+      // Add social links if provided (or preserve existing)
       if (socialLinksArray.length > 0) {
         payload.socialLinks = socialLinksArray;
-      } else if (originalArticle.socialLinks) {
+      } else if (originalArticle.socialLinks && socialLinksEl && !socialLinksEl.value.trim()) {
+        // Preserve existing social links if field is empty
         payload.socialLinks = originalArticle.socialLinks;
       }
       
@@ -360,6 +362,7 @@ async function publishArticle({ draft }){
       if (coverUrl) payload.coverImageUrl = coverUrl;
       if (embedEl.value.trim()) payload.embed = embedEl.value.trim();
       if (linksArray.length > 0) payload.links = linksArray;
+      if (socialLinksArray.length > 0) payload.socialLinks = socialLinksArray;
       if (!draft) payload.publishedAt = Timestamp.now();
 
       console.log('[Publish Debug] Payload:', JSON.stringify(payload, (k, v) => 
@@ -504,15 +507,21 @@ function loadArticleDataIntoForm() {
   const tagsEl = document.getElementById('tags');
   const embedEl = document.getElementById('embed');
   const linksEl = document.getElementById('links');
+  const socialLinksEl = document.getElementById('socialLinks');
   
   if (titleEl) titleEl.value = originalArticle.title || '';
   if (summaryEl) summaryEl.value = originalArticle.summary || '';
   if (contentEl) contentEl.value = originalArticle.content || '';
   if (embedEl) embedEl.value = originalArticle.embed || '';
   
-  // Set links
+  // Set regular links
   if (linksEl && originalArticle.links) {
     linksEl.value = originalArticle.links.map(link => `${link.title}|${link.url}`).join('\n');
+  }
+  
+  // Set social media links
+  if (socialLinksEl && originalArticle.socialLinks) {
+    socialLinksEl.value = originalArticle.socialLinks.map(link => `${link.platform}|${link.url}`).join('\n');
   }
   
   // Set categories
