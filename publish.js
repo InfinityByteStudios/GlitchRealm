@@ -241,12 +241,11 @@ async function publishArticle({ draft }){
       coverImageUrl: coverUrl || null,
       embed: embedEl.value.trim() || null,
       draft: !!draft,
-  publishedAt: draft ? null : Timestamp.now(),
-  createdAt: Timestamp.now(),
-  updatedAt: Timestamp.now(),
+      publishedAt: draft ? null : Timestamp.now(),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
       authorUid: user.uid,
-      authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous',
-      isVerifiedWriter: true // Store badge status with article
+      authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous'
     };
 
     const docRef = await addDoc(collection(db,'news_articles'), payload);
