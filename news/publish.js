@@ -245,6 +245,8 @@ async function publishArticle({ draft }){
     const embedEl = document.getElementById('embed');
     const linksEl = document.getElementById('links');
     const socialLinksEl = document.getElementById('socialLinks');
+    const sourcesEl = document.getElementById('sources');
+    const citationFormatEl = document.getElementById('citationFormat');
 
     if(!titleEl.value.trim()) throw new Error('Title required');
     if(!summaryEl.value.trim()) throw new Error('Summary required');
@@ -284,6 +286,23 @@ async function publishArticle({ draft }){
         })
         .filter(Boolean)
         .slice(0, 10); // Max 10 links
+    }
+    
+    // Parse sources/citations if provided (format: "Author|Title|URL|Year" one per line)
+    let sourcesArray = [];
+    let citationFormat = 'simple';
+    if (sourcesEl && sourcesEl.value.trim()) {
+      citationFormat = citationFormatEl?.value || 'simple';
+      sourcesArray = sourcesEl.value.split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+          const parts = line.split('|').map(s => s.trim());
+          const [author, title, url, year] = parts;
+          return author && title && url ? { author, title, url, year: year || '' } : null;
+        })
+        .filter(Boolean)
+        .slice(0, 20); // Max 20 sources
     }
 
     let payload;
@@ -331,6 +350,16 @@ async function publishArticle({ draft }){
         payload.socialLinks = originalArticle.socialLinks;
       }
       
+      // Add sources if provided (or preserve existing)
+      if (sourcesArray.length > 0) {
+        payload.sources = sourcesArray;
+        payload.citationFormat = citationFormat;
+      } else if (originalArticle.sources && sourcesEl && !sourcesEl.value.trim()) {
+        // Preserve existing sources if field is empty
+        payload.sources = originalArticle.sources;
+        payload.citationFormat = originalArticle.citationFormat || 'simple';
+      }
+      
       if (!draft && !originalArticle.publishedAt) {
         // Publishing for the first time
         payload.publishedAt = Timestamp.now();
@@ -363,6 +392,10 @@ async function publishArticle({ draft }){
       if (embedEl.value.trim()) payload.embed = embedEl.value.trim();
       if (linksArray.length > 0) payload.links = linksArray;
       if (socialLinksArray.length > 0) payload.socialLinks = socialLinksArray;
+      if (sourcesArray.length > 0) {
+        payload.sources = sourcesArray;
+        payload.citationFormat = citationFormat;
+      }
       if (!draft) payload.publishedAt = Timestamp.now();
 
       console.log('[Publish Debug] Payload:', JSON.stringify(payload, (k, v) => 
