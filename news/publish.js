@@ -1,6 +1,6 @@
 import { SUPABASE_CONFIG } from './supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/+esm';
-import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
@@ -241,9 +241,9 @@ async function publishArticle({ draft }){
       coverImageUrl: coverUrl || null,
       embed: embedEl.value.trim() || null,
       draft: !!draft,
-      publishedAt: draft ? null : serverTimestamp(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+  publishedAt: draft ? null : Timestamp.now(),
+  createdAt: Timestamp.now(),
+  updatedAt: Timestamp.now(),
       authorUid: user.uid,
       authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous',
       isVerifiedWriter: true // Store badge status with article

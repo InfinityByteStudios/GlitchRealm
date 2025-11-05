@@ -300,19 +300,20 @@ service cloud.firestore {
                    (request.auth != null && request.auth.uid == resource.data.authorUid) ||
                    isDeveloper(request.auth.uid);
       
-      // Create: Only developers can create articles
+      // Create: Verified writers OR developers can create articles
       allow create: if request.auth != null &&
-                     isDeveloper(request.auth.uid) &&
+                     (isVerifiedWriter(request.auth.uid) || isDeveloper(request.auth.uid)) &&
                      request.resource.data.authorUid == request.auth.uid &&
                      isValidNewsArticle(request.resource.data);
       
-      // Update: Only author or other developers can update
+      // Update: Only author or other verified writers/developers can update
       allow update: if request.auth != null &&
-                     isDeveloper(request.auth.uid) &&
+                     (isVerifiedWriter(request.auth.uid) || isDeveloper(request.auth.uid)) &&
                      isValidNewsArticleUpdate();
       
-      // Delete: Only developers can delete
-      allow delete: if request.auth != null && isDeveloper(request.auth.uid);
+      // Delete: Only verified writers or developers can delete
+      allow delete: if request.auth != null && 
+                     (isVerifiedWriter(request.auth.uid) || isDeveloper(request.auth.uid));
     }
     
     // ================================
