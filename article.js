@@ -226,6 +226,23 @@ async function loadArticle(){
     const tagsEl = document.getElementById('article-tags');
     tagsEl.innerHTML = (data.tags||[]).map(t=>`<span>${t}</span>`).join('');
     
+    // Display related links if any
+    if (data.links && data.links.length > 0) {
+      const linksContainer = document.getElementById('article-links');
+      if (linksContainer) {
+        linksContainer.style.display = 'block';
+        const linksHTML = data.links.map(link => 
+          `<a href="${escapeHTML(link.url)}" target="_blank" rel="noopener noreferrer" class="article-link">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;margin-right:6px;">
+              <path d="M10 6v2H5v11h11v-5h2v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6zm11-3v8h-2V6.413l-7.793 7.794-1.414-1.414L17.585 5H13V3h8z"/>
+            </svg>
+            ${escapeHTML(link.title)}
+          </a>`
+        ).join('');
+        linksContainer.innerHTML = `<h3 style="font-family:Orbitron;font-size:1rem;color:#00f5ff;margin:0 0 12px;letter-spacing:0.8px;">Related Links</h3>${linksHTML}`;
+      }
+    }
+    
     // Update action buttons visibility
     updateArticleActions();
   } catch(err){

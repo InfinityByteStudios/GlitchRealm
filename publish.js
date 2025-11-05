@@ -120,6 +120,17 @@ function showPublishForm() {
         <div class="field">
           <label>External Video / Media Embed (optional)</label>
           <input type="text" id="embed" placeholder="YouTube / external embed link" />
+          <small style="opacity:.6; font-size:.65rem;">Single embedded media (YouTube, etc.) that appears in the article.</small>
+        </div>
+        <div class="field">
+          <label>Social Media Links (optional)</label>
+          <textarea id="socialLinks" placeholder="Twitter|https://twitter.com/glitchrealm\nDiscord|https://discord.gg/example\nYouTube|https://youtube.com/@glitchrealm" rows="3"></textarea>
+          <small style="opacity:.6; font-size:.65rem;">One link per line. Format: <code>Platform|URL</code> - Displays with icons at bottom of article.</small>
+        </div>
+        <div class="field">
+          <label>Related Links (optional)</label>
+          <textarea id="links" placeholder="Game Page|https://glitchrealm.ca/games.html\nPatch Notes|https://example.com/patch" rows="3"></textarea>
+          <small style="opacity:.6; font-size:.65rem;">One link per line. Format: <code>Link Title|URL</code> - General links displayed below social media.</small>
         </div>
         <div class="actions">
           <button type="submit" class="primary">Publish</button>
@@ -232,6 +243,8 @@ async function publishArticle({ draft }){
     const categoriesEl = document.getElementById('categories');
     const tagsEl = document.getElementById('tags');
     const embedEl = document.getElementById('embed');
+    const linksEl = document.getElementById('links');
+    const socialLinksEl = document.getElementById('socialLinks');
 
     if(!titleEl.value.trim()) throw new Error('Title required');
     if(!summaryEl.value.trim()) throw new Error('Summary required');
@@ -244,6 +257,34 @@ async function publishArticle({ draft }){
     
     // Get selected categories from fresh element reference
     const selectedCategories = Array.from(categoriesEl.selectedOptions).map(o=>o.value);
+    
+    // Parse social media links if provided (format: "Platform|URL" one per line)
+    let socialLinksArray = [];
+    if (socialLinksEl && socialLinksEl.value.trim()) {
+      socialLinksArray = socialLinksEl.value.split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+          const [platform, url] = line.split('|').map(s => s.trim());
+          return platform && url ? { platform, url } : null;
+        })
+        .filter(Boolean)
+        .slice(0, 10); // Max 10 social links
+    }
+    
+    // Parse regular links if provided (format: "Title|URL" one per line)
+    let linksArray = [];
+    if (linksEl && linksEl.value.trim()) {
+      linksArray = linksEl.value.split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+          const [title, url] = line.split('|').map(s => s.trim());
+          return title && url ? { title, url } : null;
+        })
+        .filter(Boolean)
+        .slice(0, 10); // Max 10 links
+    }
 
     let payload;
     let docRef;
@@ -272,6 +313,20 @@ async function publishArticle({ draft }){
         payload.embed = embedEl.value.trim();
       } else if (originalArticle.embed) {
         payload.embed = originalArticle.embed;
+      }
+      
+      // Add links if provided
+      if (linksArray.length > 0) {
+        payload.links = linksArray;
+      } else if (originalArticle.links) {
+        payload.links = originalArticle.links;
+      }
+      
+      // Add social links if provided
+      if (socialLinksArray.length > 0) {
+        payload.socialLinks = socialLinksArray;
+      } else if (originalArticle.socialLinks) {
+        payload.socialLinks = originalArticle.socialLinks;
       }
       
       if (!draft && !originalArticle.publishedAt) {
@@ -304,6 +359,7 @@ async function publishArticle({ draft }){
       // Add optional fields only if they have values
       if (coverUrl) payload.coverImageUrl = coverUrl;
       if (embedEl.value.trim()) payload.embed = embedEl.value.trim();
+      if (linksArray.length > 0) payload.links = linksArray;
       if (!draft) payload.publishedAt = Timestamp.now();
 
       console.log('[Publish Debug] Payload:', JSON.stringify(payload, (k, v) => 
@@ -447,11 +503,17 @@ function loadArticleDataIntoForm() {
   const categoriesEl = document.getElementById('categories');
   const tagsEl = document.getElementById('tags');
   const embedEl = document.getElementById('embed');
+  const linksEl = document.getElementById('links');
   
   if (titleEl) titleEl.value = originalArticle.title || '';
   if (summaryEl) summaryEl.value = originalArticle.summary || '';
   if (contentEl) contentEl.value = originalArticle.content || '';
   if (embedEl) embedEl.value = originalArticle.embed || '';
+  
+  // Set links
+  if (linksEl && originalArticle.links) {
+    linksEl.value = originalArticle.links.map(link => `${link.title}|${link.url}`).join('\n');
+  }
   
   // Set categories
   if (categoriesEl && originalArticle.categories) {
