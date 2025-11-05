@@ -1,5 +1,6 @@
 import { SUPABASE_CONFIG } from '../supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/+esm';
+import { redirectToAuth, onAuthChange } from './auth-sync.js';
 
 // Firestore (for structured article metadata) & Supabase (for media storage)
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -120,13 +121,13 @@ function articleCardHTML(a){
     authorHTML += `</span> · `;
   }
   
-  return `<article class="article-card" data-id="${a.id}">
+  return `<article class="article-card" data-id="${a.id}" onclick="window.location.href='news-article.html?id=${a.id}'" style="cursor:pointer;">
     ${mediaHTML}
     <div class="article-meta">${authorHTML}${formatDate(a.publishedAt)} · ${ (a.categories||[]).join(', ') }</div>
     <h2>${escapeHTML(a.title||'Untitled')}</h2>
     <p class="article-summary">${escapeHTML(a.summary||'')}</p>
     <div class="article-tags">${tagsHTML}</div>
-    <a href="news-article.html?id=${a.id}" class="read-more">Read More</a>
+    <a href="news-article.html?id=${a.id}" class="read-more" onclick="event.stopPropagation()">Read More</a>
   </article>`;
 }
 
@@ -167,34 +168,34 @@ async function initializeFirebase() {
 // Show create button if verified writer
 async function checkEditorAccess() {
   await waitForFirebase();
-  if (window.firebaseAuth) {
-    window.firebaseAuth.onAuthStateChanged(async (user) => {
-      if (user) {
-        // Check if user is a verified writer
-        try {
-          const writerDoc = await getDoc(doc(db, 'verified_writers', user.uid));
-          const isVerifiedWriter = writerDoc.exists() && writerDoc.data()?.verified === true;
-          
-          if (isVerifiedWriter) {
-            // Show publish button for verified writers
-            if (createFirstBtn) {
-              createFirstBtn.style.display = 'inline-block';
-            }
-            if (publishArticleBtn) {
-              publishArticleBtn.style.display = 'inline-block';
-            }
-          } else {
-            // Show get verified button for non-verified users
-            if (getVerifiedBtn) {
-              getVerifiedBtn.style.display = 'inline-block';
-            }
+  
+  // Use auth sync module
+  onAuthChange(async (user) => {
+    if (user) {
+      // Check if user is a verified writer
+      try {
+        const writerDoc = await getDoc(doc(db, 'verified_writers', user.uid));
+        const isVerifiedWriter = writerDoc.exists() && writerDoc.data()?.verified === true;
+        
+        if (isVerifiedWriter) {
+          // Show publish button for verified writers
+          if (createFirstBtn) {
+            createFirstBtn.style.display = 'inline-block';
           }
-        } catch (err) {
-          console.warn('Error checking writer status:', err);
+          if (publishArticleBtn) {
+            publishArticleBtn.style.display = 'inline-block';
+          }
+        } else {
+          // Show get verified button for non-verified users
+          if (getVerifiedBtn) {
+            getVerifiedBtn.style.display = 'inline-block';
+          }
         }
+      } catch (err) {
+        console.warn('Error checking writer status:', err);
       }
-    });
-  }
+    }
+  });
 }
 
 createFirstBtn?.addEventListener('click', () => {

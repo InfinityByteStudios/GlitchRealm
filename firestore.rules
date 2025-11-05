@@ -580,6 +580,12 @@ service cloud.firestore {
              get(/databases/$(database)/documents/verified_users/$(userId)).data.verified == true;
     }
 
+    // Check if user is a verified writer (news articles)
+    function isVerifiedWriter(userId) {
+      return exists(/databases/$(database)/documents/verified_writers/$(userId)) &&
+             get(/databases/$(database)/documents/verified_writers/$(userId)).data.verified == true;
+    }
+
     function isValidVerificationRequest(data) {
       return data.keys().hasAll(['uid','displayName','status','createdAt']) &&
              data.uid is string && data.uid.size() > 0 &&
@@ -756,10 +762,10 @@ service cloud.firestore {
              data.draft is bool &&
              (!data.keys().hasAny(['categories']) || (data.categories is list && data.categories.size() <= 10)) &&
              (!data.keys().hasAny(['tags']) || (data.tags is list && data.tags.size() <= 25)) &&
-             (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 2000)) &&
-             (!data.keys().hasAny(['embed']) || (data.embed is string && data.embed.size() <= 2000)) &&
+             (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() > 0 && data.coverImageUrl.size() <= 2000)) &&
+             (!data.keys().hasAny(['embed']) || (data.embed is string && data.embed.size() > 0 && data.embed.size() <= 2000)) &&
              (!data.keys().hasAny(['publishedAt']) || data.publishedAt is timestamp || data.publishedAt == null) &&
-             (!data.keys().hasAny(['authorUsername']) || (data.authorUsername is string && data.authorUsername.size() <= 100));
+             (!data.keys().hasAny(['authorUsername']) || (data.authorUsername is string && data.authorUsername.size() > 0 && data.authorUsername.size() <= 100));
     }
 
     // Validate news article updates

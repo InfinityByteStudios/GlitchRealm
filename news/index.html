@@ -43,9 +43,34 @@
     .article-list { display:flex; flex-direction:column; gap:28px; }
     .article-card { position:relative; background:linear-gradient(135deg,#0b1822,#061019); border:1px solid rgba(0,255,249,0.18); border-radius:18px; padding:22px 26px 24px; overflow:hidden; transition:.35s ease; }
     .article-card:hover { border-color:rgba(0,255,249,0.45); box-shadow:0 6px 26px -6px rgba(0,255,249,0.25); transform:translateY(-3px); }
-    .article-card h2 { margin:0 0 10px; font-family:'Orbitron', monospace; font-size:1.35rem; letter-spacing:1px; color:#fff; }
-    .article-meta { font-size:.65rem; letter-spacing:.5px; text-transform:uppercase; color:#7edcf0; display:flex; gap:12px; flex-wrap:wrap; margin:0 0 10px; }
-    .article-summary { font-size:.9rem; line-height:1.55; color:#c3d2d6; margin:0 0 14px; }
+    .article-card h2 { 
+      margin:0 0 10px; 
+      font-family:'Orbitron', monospace; 
+      font-size:1.35rem; 
+      letter-spacing:1px; 
+      color:#fff;
+      word-wrap:break-word;
+      overflow-wrap:break-word;
+      hyphens:auto;
+    }
+    .article-meta { 
+      font-size:.7rem; 
+      letter-spacing:.5px; 
+      color:#7edcf0; 
+      display:flex; 
+      gap:8px; 
+      flex-wrap:wrap; 
+      margin:0 0 10px;
+      align-items:center;
+    }
+    .article-summary { 
+      font-size:.9rem; 
+      line-height:1.55; 
+      color:#c3d2d6; 
+      margin:0 0 14px;
+      word-wrap:break-word;
+      overflow-wrap:break-word;
+    }
     .article-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
     .article-tags span { font-size:.55rem; padding:4px 8px; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.25); border-radius:16px; letter-spacing:.5px; color:#00f5ff; text-transform:uppercase; }
     .read-more { font-size:.75rem; letter-spacing:.55px; font-weight:600; text-transform:uppercase; background:linear-gradient(90deg,#00fff9,#008cff); -webkit-background-clip:text; background-clip:text; color:transparent; text-decoration:none; position:relative; padding-bottom:2px; }

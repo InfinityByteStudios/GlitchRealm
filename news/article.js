@@ -10,18 +10,54 @@ function qs(key){
 function escapeHTML(str=''){ return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
 
 function renderMarkdown(md=''){
-  // Ultra-light markdown (headings, bold, italics, code, links, lists)
-  let html = md
+  // Ultra-light markdown (headings, bold, italics, code, links, lists, blockquotes)
+  let html = md;
+  
+  // Code blocks (```)
+  html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  
+  // Blockquotes
+  html = html.replace(/^> (.*)$/gim, '<blockquote>$1</blockquote>');
+  
+  // Headings
+  html = html
     .replace(/^### (.*$)/gim,'<h3>$1</h3>')
     .replace(/^## (.*$)/gim,'<h2>$1</h2>')
-    .replace(/^# (.*$)/gim,'<h2>$1</h2>')
+    .replace(/^# (.*$)/gim,'<h2>$1</h2>');
+  
+  // Bold and italic
+  html = html
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.*?)\*/g,'<em>$1</em>')
-    .replace(/`([^`]+)`/g,'<code>$1</code>')
-    .replace(/\n\n- (.*?)(\n|$)/g, (m,g1) => '<ul><li>'+g1.split(/\n- /).map(i=>i.trim()).join('</li><li>')+'</li></ul>')
-    .replace(/\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
-  // paragraphs
-  html = html.split(/\n{2,}/).map(block => /<h\d|<ul|<pre|<blockquote/.test(block) ? block : `<p>${block}</p>`).join('\n');
+    .replace(/__(.*?)__/g,'<strong>$1</strong>')
+    .replace(/_(.*?)_/g,'<em>$1</em>');
+  
+  // Inline code
+  html = html.replace(/`([^`]+)`/g,'<code>$1</code>');
+  
+  // Links
+  html = html.replace(/\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  
+  // Lists (unordered)
+  html = html.replace(/(?:^|\n)- (.*?)(?=\n(?:[^-]|$))/gm, function(match) {
+    const items = match.trim().split(/\n- /).map(i => i.trim()).filter(Boolean);
+    return '<ul>' + items.map(i => `<li>${i}</li>`).join('') + '</ul>';
+  });
+  
+  // Lists (ordered)
+  html = html.replace(/(?:^|\n)\d+\. (.*?)(?=\n(?:[^\d]|$))/gm, function(match) {
+    const items = match.trim().split(/\n\d+\. /).map(i => i.trim()).filter(Boolean);
+    return '<ol>' + items.map(i => `<li>${i}</li>`).join('') + '</ol>';
+  });
+  
+  // Paragraphs (split by double newlines, but avoid wrapping already-wrapped elements)
+  html = html.split(/\n{2,}/).map(block => {
+    block = block.trim();
+    if (!block) return '';
+    if (/<h\d|<ul|<ol|<pre|<blockquote|<div/.test(block)) return block;
+    return `<p>${block}</p>`;
+  }).join('\n');
+  
   return html;
 }
 
@@ -41,20 +77,28 @@ async function loadArticle(){
     const data = snap.data();
     document.getElementById('article-title').textContent = data.title || 'Untitled';
     
-    // Build meta line with optional verified writer badge
+    // Build meta line with verified writer badge and proper casing
     let metaHTML = '';
     if (data.authorUsername) {
-      metaHTML += `<span style="display:inline-flex;align-items:center;gap:6px;">By ${escapeHTML(data.authorUsername)}`;
+      metaHTML += `<span class="author-name">By ${escapeHTML(data.authorUsername)}</span>`;
       if (data.isVerifiedWriter) {
-        metaHTML += `<span style="display:inline-block;background:linear-gradient(135deg,#0099ff,#00d4ff);padding:3px 8px;border-radius:10px;font-size:0.5rem;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#fff;box-shadow:0 2px 6px rgba(0,153,255,0.4);">Verified Writer</span>`;
+        metaHTML += `<span class="verified-badge">Verified Writer</span>`;
       }
-      metaHTML += `</span>`;
     }
+    
+    // Categories and date in separate span with uppercase
+    let categoryDateHTML = '';
     if (data.categories?.length) {
-      metaHTML += ` · ${data.categories.join(', ')}`;
+      categoryDateHTML += data.categories.join(', ');
     }
     if (data.publishedAt?.toDate) {
-      metaHTML += ` · ${data.publishedAt.toDate().toLocaleDateString()}`;
+      if (categoryDateHTML) categoryDateHTML += ' · ';
+      categoryDateHTML += data.publishedAt.toDate().toLocaleDateString();
+    }
+    
+    if (categoryDateHTML) {
+      if (metaHTML) metaHTML += '<span>·</span>';
+      metaHTML += `<span class="category-date">${categoryDateHTML}</span>`;
     }
     
     document.getElementById('article-meta').innerHTML = metaHTML;
@@ -63,6 +107,14 @@ async function loadArticle(){
       const cover = document.getElementById('cover-container');
       cover.style.display='block';
       cover.innerHTML = `<img src="${data.coverImageUrl}" alt="Cover">`;
+    }
+    
+    // Show summary if available
+    if (data.summary) {
+      const summaryEl = document.createElement('div');
+      summaryEl.className = 'article-summary';
+      summaryEl.textContent = data.summary;
+      document.getElementById('article-content').before(summaryEl);
     }
 
     if(data.embed){
