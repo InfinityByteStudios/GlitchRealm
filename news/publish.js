@@ -123,9 +123,34 @@ function showPublishForm() {
           <small style="opacity:.6; font-size:.65rem;">Single embedded media (YouTube, etc.) that appears in the article.</small>
         </div>
         <div class="field">
-          <label>Social Media Links (optional)</label>
-          <textarea id="socialLinks" placeholder="Twitter|https://twitter.com/glitchrealm&#10;Discord|https://discord.gg/example&#10;YouTube|https://youtube.com/@glitchrealm" rows="3"></textarea>
-          <small style="opacity:.6; font-size:.65rem;">One link per line. Format: <code>Platform|URL</code> - Displays with icons at bottom of article.</small>
+          <label>Sources / Citations (optional)</label>
+          <div style="display:flex; gap:12px; margin-bottom:8px; align-items:center;">
+            <label style="font-size:.65rem; text-transform:none; color:#b8d4d8; margin:0;">Citation Format:</label>
+            <select id="citationFormat" style="background:#08131b; border:1px solid #12313d; border-radius:8px; padding:6px 10px; color:#d7e5e8; font-size:.75rem; flex:1; max-width:200px;">
+              <option value="apa">APA</option>
+              <option value="mla">MLA</option>
+              <option value="chicago">Chicago</option>
+              <option value="simple">Simple (Title - URL)</option>
+            </select>
+          </div>
+          <textarea id="sources" placeholder="Author|Title|URL|Year (optional)&#10;Example: Smith, J.|Gaming Trends 2025|https://example.com/article|2025" rows="4"></textarea>
+          <small style="opacity:.6; font-size:.65rem;">One source per line. Format: <code>Author|Title|URL|Year</code> - Automatically formatted based on selected citation style.</small>
+        </div>
+        <div class="field">
+          <label>Social Media (optional)</label>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+            <button type="button" class="social-quick-btn" data-platform="Discord" style="background:rgba(88,101,242,0.15); border:1px solid rgba(88,101,242,0.3); color:#7289da; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Discord</button>
+            <button type="button" class="social-quick-btn" data-platform="X (Twitter)" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ X</button>
+            <button type="button" class="social-quick-btn" data-platform="Instagram" style="background:rgba(225,48,108,0.15); border:1px solid rgba(225,48,108,0.3); color:#e1306c; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Instagram</button>
+            <button type="button" class="social-quick-btn" data-platform="Reddit" style="background:rgba(255,69,0,0.15); border:1px solid rgba(255,69,0,0.3); color:#ff4500; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Reddit</button>
+            <button type="button" class="social-quick-btn" data-platform="Facebook" style="background:rgba(24,119,242,0.15); border:1px solid rgba(24,119,242,0.3); color:#1877f2; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Facebook</button>
+            <button type="button" class="social-quick-btn" data-platform="YouTube" style="background:rgba(255,0,0,0.15); border:1px solid rgba(255,0,0,0.3); color:#ff0000; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ YouTube</button>
+            <button type="button" class="social-quick-btn" data-platform="Twitch" style="background:rgba(145,70,255,0.15); border:1px solid rgba(145,70,255,0.3); color:#9146ff; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Twitch</button>
+            <button type="button" class="social-quick-btn" data-platform="TikTok" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,0,80,0.3); color:#ff0050; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ TikTok</button>
+            <button type="button" class="social-quick-btn" data-platform="LinkedIn" style="background:rgba(0,119,181,0.15); border:1px solid rgba(0,119,181,0.3); color:#0077b5; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ LinkedIn</button>
+          </div>
+          <textarea id="socialLinks" placeholder="Discord|https://discord.gg/example&#10;X (Twitter)|https://twitter.com/glitchrealm&#10;Instagram|https://instagram.com/glitchrealm" rows="3"></textarea>
+          <small style="opacity:.6; font-size:.65rem;">Click buttons above to add platforms, or type manually. Format: <code>Platform|URL</code></small>
         </div>
         <div class="field">
           <label>Related Links (optional)</label>
@@ -142,6 +167,44 @@ function showPublishForm() {
       const newForm = document.getElementById('publish-form');
       newForm?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
       document.getElementById('save-draft')?.addEventListener('click', () => publishArticle({ draft:true }));
+      
+      // Re-attach social media quick-add button listeners
+      const socialBtns = document.querySelectorAll('.social-quick-btn');
+      const socialLinksTextarea = document.getElementById('socialLinks');
+      
+      socialBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const platform = btn.getAttribute('data-platform');
+          const currentValue = socialLinksTextarea.value.trim();
+          
+          // Check if platform already exists
+          if (currentValue.toLowerCase().includes(platform.toLowerCase() + '|')) {
+            return; // Already added
+          }
+          
+          const newLine = currentValue ? '\n' : '';
+          const placeholder = `${platform}|https://`;
+          socialLinksTextarea.value = currentValue + newLine + placeholder;
+          
+          // Focus and position cursor at the end
+          socialLinksTextarea.focus();
+          socialLinksTextarea.setSelectionRange(socialLinksTextarea.value.length, socialLinksTextarea.value.length);
+          
+          // Visual feedback
+          btn.style.opacity = '0.5';
+          setTimeout(() => { btn.style.opacity = '1'; }, 200);
+        });
+        
+        // Hover effect
+        btn.addEventListener('mouseenter', () => {
+          btn.style.transform = 'translateY(-2px)';
+          btn.style.boxShadow = '0 2px 8px rgba(0,255,249,0.2)';
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform = 'translateY(0)';
+          btn.style.boxShadow = 'none';
+        });
+      });
     }
     form.style.display = 'flex';
   }
@@ -541,6 +604,8 @@ function loadArticleDataIntoForm() {
   const embedEl = document.getElementById('embed');
   const linksEl = document.getElementById('links');
   const socialLinksEl = document.getElementById('socialLinks');
+  const sourcesEl = document.getElementById('sources');
+  const citationFormatEl = document.getElementById('citationFormat');
   
   if (titleEl) titleEl.value = originalArticle.title || '';
   if (summaryEl) summaryEl.value = originalArticle.summary || '';
@@ -555,6 +620,18 @@ function loadArticleDataIntoForm() {
   // Set social media links
   if (socialLinksEl && originalArticle.socialLinks) {
     socialLinksEl.value = originalArticle.socialLinks.map(link => `${link.platform}|${link.url}`).join('\n');
+  }
+  
+  // Set sources/citations
+  if (sourcesEl && originalArticle.sources) {
+    sourcesEl.value = originalArticle.sources.map(source => 
+      `${source.author}|${source.title}|${source.url}${source.year ? '|' + source.year : ''}`
+    ).join('\n');
+  }
+  
+  // Set citation format
+  if (citationFormatEl && originalArticle.citationFormat) {
+    citationFormatEl.value = originalArticle.citationFormat;
   }
   
   // Set categories

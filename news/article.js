@@ -226,6 +226,48 @@ async function loadArticle(){
     const tagsEl = document.getElementById('article-tags');
     tagsEl.innerHTML = (data.tags||[]).map(t=>`<span>${t}</span>`).join('');
     
+    // Display sources/citations if any
+    if (data.sources && data.sources.length > 0) {
+      const sourcesContainer = document.createElement('div');
+      sourcesContainer.className = 'article-sources';
+      sourcesContainer.style.cssText = 'margin:40px 0; padding:24px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.2); border-radius:12px;';
+      
+      const citationFormat = data.citationFormat || 'simple';
+      const sourcesHTML = data.sources.map((source, index) => {
+        let citation = '';
+        
+        switch(citationFormat) {
+          case 'apa':
+            // APA: Author (Year). Title. URL
+            citation = `${escapeHTML(source.author)}${source.year ? ` (${source.year})` : ''}. <em>${escapeHTML(source.title)}</em>. <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer" style="color:#00fff9; text-decoration:underline;">${escapeHTML(source.url)}</a>`;
+            break;
+          case 'mla':
+            // MLA: Author. "Title." URL, Year.
+            citation = `${escapeHTML(source.author)}. "${escapeHTML(source.title)}." <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer" style="color:#00fff9; text-decoration:underline;">${escapeHTML(source.url)}</a>${source.year ? `, ${source.year}` : ''}.`;
+            break;
+          case 'chicago':
+            // Chicago: Author. "Title." Accessed URL. Year.
+            citation = `${escapeHTML(source.author)}. "${escapeHTML(source.title)}." Accessed <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer" style="color:#00fff9; text-decoration:underline;">${escapeHTML(source.url)}</a>${source.year ? `. ${source.year}` : ''}.`;
+            break;
+          case 'simple':
+          default:
+            // Simple: Title - URL
+            citation = `<strong>${escapeHTML(source.title)}</strong> - <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer" style="color:#00fff9; text-decoration:underline;">${escapeHTML(source.url)}</a>`;
+            break;
+        }
+        
+        return `<div style="margin-bottom:12px; padding-left:20px; position:relative; font-size:0.85rem; line-height:1.6; color:#cfe2e6;">
+          <span style="position:absolute; left:0; color:#00f5ff; font-weight:600;">[${index + 1}]</span>
+          ${citation}
+        </div>`;
+      }).join('');
+      
+      sourcesContainer.innerHTML = `<h3 style="font-family:Orbitron;font-size:1rem;color:#00f5ff;margin:0 0 16px;letter-spacing:0.8px;">Sources & References</h3>${sourcesHTML}`;
+      
+      // Insert before tags
+      tagsEl.before(sourcesContainer);
+    }
+    
     // Display social media links if any
     if (data.socialLinks && data.socialLinks.length > 0) {
       const socialContainer = document.getElementById('article-links');
