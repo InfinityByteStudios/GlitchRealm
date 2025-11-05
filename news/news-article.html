@@ -100,6 +100,26 @@
     .article-content p { word-wrap:break-word; overflow-wrap:break-word; }
     .article-tags { display:flex; flex-wrap:wrap; gap:8px; margin:34px 0 0; }
     .article-tags span { font-size:.6rem; padding:6px 10px; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.25); border-radius:18px; letter-spacing:.5px; color:#00f5ff; text-transform:uppercase; }
+    .article-links { margin:30px 0; padding:20px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.2); border-radius:12px; }
+    .article-link { 
+      display:inline-flex; 
+      align-items:center; 
+      margin:0 12px 8px 0; 
+      padding:8px 14px; 
+      background:rgba(0,255,249,0.08); 
+      border:1px solid rgba(0,255,249,0.3); 
+      border-radius:8px; 
+      color:#00fff9; 
+      text-decoration:none; 
+      font-size:0.85rem; 
+      transition:all 0.2s ease;
+    }
+    .article-link:hover {
+      background:rgba(0,255,249,0.15);
+      border-color:rgba(0,255,249,0.5);
+      transform:translateY(-1px);
+      box-shadow:0 2px 8px rgba(0,255,249,0.2);
+    }
     .newsletter-cta { margin:50px 0 0; padding:30px; background:linear-gradient(135deg,#0b1822,#07131b); border:1px solid rgba(0,255,249,0.25); border-radius:16px; text-align:center; }
     .newsletter-cta h3 { font-family:'Orbitron'; font-size:1.3rem; color:#00fff9; margin:0 0 10px; letter-spacing:1px; }
     .newsletter-cta p { color:#b8d4d8; margin:0 0 20px; font-size:.9rem; }
@@ -190,6 +210,7 @@
       <div id="cover-container" class="article-cover" style="display:none;"></div>
       <div id="embed-container" class="embed-wrapper" style="display:none;"></div>
       <article id="article-content" class="article-content"></article>
+      <div id="article-links" class="article-links" style="display:none;"></div>
       <div id="article-tags" class="article-tags"></div>
       
       <!-- Newsletter CTA -->
