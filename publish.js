@@ -2,6 +2,7 @@ import { SUPABASE_CONFIG } from './supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/+esm';
 import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { redirectToAuth } from './auth-sync.js';
 
 const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 const db = getFirestore(window.firebaseApp);
@@ -238,15 +239,22 @@ async function publishArticle({ draft }){
       content: contentEl.value,
       categories: selectedCategories,
       tags: tagsEl.value.split(',').map(t=>t.trim()).filter(Boolean).slice(0,25),
-      coverImageUrl: coverUrl || null,
-      embed: embedEl.value.trim() || null,
       draft: !!draft,
-      publishedAt: draft ? null : Timestamp.now(),
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
       authorUid: user.uid,
       authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous'
     };
+
+    // Add optional fields only if they have values
+    if (coverUrl) payload.coverImageUrl = coverUrl;
+    if (embedEl.value.trim()) payload.embed = embedEl.value.trim();
+    if (!draft) payload.publishedAt = Timestamp.now();
+
+    console.log('[Publish Debug] Payload:', JSON.stringify(payload, (k, v) => 
+      v instanceof Timestamp ? v.toDate().toISOString() : v, 2
+    ));
+    console.log('[Publish Debug] User:', { uid: user.uid, isDev: isDevUID(user.uid), isWriter: isWriter });
 
     const docRef = await addDoc(collection(db,'news_articles'), payload);
 
@@ -301,7 +309,7 @@ window.deleteAndResubmit = async function(userId) {
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    // Not signed in - show sign in required message
+    // Not signed in - redirect to auth subdomain
     if (loadingCheck) loadingCheck.style.display = 'none';
     if (publishHeader) publishHeader.style.display = 'none';
     if (form) form.style.display = 'none';
@@ -311,9 +319,12 @@ onAuthStateChanged(auth, async (user) => {
       <div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);">
         <h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Sign In Required</h2>
         <p style="margin:0 0 20px; font-size:.9rem; opacity:.8;">You must be signed in as a verified writer to publish news articles.</p>
-        <a href="https://auth.glitchrealm.ca" style="display:inline-block; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; text-decoration:none; cursor:pointer;">Sign In</a>
+        <button onclick="window.redirectToAuth?.()" style="display:inline-block; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:30px; padding:14px 28px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; cursor:pointer;">Sign In</button>
       </div>
     `;
+    
+    // Export redirectToAuth to window for onclick handler
+    window.redirectToAuth = redirectToAuth;
     return;
   }
   
