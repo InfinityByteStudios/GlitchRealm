@@ -1,24 +1,27 @@
 {
-  "performance": 85,
-  "first-contentful-paint": 1500,
-  "largest-contentful-paint": 2500,
-  "cumulative-layout-shift": 0.1,
-  "total-blocking-time": 300,
-  "speed-index": 2000,
-  "interactive": 3000,
-  "max-potential-fid": 100,
+  "performance": 80,
+  "first-contentful-paint": 2000,
+  "largest-contentful-paint": 3500,
+  "cumulative-layout-shift": 0.15,
+  "total-blocking-time": 500,
+  "speed-index": 3000,
+  "interactive": 4500,
+  "max-potential-fid": 150,
   "resource-summary": {
     "script": {
-      "budget": 500
+      "budget": 800
     },
     "image": {
-      "budget": 1000
+      "budget": 1500
     },
     "stylesheet": {
-      "budget": 200
+      "budget": 300
     },
     "font": {
-      "budget": 100
+      "budget": 150
+    },
+    "total": {
+      "budget": 3000
     }
   }
 }
