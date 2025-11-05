@@ -56,17 +56,20 @@
       text-transform:uppercase;
     }
     .verified-badge {
-      display:inline-block;
-      background:linear-gradient(135deg,#0099ff,#00d4ff);
-      padding:3px 8px;
-      border-radius:10px;
-      font-size:0.55rem;
-      font-weight:700;
-      letter-spacing:0.4px;
-      text-transform:uppercase;
-      color:#fff;
-      box-shadow:0 2px 6px rgba(0,153,255,0.4);
-      white-space:nowrap;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:16px;
+      height:16px;
+      padding:0;
+      border-radius:50%;
+      margin-left:4px;
+    }
+    .verified-badge svg {
+      width:16px;
+      height:16px;
+      fill:url(#blueGradientArticle);
+      filter:drop-shadow(0 0 4px rgba(0,153,255,0.6));
     }
     .article-summary {
       background:rgba(0,255,249,0.05);
@@ -103,6 +106,44 @@
     .newsletter-cta .ml-embedded { max-width:400px; margin:0 auto; }
     .back-link { display:inline-flex; align-items:center; gap:6px; font-size:.65rem; text-transform:uppercase; letter-spacing:.5px; text-decoration:none; color:#00f5ff; margin-bottom:22px; }
     .back-link:hover { text-decoration:underline; }
+    .article-actions {
+      display:none;
+      gap:10px;
+      margin:20px 0;
+      flex-wrap:wrap;
+    }
+    .article-actions button {
+      padding:10px 20px;
+      border-radius:8px;
+      font-size:0.75rem;
+      font-weight:600;
+      letter-spacing:0.5px;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:all 0.3s ease;
+      font-family:Rajdhani;
+    }
+    .edit-btn {
+      background:linear-gradient(90deg,#00fff9,#008cff);
+      border:none;
+      color:#02141c;
+    }
+    .edit-btn:hover {
+      filter:brightness(1.15);
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(0,255,249,0.4);
+    }
+    .delete-btn {
+      background:rgba(255,80,80,0.15);
+      border:1px solid rgba(255,80,80,0.4);
+      color:#ff5050;
+    }
+    .delete-btn:hover {
+      background:rgba(255,80,80,0.25);
+      border-color:rgba(255,80,80,0.7);
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(255,80,80,0.4);
+    }
     .embed-wrapper { margin:30px 0; border:1px solid rgba(0,255,249,0.25); border-radius:16px; overflow:hidden; background:rgba(0,255,249,0.05); }
     .embed-wrapper iframe { width:100%; height:420px; display:block; }
     
@@ -128,6 +169,23 @@
       <header>
         <h1 id="article-title">Loading...</h1>
         <div class="article-meta" id="article-meta"></div>
+        <!-- Article actions (edit/delete) - only visible to author -->
+        <div id="article-actions" class="article-actions">
+          <button onclick="editArticle()" class="edit-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Edit Article
+          </button>
+          <button onclick="deleteArticle()" class="delete-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            Delete Article
+          </button>
+        </div>
       </header>
       <div id="cover-container" class="article-cover" style="display:none;"></div>
       <div id="embed-container" class="embed-wrapper" style="display:none;"></div>

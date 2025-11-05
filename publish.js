@@ -1,12 +1,17 @@
 import { SUPABASE_CONFIG } from './supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/+esm';
-import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc, Timestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { redirectToAuth } from './auth-sync.js';
 
 const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 const db = getFirestore(window.firebaseApp);
 const auth = getAuth(window.firebaseApp);
+
+// Check if we're in edit mode
+const urlParams = new URLSearchParams(window.location.search);
+const editArticleId = urlParams.get('edit');
+let originalArticle = null;
 
 const EDITOR_UIDS = [
   '6iZDTXC78aVwX22qrY43BOxDRLt1',
@@ -63,7 +68,14 @@ if (loadingCheck) loadingCheck.style.display = 'block';
 // Show the actual publish form (only for verified writers)
 function showPublishForm() {
   if (loadingCheck) loadingCheck.style.display = 'none';
-  if (publishHeader) publishHeader.style.display = 'block';
+  if (publishHeader) {
+    publishHeader.style.display = 'block';
+    // Update header text if editing
+    if (editArticleId) {
+      const h1 = publishHeader.querySelector('h1');
+      if (h1) h1.textContent = 'Edit Article';
+    }
+  }
   if (form) {
     // Restore original form HTML if it was replaced
     if (!form.querySelector('#title')) {
@@ -233,41 +245,88 @@ async function publishArticle({ draft }){
     // Get selected categories from fresh element reference
     const selectedCategories = Array.from(categoriesEl.selectedOptions).map(o=>o.value);
 
-    const payload = {
-      title: titleEl.value.trim(),
-      summary: summaryEl.value.trim(),
-      content: contentEl.value,
-      categories: selectedCategories,
-      tags: tagsEl.value.split(',').map(t=>t.trim()).filter(Boolean).slice(0,25),
-      draft: !!draft,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-      authorUid: user.uid,
-      authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous'
-    };
+    let payload;
+    let docRef;
+    
+    if (editArticleId && originalArticle) {
+      // EDIT MODE: Update existing article
+      payload = {
+        title: titleEl.value.trim(),
+        summary: summaryEl.value.trim(),
+        content: contentEl.value,
+        categories: selectedCategories,
+        tags: tagsEl.value.split(',').map(t=>t.trim()).filter(Boolean).slice(0,25),
+        draft: !!draft,
+        updatedAt: Timestamp.now(),
+        lastEditedAt: Timestamp.now() // Mark as edited
+      };
 
-    // Add optional fields only if they have values
-    if (coverUrl) payload.coverImageUrl = coverUrl;
-    if (embedEl.value.trim()) payload.embed = embedEl.value.trim();
-    if (!draft) payload.publishedAt = Timestamp.now();
+      // Add optional fields only if they have values
+      if (coverUrl) {
+        payload.coverImageUrl = coverUrl;
+      } else if (originalArticle.coverImageUrl) {
+        payload.coverImageUrl = originalArticle.coverImageUrl;
+      }
+      
+      if (embedEl.value.trim()) {
+        payload.embed = embedEl.value.trim();
+      } else if (originalArticle.embed) {
+        payload.embed = originalArticle.embed;
+      }
+      
+      if (!draft && !originalArticle.publishedAt) {
+        // Publishing for the first time
+        payload.publishedAt = Timestamp.now();
+      }
 
-    console.log('[Publish Debug] Payload:', JSON.stringify(payload, (k, v) => 
-      v instanceof Timestamp ? v.toDate().toISOString() : v, 2
-    ));
-    console.log('[Publish Debug] User:', { uid: user.uid, isDev: isDevUID(user.uid), isWriter: isWriter });
+      console.log('[Update Debug] Payload:', JSON.stringify(payload, (k, v) => 
+        v instanceof Timestamp ? v.toDate().toISOString() : v, 2
+      ));
 
-    const docRef = await addDoc(collection(db,'news_articles'), payload);
+      await updateDoc(doc(db, 'news_articles', editArticleId), payload);
+      
+      successMsg.textContent = draft ? '✓ Draft updated successfully!' : '✓ Article updated successfully!';
+    } else {
+      // CREATE MODE: New article
+      payload = {
+        title: titleEl.value.trim(),
+        summary: summaryEl.value.trim(),
+        content: contentEl.value,
+        categories: selectedCategories,
+        tags: tagsEl.value.split(',').map(t=>t.trim()).filter(Boolean).slice(0,25),
+        draft: !!draft,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        authorUid: user.uid,
+        authorUsername: authorUsername || user.displayName || user.email?.split('@')[0] || 'Anonymous'
+      };
+
+      // Add optional fields only if they have values
+      if (coverUrl) payload.coverImageUrl = coverUrl;
+      if (embedEl.value.trim()) payload.embed = embedEl.value.trim();
+      if (!draft) payload.publishedAt = Timestamp.now();
+
+      console.log('[Publish Debug] Payload:', JSON.stringify(payload, (k, v) => 
+        v instanceof Timestamp ? v.toDate().toISOString() : v, 2
+      ));
+      console.log('[Publish Debug] User:', { uid: user.uid, isDev: isDevUID(user.uid), isWriter: isWriter });
+
+      docRef = await addDoc(collection(db,'news_articles'), payload);
+      
+      successMsg.textContent = draft ? '✓ Draft saved successfully!' : '✓ Article published successfully!';
+    }
 
     // Show success message prominently
-    successMsg.textContent = draft ? '✓ Draft saved successfully!' : '✓ Article published successfully!';
     successMsg.style.display='block';
     successMsg.style.animation = 'slideInRight 0.4s ease-out';
     
-    // Reset form after short delay (get fresh form reference)
-    setTimeout(() => {
-      const currentForm = document.getElementById('publish-form');
-      if (currentForm) currentForm.reset();
-    }, 1500);
+    // Reset form after short delay (get fresh form reference) - only for new articles
+    if (!editArticleId) {
+      setTimeout(() => {
+        const currentForm = document.getElementById('publish-form');
+        if (currentForm) currentForm.reset();
+      }, 1500);
+    }
     
     // Scroll to top to show success message
     window.scrollTo({top:0,behavior:'smooth'});
@@ -278,8 +337,13 @@ async function publishArticle({ draft }){
       setTimeout(() => {
         successMsg.style.display='none';
         successMsg.style.animation = '';
+        
+        // Redirect to article after update
+        if (editArticleId) {
+          window.location.href = `news-article.html?id=${editArticleId}`;
+        }
       }, 400);
-    }, 6000);
+    }, 2000);
 
   } catch(err){
     console.error('Publish error:', err);
@@ -328,14 +392,83 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
   
+  // If editing, check if user is the author or a dev
+  if (editArticleId) {
+    try {
+      const articleRef = doc(db, 'news_articles', editArticleId);
+      const articleSnap = await getDoc(articleRef);
+      
+      if (!articleSnap.exists()) {
+        throw new Error('Article not found');
+      }
+      
+      originalArticle = articleSnap.data();
+      
+      // Check if user can edit this article
+      const isDev = isDevUID(user.uid);
+      const isAuthor = originalArticle.authorUid === user.uid;
+      
+      if (!isAuthor && !isDev) {
+        window.location.href = 'index.html';
+        return;
+      }
+    } catch (err) {
+      console.error('Error loading article for edit:', err);
+      alert('Error loading article: ' + err.message);
+      window.location.href = 'index.html';
+      return;
+    }
+  }
+  
   // User is signed in - check verified writer status
   const isWriter = await isVerifiedWriter(user.uid);
   if (isWriter) {
     // Verified writer - show form
     showPublishForm();
     updateImageUploadAccess(user);
+    
+    // Load article data if editing
+    if (editArticleId && originalArticle) {
+      loadArticleDataIntoForm();
+    }
   } else {
     // Non-verified users: redirect to verification request page
     window.location.href = 'request-verification.html';
   }
 });
+
+// Load article data into form for editing
+function loadArticleDataIntoForm() {
+  if (!originalArticle) return;
+  
+  const titleEl = document.getElementById('title');
+  const summaryEl = document.getElementById('summary');
+  const contentEl = document.getElementById('content');
+  const categoriesEl = document.getElementById('categories');
+  const tagsEl = document.getElementById('tags');
+  const embedEl = document.getElementById('embed');
+  
+  if (titleEl) titleEl.value = originalArticle.title || '';
+  if (summaryEl) summaryEl.value = originalArticle.summary || '';
+  if (contentEl) contentEl.value = originalArticle.content || '';
+  if (embedEl) embedEl.value = originalArticle.embed || '';
+  
+  // Set categories
+  if (categoriesEl && originalArticle.categories) {
+    Array.from(categoriesEl.options).forEach(option => {
+      option.selected = originalArticle.categories.includes(option.value);
+    });
+  }
+  
+  // Set tags
+  if (tagsEl && originalArticle.tags) {
+    tagsEl.value = originalArticle.tags.join(', ');
+  }
+  
+  // Update button text
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.textContent = 'Update Article';
+  
+  const saveDraftBtn = document.getElementById('save-draft');
+  if (saveDraftBtn) saveDraftBtn.textContent = 'Save as Draft';
+}
