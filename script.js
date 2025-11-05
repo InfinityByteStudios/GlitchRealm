@@ -9,12 +9,12 @@
             const authData = JSON.parse(cachedAuthState);
             // If auth state exists and is recent (within 24 hours), show user profile immediately
             if (authData.timestamp && (Date.now() - authData.timestamp) < 86400000) {
-                console.log('[Main Auth] Found cached auth state, will restore UI on Firebase init');
+                console.log('[News Auth] Found cached auth state, will restore UI on Firebase init');
                 window.__cachedAuthState = authData;
             }
         }
     } catch(e) {
-        console.warn('[Main Auth] Failed to check cached auth state:', e);
+        console.warn('[News Auth] Failed to check cached auth state:', e);
     }
 })();
 
@@ -28,7 +28,7 @@ async function loadSupabaseAvatarIfAvailable(userId) {
     try {
         // Dynamically import Supabase avatar utilities if not already loaded
         if (!window.getProfile || !window.getAvatarUrl) {
-            const module = await import('./supabase-avatar.js');
+            const module = await import('../supabase-avatar.js');
             window.getProfile = module.getProfile;
             window.getAvatarUrl = module.getAvatarUrl;
         }
@@ -38,7 +38,7 @@ async function loadSupabaseAvatarIfAvailable(userId) {
         
         // If custom avatar exists, update all avatar elements
         if (profile?.custom_photo_url) {
-            console.log('[Main Auth] Found Supabase custom avatar, updating UI');
+            console.log('[News Auth] Found Supabase custom avatar, updating UI');
             const userAvatar = document.getElementById('user-avatar');
             const userAvatarLarge = document.getElementById('user-avatar-large');
             
@@ -47,7 +47,7 @@ async function loadSupabaseAvatarIfAvailable(userId) {
         }
     } catch (err) {
         // Graceful failure - just use the cached photoURL
-        console.warn('[Main Auth] Could not load Supabase avatar:', err);
+        console.warn('[News Auth] Could not load Supabase avatar:', err);
     }
 }
 
@@ -304,225 +304,14 @@ function showPasswordChangeSuccessNotification() {
     }, 100);
     
     // Add pulse animation for icon
-    if (!document.querySelector('#pulseKeyframes')) {
-        const pulseStyle = document.createElement('style');
-        pulseStyle.id = 'pulseKeyframes';
-        pulseStyle.textContent = `
-            @keyframes pulse {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.1); }
-            }
-        `;
-        document.head.appendChild(pulseStyle);
-    }
-}
-
-// Helper function to display newest game in the featured card
-function displayNewestGame(featuredCard, gameData) {
-    if (!featuredCard || !gameData) return;
-    
-    featuredCard.innerHTML = `
-        <div class="featured-image">
-            <img src="${gameData.coverImageUrl || 'assets/Game Logos/ByteSurge.png'}" 
-                 alt="${gameData.title || 'Game'}" 
-                 class="featured-logo-image" 
-                 decoding="async" 
-                 fetchpriority="high" 
-                 loading="eager"
-                 onerror="this.src='assets/Game Logos/ByteSurge.png'">
-            <div class="game-badge new">NEW</div>
-        </div>
-        <div class="featured-info">
-            <h3>${gameData.title || 'Untitled Game'}</h3>
-            <p>${gameData.description || 'No description available.'}</p>
-            <p class="featured-developer">Made by <strong>${gameData.ownerUsername || 'Unknown Developer'}</strong></p>
-            <a href="${gameData.playUrl ? gameData.playUrl : `game-detail.html?id=${gameData.id}` }" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Play Now</a>
-        </div>
+    const pulseStyle = document.createElement('style');
+    pulseStyle.textContent = `
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
     `;
-}
-
-// Load newest game from Firebase for home page
-async function loadNewestGame() {
-    // Only run on index.html
-    if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') return;
-    
-    const featuredCard = document.querySelector('.featured-card');
-    if (!featuredCard) return;
-    
-    try {
-        console.log('[Home] Starting to load newest game...');
-        
-        // Check cache first and display immediately
-        const CACHE_KEY = 'gr.newestGame';
-        const CACHE_TIMESTAMP_KEY = 'gr.newestGame.timestamp';
-        let cachedGame = null;
-        let cachedTimestamp = 0;
-        
-        try {
-            const cached = localStorage.getItem(CACHE_KEY);
-            const timestampStr = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-            if (cached && timestampStr) {
-                cachedGame = JSON.parse(cached);
-                cachedTimestamp = parseInt(timestampStr, 10);
-                
-                // Display cached game immediately
-                console.log('[Home] Displaying cached newest game:', cachedGame.title);
-                displayNewestGame(featuredCard, cachedGame);
-            }
-        } catch (e) {
-            console.warn('[Home] Failed to load cache:', e);
-        }
-        
-        // Wait for Firebase to be ready (with shorter timeout)
-        await new Promise((resolve) => {
-            if (window.firebaseFirestore) {
-                resolve();
-            } else {
-                const checkInterval = setInterval(() => {
-                    if (window.firebaseFirestore) {
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
-                }, 50); // Check every 50ms instead of 100ms
-                
-                // Timeout after 3 seconds instead of 5
-                setTimeout(() => {
-                    clearInterval(checkInterval);
-                    resolve();
-                }, 3000);
-            }
-        });
-        
-        // Import Firestore functions if not available
-        if (!window.firebaseFirestore || !window.firestoreCollection || !window.firestoreQuery) {
-            const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            if (!window.firebaseFirestore) window.firebaseFirestore = f.getFirestore();
-            if (!window.firestoreCollection) window.firestoreCollection = f.collection;
-            if (!window.firestoreQuery) window.firestoreQuery = f.query;
-            if (!window.firestoreOrderBy) window.firestoreOrderBy = f.orderBy;
-            if (!window.firestoreLimit) window.firestoreLimit = f.limit;
-            if (!window.firestoreWhere) window.firestoreWhere = f.where;
-            if (!window.firestoreGetDocs) window.firestoreGetDocs = f.getDocs;
-        }
-        
-        const db = window.firebaseFirestore;
-        const gamesRef = window.firestoreCollection(db, 'game_submissions');
-        
-        console.log('[Home] Querying for games...');
-        
-        // Quick check: Just get the most recent game to see if there's anything newer
-        const quickCheckQuery = window.firestoreQuery(
-            gamesRef,
-            window.firestoreOrderBy('createdAt', 'desc'),
-            window.firestoreLimit(1)
-        );
-        const quickSnapshot = await window.firestoreGetDocs(quickCheckQuery);
-        
-        // Check if we have a newer game than cached
-        if (quickSnapshot.size > 0) {
-            const latestDoc = quickSnapshot.docs[0];
-            const latestData = latestDoc.data();
-            const latestTimestamp = latestData.createdAt?.toMillis?.() || 0;
-            
-            console.log('[Home] Latest game in DB:', latestData.title, 'Created:', new Date(latestTimestamp));
-            console.log('[Home] Cached game timestamp:', cachedTimestamp ? new Date(cachedTimestamp) : 'none');
-            
-            // If we have a cached game and it's still the newest, skip full fetch
-            if (cachedGame && cachedTimestamp >= latestTimestamp) {
-                console.log('[Home] Cache is up to date, skipping full fetch');
-                return;
-            }
-            
-            console.log('[Home] New game detected or cache outdated, fetching full data...');
-        }
-        
-        // Get all games to check their status
-        const allGamesQuery = window.firestoreQuery(gamesRef);
-        const allGamesSnapshot = await window.firestoreGetDocs(allGamesQuery);
-        
-        console.log('[Home] Total games in database:', allGamesSnapshot.size);
-        
-        // Log the status of each game
-        const gamesByStatus = {};
-        allGamesSnapshot.forEach(doc => {
-            const data = doc.data();
-            const status = data.status || 'no-status';
-            if (!gamesByStatus[status]) gamesByStatus[status] = 0;
-            gamesByStatus[status]++;
-            console.log('[Home] Game:', data.title, 'Status:', status, 'Created:', data.createdAt);
-        });
-        
-        console.log('[Home] Games by status:', gamesByStatus);
-        
-        // Query for published/approved games (check multiple possible status values)
-        const validStatuses = ['approved', 'published', 'active'];
-        const games = [];
-        
-        allGamesSnapshot.forEach(doc => {
-            const data = doc.data();
-            // Include games that are approved, published, or have no status (legacy games)
-            if (!data.status || validStatuses.includes(data.status)) {
-                games.push({
-                    id: doc.id,
-                    data: data,
-                    createdAt: data.createdAt?.toMillis?.() || data.createdAt || 0
-                });
-            }
-        });
-        
-        console.log('[Home] Found', games.length, 'valid games to display');
-        
-        if (games.length > 0) {
-            // Sort by createdAt descending (newest first)
-            games.sort((a, b) => b.createdAt - a.createdAt);
-            
-            const newestGame = games[0];
-            const gameData = newestGame.data;
-            const gameId = newestGame.id;
-            
-            console.log('[Home] Newest game:', gameData.title, 'Created:', new Date(newestGame.createdAt));
-            
-            // Cache the newest game data
-            try {
-                const cacheData = {
-                    id: gameId,
-                    title: gameData.title,
-                    description: gameData.description,
-                    coverImageUrl: gameData.coverImageUrl,
-                    playUrl: gameData.playUrl,
-                    ownerUsername: gameData.ownerUsername
-                };
-                localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-                localStorage.setItem(CACHE_TIMESTAMP_KEY, newestGame.createdAt.toString());
-                console.log('[Home] Cached newest game data');
-            } catch (e) {
-                console.warn('[Home] Failed to cache game data:', e);
-            }
-            
-            // Update the featured card display
-            displayNewestGame(featuredCard, {
-                id: gameId,
-                title: gameData.title,
-                description: gameData.description,
-                coverImageUrl: gameData.coverImageUrl,
-                playUrl: gameData.playUrl,
-                ownerUsername: gameData.ownerUsername
-            });
-            
-            console.log('[Home] Successfully loaded newest game:', gameData.title);
-        } else {
-            console.log('[Home] No valid games found, keeping loading state');
-        }
-    } catch (error) {
-        console.error('[Home] Error loading newest game:', error);
-        // Show error message instead of loading
-        featuredCard.innerHTML = `
-            <div class="featured-info">
-                <h3>Unable to load</h3>
-                <p>Could not fetch the newest game. Please refresh the page.</p>
-            </div>
-        `;
-    }
+    document.head.appendChild(pulseStyle);
 }
 
 // Error message mapping for Firebase auth errors
@@ -669,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // IMMEDIATELY restore UI from cached auth state if available
     try {
         if (window.__cachedAuthState) {
-            console.log('[Main Auth] Restoring UI from cached auth state on DOMContentLoaded');
+            console.log('[News Auth] Restoring UI from cached auth state on DOMContentLoaded');
             const signInBtn = document.getElementById('sign-in-btn');
             const userProfile = document.getElementById('user-profile');
             const userName = document.getElementById('user-name');
@@ -692,23 +481,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (userAvatarLarge) userAvatarLarge.src = window.__cachedAuthState.photoURL;
                 }
                 
-                console.log('[Main Auth] UI restored successfully from cache');
+                console.log('[News Auth] UI restored successfully from cache');
                 
                 // Check for Supabase custom avatar asynchronously (higher priority than cached photoURL)
                 loadSupabaseAvatarIfAvailable(window.__cachedAuthState.uid).catch(err => {
-                    console.warn('[Main Auth] Could not check for Supabase avatar:', err);
+                    console.warn('[News Auth] Could not check for Supabase avatar:', err);
                 });
             }
         }
     } catch(e) {
-        console.warn('[Main Auth] Failed to restore UI from cache:', e);
+        console.warn('[News Auth] Failed to restore UI from cache:', e);
     }
     
     // Check for password change success notification
     checkPasswordChangeSuccess();
-    
-    // Load newest game from Firebase on home page
-    loadNewestGame();
     
     // Initialize all effects
     initGlitchEffects();
@@ -757,49 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.firebaseAuth && typeof window.firebaseAuth.onAuthStateChanged === 'function') {
             window.firebaseAuth.onAuthStateChanged(() => {
                 setTimeout(setupGameCardMenus, 300);
-                // Check if user should see developer dashboard
-                setTimeout(checkDeveloperDashboardVisibility, 500);
             });
-        }
-        
-        // Check developer dashboard visibility on initial load
-        setTimeout(checkDeveloperDashboardVisibility, 1000);
-        
-        // Function to check if user should see developer dashboard
-        async function checkDeveloperDashboardVisibility() {
-            const dashboardLink = document.getElementById('developer-dashboard-link');
-            if (!dashboardLink) return;
-            
-            try {
-                const currentUser = window.firebaseAuth?.currentUser;
-                if (!currentUser) {
-                    dashboardLink.style.display = 'none';
-                    return;
-                }
-                
-                // Check if user has submitted any games
-                if (window.firestoreCollection && window.firestoreQuery && window.firestoreWhere && window.firestoreGetDocs) {
-                    const gamesQuery = window.firestoreQuery(
-                        window.firestoreCollection(window.firebaseFirestore, 'games'),
-                        window.firestoreWhere('submittedBy', '==', currentUser.uid)
-                    );
-                    
-                    const gamesSnapshot = await window.firestoreGetDocs(gamesQuery);
-                    
-                    if (!gamesSnapshot.empty) {
-                        dashboardLink.style.display = 'block';
-                        console.log('[Developer Dashboard] User has submitted games, showing dashboard link');
-                    } else {
-                        dashboardLink.style.display = 'none';
-                    }
-                } else {
-                    // Firestore not available, hide dashboard
-                    dashboardLink.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('[Developer Dashboard] Error checking visibility:', error);
-                dashboardLink.style.display = 'none';
-            }
         }
 
         // Report modal wiring (games)
@@ -971,8 +715,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 if (e.target.closest('.menu-item.edit')) {
                     closeAllGameMenus();
-                    // Navigate to edit page with step 2 (Basic Info)
-                    window.location.href = `submit-game.html?edit=${gameId}&step=2`;
+                    if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
                     return;
                 }
                 if (e.target.closest('.menu-item.report')) {
@@ -998,8 +741,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 switch (action) {
                     case 'edit':
-                        // Navigate to edit page with step 2 (Basic Info)
-                        window.location.href = `submit-game.html?edit=${gameId}&step=2`;
+                        if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
                         break;
                     case 'delete':
                         (async () => {
@@ -1114,9 +856,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     tagsEl().value = tags;
                     const b = (typeof data.badge === 'string' && ['new','updated','beta'].includes(data.badge)) ? data.badge : '';
                     badgeEl().value = b;
-                    // Store original data for fields not editable in modal
-                    m.dataset.playUrl = data.playUrl || '';
-                    m.dataset.coverImageUrl = data.coverImageUrl || '';
                     m.style.display = 'flex';
                     document.body.style.overflow = 'hidden';
                 } catch (e) {
@@ -1151,26 +890,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const badge = ['new','updated','beta'].includes(badgeRaw) ? badgeRaw : '';
 
                     const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', gameId);
-                    
-                    // Get modal element to retrieve stored data
-                    const modal = document.getElementById(modalId);
-                    const playUrl = modal?.dataset.playUrl || '';
-                    const coverImageUrl = modal?.dataset.coverImageUrl || '';
-                    
-                    // Build patch with all required fields from validator
                     const patch = {
                         title,
                         description,
                         updatedAt: window.firestoreServerTimestamp ? window.firestoreServerTimestamp() : new Date(),
                     };
-                    
-                    // Include playUrl if it exists (required by validator)
-                    if (playUrl) patch.playUrl = playUrl;
-                    
-                    // Include coverImageUrl if it exists
-                    if (coverImageUrl) patch.coverImageUrl = coverImageUrl;
-                    
-                    // Handle optional fields
                     if (tags.length) patch.tags = tags;
                     else patch.tags = window.firestoreDeleteField ? window.firestoreDeleteField() : undefined;
                     if (badge) patch.badge = badge; else patch.badge = window.firestoreDeleteField ? window.firestoreDeleteField() : undefined;
@@ -1551,22 +1275,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     })();
-    // Register service worker (skip on localhost/file to avoid dev caching issues)
-    if ('serviceWorker' in navigator) {
-        try {
-            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
-            if (!isLocal) {
-                navigator.serviceWorker.register('/sw.js');
-            } else {
-                console.log('Skipping SW registration in local development');
-            }
-        } catch (e) {
-            console.log('SW registration failed:', e);
-        }
-    }
+    // Service worker not available on news subdomain (no sw.js)
+    // Main site handles caching and offline support
     
-    // Modal functionality disabled - all sign-in now redirects to auth.glitchrealm.ca
-    // initializeBasicModal();
+    // Initialize modal functionality immediately
+    document.body.addEventListener('click', function(e) {
+        const closeModal = document.getElementById('close-modal');
+        const signInModal = document.getElementById('signin-modal');
+        if (closeModal && signInModal && (e.target === closeModal || closeModal.contains(e.target))) {
+            e.preventDefault();
+            signInModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            if (typeof resetAuthButtonsText === 'function') resetAuthButtonsText();
+        }
+    });
+    initializeBasicModal();
     
     // Initialize shared authentication system for SSO
     initializeSharedAuth();
@@ -1718,22 +1441,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const anchorLinks = document.querySelectorAll('a[href^="#"]');
     anchorLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            // Only process if it's a valid hash selector
-            if (href && href.startsWith('#') && href.length > 1) {
-                try {
-                    const target = document.querySelector(href);
-                    if (target) {
-                        e.preventDefault();
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                } catch (err) {
-                    // Invalid selector, skip
-                    console.warn('Invalid selector for smooth scroll:', href);
-                }
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         });
     });
@@ -1815,11 +1529,126 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Firebase Authentication - called from main DOMContentLoaded
 
-// Modal functionality completely disabled - redirect to auth subdomain instead
+// Basic modal functionality that works without Firebase
 function initializeBasicModal() {
-    // All sign-in functionality now redirects to https://auth.glitchrealm.ca/
-    // No popup modal is used anymore
-    console.log('Modal functionality disabled - using auth subdomain redirect');
+    // DOM elements
+    const signInBtn = document.getElementById('sign-in-btn');
+    const signInModal = document.getElementById('signin-modal');
+    const closeModal = document.getElementById('close-modal');
+      // Initialize Google button text helper function
+    function initializeGoogleButtonText() {
+        const googleButtonText = document.getElementById('google-button-text');
+        const githubButtonText = document.getElementById('github-button-text');
+        const activeTab = document.querySelector('.auth-tab.active');
+        if (googleButtonText && activeTab) {
+            const tabType = activeTab.getAttribute('data-tab');
+            if (tabType === 'signin') {
+                googleButtonText.textContent = 'Sign in with Google';
+            } else if (tabType === 'signup') {
+                googleButtonText.textContent = 'Sign up with Google';
+            }
+        }
+        if (githubButtonText && activeTab) {
+            const tabType = activeTab.getAttribute('data-tab');
+            if (tabType === 'signin') {
+                githubButtonText.textContent = 'Sign in with GitHub';
+            } else if (tabType === 'signup') {
+                githubButtonText.textContent = 'Sign up with GitHub';
+            }
+        }
+    }
+      // Sign-in button now redirects to auth.glitchrealm.ca (no JavaScript needed)
+    // signInBtn?.addEventListener('click', (e) => {
+    //     e.preventDefault();
+    //     if (signInModal) {
+    //         signInModal.style.display = 'flex';
+    //         document.body.style.overflow = 'hidden';
+    //         
+    //         // Initialize Google button text based on active tab
+    //         initializeGoogleButtonText();
+    //     }
+    // });
+
+    if (closeModal) {
+        // Remove all previous click listeners to avoid duplicate/conflicting handlers
+        const newCloseModal = closeModal.cloneNode(true);
+        closeModal.parentNode.replaceChild(newCloseModal, closeModal);
+        newCloseModal.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (signInModal) {
+                signInModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                resetAuthButtonsText();
+            }
+        });
+    }
+
+    signInModal?.addEventListener('click', (e) => {
+        if (e.target === signInModal) {
+            signInModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetAuthButtonsText();
+        }
+    });    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && signInModal && signInModal.style.display === 'flex') {
+            signInModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetAuthButtonsText();
+        }
+    });    // Tab switching functionality for neural modal
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const authForms = document.querySelectorAll('.auth-form-container');
+    const googleButtonText = document.getElementById('google-button-text');
+    const githubButtonText = document.getElementById('github-button-text');
+    
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabType = tab.getAttribute('data-tab');
+            
+            // Update tab states
+            authTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Update form visibility
+            authForms.forEach(form => {
+                form.classList.remove('active');
+                if (form.id === `${tabType}-form`) {
+                    form.classList.add('active');
+                }
+            });
+            
+            // Update Google button text based on active tab
+            if (googleButtonText) {
+                if (tabType === 'signin') {
+                    googleButtonText.textContent = 'Sign in with Google';
+                } else if (tabType === 'signup') {
+                    googleButtonText.textContent = 'Sign up with Google';
+                }
+            }
+            
+            // Update GitHub button text based on active tab
+            if (githubButtonText) {
+                if (tabType === 'signin') {
+                    githubButtonText.textContent = 'Sign in with GitHub';
+                } else if (tabType === 'signup') {
+                    githubButtonText.textContent = 'Sign up with GitHub';
+                }
+            }
+        });
+    });
+
+    // Input focus effects for neural inputs
+    const neuralInputs = document.querySelectorAll('.neural-input');
+    neuralInputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
 }
 
 async function initializeAuth() {
@@ -2871,30 +2700,6 @@ async function initializeAuth() {
                 console.log('User profile refreshed from Firebase');
                 updateUserProfile(currentUser);
                 
-                // Update moderation link visibility for developers
-                try {
-                    const moderationMenuBtn = document.getElementById('moderation-menu-btn');
-                    const DEV_UIDS = new Set([
-                        '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                        'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-                        'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                        '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                        'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-                    ]);
-                    
-                    if (moderationMenuBtn) {
-                        const show = DEV_UIDS.has(currentUser.uid);
-                        if (show) {
-                            moderationMenuBtn.style.display = 'flex';
-                            console.log('Moderation link shown for developer');
-                        } else {
-                            moderationMenuBtn.style.display = 'none';
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error updating moderation link:', e);
-                }
-                
                 // Update SSO state
                 if (window.sharedAuth) {
                     window.sharedAuth.storeAuthState(currentUser);
@@ -3261,14 +3066,12 @@ window.addEventListener('message', (event) => {
 });
 
 // CSS Animations added via JavaScript
-if (!document.querySelector('#glitchOverlayKeyframes')) {
-    const glitchStyle = document.createElement('style');
-    glitchStyle.id = 'glitchOverlayKeyframes';
-    glitchStyle.textContent = `
-        @keyframes glitchOverlay {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
+const animationStyle = document.createElement('style');
+animationStyle.textContent = `
+    @keyframes glitchOverlay {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
     
     .ripple {
         position: absolute;
@@ -3308,8 +3111,7 @@ if (!document.querySelector('#glitchOverlayKeyframes')) {
         }
     }
 `;
-    document.head.appendChild(glitchStyle);
-}
+document.head.appendChild(animationStyle);
 
 // Global Settings
 const GR_SETTINGS = {
@@ -4309,9 +4111,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add fadeOut animation to CSS if not already present
 if (!document.querySelector('#fadeOutKeyframes')) {
-    const fadeOutStyle = document.createElement('style');
-    fadeOutStyle.id = 'fadeOutKeyframes';
-    fadeOutStyle.textContent = `
+    const style = document.createElement('style');
+    style.id = 'fadeOutKeyframes';
+    style.textContent = `
         @keyframes fadeOut {
             from {
                 opacity: 1;
@@ -4321,7 +4123,7 @@ if (!document.querySelector('#fadeOutKeyframes')) {
             }
         }
     `;
-    document.head.appendChild(fadeOutStyle);
+    document.head.appendChild(style);
 }
 
 // Load Header and Footer
@@ -4399,7 +4201,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const navLinks = document.querySelectorAll('.nav-link');
                 navLinks.forEach(link => {
                     link.classList.remove('active');
-                    if (link.getAttribute('href') === currentPage) {
+                    const href = link.getAttribute('href');
+                    if ((href === 'index.html' || href === './index.html') && currentPage === 'index.html') {
                         link.classList.add('active');
                     }
                 });
@@ -4477,6 +4280,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Independent dropdown initialization...');
         forceInitializeDropdowns();
         
+        // Also force sign-in button if it exists
         // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
         // const signInBtn = document.getElementById('sign-in-btn');
         // const signInModal = document.getElementById('signin-modal');
@@ -4562,40 +4366,38 @@ function initializeAuthElements() {
     
     console.log('Auth elements found:', { signInBtn, signOutBtn, userProfile });
     
-    // Sign-in button now uses direct link - JavaScript disabled to allow natural navigation
-    /*
-    if (signInBtn) {
-        console.log('Setting up sign-in modal event listeners...');
-        
-        // Remove existing listeners by cloning buttons
-        const newSignInBtn = signInBtn.cloneNode(true);
-        signInBtn.parentNode.replaceChild(newSignInBtn, signInBtn);
-        
-        // Add event listener to the sign-in button
-        newSignInBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Sign in button clicked!');
-
-            // If the centralized header modal exists, open it inline
-            const authOverlay = document.getElementById('signin-modal');
-            if (authOverlay) {
-                console.log('Opening centralized sign-in modal');
-                authOverlay.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-                return;
-            }
-
-            // Fallback: navigate to the standalone Sign In page with redirect parameter
-            const currentUrl = window.location.href;
-            try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
-            const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
-            console.log('Modal not found, redirecting to standalone sign-in:', target);
-            window.location.href = target;
-        });
-        
-        console.log('Auth event listeners attached');
-    }
-    */
+    // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
+    // if (signInBtn) {
+    //     console.log('Setting up sign-in modal event listeners...');
+    //     
+    //     // Remove existing listeners by cloning buttons
+    //     const newSignInBtn = signInBtn.cloneNode(true);
+    //     signInBtn.parentNode.replaceChild(newSignInBtn, signInBtn);
+    //     
+    //     // Add event listener to the sign-in button
+    //     newSignInBtn.addEventListener('click', function(e) {
+    //         e.preventDefault();
+    //         console.log('Sign in button clicked!');
+    //
+    //         // If the centralized header modal exists, open it inline
+    //         const authOverlay = document.getElementById('signin-modal');
+    //         if (authOverlay) {
+    //             console.log('Opening centralized sign-in modal');
+    //             authOverlay.style.display = 'flex';
+    //             document.body.style.overflow = 'hidden';
+    //             return;
+    //         }
+    //
+    //         // Fallback: navigate to the standalone Sign In page with redirect parameter
+    //         const currentUrl = window.location.href;
+    //         try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
+    //         const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+    //         console.log('Modal not found, redirecting to standalone sign-in:', target);
+    //         window.location.href = target;
+    //     });
+    //     
+    //     console.log('Auth event listeners attached');
+    // }
         
     // Find and handle close modal button (specific to sign-in modal)
     const closeModal = document.querySelector('#close-modal');
