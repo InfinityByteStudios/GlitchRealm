@@ -43,6 +43,38 @@ const EDITOR_UIDS = [
 let ARTICLES_COL;
 let TAGS_COL;
 
+// Developer UIDs
+const DEV_UIDS = new Set([
+  '6iZDTXC78aVwX22qrY43BOxDRLt1',
+  'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+]);
+
+// Cache verified writer status
+const verifiedWritersCache = new Map();
+
+async function checkVerifiedWriter(uid) {
+  if (!uid) return false;
+  if (DEV_UIDS.has(uid)) return true;
+  
+  if (verifiedWritersCache.has(uid)) {
+    return verifiedWritersCache.get(uid);
+  }
+  
+  try {
+    const writerDoc = await getDoc(doc(db, 'verified_writers', uid));
+    const isVerified = writerDoc.exists() && writerDoc.data()?.verified === true;
+    verifiedWritersCache.set(uid, isVerified);
+    return isVerified;
+  } catch (err) {
+    console.warn('Error checking verified writer:', err);
+    verifiedWritersCache.set(uid, false);
+    return false;
+  }
+}
+
 // DOM refs
 const articleListEl = document.getElementById('article-list');
 const latestListEl = document.getElementById('latest-list');
@@ -82,6 +114,10 @@ async function loadArticles(){
   const q = query(ARTICLES_COL, orderBy('publishedAt','desc'), limit(100));
   const snap = await getDocs(q);
   articlesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  
+  // Pre-load verified status for all authors
+  const uniqueAuthors = [...new Set(articlesCache.map(a => a.authorUid).filter(Boolean))];
+  await Promise.all(uniqueAuthors.map(uid => checkVerifiedWriter(uid)));
 }
 
 function formatDate(ts){
@@ -111,11 +147,14 @@ function articleCardHTML(a){
   const tagsHTML = (a.tags||[]).map(t=>`<span>${t}</span>`).join('');
   const mediaHTML = a.coverImageUrl ? `<div style="margin:-10px -14px 18px; overflow:hidden; border-radius:12px; border:1px solid rgba(0,255,249,0.15);"><img src="${a.coverImageUrl}" alt="Cover" style="display:block; width:100%; max-height:300px; object-fit:cover;"></div>` : '';
   
+  // Check if author is verified (from cache)
+  const isVerified = a.authorUid ? verifiedWritersCache.get(a.authorUid) || false : false;
+  
   // Add verified writer badge if applicable
   let authorHTML = '';
   if (a.authorUsername) {
     authorHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">By ${escapeHTML(a.authorUsername)}`;
-    if (a.isVerifiedWriter) {
+    if (isVerified) {
       authorHTML += `<span style="display:inline-block;background:linear-gradient(135deg,#0099ff,#00d4ff);padding:2px 7px;border-radius:8px;font-size:0.5rem;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#fff;box-shadow:0 2px 6px rgba(0,153,255,0.4);">Verified Writer</span>`;
     }
     authorHTML += `</span> · `;

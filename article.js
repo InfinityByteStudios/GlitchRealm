@@ -2,6 +2,29 @@ import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10
 
 const db = getFirestore(window.firebaseApp);
 
+const DEV_UIDS = [
+  '6iZDTXC78aVwX22qrY43BOxDRLt1',
+  'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+];
+
+async function isVerifiedWriter(uid) {
+  // Developers are always verified
+  if (DEV_UIDS.includes(uid)) {
+    return true;
+  }
+  
+  try {
+    const writerDoc = await getDoc(doc(db, 'verified_writers', uid));
+    return writerDoc.exists() && writerDoc.data()?.verified === true;
+  } catch (err) {
+    console.warn('Error checking verified writer status:', err);
+    return false;
+  }
+}
+
 function qs(key){
   const params = new URLSearchParams(location.search);
   return params.get(key);
@@ -77,11 +100,14 @@ async function loadArticle(){
     const data = snap.data();
     document.getElementById('article-title').textContent = data.title || 'Untitled';
     
+    // Check if author is verified
+    const authorIsVerified = data.authorUid ? await isVerifiedWriter(data.authorUid) : false;
+    
     // Build meta line with verified writer badge and proper casing
     let metaHTML = '';
     if (data.authorUsername) {
       metaHTML += `<span class="author-name">By ${escapeHTML(data.authorUsername)}</span>`;
-      if (data.isVerifiedWriter) {
+      if (authorIsVerified) {
         metaHTML += `<span class="verified-badge">Verified Writer</span>`;
       }
     }

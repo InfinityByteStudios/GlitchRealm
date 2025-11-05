@@ -20,7 +20,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
   <style>
-    .article-view { max-width:900px; margin:50px auto 120px; padding:0 20px; }
+    .article-view { max-width:900px; margin:50px auto 120px; padding:0 20px; overflow-wrap:break-word; word-wrap:break-word; }
+    .article-view * { max-width:100%; overflow-wrap:break-word; word-wrap:break-word; }
     .article-view header { margin:0 0 30px; }
     .article-view h1 { 
       font-family:'Orbitron'; 
@@ -34,7 +35,9 @@
       color:transparent;
       word-wrap:break-word;
       overflow-wrap:break-word;
+      word-break:break-word;
       hyphens:auto;
+      max-width:100%;
     }
     .article-meta { 
       font-size:.7rem; 
@@ -76,6 +79,8 @@
       color:#c3d2d6;
       word-wrap:break-word;
       overflow-wrap:break-word;
+      word-break:break-word;
+      max-width:100%;
     }
     .article-cover { border:1px solid rgba(0,255,249,0.22); border-radius:18px; overflow:hidden; margin:0 0 32px; box-shadow:0 8px 40px -10px rgba(0,255,249,0.25); }
     .article-cover img { display:block; width:100%; max-height:460px; object-fit:cover; }
@@ -119,7 +124,7 @@
   <div id="header-placeholder"></div>
   <main class="main">
     <div class="article-view" id="article-view">
-  <a href="/news/index.html" class="back-link">← Back to News</a>
+  <a href="index.html" class="back-link">← Back to News</a>
       <header>
         <h1 id="article-title">Loading...</h1>
         <div class="article-meta" id="article-meta"></div>
