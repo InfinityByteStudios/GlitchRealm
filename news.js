@@ -57,7 +57,14 @@ const verifiedWritersCache = new Map();
 
 async function checkVerifiedWriter(uid) {
   if (!uid) return false;
-  if (DEV_UIDS.has(uid)) return true;
+  
+  console.log(`[checkVerifiedWriter] Checking UID: ${uid}, Is in DEV_UIDS: ${DEV_UIDS.has(uid)}`);
+  
+  if (DEV_UIDS.has(uid)) {
+    console.log(`[checkVerifiedWriter] UID ${uid} is a developer - returning true`);
+    verifiedWritersCache.set(uid, true);
+    return true;
+  }
   
   if (verifiedWritersCache.has(uid)) {
     return verifiedWritersCache.get(uid);
@@ -66,6 +73,7 @@ async function checkVerifiedWriter(uid) {
   try {
     const writerDoc = await getDoc(doc(db, 'verified_writers', uid));
     const isVerified = writerDoc.exists() && writerDoc.data()?.verified === true;
+    console.log(`[checkVerifiedWriter] Firestore check for ${uid}: exists=${writerDoc.exists()}, verified=${isVerified}`);
     verifiedWritersCache.set(uid, isVerified);
     return isVerified;
   } catch (err) {
@@ -156,12 +164,18 @@ function articleCardHTML(a){
   // Check if author is verified (from cache)
   const isVerified = a.authorUid ? verifiedWritersCache.get(a.authorUid) || false : false;
   
+  // Debug logging
+  if (a.authorUid) {
+    console.log(`[Badge Debug] Article: ${a.title}, Author: ${a.authorUsername}, UID: ${a.authorUid}, Verified: ${isVerified}, Cache has: ${verifiedWritersCache.has(a.authorUid)}`);
+  }
+  
   // Add verified writer badge if applicable
   let authorHTML = '';
   if (a.authorUsername) {
     authorHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">By ${escapeHTML(a.authorUsername)}`;
     if (isVerified) {
-      authorHTML += `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border-radius:50%;" title="Verified Writer" aria-label="Verified Writer"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:url(#blueGradient);filter:drop-shadow(0 0 4px rgba(0,153,255,0.6));"><defs><linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0099ff;stop-opacity:1"/><stop offset="100%" style="stop-color:#00d4ff;stop-opacity:1"/></linearGradient></defs><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z"/></svg></span>`;
+      // Simple SVG with solid blue color (more reliable than gradient in innerHTML)
+      authorHTML += `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border-radius:50%;" title="Verified Writer" aria-label="Verified Writer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:16px;height:16px;fill:#0099ff;filter:drop-shadow(0 0 4px rgba(0,153,255,0.6));"><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z"/></svg></span>`;
     }
     authorHTML += `</span> · `;
   }
