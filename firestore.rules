@@ -765,6 +765,9 @@ service cloud.firestore {
              (!data.keys().hasAny(['coverImageUrl']) || (data.coverImageUrl is string && data.coverImageUrl.size() > 0 && data.coverImageUrl.size() <= 2000)) &&
              (!data.keys().hasAny(['embed']) || (data.embed is string && data.embed.size() > 0 && data.embed.size() <= 2000)) &&
              (!data.keys().hasAny(['links']) || (data.links is list && data.links.size() <= 10)) &&
+             (!data.keys().hasAny(['socialLinks']) || (data.socialLinks is list && data.socialLinks.size() <= 10)) &&
+             (!data.keys().hasAny(['sources']) || (data.sources is list && data.sources.size() <= 20)) &&
+             (!data.keys().hasAny(['citationFormat']) || (data.citationFormat is string && data.citationFormat in ['apa','mla','chicago','simple'])) &&
              (!data.keys().hasAny(['publishedAt']) || data.publishedAt is timestamp || data.publishedAt == null) &&
              (!data.keys().hasAny(['lastEditedAt']) || data.lastEditedAt is timestamp) &&
              (!data.keys().hasAny(['authorUsername']) || (data.authorUsername is string && data.authorUsername.size() > 0 && data.authorUsername.size() <= 100));
@@ -773,9 +776,9 @@ service cloud.firestore {
     // Validate news article updates
     function isValidNewsArticleUpdate() {
       let d = request.resource.data.diff(resource.data);
-      let allowed = d.changedKeys().hasOnly(['title','summary','content','categories','tags','coverImageUrl','embed','links','draft','publishedAt','updatedAt','lastEditedAt','authorUsername']) &&
-                    d.addedKeys().hasOnly(['categories','tags','coverImageUrl','embed','links','publishedAt','lastEditedAt','authorUsername']) &&
-                    d.removedKeys().hasOnly(['categories','tags','coverImageUrl','embed','links','publishedAt','lastEditedAt','authorUsername']);
+      let allowed = d.changedKeys().hasOnly(['title','summary','content','categories','tags','coverImageUrl','embed','links','socialLinks','sources','citationFormat','draft','publishedAt','updatedAt','lastEditedAt','authorUsername']) &&
+                    d.addedKeys().hasOnly(['categories','tags','coverImageUrl','embed','links','socialLinks','sources','citationFormat','publishedAt','lastEditedAt','authorUsername']) &&
+                    d.removedKeys().hasOnly(['categories','tags','coverImageUrl','embed','links','socialLinks','sources','citationFormat','publishedAt','lastEditedAt','authorUsername']);
       let immutableOk = request.resource.data.authorUid == resource.data.authorUid &&
                         request.resource.data.createdAt == resource.data.createdAt;
       return allowed && immutableOk &&
@@ -789,6 +792,9 @@ service cloud.firestore {
              (!request.resource.data.keys().hasAny(['coverImageUrl']) || (request.resource.data.coverImageUrl is string && request.resource.data.coverImageUrl.size() <= 2000)) &&
              (!request.resource.data.keys().hasAny(['embed']) || (request.resource.data.embed is string && request.resource.data.embed.size() <= 2000)) &&
              (!request.resource.data.keys().hasAny(['links']) || (request.resource.data.links is list && request.resource.data.links.size() <= 10)) &&
+             (!request.resource.data.keys().hasAny(['socialLinks']) || (request.resource.data.socialLinks is list && request.resource.data.socialLinks.size() <= 10)) &&
+             (!request.resource.data.keys().hasAny(['sources']) || (request.resource.data.sources is list && request.resource.data.sources.size() <= 20)) &&
+             (!request.resource.data.keys().hasAny(['citationFormat']) || (request.resource.data.citationFormat is string && request.resource.data.citationFormat in ['apa','mla','chicago','simple'])) &&
              (!request.resource.data.keys().hasAny(['publishedAt']) || request.resource.data.publishedAt is timestamp || request.resource.data.publishedAt == null) &&
              (!request.resource.data.keys().hasAny(['lastEditedAt']) || request.resource.data.lastEditedAt is timestamp) &&
              (!request.resource.data.keys().hasAny(['authorUsername']) || (request.resource.data.authorUsername is string && request.resource.data.authorUsername.size() <= 100));
