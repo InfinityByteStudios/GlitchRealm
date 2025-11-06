@@ -201,11 +201,11 @@ async function loadArticle(){
       cover.innerHTML = `<img src="${data.coverImageUrl}" alt="Cover">`;
     }
     
-    // Show summary if available
+    // Show summary if available (with markdown support)
     if (data.summary) {
       const summaryEl = document.createElement('div');
       summaryEl.className = 'article-summary';
-      summaryEl.textContent = data.summary;
+      summaryEl.innerHTML = renderMarkdown(escapeHTML(data.summary));
       document.getElementById('article-content').before(summaryEl);
     }
 
