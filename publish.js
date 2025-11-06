@@ -123,13 +123,56 @@ function showPublishForm() {
           <small style="opacity:.6; font-size:.65rem;">Single embedded media (YouTube, etc.) that appears in the article.</small>
         </div>
         <div class="field">
-          <label>Social Media Links (optional)</label>
-          <textarea id="socialLinks" placeholder="Twitter|https://twitter.com/glitchrealm\nDiscord|https://discord.gg/example\nYouTube|https://youtube.com/@glitchrealm" rows="3"></textarea>
-          <small style="opacity:.6; font-size:.65rem;">One link per line. Format: <code>Platform|URL</code> - Displays with icons at bottom of article.</small>
+          <label>Sources / Citations (optional)</label>
+          <div style="display:flex; gap:12px; margin-bottom:8px; align-items:center;">
+            <label style="font-size:.65rem; text-transform:none; color:#b8d4d8; margin:0;">Citation Format:</label>
+            <select id="citationFormat" style="background:#08131b; border:1px solid #12313d; border-radius:8px; padding:6px 10px; color:#d7e5e8; font-size:.75rem; flex:1; max-width:200px;">
+              <option value="apa">APA</option>
+              <option value="mla">MLA</option>
+              <option value="chicago">Chicago</option>
+              <option value="simple">Simple (Title - URL)</option>
+            </select>
+          </div>
+          <textarea id="sources" placeholder="Author|Title|URL|Year (optional)&#10;Example: Smith, J.|Gaming Trends 2025|https://example.com/article|2025" rows="4"></textarea>
+          <small style="opacity:.6; font-size:.65rem;">One source per line. Format: <code>Author|Title|URL|Year</code> - Automatically formatted based on selected citation style.</small>
+        </div>
+        <div class="field">
+          <label>Social Media (optional)</label>
+          <div style="display:flex; gap:8px; margin-bottom:12px; align-items:flex-end; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px;">
+              <label style="font-size:.65rem; text-transform:none; color:#b8d4d8; margin:0 0 6px; display:block;">Select Platform:</label>
+              <select id="socialPlatformSelect" style="width:100%; background:#08131b; border:1px solid #12313d; border-radius:8px; padding:10px 12px; color:#d7e5e8; font-size:.8rem; cursor:pointer;">
+                <option value="">Choose platform...</option>
+                <option value="Discord">🎮 Discord</option>
+                <option value="X (Twitter)">𝕏 X (Twitter)</option>
+                <option value="Instagram">📷 Instagram</option>
+                <option value="Reddit">🤖 Reddit</option>
+                <option value="Facebook">👍 Facebook</option>
+                <option value="YouTube">📺 YouTube</option>
+                <option value="Twitch">🎥 Twitch</option>
+                <option value="TikTok">🎵 TikTok</option>
+                <option value="LinkedIn">💼 LinkedIn</option>
+              </select>
+            </div>
+            <div style="flex:2; min-width:250px;">
+              <label style="font-size:.65rem; text-transform:none; color:#b8d4d8; margin:0 0 6px; display:block;">URL:</label>
+              <input type="url" id="socialUrlInput" placeholder="https://discord.gg/example" style="width:100%; background:#08131b; border:1px solid #12313d; border-radius:8px; padding:10px 12px; color:#d7e5e8; font-size:.8rem;" />
+            </div>
+            <button type="button" id="addSocialBtn" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:10px 20px; font-size:.75rem; font-weight:700; letter-spacing:.5px; color:#02141c; cursor:pointer; white-space:nowrap; transition:all 0.2s;">+ Add Link</button>
+          </div>
+          <div id="socialLinksPreview" style="display:none; margin-bottom:12px; padding:12px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.15); border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:.7rem; font-weight:600; color:#00f5ff; letter-spacing:.5px;">ADDED LINKS:</span>
+              <button type="button" id="clearAllSocial" style="background:rgba(255,80,80,0.15); border:1px solid rgba(255,80,80,0.3); color:#ff5050; padding:4px 10px; border-radius:6px; font-size:.6rem; cursor:pointer; transition:all 0.2s;">Clear All</button>
+            </div>
+            <div id="socialLinksItems" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+          </div>
+          <textarea id="socialLinks" style="display:none;" rows="3"></textarea>
+          <small style="opacity:.6; font-size:.65rem;">Select a platform from dropdown, enter URL, and click "Add Link"</small>
         </div>
         <div class="field">
           <label>Related Links (optional)</label>
-          <textarea id="links" placeholder="Game Page|https://glitchrealm.ca/games.html\nPatch Notes|https://example.com/patch" rows="3"></textarea>
+          <textarea id="links" placeholder="Game Page|https://glitchrealm.ca/games.html&#10;Patch Notes|https://example.com/patch" rows="3"></textarea>
           <small style="opacity:.6; font-size:.65rem;">One link per line. Format: <code>Link Title|URL</code> - General links displayed below social media.</small>
         </div>
         <div class="actions">
@@ -142,6 +185,9 @@ function showPublishForm() {
       const newForm = document.getElementById('publish-form');
       newForm?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
       document.getElementById('save-draft')?.addEventListener('click', () => publishArticle({ draft:true }));
+      
+      // Re-initialize social media manager
+      initializeSocialMediaManager();
     }
     form.style.display = 'flex';
   }
@@ -245,6 +291,8 @@ async function publishArticle({ draft }){
     const embedEl = document.getElementById('embed');
     const linksEl = document.getElementById('links');
     const socialLinksEl = document.getElementById('socialLinks');
+    const sourcesEl = document.getElementById('sources');
+    const citationFormatEl = document.getElementById('citationFormat');
 
     if(!titleEl.value.trim()) throw new Error('Title required');
     if(!summaryEl.value.trim()) throw new Error('Summary required');
@@ -285,6 +333,23 @@ async function publishArticle({ draft }){
         .filter(Boolean)
         .slice(0, 10); // Max 10 links
     }
+    
+    // Parse sources/citations if provided (format: "Author|Title|URL|Year" one per line)
+    let sourcesArray = [];
+    let citationFormat = 'simple';
+    if (sourcesEl && sourcesEl.value.trim()) {
+      citationFormat = citationFormatEl?.value || 'simple';
+      sourcesArray = sourcesEl.value.split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+          const parts = line.split('|').map(s => s.trim());
+          const [author, title, url, year] = parts;
+          return author && title && url ? { author, title, url, year: year || '' } : null;
+        })
+        .filter(Boolean)
+        .slice(0, 20); // Max 20 sources
+    }
 
     let payload;
     let docRef;
@@ -315,18 +380,30 @@ async function publishArticle({ draft }){
         payload.embed = originalArticle.embed;
       }
       
-      // Add links if provided
+      // Add links if provided (or preserve existing)
       if (linksArray.length > 0) {
         payload.links = linksArray;
-      } else if (originalArticle.links) {
+      } else if (originalArticle.links && linksEl && !linksEl.value.trim()) {
+        // Preserve existing links if field is empty
         payload.links = originalArticle.links;
       }
       
-      // Add social links if provided
+      // Add social links if provided (or preserve existing)
       if (socialLinksArray.length > 0) {
         payload.socialLinks = socialLinksArray;
-      } else if (originalArticle.socialLinks) {
+      } else if (originalArticle.socialLinks && socialLinksEl && !socialLinksEl.value.trim()) {
+        // Preserve existing social links if field is empty
         payload.socialLinks = originalArticle.socialLinks;
+      }
+      
+      // Add sources if provided (or preserve existing)
+      if (sourcesArray.length > 0) {
+        payload.sources = sourcesArray;
+        payload.citationFormat = citationFormat;
+      } else if (originalArticle.sources && sourcesEl && !sourcesEl.value.trim()) {
+        // Preserve existing sources if field is empty
+        payload.sources = originalArticle.sources;
+        payload.citationFormat = originalArticle.citationFormat || 'simple';
       }
       
       if (!draft && !originalArticle.publishedAt) {
@@ -360,6 +437,11 @@ async function publishArticle({ draft }){
       if (coverUrl) payload.coverImageUrl = coverUrl;
       if (embedEl.value.trim()) payload.embed = embedEl.value.trim();
       if (linksArray.length > 0) payload.links = linksArray;
+      if (socialLinksArray.length > 0) payload.socialLinks = socialLinksArray;
+      if (sourcesArray.length > 0) {
+        payload.sources = sourcesArray;
+        payload.citationFormat = citationFormat;
+      }
       if (!draft) payload.publishedAt = Timestamp.now();
 
       console.log('[Publish Debug] Payload:', JSON.stringify(payload, (k, v) => 
@@ -412,6 +494,12 @@ async function publishArticle({ draft }){
       errorMsg.style.display='none';
     }, 8000);
   }
+}
+
+// Helper function to initialize social media manager (for dynamic form)
+function initializeSocialMediaManager() {
+  // This will be called by the script in publish.html
+  // No need to duplicate code here
 }
 
 form?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
@@ -504,15 +592,40 @@ function loadArticleDataIntoForm() {
   const tagsEl = document.getElementById('tags');
   const embedEl = document.getElementById('embed');
   const linksEl = document.getElementById('links');
+  const socialLinksEl = document.getElementById('socialLinks');
+  const sourcesEl = document.getElementById('sources');
+  const citationFormatEl = document.getElementById('citationFormat');
   
   if (titleEl) titleEl.value = originalArticle.title || '';
   if (summaryEl) summaryEl.value = originalArticle.summary || '';
   if (contentEl) contentEl.value = originalArticle.content || '';
   if (embedEl) embedEl.value = originalArticle.embed || '';
   
-  // Set links
+  // Set regular links
   if (linksEl && originalArticle.links) {
     linksEl.value = originalArticle.links.map(link => `${link.title}|${link.url}`).join('\n');
+  }
+  
+  // Set social media links
+  if (socialLinksEl && originalArticle.socialLinks) {
+    socialLinksEl.value = originalArticle.socialLinks.map(link => `${link.platform}|${link.url}`).join('\n');
+    
+    // Load into preview system
+    if (window.loadExistingSocialLinks) {
+      window.loadExistingSocialLinks(originalArticle.socialLinks);
+    }
+  }
+  
+  // Set sources/citations
+  if (sourcesEl && originalArticle.sources) {
+    sourcesEl.value = originalArticle.sources.map(source => 
+      `${source.author}|${source.title}|${source.url}${source.year ? '|' + source.year : ''}`
+    ).join('\n');
+  }
+  
+  // Set citation format
+  if (citationFormatEl && originalArticle.citationFormat) {
+    citationFormatEl.value = originalArticle.citationFormat;
   }
   
   // Set categories
