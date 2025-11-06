@@ -138,19 +138,37 @@ function showPublishForm() {
         </div>
         <div class="field">
           <label>Social Media (optional)</label>
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-            <button type="button" class="social-quick-btn" data-platform="Discord" style="background:rgba(88,101,242,0.15); border:1px solid rgba(88,101,242,0.3); color:#7289da; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Discord</button>
-            <button type="button" class="social-quick-btn" data-platform="X (Twitter)" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ X</button>
-            <button type="button" class="social-quick-btn" data-platform="Instagram" style="background:rgba(225,48,108,0.15); border:1px solid rgba(225,48,108,0.3); color:#e1306c; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Instagram</button>
-            <button type="button" class="social-quick-btn" data-platform="Reddit" style="background:rgba(255,69,0,0.15); border:1px solid rgba(255,69,0,0.3); color:#ff4500; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Reddit</button>
-            <button type="button" class="social-quick-btn" data-platform="Facebook" style="background:rgba(24,119,242,0.15); border:1px solid rgba(24,119,242,0.3); color:#1877f2; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Facebook</button>
-            <button type="button" class="social-quick-btn" data-platform="YouTube" style="background:rgba(255,0,0,0.15); border:1px solid rgba(255,0,0,0.3); color:#ff0000; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ YouTube</button>
-            <button type="button" class="social-quick-btn" data-platform="Twitch" style="background:rgba(145,70,255,0.15); border:1px solid rgba(145,70,255,0.3); color:#9146ff; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ Twitch</button>
-            <button type="button" class="social-quick-btn" data-platform="TikTok" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,0,80,0.3); color:#ff0050; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ TikTok</button>
-            <button type="button" class="social-quick-btn" data-platform="LinkedIn" style="background:rgba(0,119,181,0.15); border:1px solid rgba(0,119,181,0.3); color:#0077b5; padding:6px 12px; border-radius:6px; font-size:.65rem; cursor:pointer; transition:all 0.2s;">+ LinkedIn</button>
+          <div style="display:flex; gap:8px; margin-bottom:12px; align-items:flex-end; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px;">
+              <label style="font-size:.65rem; text-transform:none; color:#b8d4d8; margin:0 0 6px; display:block;">Select Platform:</label>
+              <select id="socialPlatformSelect" style="width:100%; background:#08131b; border:1px solid #12313d; border-radius:8px; padding:10px 12px; color:#d7e5e8; font-size:.8rem; cursor:pointer;">
+                <option value="">Choose platform...</option>
+                <option value="Discord">🎮 Discord</option>
+                <option value="X (Twitter)">𝕏 X (Twitter)</option>
+                <option value="Instagram">📷 Instagram</option>
+                <option value="Reddit">🤖 Reddit</option>
+                <option value="Facebook">👍 Facebook</option>
+                <option value="YouTube">📺 YouTube</option>
+                <option value="Twitch">🎥 Twitch</option>
+                <option value="TikTok">🎵 TikTok</option>
+                <option value="LinkedIn">💼 LinkedIn</option>
+              </select>
+            </div>
+            <div style="flex:2; min-width:250px;">
+              <label style="font-size:.65rem; text-transform:none; color:#b8d4d8; margin:0 0 6px; display:block;">URL:</label>
+              <input type="url" id="socialUrlInput" placeholder="https://discord.gg/example" style="width:100%; background:#08131b; border:1px solid #12313d; border-radius:8px; padding:10px 12px; color:#d7e5e8; font-size:.8rem;" />
+            </div>
+            <button type="button" id="addSocialBtn" style="background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:10px 20px; font-size:.75rem; font-weight:700; letter-spacing:.5px; color:#02141c; cursor:pointer; white-space:nowrap; transition:all 0.2s;">+ Add Link</button>
           </div>
-          <textarea id="socialLinks" placeholder="Discord|https://discord.gg/example&#10;X (Twitter)|https://twitter.com/glitchrealm&#10;Instagram|https://instagram.com/glitchrealm" rows="3"></textarea>
-          <small style="opacity:.6; font-size:.65rem;">Click buttons above to add platforms, or type manually. Format: <code>Platform|URL</code></small>
+          <div id="socialLinksPreview" style="display:none; margin-bottom:12px; padding:12px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.15); border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:.7rem; font-weight:600; color:#00f5ff; letter-spacing:.5px;">ADDED LINKS:</span>
+              <button type="button" id="clearAllSocial" style="background:rgba(255,80,80,0.15); border:1px solid rgba(255,80,80,0.3); color:#ff5050; padding:4px 10px; border-radius:6px; font-size:.6rem; cursor:pointer; transition:all 0.2s;">Clear All</button>
+            </div>
+            <div id="socialLinksItems" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+          </div>
+          <textarea id="socialLinks" style="display:none;" rows="3"></textarea>
+          <small style="opacity:.6; font-size:.65rem;">Select a platform from dropdown, enter URL, and click "Add Link"</small>
         </div>
         <div class="field">
           <label>Related Links (optional)</label>
@@ -168,43 +186,8 @@ function showPublishForm() {
       newForm?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
       document.getElementById('save-draft')?.addEventListener('click', () => publishArticle({ draft:true }));
       
-      // Re-attach social media quick-add button listeners
-      const socialBtns = document.querySelectorAll('.social-quick-btn');
-      const socialLinksTextarea = document.getElementById('socialLinks');
-      
-      socialBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const platform = btn.getAttribute('data-platform');
-          const currentValue = socialLinksTextarea.value.trim();
-          
-          // Check if platform already exists
-          if (currentValue.toLowerCase().includes(platform.toLowerCase() + '|')) {
-            return; // Already added
-          }
-          
-          const newLine = currentValue ? '\n' : '';
-          const placeholder = `${platform}|https://`;
-          socialLinksTextarea.value = currentValue + newLine + placeholder;
-          
-          // Focus and position cursor at the end
-          socialLinksTextarea.focus();
-          socialLinksTextarea.setSelectionRange(socialLinksTextarea.value.length, socialLinksTextarea.value.length);
-          
-          // Visual feedback
-          btn.style.opacity = '0.5';
-          setTimeout(() => { btn.style.opacity = '1'; }, 200);
-        });
-        
-        // Hover effect
-        btn.addEventListener('mouseenter', () => {
-          btn.style.transform = 'translateY(-2px)';
-          btn.style.boxShadow = '0 2px 8px rgba(0,255,249,0.2)';
-        });
-        btn.addEventListener('mouseleave', () => {
-          btn.style.transform = 'translateY(0)';
-          btn.style.boxShadow = 'none';
-        });
-      });
+      // Re-initialize social media manager
+      initializeSocialMediaManager();
     }
     form.style.display = 'flex';
   }
@@ -513,6 +496,12 @@ async function publishArticle({ draft }){
   }
 }
 
+// Helper function to initialize social media manager (for dynamic form)
+function initializeSocialMediaManager() {
+  // This will be called by the script in publish.html
+  // No need to duplicate code here
+}
+
 form?.addEventListener('submit', e => { e.preventDefault(); publishArticle({ draft:false }); });
 saveDraftBtn?.addEventListener('click', () => publishArticle({ draft:true }));
 
@@ -620,6 +609,11 @@ function loadArticleDataIntoForm() {
   // Set social media links
   if (socialLinksEl && originalArticle.socialLinks) {
     socialLinksEl.value = originalArticle.socialLinks.map(link => `${link.platform}|${link.url}`).join('\n');
+    
+    // Load into preview system
+    if (window.loadExistingSocialLinks) {
+      window.loadExistingSocialLinks(originalArticle.socialLinks);
+    }
   }
   
   // Set sources/citations
