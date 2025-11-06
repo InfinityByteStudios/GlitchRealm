@@ -109,18 +109,44 @@
       align-items: center;
       gap: 10px;
       cursor: pointer;
-      transition: background 0.2s;
-      color: #d7e5e8;
+      transition: all 0.2s;
       font-size: 0.8rem;
     }
     .platform-option:hover {
-      background: rgba(0,255,249,0.1);
+      filter: brightness(1.2);
     }
     .platform-option svg {
       width: 16px;
       height: 16px;
       flex-shrink: 0;
     }
+    /* Platform-specific colors */
+    .platform-option[data-value="Discord"] { color: #7289da; }
+    .platform-option[data-value="Discord"]:hover { background: rgba(114,137,218,0.15); }
+    
+    .platform-option[data-value="X (Twitter)"] { color: #fff; }
+    .platform-option[data-value="X (Twitter)"]:hover { background: rgba(255,255,255,0.1); }
+    
+    .platform-option[data-value="Instagram"] { color: #e1306c; }
+    .platform-option[data-value="Instagram"]:hover { background: rgba(225,48,108,0.15); }
+    
+    .platform-option[data-value="Reddit"] { color: #ff4500; }
+    .platform-option[data-value="Reddit"]:hover { background: rgba(255,69,0,0.15); }
+    
+    .platform-option[data-value="Facebook"] { color: #1877f2; }
+    .platform-option[data-value="Facebook"]:hover { background: rgba(24,119,242,0.15); }
+    
+    .platform-option[data-value="YouTube"] { color: #ff0000; }
+    .platform-option[data-value="YouTube"]:hover { background: rgba(255,0,0,0.15); }
+    
+    .platform-option[data-value="Twitch"] { color: #9146ff; }
+    .platform-option[data-value="Twitch"]:hover { background: rgba(145,70,255,0.15); }
+    
+    .platform-option[data-value="TikTok"] { color: #ff0050; }
+    .platform-option[data-value="TikTok"]:hover { background: rgba(255,0,80,0.15); }
+    
+    .platform-option[data-value="LinkedIn"] { color: #0077b5; }
+    .platform-option[data-value="LinkedIn"]:hover { background: rgba(0,119,181,0.15); }
   </style>
   <script type="module" src="firebase-core.js"></script>
   <script>
