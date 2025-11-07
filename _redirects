@@ -6,5 +6,10 @@ https://portal.glitchrealm.ca/*  /user-portal.html  200
 /community-games        /games.html   301
 /community-games.html   /games.html   301
 
-# SPA routing fallback - catch-all for client-side routing
-/*    /index.html   200
+# Main site homepage redirects to games page
+/                       /games.html   200
+/index.html             /games.html   301
+
+# News section
+/news                   /news/index.html   200
+/news/                  /news/index.html   200
