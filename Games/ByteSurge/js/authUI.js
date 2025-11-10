@@ -153,7 +153,7 @@ const authUI = {
                         justify-content: center;
                         gap: 10px;
                     ">
-                        <span>📧</span> Sign in with Email
+                        <span> </span> Sign in with Email
                     </button>
                     
                     <button id="anonymous-signin" style="
