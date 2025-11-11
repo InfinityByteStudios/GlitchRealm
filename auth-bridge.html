@@ -108,6 +108,25 @@
           console.log('[Auth Bridge] Signing in with Google credential...');
           await signInWithCredential(auth, cred);
           console.log('[Auth Bridge] ✓ Google sign-in successful');
+        } else if (provider === 'google_complete') {
+          // User already signed in on auth subdomain, just wait for auth state to sync
+          console.log('[Auth Bridge] Google sign-in already complete on auth domain, waiting for sync...');
+          setStatus('Syncing your account…');
+          
+          // Wait for auth state to be available
+          const user = await new Promise((resolve) => {
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+              unsubscribe();
+              resolve(user);
+            });
+            // Timeout after 5 seconds
+            setTimeout(() => resolve(null), 5000);
+          });
+          
+          if (!user) {
+            throw new Error('Auth state did not sync. Please try again.');
+          }
+          console.log('[Auth Bridge] ✓ Auth state synced, user:', user.email || user.uid);
         } else if (provider === 'github') {
           if (!accessToken) {
             throw new Error('GitHub sign-in requires an access token');
