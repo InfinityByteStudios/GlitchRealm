@@ -173,33 +173,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
       console.log('[Auth] Starting Google sign-in popup...');
+      showMessage('Connecting to Google...', 'info');
+      
       // Sign in with Google OAuth popup
       const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
       
       console.log('[Auth] Google sign-in successful, user:', res.user.email || res.user.uid);
+      showMessage('Google sign-in successful! Redirecting...', 'success');
       
-      // Get a fresh ID token from the signed-in user
-      const idToken = await res.user.getIdToken();
-      console.log('[Auth] Got ID token, length:', idToken?.length);
+      // Get the OAuth credential from the result
+      const { GoogleAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+      const credential = GoogleAuthProvider.credentialFromResult(res);
       
-      // Get access token from the credential
-      let accessToken = '';
-      try {
-        const credObj = window.FirebaseGoogleAuthProvider.credentialFromResult(res);
-        accessToken = credObj?.accessToken || '';
-        console.log('[Auth] Got access token, length:', accessToken?.length);
-      } catch (e) {
-        console.warn('[Auth] Could not extract access token:', e);
+      if (!credential) {
+        console.warn('[Auth] No credential returned from Google sign-in');
+      } else {
+        console.log('[Auth] Got credential, has accessToken:', !!credential.accessToken);
       }
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
-      console.log('[Auth] Return URL to pass to bridge:', returnTo);
+      console.log('[Auth] Will return to:', returnTo);
       
-      // Redirect to bridge with fresh tokens AND return URL
+      // Since the user is now signed in on the auth subdomain,
+      // redirect to bridge which will sync the auth state to the main domain
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=google&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge:', bridgeUrl.toString().substring(0, 100) + '...');
+      bridgeUrl.hash = `provider=google_complete&return=${encodeURIComponent(returnTo)}`;
+      console.log('[Auth] Redirecting to bridge for cross-domain sync...');
+      
+      // Small delay to ensure auth state is committed
+      await new Promise(resolve => setTimeout(resolve, 500));
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error('[Auth] Google sign-in error:', err);
@@ -219,7 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Get access token from the credential
       let accessToken = '';
       try {
-        const credObj = window.FirebaseGithubAuthProvider.credentialFromResult(res);
+        // Import the credential method directly
+        const { GithubAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const credObj = GithubAuthProvider.credentialFromResult(res);
         accessToken = credObj?.accessToken || '';
         console.log('[Auth] Got access token, length:', accessToken?.length);
       } catch (e) {
