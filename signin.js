@@ -185,7 +185,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Get access token from the credential
       let accessToken = '';
       try {
-        const credObj = window.FirebaseGoogleAuthProvider.credentialFromResult(res);
+        // Import the credential method directly
+        const { GoogleAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const credObj = GoogleAuthProvider.credentialFromResult(res);
         accessToken = credObj?.accessToken || '';
         console.log('[Auth] Got access token, length:', accessToken?.length);
       } catch (e) {
@@ -219,7 +221,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Get access token from the credential
       let accessToken = '';
       try {
-        const credObj = window.FirebaseGithubAuthProvider.credentialFromResult(res);
+        // Import the credential method directly
+        const { GithubAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const credObj = GithubAuthProvider.credentialFromResult(res);
         accessToken = credObj?.accessToken || '';
         console.log('[Auth] Got access token, length:', accessToken?.length);
       } catch (e) {
