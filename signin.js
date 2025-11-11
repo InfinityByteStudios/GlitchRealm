@@ -181,28 +181,28 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('[Auth] Google sign-in successful, user:', res.user.email || res.user.uid);
       showMessage('Google sign-in successful! Redirecting...', 'success');
       
-      // Get the OAuth credential from the result
+      // Get the OAuth access token from Google (needed to re-authenticate on main domain)
       const { GoogleAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
       const credential = GoogleAuthProvider.credentialFromResult(res);
+      const oauthAccessToken = credential?.accessToken;
       
-      if (!credential) {
-        console.warn('[Auth] No credential returned from Google sign-in');
-      } else {
-        console.log('[Auth] Got credential, has accessToken:', !!credential.accessToken);
+      if (!oauthAccessToken) {
+        console.error('[Auth] No OAuth access token from Google credential');
+        showMessage('Could not get Google access token. Please try again.', 'error');
+        return;
       }
+      
+      console.log('[Auth] Got Google OAuth access token, length:', oauthAccessToken.length);
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
       console.log('[Auth] Will return to:', returnTo);
       
-      // Since the user is now signed in on the auth subdomain,
-      // redirect to bridge which will sync the auth state to the main domain
+      // Pass the OAuth access token to bridge so it can re-authenticate on main domain
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=google_complete&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge for cross-domain sync...');
+      bridgeUrl.hash = `provider=google_oauth&token=${encodeURIComponent(oauthAccessToken)}&return=${encodeURIComponent(returnTo)}`;
+      console.log('[Auth] Redirecting to bridge with OAuth token...');
       
-      // Small delay to ensure auth state is committed
-      await new Promise(resolve => setTimeout(resolve, 500));
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error('[Auth] Google sign-in error:', err);
@@ -222,28 +222,28 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('[Auth] GitHub sign-in successful, user:', res.user.email || res.user.uid);
       showMessage('GitHub sign-in successful! Redirecting...', 'success');
       
-      // Get the OAuth credential from the result
+      // Get the OAuth access token from GitHub (needed to re-authenticate on main domain)
       const { GithubAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
       const credential = GithubAuthProvider.credentialFromResult(res);
+      const oauthAccessToken = credential?.accessToken;
       
-      if (!credential) {
-        console.warn('[Auth] No credential returned from GitHub sign-in');
-      } else {
-        console.log('[Auth] Got credential, has accessToken:', !!credential.accessToken);
+      if (!oauthAccessToken) {
+        console.error('[Auth] No OAuth access token from GitHub credential');
+        showMessage('Could not get GitHub access token. Please try again.', 'error');
+        return;
       }
+      
+      console.log('[Auth] Got GitHub OAuth access token, length:', oauthAccessToken.length);
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
       console.log('[Auth] Will return to:', returnTo);
       
-      // Since the user is now signed in on the auth subdomain,
-      // redirect to bridge which will sync the auth state to the main domain
+      // Pass the OAuth access token to bridge so it can re-authenticate on main domain
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=github_complete&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge for cross-domain sync...');
+      bridgeUrl.hash = `provider=github_oauth&token=${encodeURIComponent(oauthAccessToken)}&return=${encodeURIComponent(returnTo)}`;
+      console.log('[Auth] Redirecting to bridge with OAuth token...');
       
-      // Small delay to ensure auth state is committed
-      await new Promise(resolve => setTimeout(resolve, 500));
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error('[Auth] GitHub sign-in error:', err);
