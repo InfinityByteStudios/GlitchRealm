@@ -46,6 +46,87 @@ function formatDate(timestamp) {
   });
 }
 
+function updateSEOMetaTags(article) {
+  // Update page title
+  document.title = `${article.title} - GlitchRealm News`;
+  
+  // Create or update meta description
+  const description = article.summary || article.content?.substring(0, 160) || 'Latest news and updates from GlitchRealm - your cyberpunk browser gaming platform.';
+  updateMetaTag('name', 'description', description);
+  
+  // Update keywords from tags and categories
+  const keywords = [...(article.tags || []), ...(article.categories || []), 'GlitchRealm', 'cyberpunk games', 'browser gaming'].join(', ');
+  updateMetaTag('name', 'keywords', keywords);
+  
+  // Update canonical URL
+  const articleUrl = `https://glitchrealm.ca/news/news-article.html?id=${article.id}`;
+  updateLinkTag('canonical', articleUrl);
+  
+  // Update Open Graph tags
+  updateMetaTag('property', 'og:title', `${article.title} - GlitchRealm News`);
+  updateMetaTag('property', 'og:description', description);
+  updateMetaTag('property', 'og:url', articleUrl);
+  if (article.coverImageUrl) {
+    updateMetaTag('property', 'og:image', article.coverImageUrl);
+  }
+  
+  // Update Twitter Card tags
+  updateMetaTag('name', 'twitter:title', `${article.title} - GlitchRealm News`);
+  updateMetaTag('name', 'twitter:description', description);
+  if (article.coverImageUrl) {
+    updateMetaTag('name', 'twitter:image', article.coverImageUrl);
+  }
+  
+  // Add article specific meta tags
+  if (article.authorUsername) {
+    updateMetaTag('property', 'article:author', article.authorUsername);
+  }
+  if (article.publishedAt?.toDate) {
+    updateMetaTag('property', 'article:published_time', article.publishedAt.toDate().toISOString());
+  }
+  if (article.lastEditedAt?.toDate) {
+    updateMetaTag('property', 'article:modified_time', article.lastEditedAt.toDate().toISOString());
+  }
+  if (article.categories?.length) {
+    article.categories.forEach(category => {
+      addMetaTag('property', 'article:section', category);
+    });
+  }
+  if (article.tags?.length) {
+    article.tags.forEach(tag => {
+      addMetaTag('property', 'article:tag', tag);
+    });
+  }
+}
+
+function updateMetaTag(attribute, attributeValue, content) {
+  let meta = document.querySelector(`meta[${attribute}="${attributeValue}"]`);
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.setAttribute(attribute, attributeValue);
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute('content', content);
+}
+
+function addMetaTag(attribute, attributeValue, content) {
+  // For tags that can have multiple instances (like article:tag)
+  const meta = document.createElement('meta');
+  meta.setAttribute(attribute, attributeValue);
+  meta.setAttribute('content', content);
+  document.head.appendChild(meta);
+}
+
+function updateLinkTag(rel, href) {
+  let link = document.querySelector(`link[rel="${rel}"]`);
+  if (!link) {
+    link = document.createElement('link');
+    link.setAttribute('rel', rel);
+    document.head.appendChild(link);
+  }
+  link.setAttribute('href', href);
+}
+
 function updateArticleActions() {
   const actionsContainer = document.getElementById('article-actions');
   if (!actionsContainer) return;
@@ -156,6 +237,9 @@ async function loadArticle(){
     }
     const data = snap.data();
     currentArticle = { id, ...data };
+    
+    // Update SEO meta tags with article data
+    updateSEOMetaTags(currentArticle);
     
     document.getElementById('article-title').textContent = data.title || 'Untitled';
     
