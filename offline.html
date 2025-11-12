@@ -115,25 +115,158 @@
         main.offline {
             position: relative;
             z-index: 1;
-            width: min(960px, 100%);
+            width: min(600px, 100%);
             max-width: 100%;
-            margin: 20px auto;
-            display: grid;
-            row-gap: clamp(20px, 3vw, 32px);
-            padding: clamp(20px, 4vw, 40px);
-            border-radius: 20px;
-            border: 2px solid var(--card-border);
-            background: var(--card);
-            box-shadow: 0 0 40px rgba(0, 255, 249, 0.15), 0 24px 80px rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(18px);
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(40px, 6vw, 60px);
+            padding: clamp(30px, 5vw, 50px);
+            text-align: center;
         }
 
-        header.brand {
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .glitch-logo {
+            font-size: clamp(2rem, 5vw, 3rem);
+            display: inline-block;
+        }
+
+        .loading-bar {
+            width: 100%;
+            max-width: 300px;
+            height: 4px;
+            background: rgba(0, 255, 249, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 40%;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-magenta));
+            box-shadow: 0 0 10px var(--primary-cyan);
+            animation: loadingMove 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loadingMove {
+            0% {
+                left: -40%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            letter-spacing: 0.02em;
+            color: var(--muted);
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .hero h1.show {
+            opacity: 1;
+        }
+
+        .hero h1.hidden {
+            display: none;
+        }
+
+        .online-status {
+            margin: 8px 0 0;
+            font-size: 0.95rem;
+            color: var(--primary-cyan);
+            text-shadow: 0 0 15px rgba(0, 255, 249, 0.6);
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .online-status.show {
+            opacity: 1;
+        }
+
+        .contact-links {
             display: flex;
             flex-wrap: wrap;
+            gap: 16px;
             align-items: center;
-            justify-content: space-between;
-            gap: 18px;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .contact-links.show {
+            opacity: 1;
+        }
+
+        .contact-links.hidden {
+            display: none;
+        }
+
+        .contact-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .twitter-link {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--white);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .twitter-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .status-link {
+            background: rgba(0, 255, 249, 0.1);
+            color: var(--primary-cyan);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+        }
+
+        .status-link:hover {
+            background: rgba(0, 255, 249, 0.2);
+            border-color: rgba(0, 255, 249, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.3);
+        }
+
+        .contact-link svg {
+            flex-shrink: 0;
         }
 
         .brand-badge {
@@ -199,266 +332,32 @@
             }
         }
 
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 14px;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 0, 128, 0.3);
-            background: rgba(255, 0, 128, 0.1);
-            color: var(--muted);
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-
-        .status-badge .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--danger);
-            box-shadow: 0 0 10px rgba(255, 7, 58, 0.8);
-            animation: pulseDot 1.8s ease-in-out infinite;
-        }
-
-        @keyframes pulseDot {
-            0%, 100% {
-                transform: scale(0.85);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-        }
-
-        .status-badge.online {
-            color: var(--fg);
-            border-color: rgba(0, 255, 249, 0.5);
-            background: rgba(0, 255, 249, 0.15);
-            box-shadow: 0 0 28px rgba(0, 255, 249, 0.2);
-        }
-
-        .status-badge.online .status-dot {
-            background: var(--primary-cyan);
-            box-shadow: 0 0 14px rgba(0, 255, 249, 0.8);
-            animation-duration: 1.2s;
-        }
-
-        .hero h1 {
-            margin: 0;
-            font-size: clamp(2rem, 4vw, 2.8rem);
-            letter-spacing: 0.02em;
-            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-magenta) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-        }
-
-        .hero p {
-            margin: 12px 0 0;
-            max-width: 560px;
-            color: var(--muted);
-            line-height: 1.6;
-        }
-
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            align-items: center;
-        }
-
-        .primary-btn,
-        .secondary-btn {
-            border: none;
-            border-radius: 12px;
-            padding: 12px 20px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .primary-btn {
-            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
-            color: var(--dark-bg);
-            box-shadow: 0 0 20px rgba(0, 255, 249, 0.4), 0 0 40px rgba(255, 0, 128, 0.2);
-            font-weight: 700;
-        }
-
-        .primary-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(0, 255, 249, 0.6), 0 0 60px rgba(255, 0, 128, 0.3);
-        }
-
-        .primary-btn:active {
-            transform: translateY(0);
-        }
-
-        .primary-btn.loading {
-            pointer-events: none;
-            opacity: 0.85;
-        }
-
-        .primary-btn .btn-spinner {
-            display: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 2px solid rgba(10, 10, 10, 0.3);
-            border-top-color: var(--dark-bg);
-            animation: spin 0.8s linear infinite;
-        }
-
-        .primary-btn.loading .btn-label {
-            display: none;
-        }
-
-        .primary-btn.loading .btn-spinner {
-            display: inline-block;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .secondary-btn {
-            background: rgba(0, 255, 249, 0.05);
-            color: var(--primary-cyan);
-            border: 1px solid rgba(0, 255, 249, 0.3);
-        }
-
-        .secondary-btn:hover {
-            transform: translateY(-2px);
-            background: rgba(0, 255, 249, 0.1);
-            border-color: rgba(0, 255, 249, 0.5);
-            box-shadow: 0 0 20px rgba(0, 255, 249, 0.2);
-        }
-
-        .secondary-btn:active {
-            transform: translateY(0);
-        }
-
-        .network-note {
-            min-height: 1.4em;
-            margin: 12px 0 0;
-            font-size: 0.95rem;
-            color: var(--muted);
-            opacity: 0;
-            transition: opacity 0.25s ease, color 0.25s ease;
-        }
-
-        .network-note.show {
-            opacity: 1;
-            color: var(--fg);
-        }
-
-        .game-card {
-            background: rgba(26, 26, 26, 0.9);
-            border-radius: 18px;
-            border: 2px solid var(--primary-cyan);
-            padding: clamp(20px, 4vw, 32px);
-            box-shadow: 0 0 30px rgba(0, 255, 249, 0.2), inset 0 0 20px rgba(0, 255, 249, 0.05);
-            display: grid;
-            row-gap: 18px;
-        }
-
-        .game-card header h2 {
-            margin: 0 0 4px;
-            font-size: 1.25rem;
-            color: var(--primary-cyan);
-            font-weight: 700;
-        }
-
-        .game-card header p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.95rem;
-        }
-
-        #runnerCanvas {
-            width: 100%;
-            height: clamp(160px, 36vh, 220px);
-            border-radius: 12px;
-            background: var(--darker-bg);
-            border: 2px solid rgba(0, 255, 249, 0.3);
-            display: block;
-            outline: none;
-            box-shadow: 0 0 20px rgba(0, 255, 249, 0.1), inset 0 0 30px rgba(0, 255, 249, 0.05);
-        }
-
-        .scoreboard {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-            font-size: 1rem;
-        }
-
-        .scoreboard span {
-            font-weight: 700;
-            color: var(--primary-cyan);
-            text-shadow: 0 0 10px rgba(0, 255, 249, 0.5);
-        }
-
-        .status-hint {
-            color: var(--muted);
-            font-size: 0.95rem;
-        }
-
-        .tips {
-            background: rgba(26, 26, 26, 0.6);
-            padding: clamp(20px, 4vw, 28px);
-            border-radius: 16px;
-            border: 1px solid rgba(0, 255, 249, 0.2);
-        }
-
-        .tips h2 {
-            margin: 0 0 12px;
-            font-size: 1.2rem;
-            color: var(--primary-cyan);
-            font-weight: 700;
-        }
-
-        .tips ul {
-            margin: 0;
-            padding-left: 20px;
-            color: var(--muted);
-            line-height: 1.6;
-        }
-
         @media (max-width: 720px) {
             body {
                 padding: clamp(12px, 3vw, 20px);
             }
 
             main.offline {
-                padding: clamp(18px, 4vw, 28px);
-                margin: 10px auto;
+                padding: clamp(24px, 5vw, 36px);
+                gap: clamp(30px, 5vw, 40px);
             }
 
-            header.brand {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .scoreboard {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
+            .glitch-logo {
+                font-size: clamp(1.75rem, 6vw, 2.5rem);
             }
 
             .hero h1 {
-                font-size: clamp(1.75rem, 5vw, 2.5rem);
+                font-size: clamp(1.25rem, 5vw, 1.75rem);
+            }
+
+            .contact-links {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .contact-link {
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -483,52 +382,31 @@
     </div>
 
     <main class="offline">
-        <header class="brand">
-            <span class="brand-badge" data-text="GLITCHREALM">GLITCHREALM</span>
-            <span class="status-badge" id="connectionStatus" role="status" aria-live="polite">
-                <span class="status-dot"></span>
-                <span class="status-text">Connection Lost</span>
-            </span>
-        </header>
+        <div class="logo-container">
+            <span class="brand-badge glitch-logo" data-text="GLITCHREALM">GLITCHREALM</span>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
 
         <section class="hero">
-            <h1>Offline mode activated</h1>
-            <p>
-                We cannot reach the GlitchRealm servers right now. Check your network or enjoy the runner below while we keep looking for a signal.
-            </p>
-        </section>
-
-        <section class="actions">
-            <button type="button" class="primary-btn" id="retryButton">
-                <span class="btn-label">Retry connection</span>
-                <span class="btn-spinner" aria-hidden="true"></span>
-            </button>
-            <a class="secondary-btn" id="homeLink" href="/">Return home</a>
-        </section>
-        <p class="network-note" id="reconnectFeedback" role="status" aria-live="polite"></p>
-
-        <section class="game-card" aria-label="Offline runner mini game">
-            <header>
-                <h2>Stay sharp while you wait</h2>
-                <p>Press Space or tap to jump. We will remember your best score locally.</p>
-            </header>
-            <canvas id="runnerCanvas" width="800" height="220" role="img" aria-label="Runner game canvas"></canvas>
-            <div class="scoreboard">
-                <div>Score <span id="score">0</span></div>
-                <div>Best <span id="best">0</span></div>
+            <h1 id="statusMessage" class="hidden">Connection problems? Let us know!</h1>
+            <p class="online-status" id="onlineStatus"></p>
+            <div class="contact-links" id="contactLinks" class="hidden">
+                <a href="https://x.com/GlitchRealmGame" target="_blank" rel="noopener noreferrer" class="contact-link twitter-link">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    Tweet Us
+                </a>
+                <a href="https://status.glitchrealm.ca/" target="_blank" rel="noopener noreferrer" class="contact-link status-link">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    Server Status
+                </a>
             </div>
-            <div class="status-hint" id="statusHint">Press Space or tap to jump</div>
-        </section>
-
-        <section class="tips">
-            <h2>Quick fixes</h2>
-            <ul>
-                <li>Check your Wi-Fi or mobile data connection.</li>
-                <li>Restart your router or modem.</li>
-                <li>Disable active VPN or proxy tools.</li>
-                <li>Try opening other websites to confirm connectivity.</li>
-                <li>Clear recent browser cache and try again.</li>
-            </ul>
         </section>
     </main>
 
@@ -536,94 +414,11 @@
         (function () {
             "use strict";
 
-            const offlineTitle = "Offline - GlitchRealm";
-            const onlineTitle = "Back Online - GlitchRealm";
+            const statusMessage = document.getElementById("statusMessage");
+            const onlineStatus = document.getElementById("onlineStatus");
+            const contactLinks = document.getElementById("contactLinks");
 
-            const statusBadge = document.getElementById("connectionStatus");
-            const statusText = statusBadge.querySelector(".status-text");
-            const feedback = document.getElementById("reconnectFeedback");
-            const retryButton = document.getElementById("retryButton");
-            const homeLink = document.getElementById("homeLink");
-
-            function renderStatus(isOnline) {
-                document.title = isOnline ? onlineTitle : offlineTitle;
-                statusBadge.classList.toggle("online", isOnline);
-                statusText.textContent = isOnline ? "Back Online" : "Connection Lost";
-            }
-
-            function flashFeedback(message) {
-                if (!feedback) {
-                    return;
-                }
-                feedback.textContent = message;
-                feedback.classList.add("show");
-                window.clearTimeout(flashFeedback._timeout);
-                flashFeedback._timeout = window.setTimeout(function () {
-                    feedback.classList.remove("show");
-                }, 2400);
-            }
-
-            function attemptRedirect() {
-                if (!navigator.onLine) {
-                    return false;
-                }
-                window.location.href = "/";
-                return true;
-            }
-
-            function handleRetry() {
-                if (retryButton.classList.contains("loading")) {
-                    return;
-                }
-                retryButton.classList.add("loading");
-                flashFeedback("Checking connection...");
-
-                window.setTimeout(function () {
-                    const isOnline = navigator.onLine;
-                    renderStatus(isOnline);
-                    if (isOnline) {
-                        flashFeedback("Back online. Redirecting...");
-                        attemptRedirect();
-                    } else {
-                        retryButton.classList.remove("loading");
-                        flashFeedback("Still offline. Try again in a moment.");
-                    }
-                }, 1200);
-            }
-
-            retryButton.addEventListener("click", handleRetry);
-
-            homeLink.addEventListener("click", function (event) {
-                if (navigator.onLine) {
-                    return;
-                }
-                event.preventDefault();
-                flashFeedback("You are still offline. Retry once you reconnect.");
-            });
-
-            function updateStatusFromBrowser() {
-                const online = navigator.onLine;
-                renderStatus(online);
-                if (online) {
-                    flashFeedback("Connection restored. Redirecting...");
-                    window.setTimeout(attemptRedirect, 1500);
-                } else {
-                    flashFeedback("Waiting for a connection...");
-                }
-            }
-
-            window.addEventListener("online", updateStatusFromBrowser);
-            window.addEventListener("offline", updateStatusFromBrowser);
-
-            renderStatus(false);
-            if (navigator.onLine) {
-                renderStatus(true);
-                flashFeedback("Connection restored. Redirecting...");
-                window.setTimeout(attemptRedirect, 1500);
-            } else {
-                flashFeedback("Waiting for a connection...");
-            }
-
+            // Particle animation
             const particlesContainer = document.getElementById("particles");
             if (particlesContainer) {
                 const totalParticles = 48;
@@ -641,237 +436,46 @@
                 }
             }
 
-            (function setupRunner() {
-                const canvas = document.getElementById("runnerCanvas");
-                if (!canvas) {
-                    return;
-                }
-
-                const ctx = canvas.getContext("2d");
-                const scoreEl = document.getElementById("score");
-                const bestEl = document.getElementById("best");
-                const hintEl = document.getElementById("statusHint");
-
-                let width = canvas.clientWidth;
-                let height = parseInt(window.getComputedStyle(canvas).height, 10);
-                const dpr = Math.max(1, window.devicePixelRatio || 1);
-
-                let groundY = height - 28;
-                const player = { x: 48, y: groundY - 36, w: 36, h: 36, vy: 0, jumping: false };
-                const gravity = 0.9;
-                const jumpVelocity = -14;
-                const obstacles = [];
-                let tick = 0;
-                let speed = 4;
-                let score = 0;
-                let running = true;
-
-                let best = 0;
-                try {
-                    best = parseInt(window.localStorage.getItem("gr_offline_best") || "0", 10);
-                } catch (error) {
-                    best = 0;
-                }
-                if (bestEl) {
-                    bestEl.textContent = String(best);
-                }
-
-                function resize() {
-                    width = canvas.clientWidth;
-                    height = parseInt(window.getComputedStyle(canvas).height, 10);
-                    canvas.width = Math.floor(width * dpr);
-                    canvas.height = Math.floor(height * dpr);
-                    canvas.style.width = width + "px";
-                    canvas.style.height = height + "px";
-                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                    groundY = height - 28;
-                    player.y = Math.min(player.y, groundY - player.h);
-                }
-
-                resize();
-                window.addEventListener("resize", resize);
-
-                function spawnObstacle() {
-                    const obstacleHeight = 18 + Math.random() * 28;
-                    const obstacleWidth = 16 + Math.random() * 28;
-                    obstacles.push({
-                        x: width + 40,
-                        y: groundY - obstacleHeight,
-                        w: obstacleWidth,
-                        h: obstacleHeight,
-                        r: 6
-                    });
-                }
-
-                function hit(a, b) {
-                    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-                }
-
-                function resetGame() {
-                    obstacles.length = 0;
-                    tick = 0;
-                    speed = 4;
-                    score = 0;
-                    running = true;
-                    player.vy = 0;
-                    player.jumping = false;
-                    player.y = groundY - player.h;
-                    if (scoreEl) {
-                        scoreEl.textContent = "0";
+            // Show connection problem message after 3 seconds
+            setTimeout(function() {
+                if (!navigator.onLine) {
+                    if (statusMessage) {
+                        statusMessage.classList.remove("hidden");
+                        statusMessage.classList.add("show");
                     }
-                    if (hintEl) {
-                        hintEl.textContent = "Press Space or tap to jump";
+                    if (contactLinks) {
+                        contactLinks.classList.remove("hidden");
+                        contactLinks.classList.add("show");
                     }
                 }
+            }, 3000);
 
-                function saveBest() {
-                    if (score <= best) {
-                        return;
+            // Check and handle connection status
+            function checkConnection() {
+                if (navigator.onLine) {
+                    if (onlineStatus) {
+                        onlineStatus.textContent = "Back online - returning to site";
+                        onlineStatus.classList.add("show");
                     }
-                    best = score;
-                    if (bestEl) {
-                        bestEl.textContent = String(best);
+                    if (statusMessage) {
+                        statusMessage.classList.add("hidden");
                     }
-                    try {
-                        window.localStorage.setItem("gr_offline_best", String(best));
-                    } catch (error) {
-                        // Local storage might be unavailable; ignore.
+                    if (contactLinks) {
+                        contactLinks.classList.add("hidden");
                     }
+                    setTimeout(function() {
+                        window.location.href = "/";
+                    }, 1500);
                 }
+            }
 
-                function updateGame() {
-                    if (!running) {
-                        return;
-                    }
-
-                    tick += 1;
-                    player.vy += gravity;
-                    player.y += player.vy;
-
-                    if (player.y > groundY - player.h) {
-                        player.y = groundY - player.h;
-                        player.vy = 0;
-                        player.jumping = false;
-                    }
-
-                    if (tick % Math.max(45, 110 - Math.floor(score / 8)) === 0) {
-                        spawnObstacle();
-                    }
-
-                    for (let i = obstacles.length - 1; i >= 0; i -= 1) {
-                        const obstacle = obstacles[i];
-                        obstacle.x -= speed;
-                        if (obstacle.x + obstacle.w < -60) {
-                            obstacles.splice(i, 1);
-                            continue;
-                        }
-                        if (hit(player, obstacle)) {
-                            running = false;
-                            saveBest();
-                            if (hintEl) {
-                                hintEl.textContent = "Game over - tap or press Space to restart";
-                            }
-                            break;
-                        }
-                    }
-
-                    if (tick % 6 === 0) {
-                        score += 1;
-                        if (scoreEl) {
-                            scoreEl.textContent = String(score);
-                        }
-                    }
-
-                    speed = 4 + Math.floor(score / 120);
-                }
-
-                function drawRoundedRect(x, y, w, h, r) {
-                    ctx.beginPath();
-                    ctx.moveTo(x + r, y);
-                    ctx.arcTo(x + w, y, x + w, y + h, r);
-                    ctx.arcTo(x + w, y + h, x, y + h, r);
-                    ctx.arcTo(x, y + h, x, y, r);
-                    ctx.arcTo(x, y, x + w, y, r);
-                    ctx.closePath();
-                    ctx.fill();
-                }
-
-                function renderGame() {
-                    ctx.fillStyle = "#050505";
-                    ctx.fillRect(0, 0, width, height);
-
-                    ctx.fillStyle = "#0a0a0a";
-                    ctx.fillRect(0, groundY, width, height - groundY);
-
-                    ctx.fillStyle = "#00fff9";
-                    ctx.shadowColor = "rgba(0, 255, 249, 0.5)";
-                    ctx.shadowBlur = 10;
-                    drawRoundedRect(player.x, player.y, player.w, player.h, 7);
-                    ctx.shadowBlur = 0;
-
-                    ctx.fillStyle = "#050505";
-                    ctx.fillRect(player.x + player.w - 12, player.y + 10, 6, 6);
-
-                    ctx.fillStyle = "#ff0080";
-                    ctx.shadowColor = "rgba(255, 0, 128, 0.4)";
-                    ctx.shadowBlur = 8;
-                    obstacles.forEach(function (obstacle) {
-                        drawRoundedRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h, obstacle.r);
-                    });
-                    ctx.shadowBlur = 0;
-
-                    if (!running) {
-                        ctx.fillStyle = "rgba(10, 10, 10, 0.8)";
-                        ctx.fillRect(0, 0, width, height);
-                        ctx.fillStyle = "#00fff9";
-                        ctx.font = '700 18px "Rajdhani", system-ui, sans-serif';
-                        ctx.textAlign = "center";
-                        ctx.shadowColor = "rgba(0, 255, 249, 0.5)";
-                        ctx.shadowBlur = 10;
-                        ctx.fillText("Game over - tap or press Space to restart", width / 2, height / 2);
-                        ctx.shadowBlur = 0;
-                    }
-                }
-
-                function loop() {
-                    updateGame();
-                    renderGame();
-                    window.requestAnimationFrame(loop);
-                }
-
-                loop();
-
-                function jump() {
-                    if (!running) {
-                        resetGame();
-                        return;
-                    }
-                    if (!player.jumping) {
-                        player.vy = jumpVelocity;
-                        player.jumping = true;
-                        if (hintEl) {
-                            hintEl.textContent = "";
-                        }
-                    }
-                }
-
-                window.addEventListener("keydown", function (event) {
-                    if (event.code === "Space" || event.key === " ") {
-                        event.preventDefault();
-                        jump();
-                    }
-                });
-
-                window.addEventListener("touchstart", function (event) {
-                    event.preventDefault();
-                    jump();
-                }, { passive: false });
-
-                canvas.setAttribute("tabindex", "0");
-                window.setTimeout(function () {
-                    canvas.focus();
-                }, 200);
-            })();
+            window.addEventListener("online", checkConnection);
+            
+            // Check immediately on load
+            checkConnection();
+            
+            // Check every 10 seconds
+            setInterval(checkConnection, 10000);
         })();
     </script>
 </body>

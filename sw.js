@@ -1,5 +1,5 @@
 /* GlitchRealm Service Worker - Advanced Optimizations */
-const CACHE_PREFIX = 'gr-v6'; // Incremented to force update - offline page fix
+const CACHE_PREFIX = 'gr-v7'; // Incremented - Supabase image fix
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 const IMAGE_CACHE = `${CACHE_PREFIX}-images`;
@@ -128,6 +128,27 @@ self.addEventListener('fetch', (event) => {
   // Buy Me a Coffee widget script: cache-first after first fetch to remove repeat lag
   if (request.url === BMC_WIDGET_URL) {
     event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  // Supabase storage: Cache images from Supabase CDN (cross-origin with mode: 'no-cors')
+  if (url.hostname.includes('supabase.co')) {
+    event.respondWith(
+      (async () => {
+        try {
+          const response = await fetch(request, { mode: 'no-cors' });
+          // Cache the opaque response
+          const cache = await caches.open(IMAGE_CACHE);
+          cache.put(request, response.clone());
+          return response;
+        } catch (e) {
+          // Try cached version if network fails
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          throw e;
+        }
+      })()
+    );
     return;
   }
 
