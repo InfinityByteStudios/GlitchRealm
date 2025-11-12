@@ -4,18 +4,29 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Offline - GlitchRealm</title>
-    <meta name="theme-color" content="#050a16">
+    <meta name="theme-color" content="#0a0a0a">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #050a16;
-            --bg-soft: #0b1625;
-            --card: rgba(13, 27, 43, 0.86);
-            --card-border: rgba(0, 255, 249, 0.22);
-            --fg: #dfe9f1;
-            --muted: #8aa1b5;
-            --accent: #00fff9;
-            --accent-strong: #15a1ff;
-            --danger: #ff6b6b;
+            --primary-cyan: #00fff9;
+            --primary-magenta: #ff0080;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+            --gray-800: #1a1a1a;
+            --gray-700: #2a2a2a;
+            --gray-600: #3a3a3a;
+            --gray-400: #6a6a6a;
+            --gray-200: #cccccc;
+            --white: #ffffff;
+            --danger: #ff073a;
+            
+            /* Aliases for offline page */
+            --bg: var(--dark-bg);
+            --card: rgba(26, 26, 26, 0.9);
+            --card-border: rgba(0, 255, 249, 0.3);
+            --fg: var(--white);
+            --muted: var(--gray-400);
+            --accent: var(--primary-cyan);
         }
 
         * {
@@ -29,9 +40,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+            font-family: 'Rajdhani', sans-serif;
             color: var(--fg);
-            background: radial-gradient(circle at top, #102544 0%, var(--bg) 55%, #02050b 100%);
+            background: var(--dark-bg);
+            background-image: 
+                linear-gradient(rgba(0, 255, 249, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 249, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
             position: relative;
             overflow: hidden;
         }
@@ -52,10 +67,10 @@
         .particle {
             position: absolute;
             bottom: -20vh;
-            background: var(--accent);
+            background: var(--primary-cyan);
             border-radius: 50%;
             opacity: 0;
-            filter: drop-shadow(0 0 12px rgba(0, 255, 249, 0.4));
+            filter: drop-shadow(0 0 12px rgba(0, 255, 249, 0.6));
             animation-name: floatUp;
             animation-timing-function: linear;
             animation-iteration-count: infinite;
@@ -80,13 +95,20 @@
             inset: 0;
             background: repeating-linear-gradient(
                 to bottom,
-                rgba(0, 255, 249, 0.04),
-                rgba(0, 255, 249, 0.04) 1px,
+                rgba(0, 255, 249, 0.05),
+                rgba(0, 255, 249, 0.05) 1px,
                 transparent 1px,
                 transparent 3px
             );
             mix-blend-mode: screen;
-            opacity: 0.25;
+            opacity: 0.3;
+            pointer-events: none;
+            animation: scanlineMove 8s linear infinite;
+        }
+
+        @keyframes scanlineMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(30px); }
         }
 
         main.offline {
@@ -116,7 +138,62 @@
             letter-spacing: 0.22em;
             font-size: 0.9rem;
             text-transform: uppercase;
-            color: var(--accent);
+            color: var(--primary-cyan);
+            text-shadow: 0 0 10px rgba(0, 255, 249, 0.5);
+            position: relative;
+        }
+
+        /* Glitch effect for brand */
+        .brand-badge::before {
+            content: attr(data-text);
+            position: absolute;
+            left: 2px;
+            text-shadow: -2px 0 var(--primary-magenta);
+            top: 0;
+            color: var(--primary-cyan);
+            overflow: hidden;
+            animation: glitchTop 3s linear infinite;
+        }
+
+        .brand-badge::after {
+            content: attr(data-text);
+            position: absolute;
+            left: -2px;
+            text-shadow: 2px 0 var(--primary-magenta);
+            top: 0;
+            color: var(--primary-cyan);
+            overflow: hidden;
+            animation: glitchBottom 3s linear infinite;
+        }
+
+        @keyframes glitchTop {
+            0%, 5%, 10%, 15%, 100% {
+                clip-path: inset(0 0 0 0);
+                transform: translateX(0);
+            }
+            2% {
+                clip-path: inset(0 0 85% 0);
+                transform: translateX(-3px);
+            }
+            12% {
+                clip-path: inset(0 0 90% 0);
+                transform: translateX(2px);
+            }
+        }
+
+        @keyframes glitchBottom {
+            0%, 5%, 10%, 15%, 100% {
+                clip-path: inset(0 0 0 0);
+                transform: translateX(0);
+            }
+            2% {
+                clip-path: inset(85% 0 0 0);
+                transform: translateX(3px);
+            }
+            12% {
+                clip-path: inset(90% 0 0 0);
+                transform: translateX(-2px);
+            }
         }
 
         .status-badge {
@@ -125,8 +202,8 @@
             gap: 10px;
             padding: 8px 14px;
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 0, 128, 0.3);
+            background: rgba(255, 0, 128, 0.1);
             color: var(--muted);
             font-size: 0.95rem;
             transition: all 0.3s ease;
@@ -137,7 +214,7 @@
             height: 10px;
             border-radius: 50%;
             background: var(--danger);
-            box-shadow: 0 0 10px rgba(255, 107, 107, 0.65);
+            box-shadow: 0 0 10px rgba(255, 7, 58, 0.8);
             animation: pulseDot 1.8s ease-in-out infinite;
         }
 
@@ -152,14 +229,14 @@
 
         .status-badge.online {
             color: var(--fg);
-            border-color: rgba(0, 255, 249, 0.4);
-            background: rgba(0, 255, 249, 0.12);
-            box-shadow: 0 0 28px rgba(0, 255, 249, 0.12);
+            border-color: rgba(0, 255, 249, 0.5);
+            background: rgba(0, 255, 249, 0.15);
+            box-shadow: 0 0 28px rgba(0, 255, 249, 0.2);
         }
 
         .status-badge.online .status-dot {
-            background: var(--accent);
-            box-shadow: 0 0 14px rgba(0, 255, 249, 0.65);
+            background: var(--primary-cyan);
+            box-shadow: 0 0 14px rgba(0, 255, 249, 0.8);
             animation-duration: 1.2s;
         }
 
@@ -167,6 +244,11 @@
             margin: 0;
             font-size: clamp(2rem, 4vw, 2.8rem);
             letter-spacing: 0.02em;
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-magenta) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
         }
 
         .hero p {
@@ -199,14 +281,15 @@
         }
 
         .primary-btn {
-            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-            color: #04111f;
-            box-shadow: 0 16px 32px rgba(0, 255, 249, 0.25);
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.4), 0 0 40px rgba(255, 0, 128, 0.2);
+            font-weight: 700;
         }
 
         .primary-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 18px 36px rgba(0, 255, 249, 0.3);
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.6), 0 0 60px rgba(255, 0, 128, 0.3);
         }
 
         .primary-btn:active {
@@ -223,8 +306,8 @@
             width: 18px;
             height: 18px;
             border-radius: 50%;
-            border: 2px solid rgba(4, 17, 31, 0.25);
-            border-top-color: rgba(4, 17, 31, 0.7);
+            border: 2px solid rgba(10, 10, 10, 0.3);
+            border-top-color: var(--dark-bg);
             animation: spin 0.8s linear infinite;
         }
 
@@ -246,14 +329,16 @@
         }
 
         .secondary-btn {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--fg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 255, 249, 0.05);
+            color: var(--primary-cyan);
+            border: 1px solid rgba(0, 255, 249, 0.3);
         }
 
         .secondary-btn:hover {
             transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(0, 255, 249, 0.1);
+            border-color: rgba(0, 255, 249, 0.5);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.2);
         }
 
         .secondary-btn:active {
@@ -275,11 +360,11 @@
         }
 
         .game-card {
-            background: rgba(8, 18, 32, 0.85);
+            background: rgba(26, 26, 26, 0.9);
             border-radius: 18px;
-            border: 1px solid rgba(0, 255, 249, 0.12);
+            border: 2px solid var(--primary-cyan);
             padding: clamp(20px, 4vw, 32px);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.2), inset 0 0 20px rgba(0, 255, 249, 0.05);
             display: grid;
             row-gap: 18px;
         }
@@ -287,6 +372,8 @@
         .game-card header h2 {
             margin: 0 0 4px;
             font-size: 1.25rem;
+            color: var(--primary-cyan);
+            font-weight: 700;
         }
 
         .game-card header p {
@@ -299,10 +386,11 @@
             width: 100%;
             height: clamp(160px, 36vh, 220px);
             border-radius: 12px;
-            background: #0f1c2f;
-            border: 1px solid rgba(0, 255, 249, 0.12);
+            background: var(--darker-bg);
+            border: 2px solid rgba(0, 255, 249, 0.3);
             display: block;
             outline: none;
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.1), inset 0 0 30px rgba(0, 255, 249, 0.05);
         }
 
         .scoreboard {
@@ -315,7 +403,8 @@
 
         .scoreboard span {
             font-weight: 700;
-            color: var(--accent);
+            color: var(--primary-cyan);
+            text-shadow: 0 0 10px rgba(0, 255, 249, 0.5);
         }
 
         .status-hint {
@@ -324,15 +413,17 @@
         }
 
         .tips {
-            background: rgba(7, 14, 26, 0.6);
+            background: rgba(26, 26, 26, 0.6);
             padding: clamp(20px, 4vw, 28px);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(0, 255, 249, 0.2);
         }
 
         .tips h2 {
             margin: 0 0 12px;
             font-size: 1.2rem;
+            color: var(--primary-cyan);
+            font-weight: 700;
         }
 
         .tips ul {
@@ -381,7 +472,7 @@
 
     <main class="offline">
         <header class="brand">
-            <span class="brand-badge">GlitchRealm</span>
+            <span class="brand-badge" data-text="GLITCHREALM">GLITCHREALM</span>
             <span class="status-badge" id="connectionStatus" role="status" aria-live="polite">
                 <span class="status-dot"></span>
                 <span class="status-text">Connection Lost</span>
@@ -694,30 +785,39 @@
                 }
 
                 function renderGame() {
-                    ctx.fillStyle = "#0f1c2f";
+                    ctx.fillStyle = "#050505";
                     ctx.fillRect(0, 0, width, height);
 
-                    ctx.fillStyle = "#06101b";
+                    ctx.fillStyle = "#0a0a0a";
                     ctx.fillRect(0, groundY, width, height - groundY);
 
                     ctx.fillStyle = "#00fff9";
+                    ctx.shadowColor = "rgba(0, 255, 249, 0.5)";
+                    ctx.shadowBlur = 10;
                     drawRoundedRect(player.x, player.y, player.w, player.h, 7);
+                    ctx.shadowBlur = 0;
 
-                    ctx.fillStyle = "#06101b";
+                    ctx.fillStyle = "#050505";
                     ctx.fillRect(player.x + player.w - 12, player.y + 10, 6, 6);
 
-                    ctx.fillStyle = "#1c2c44";
+                    ctx.fillStyle = "#ff0080";
+                    ctx.shadowColor = "rgba(255, 0, 128, 0.4)";
+                    ctx.shadowBlur = 8;
                     obstacles.forEach(function (obstacle) {
                         drawRoundedRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h, obstacle.r);
                     });
+                    ctx.shadowBlur = 0;
 
                     if (!running) {
-                        ctx.fillStyle = "rgba(5, 10, 22, 0.65)";
+                        ctx.fillStyle = "rgba(10, 10, 10, 0.8)";
                         ctx.fillRect(0, 0, width, height);
-                        ctx.fillStyle = "#dfe9f1";
-                        ctx.font = '18px "Segoe UI", system-ui, sans-serif';
+                        ctx.fillStyle = "#00fff9";
+                        ctx.font = '700 18px "Rajdhani", system-ui, sans-serif';
                         ctx.textAlign = "center";
+                        ctx.shadowColor = "rgba(0, 255, 249, 0.5)";
+                        ctx.shadowBlur = 10;
                         ctx.fillText("Game over - tap or press Space to restart", width / 2, height / 2);
+                        ctx.shadowBlur = 0;
                     }
                 }
 

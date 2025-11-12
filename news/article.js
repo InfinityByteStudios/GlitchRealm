@@ -162,9 +162,33 @@ async function loadArticle(){
     // Check if author is verified
     const authorIsVerified = data.authorUid ? await isVerifiedWriter(data.authorUid) : false;
     
-    // Build meta line with verified writer badge and proper casing
+    // Fetch author avatar if available
+    let authorAvatar = '';
+    if (data.authorUid) {
+      try {
+        // Dynamically import Firestore functions
+        const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const db = getFirestore(window.firebaseApp);
+        const userDoc = doc(db, 'users', data.authorUid);
+        const userData = await getDoc(userDoc);
+        if (userData.exists()) {
+          const avatarUrl = userData.data().avatarUrl;
+          if (avatarUrl) {
+            authorAvatar = avatarUrl;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch author avatar:', e);
+      }
+    }
+    
+    // Build meta line with avatar, verified writer badge and proper casing
     let metaHTML = '';
     if (data.authorUsername) {
+      // Add avatar if available
+      if (authorAvatar) {
+        metaHTML += `<img src="${escapeHTML(authorAvatar)}" alt="${escapeHTML(data.authorUsername)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,255,249,0.3);margin-right:6px;">`;
+      }
       metaHTML += `<span class="author-name">By ${escapeHTML(data.authorUsername)}</span>`;
       if (authorIsVerified) {
         metaHTML += `<span class="verified-badge" title="Verified Writer" aria-label="Verified Writer"><svg viewBox="0 0 24 24"><defs><linearGradient id="blueGradientArticle" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0099ff;stop-opacity:1"/><stop offset="100%" style="stop-color:#00d4ff;stop-opacity:1"/></linearGradient></defs><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z"/></svg></span>`;

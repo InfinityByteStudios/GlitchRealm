@@ -99,24 +99,32 @@
         setStatus('Verifying credentials…');
         console.log('[Auth Bridge] Starting OAuth sign-in with provider:', provider);
         
-        if (provider === 'google') {
-          if (!idToken) {
-            throw new Error('Google sign-in requires an ID token');
+        if (provider === 'google_oauth') {
+          // Re-authenticate on main domain using Google OAuth access token
+          const token = params.get('token');
+          if (!token) {
+            throw new Error('Google OAuth token is missing');
           }
-          console.log('[Auth Bridge] Creating Google credential...');
-          const cred = GoogleAuthProvider.credential(idToken, accessToken || null);
-          console.log('[Auth Bridge] Signing in with Google credential...');
+          console.log('[Auth Bridge] Signing in with Google OAuth token...');
+          setStatus('Authenticating with Google…');
+          
+          // Create a Google credential from the OAuth access token
+          const cred = GoogleAuthProvider.credential(null, token);
           await signInWithCredential(auth, cred);
-          console.log('[Auth Bridge] ✓ Google sign-in successful');
-        } else if (provider === 'github') {
-          if (!accessToken) {
-            throw new Error('GitHub sign-in requires an access token');
+          console.log('[Auth Bridge] ✓ Google OAuth sign-in successful');
+        } else if (provider === 'github_oauth') {
+          // Re-authenticate on main domain using GitHub OAuth access token
+          const token = params.get('token');
+          if (!token) {
+            throw new Error('GitHub OAuth token is missing');
           }
-          console.log('[Auth Bridge] Creating GitHub credential...');
-          const cred = GithubAuthProvider.credential(accessToken);
-          console.log('[Auth Bridge] Signing in with GitHub credential...');
+          console.log('[Auth Bridge] Signing in with GitHub OAuth token...');
+          setStatus('Authenticating with GitHub…');
+          
+          // Create a GitHub credential from the OAuth access token
+          const cred = GithubAuthProvider.credential(token);
           await signInWithCredential(auth, cred);
-          console.log('[Auth Bridge] ✓ GitHub sign-in successful');
+          console.log('[Auth Bridge] ✓ GitHub OAuth sign-in successful');
         } else if (provider === 'anonymous') {
           // Handle anonymous/guest sign-in
           setStatus('Signing in as guest…');

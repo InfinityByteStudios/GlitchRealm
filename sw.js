@@ -1,5 +1,5 @@
 /* GlitchRealm Service Worker - Advanced Optimizations */
-const CACHE_PREFIX = 'gr-v5'; // Incremented for advanced optimizations
+const CACHE_PREFIX = 'gr-v6'; // Incremented to force update - offline page fix
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 const IMAGE_CACHE = `${CACHE_PREFIX}-images`;
@@ -134,7 +134,7 @@ self.addEventListener('fetch', (event) => {
   // Only handle same-origin for the rest
   if (url.origin !== self.location.origin) return;
 
-  // HTML/navigation: Network-first with fallback to cache/offline page.
+  // HTML/navigation: Network-first with fallback to offline page (don't cache HTML)
   // Handle both `request.destination === 'document'` and navigation-mode requests
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(
@@ -143,30 +143,19 @@ self.addEventListener('fetch', (event) => {
           // Use navigation preload if available (safe await even if undefined)
           const preload = await (event.preloadResponse || Promise.resolve(null));
           const response = preload || await fetch(request);
-          // Store a copy in runtime cache for future offline navigations
-          try {
-            const copy = response.clone();
-            const cache = await caches.open(RUNTIME_CACHE);
-            cache.put(request, copy);
-          } catch (err) {
-            // ignore cache write errors
-          }
+          // DO NOT cache HTML responses - always fetch fresh for auth state
           return response;
         } catch (e) {
-          // Network failed — try cached navigation request
-          const cached = await caches.match(request);
-          if (cached) return cached;
-
-          // Serve offline page if available
+          // Network failed — serve offline page immediately (don't use cached HTML)
           const offlinePage = await caches.match('/offline.html');
           if (offlinePage) return offlinePage;
 
-          // Ultimate fallback to cached index.html
-          const index = await caches.match('/index.html');
-          if (index) return index;
-
           // As last resort, return a generic Response
-          return new Response('Offline', { status: 503, statusText: 'Service Unavailable', headers: { 'Content-Type': 'text/plain' } });
+          return new Response('Offline - Cannot reach GlitchRealm servers', { 
+            status: 503, 
+            statusText: 'Service Unavailable', 
+            headers: { 'Content-Type': 'text/plain' } 
+          });
         }
       })()
     );
