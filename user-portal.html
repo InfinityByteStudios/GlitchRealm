@@ -683,7 +683,16 @@
     <main class="portal-container">
         <div class="portal-header">
             <h1 class="portal-title" id="portal-title">User Portal</h1>
-            <p id="portal-user-id" class="portal-uid" style="display:none; margin-top:-6px; margin-bottom:10px; font-size:0.9rem; color: var(--text-lighter);"></p>
+            <div id="portal-user-id" class="portal-uid" style="display:none; margin-top:-6px; margin-bottom:10px; font-size:0.9rem; color: var(--text-lighter); align-items:center; gap:8px;">
+                <span id="uid-text"></span>
+                <button id="copy-uid-btn" style="background:rgba(0,255,249,0.1); border:1px solid rgba(0,255,249,0.3); border-radius:6px; padding:4px 8px; color:#00fff9; cursor:pointer; font-size:0.8rem; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:4px;" title="Copy UID">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span id="copy-btn-text">Copy</span>
+                </button>
+            </div>
             <p class="portal-subtitle">Manage your account, update email & password, track playtime stats, and submit creator verification requests.</p>
         </div>
         
@@ -914,12 +923,41 @@
                     try {
                         const titleEl = document.getElementById('portal-title');
                         const uidEl = document.getElementById('portal-user-id');
+                        const uidTextEl = document.getElementById('uid-text');
                         if (titleEl) {
                             const name = (user.displayName && user.displayName.trim()) || (user.email ? user.email.split('@')[0] : '') || 'Player';
                                                         // Reset content then append badge conditionally
                                                         titleEl.textContent = `Welcome, ${name}`;
                                                         // Show UID below title in smaller text
-                                                        if (uidEl) { uidEl.textContent = `User ID: ${user.uid}`; uidEl.style.display = ''; }
+                                                        if (uidEl && uidTextEl) { 
+                                                            uidTextEl.textContent = `User ID: ${user.uid}`;
+                                                            uidEl.style.display = 'flex';
+                                                            
+                                                            // Add copy functionality
+                                                            const copyBtn = document.getElementById('copy-uid-btn');
+                                                            const copyBtnText = document.getElementById('copy-btn-text');
+                                                            if (copyBtn) {
+                                                                copyBtn.onclick = async () => {
+                                                                    try {
+                                                                        await navigator.clipboard.writeText(user.uid);
+                                                                        copyBtnText.textContent = 'Copied!';
+                                                                        copyBtn.style.background = 'rgba(0,255,65,0.1)';
+                                                                        copyBtn.style.borderColor = 'rgba(0,255,65,0.3)';
+                                                                        copyBtn.style.color = '#00ff41';
+                                                                        setTimeout(() => {
+                                                                            copyBtnText.textContent = 'Copy';
+                                                                            copyBtn.style.background = 'rgba(0,255,249,0.1)';
+                                                                            copyBtn.style.borderColor = 'rgba(0,255,249,0.3)';
+                                                                            copyBtn.style.color = '#00fff9';
+                                                                        }, 2000);
+                                                                    } catch (err) {
+                                                                        console.error('Failed to copy:', err);
+                                                                        copyBtnText.textContent = 'Failed';
+                                                                        setTimeout(() => { copyBtnText.textContent = 'Copy'; }, 2000);
+                                                                    }
+                                                                };
+                                                            }
+                                                        }
                                                         // Attach verified badge if applicable
                                                         (async () => {
                                                             try {
@@ -949,12 +987,14 @@
                                         try {
                                                 const titleEl = document.getElementById('portal-title');
                                                 const uidEl = document.getElementById('portal-user-id');
+                                                const uidTextEl = document.getElementById('uid-text');
                                                 if (titleEl) {
                                                     titleEl.textContent = 'User Portal';
                                                     const existing = titleEl.querySelector('.verified-badge');
                                                     if (existing) existing.remove();
                                                 }
-                                                if (uidEl) { uidEl.textContent = ''; uidEl.style.display = 'none'; }
+                                                if (uidEl) { uidEl.style.display = 'none'; }
+                                                if (uidTextEl) { uidTextEl.textContent = ''; }
                                         } catch(e) {}
                     authRequired.style.display = 'block';
                 }
