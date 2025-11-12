@@ -157,22 +157,36 @@ export async function getBestAvatar(user, supabaseAvatarUrl = null) {
  * @param {string} email - User's email address
  */
 export async function enrichProfileWithGravatar(uid, email) {
-  if (!uid || !email || !GRAVATAR_CONFIG.enabled) return;
+  if (!uid || !email || !GRAVATAR_CONFIG.enabled) {
+    console.log('[Gravatar] Skipping enrichment:', { uid: !!uid, email: !!email, enabled: GRAVATAR_CONFIG.enabled });
+    return;
+  }
   
   try {
-    const gravatarProfile = await getGravatarProfile(email);
-    if (!gravatarProfile) return;
+    console.log('[Gravatar] Starting profile enrichment for:', email);
     
-    // Get Firestore reference
-    const db = window.firebaseFirestore;
-    if (!db) {
-      console.warn('Firestore not initialized');
+    const gravatarProfile = await getGravatarProfile(email);
+    if (!gravatarProfile) {
+      console.log('[Gravatar] No Gravatar profile found for:', email);
       return;
     }
     
-    const userRef = window.firestoreDoc(db, 'users', uid);
-    const userSnap = await window.firestoreGetDoc(userRef);
+    console.log('[Gravatar] Profile data received:', gravatarProfile);
+    
+    // Import Firestore functions dynamically
+    const { getFirestore, doc, getDoc, updateDoc, Timestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    
+    const db = getFirestore(window.firebaseApp);
+    if (!db) {
+      console.warn('[Gravatar] Firestore not initialized');
+      return;
+    }
+    
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
     const currentData = userSnap.exists() ? userSnap.data() : {};
+    
+    console.log('[Gravatar] Current user data:', currentData);
     
     // Prepare enrichment data (only for empty fields)
     const enrichmentData = {};
@@ -214,17 +228,22 @@ export async function enrichProfileWithGravatar(uid, email) {
     
     // Only update if we have enrichment data
     if (Object.keys(enrichmentData).length > 0) {
-      await window.firestoreUpdateDoc(userRef, {
+      const { Timestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      const { updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      
+      await updateDoc(userRef, {
         ...enrichmentData,
         gravatarEnriched: true,
-        gravatarEnrichedAt: window.firestoreTimestamp.now()
+        gravatarEnrichedAt: Timestamp.now()
       });
       
-      console.log('✅ Profile enriched with Gravatar data:', Object.keys(enrichmentData));
+      console.log('✅ [Gravatar] Profile enriched with data:', enrichmentData);
+    } else {
+      console.log('[Gravatar] No new data to enrich (all fields already filled)');
     }
     
   } catch (err) {
-    console.warn('Failed to enrich profile with Gravatar:', err);
+    console.error('[Gravatar] Failed to enrich profile:', err);
   }
 }
 
@@ -266,31 +285,94 @@ export async function getGravatarQRCode(email, options = {}) {
  */
 export function initGravatarIntegration() {
   if (!GRAVATAR_CONFIG.enabled) {
-    console.log('Gravatar integration disabled');
+    console.log('[Gravatar] Integration disabled');
     return;
   }
   
-  console.log('✅ Gravatar integration initialized');
+  console.log('✅ [Gravatar] Integration initialized');
   
   // Listen for auth state changes
   if (window.firebaseAuth) {
     window.firebaseAuth.onAuthStateChanged(async (user) => {
       if (user && user.email) {
-        // Check if user needs Gravatar enrichment
-        const db = window.firebaseFirestore;
-        if (db) {
-          const userRef = window.firestoreDoc(db, 'users', user.uid);
-          const userSnap = await window.firestoreGetDoc(userRef);
-          const userData = userSnap.exists() ? userSnap.data() : {};
+        console.log('[Gravatar] Auth state changed, user email:', user.email);
+        
+        try {
+          // Import Firestore functions
+          const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const db = getFirestore(window.firebaseApp);
           
-          // Only enrich if not already done
-          if (!userData.gravatarEnriched) {
-            await enrichProfileWithGravatar(user.uid, user.email);
+          if (db) {
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            const userData = userSnap.exists() ? userSnap.data() : {};
+            
+            console.log('[Gravatar] User document check:', { exists: userSnap.exists(), gravatarEnriched: userData.gravatarEnriched });
+            
+            // Only enrich if not already done
+            if (!userData.gravatarEnriched) {
+              console.log('[Gravatar] Starting enrichment...');
+              await enrichProfileWithGravatar(user.uid, user.email);
+            } else {
+              console.log('[Gravatar] Profile already enriched, skipping');
+            }
           }
+        } catch (err) {
+          console.error('[Gravatar] Error in auth state handler:', err);
         }
+      } else {
+        console.log('[Gravatar] No email available for user');
       }
     });
+  } else {
+    console.warn('[Gravatar] Firebase Auth not available yet');
   }
+}
+
+/**
+ * Manual Gravatar enrichment for testing
+ * Call this from browser console: window.testGravatarEnrichment()
+ */
+export async function testGravatarEnrichment() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    console.error('[Gravatar Test] No user signed in');
+    return;
+  }
+  
+  if (!user.email) {
+    console.error('[Gravatar Test] User has no email');
+    return;
+  }
+  
+  console.log('[Gravatar Test] Testing enrichment for:', user.email);
+  console.log('[Gravatar Test] User UID:', user.uid);
+  
+  // Force enrichment even if already done
+  try {
+    const { getFirestore, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const db = getFirestore(window.firebaseApp);
+    const userRef = doc(db, 'users', user.uid);
+    
+    // Clear the enrichment flag to force re-enrichment
+    await updateDoc(userRef, {
+      gravatarEnriched: false
+    });
+    
+    console.log('[Gravatar Test] Cleared enrichment flag, running enrichment...');
+    await enrichProfileWithGravatar(user.uid, user.email);
+    
+    console.log('[Gravatar Test] Complete! Check Firestore console for updated data.');
+  } catch (err) {
+    console.error('[Gravatar Test] Error:', err);
+  }
+}
+
+// Expose test function globally
+if (typeof window !== 'undefined') {
+  window.testGravatarEnrichment = testGravatarEnrichment;
+  window.getGravatarProfile = getGravatarProfile;
+  window.getGravatarAvatarUrl = getGravatarAvatarUrl;
 }
 
 // Export configuration for external modification if needed
