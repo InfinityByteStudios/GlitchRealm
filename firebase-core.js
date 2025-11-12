@@ -77,6 +77,15 @@
       
       console.log('[Firebase Core] Initialization complete');
       
+      // Initialize Gravatar integration (async, non-blocking)
+      import('./gravatar-integration.js')
+        .then(({ initGravatarIntegration }) => {
+          initGravatarIntegration();
+        })
+        .catch(err => {
+          console.warn('[Firebase Core] Gravatar integration failed to load:', err);
+        });
+      
     } catch(e){ 
       console.warn('[Firebase Core] Init failed:', e); 
     }

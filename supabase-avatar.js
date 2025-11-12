@@ -1,10 +1,12 @@
 /**
  * Supabase Avatar Upload & Profile Management
  * Integrates with Firebase Auth for GlitchRealm
+ * Now with Gravatar fallback support
  */
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_CONFIG } from './supabase-config.js';
+import { getBestAvatar, getGravatarAvatarUrl, hasGravatarAvatar } from './gravatar-integration.js';
 
 // Check if Supabase is configured
 const isConfigured = SUPABASE_CONFIG.url && 
@@ -160,9 +162,10 @@ export async function deleteAvatar(userId, avatarPath) {
 /**
  * Get user profile (including avatar)
  * @param {string} userId - Firebase UID
+ * @param {Object} firebaseUser - Firebase user object (for Gravatar fallback)
  * @returns {Promise<object>}
  */
-export async function getProfile(userId) {
+export async function getProfile(userId, firebaseUser = null) {
   if (!checkSupabaseReady()) {
     return null; // Return null if not configured (graceful degradation)
   }
@@ -182,21 +185,42 @@ export async function getProfile(userId) {
 }
 
 /**
- * Get avatar URL with fallback to Firebase photo or default
+ * Get avatar URL with fallback priority: Supabase > Gravatar > Firebase > Default
  * @param {object} firebaseUser - Firebase user object
  * @param {object} profile - Supabase profile object
- * @returns {string} Avatar URL
+ * @returns {Promise<string>} Avatar URL
  */
-export function getAvatarUrl(firebaseUser, profile) {
-  // Priority: custom_photo_url -> provider photo -> default
+export async function getAvatarUrl(firebaseUser, profile) {
+  // Priority 1: Custom uploaded avatar via Supabase
   if (profile?.custom_photo_url) {
     return profile.custom_photo_url;
   }
   
+  // Priority 2: Gravatar avatar (if user has email)
+  if (firebaseUser?.email) {
+    try {
+      const gravatarUrl = await getGravatarAvatarUrl(firebaseUser.email, {
+        size: 200,
+        default: 'mp'
+      });
+      if (gravatarUrl) {
+        // Check if Gravatar actually exists (avoid showing default if user doesn't have one)
+        const hasGravatar = await hasGravatarAvatar(firebaseUser.email);
+        if (hasGravatar) {
+          return gravatarUrl;
+        }
+      }
+    } catch (err) {
+      console.warn('Gravatar check failed:', err);
+    }
+  }
+  
+  // Priority 3: Firebase provider photo (Google, GitHub, etc.)
   if (firebaseUser?.photoURL) {
     return firebaseUser.photoURL;
   }
   
+  // Priority 4: Default anonymous avatar
   return 'assets/icons/anonymous.png';
 }
 
