@@ -380,10 +380,13 @@
         </section>        <main id="main-content" role="main">
         <section class="featured-game">
             <div class="container">
-                <h2 class="section-title">Newest Game</h2>                <div class="featured-card">
-                    <div class="featured-image">
+                <h2 class="section-title">Newest Game</h2>                
+                <div class="featured-card" id="newest-game-card">
+                    <div class="featured-image" id="newest-game-image">
                         <div class="game-badge new">NEW</div>
-                    </div>                    <div class="featured-info">                        <h3>Loading...</h3>
+                    </div>                    
+                    <div class="featured-info" id="newest-game-info">                        
+                        <h3>Loading...</h3>
                         <p>Fetching the newest game from the database...</p>
                         <p class="featured-developer">Made by <strong>...</strong></p>
                     </div>
@@ -546,6 +549,103 @@
 
     <!-- Critical: Firebase Auth (load immediately) -->
     <script src="firebase-core.js"></script>
+    
+    <!-- Load newest game from Firestore -->
+    <script type="module">
+        // Wait for Firebase to be initialized
+        async function loadNewestGame() {
+            // Wait for firebaseApp to be available
+            if (!window.firebaseApp) {
+                setTimeout(loadNewestGame, 100);
+                return;
+            }
+            
+            try {
+                const { getFirestore, collection, query, where, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const db = getFirestore(window.firebaseApp);
+                
+                // Query for the newest published game
+                const gamesQuery = query(
+                    collection(db, 'game_submissions'),
+                    where('status', '==', 'published'),
+                    orderBy('createdAt', 'desc'),
+                    limit(1)
+                );
+                
+                const snapshot = await getDocs(gamesQuery);
+                
+                if (snapshot.empty) {
+                    document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
+                    return;
+                }
+                
+                const gameDoc = snapshot.docs[0];
+                const game = gameDoc.data();
+                const gameId = gameDoc.id;
+                
+                // Update the featured card
+                const imageDiv = document.getElementById('newest-game-image');
+                const infoDiv = document.getElementById('newest-game-info');
+                const cardDiv = document.getElementById('newest-game-card');
+                
+                // Set background image
+                if (game.coverImageUrl) {
+                    imageDiv.style.backgroundImage = `url('${game.coverImageUrl}')`;
+                    imageDiv.style.backgroundSize = 'cover';
+                    imageDiv.style.backgroundPosition = 'center';
+                }
+                
+                // Update info
+                const ownerDisplay = game.ownerUsername || 'Community Creator';
+                const playUrl = game.playUrl || `game-detail.html?id=${gameId}`;
+                
+                infoDiv.innerHTML = `
+                    <h3>${game.title || 'Untitled Game'}</h3>
+                    <p>${game.description || 'No description available.'}</p>
+                    <p class="featured-developer">Made by <strong>${ownerDisplay}</strong></p>
+                    <a href="${playUrl}" target="_blank" rel="noopener noreferrer" class="play-btn" style="margin-top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; text-decoration: none; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-cyan); border: 1px solid var(--primary-cyan); border-radius: 9px; transition: all 0.2s ease;">
+                        <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" style="flex-shrink: 0;">
+                            <polygon points="0,0 10,6 0,12"/>
+                        </svg>
+                        <span>Play Now</span>
+                    </a>
+                `;
+                
+                // Add hover effect via JavaScript
+                const playBtn = infoDiv.querySelector('.play-btn');
+                
+                playBtn.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = 'var(--primary-cyan)';
+                    this.style.color = '#0a0a0a';
+                });
+                
+                playBtn.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = 'transparent';
+                    this.style.color = 'var(--primary-cyan)';
+                });
+                
+                // Make card clickable
+                cardDiv.style.cursor = 'pointer';
+                cardDiv.addEventListener('click', (e) => {
+                    // Don't navigate if clicking the button
+                    if (!e.target.closest('.neural-button')) {
+                        window.location.href = `game-detail.html?id=${gameId}`;
+                    }
+                });
+                
+            } catch (err) {
+                console.error('Error loading newest game:', err);
+                document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
+            }
+        }
+        
+        // Start loading when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadNewestGame);
+        } else {
+            loadNewestGame();
+        }
+    </script>
     
     <!-- Deferred: Non-critical scripts -->
     <script src="image-loader.js" defer></script>
