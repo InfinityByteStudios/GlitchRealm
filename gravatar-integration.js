@@ -174,7 +174,7 @@ export async function enrichProfileWithGravatar(uid, email) {
     console.log('[Gravatar] Profile data received:', gravatarProfile);
     
     // Import Firestore functions dynamically
-    const { getFirestore, doc, getDoc, updateDoc, Timestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const { getFirestore, doc, getDoc, setDoc, Timestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
     
     const db = getFirestore(window.firebaseApp);
     if (!db) {
@@ -228,14 +228,12 @@ export async function enrichProfileWithGravatar(uid, email) {
     
     // Only update if we have enrichment data
     if (Object.keys(enrichmentData).length > 0) {
-      const { Timestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-      const { updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-      
-      await updateDoc(userRef, {
+      // Use setDoc with merge to create document if it doesn't exist
+      await setDoc(userRef, {
         ...enrichmentData,
         gravatarEnriched: true,
         gravatarEnrichedAt: Timestamp.now()
-      });
+      }, { merge: true });
       
       console.log('✅ [Gravatar] Profile enriched with data:', enrichmentData);
     } else {
@@ -350,14 +348,14 @@ export async function testGravatarEnrichment() {
   
   // Force enrichment even if already done
   try {
-    const { getFirestore, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
     const db = getFirestore(window.firebaseApp);
     const userRef = doc(db, 'users', user.uid);
     
     // Clear the enrichment flag to force re-enrichment
-    await updateDoc(userRef, {
+    await setDoc(userRef, {
       gravatarEnriched: false
-    });
+    }, { merge: true });
     
     console.log('[Gravatar Test] Cleared enrichment flag, running enrichment...');
     await enrichProfileWithGravatar(user.uid, user.email);
