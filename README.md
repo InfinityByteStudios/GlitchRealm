@@ -1,5 +1,7 @@
 # GlitchRealm
 
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v3/monitor/29d06.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
+
 Public frontend for the GlitchRealm site and games by GlitchRealm Games.
 
 ## License
