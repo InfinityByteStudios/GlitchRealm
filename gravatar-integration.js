@@ -368,12 +368,5 @@ export async function testGravatarEnrichment() {
   }
 }
 
-// Expose test function globally
-if (typeof window !== 'undefined') {
-  window.testGravatarEnrichment = testGravatarEnrichment;
-  window.getGravatarProfile = getGravatarProfile;
-  window.getGravatarAvatarUrl = getGravatarAvatarUrl;
-}
-
 // Export configuration for external modification if needed
 export { GRAVATAR_CONFIG };
