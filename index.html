@@ -627,8 +627,8 @@
                 // Make card clickable
                 cardDiv.style.cursor = 'pointer';
                 cardDiv.addEventListener('click', (e) => {
-                    // Don't navigate if clicking the button
-                    if (!e.target.closest('.neural-button')) {
+                    // Don't navigate if clicking the play button
+                    if (!e.target.closest('.play-btn')) {
                         window.location.href = `game-detail.html?id=${gameId}`;
                     }
                 });
