@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Page Not Found | GlitchRealm</title>
+    <title>404 - Article Not Found | GlitchRealm News</title>
     
     <!-- Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,13 +14,14 @@
     <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="news.css">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     
     <!-- Firebase Core -->
-    <script type="module" src="firebase-core.js"></script>
+    <script type="module" src="../firebase-core.js"></script>
     
     <style>
         .error-container {
@@ -178,20 +179,20 @@
     <main class="error-container">
         <div class="error-content">
             <h1 class="error-code glitch-404" data-text="404">404</h1>
-            <h2 class="error-title">Page Not Found</h2>
+            <h2 class="error-title">Article Not Found</h2>
             <p class="error-message">
-                The page you're looking for doesn't exist in this digital realm. 
-                It may have been moved, deleted, or never existed at all.
+                The article you're looking for doesn't exist or may have been removed. 
+                Check out our latest news or return to the news homepage.
             </p>
             <div class="error-actions">
-                <a href="/" class="error-btn error-btn-primary">
+                <a href="/news/" class="error-btn error-btn-primary">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
                         <path d="M6 1L1 6L6 11L6 7L11 7L11 5L6 5L6 1Z"/>
                     </svg>
-                    Back to Home
+                    Back to News
                 </a>
-                <a href="games.html" class="error-btn error-btn-secondary">Browse Games</a>
-                <a href="contact.html" class="error-btn error-btn-secondary">Contact Support</a>
+                <a href="/" class="error-btn error-btn-secondary">Main Site</a>
+                <a href="../contact.html" class="error-btn error-btn-secondary">Contact Support</a>
             </div>
         </div>
     </main>
@@ -199,6 +200,6 @@
     <div id="footer-placeholder"></div>
     
     <script src="script.js" defer></script>
-    <script type="module" src="header-avatar-integration.js"></script>
+    <script type="module" src="../header-avatar-integration.js"></script>
 </body>
 </html>
