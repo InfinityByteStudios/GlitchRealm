@@ -1,5 +1,18 @@
 // GlitchRealm Games - Interactive Effects
 
+// Register Service Worker for offline support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+                console.log('ServiceWorker registered:', registration.scope);
+            })
+            .catch(function(error) {
+                console.log('ServiceWorker registration failed:', error);
+            });
+    });
+}
+
 // Early auth state restoration (before DOM loads)
 ;(function(){
     // Check if we have a cached auth state
@@ -3636,7 +3649,7 @@ function initializeProfileActions() {
             if (profileDropdown) {
                 profileDropdown.classList.remove('open');
             }
-            showSettingsModal();
+            window.location.href = '/settings.html';
         });
     } else {
         console.log('Settings button not found during initialization');
