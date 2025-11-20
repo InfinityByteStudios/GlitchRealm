@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Jump - Offline Game</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00fff9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .game-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+            text-align: center;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 0 1rem;
+        }
+        
+        canvas {
+            width: 100%;
+            height: auto;
+            border: 2px solid #00fff9;
+            border-radius: 8px;
+            background: #0a0a0a;
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.3);
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #6a6a6a;
+        }
+        
+        .controls span {
+            color: #00fff9;
+            font-weight: bold;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6a6a6a;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-value {
+            color: #00fff9;
+            text-shadow: 0 0 10px rgba(0, 255, 249, 0.5);
+        }
+        
+        .back-link {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 249, 0.1);
+            border: 1px solid #00fff9;
+            border-radius: 6px;
+            color: #00fff9;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: rgba(0, 255, 249, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 249, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 1.5rem;
+            }
+            
+            .stats {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="javascript:history.back()" class="back-link">← Back</a>
+    
+    <h1 class="game-title">SERVER JUMP</h1>
+    
+    <div class="game-container">
+        <div class="controls">
+            Press <span>SPACE</span> or <span>TAP</span> to jump over servers
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="200"></canvas>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">SCORE</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">HIGH SCORE</div>
+                <div class="stat-value" id="highScore">0</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('highScore');
+        
+        // Game state
+        const game = {
+            running: false,
+            gameOver: false,
+            score: 0,
+            highScore: localStorage.getItem('glitchRealm_highScore') || 0,
+            speedMultiplier: 1,
+            player: {
+                x: 80,
+                y: 150,
+                width: 30,
+                height: 30,
+                velocityY: 0,
+                jumping: false
+            },
+            obstacles: [],
+            frameCount: 0,
+            gravity: 0.6,
+            jumpStrength: -12
+        };
+        
+        highScoreEl.textContent = game.highScore;
+        
+        // Draw player (glitchy cube)
+        function drawPlayer() {
+            const p = game.player;
+            
+            // Main cube
+            ctx.fillStyle = '#00fff9';
+            ctx.fillRect(p.x, p.y, p.width, p.height);
+            
+            // Glitch effect
+            ctx.fillStyle = '#ff0080';
+            ctx.fillRect(p.x + 2, p.y - 2, p.width - 4, 2);
+            ctx.fillRect(p.x - 2, p.y + p.height, p.width - 4, 2);
+            
+            // Eyes
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(p.x + 8, p.y + 10, 4, 4);
+            ctx.fillRect(p.x + 18, p.y + 10, 4, 4);
+        }
+        
+        // Draw obstacle (server rack)
+        function drawObstacle(obs) {
+            // Server body
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            
+            // Server lights
+            const lights = Math.floor(obs.height / 15);
+            for (let i = 0; i < lights; i++) {
+                const lightColor = Math.random() > 0.5 ? '#00ff41' : '#ff073a';
+                ctx.fillStyle = lightColor;
+                ctx.fillRect(obs.x + 5, obs.y + 5 + (i * 15), 8, 8);
+                ctx.fillRect(obs.x + obs.width - 13, obs.y + 5 + (i * 15), 8, 8);
+            }
+            
+            // Border glow
+            ctx.strokeStyle = 'rgba(0, 255, 249, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+        }
+        
+        // Collision detection
+        function checkCollision(player, obstacle) {
+            return player.x < obstacle.x + obstacle.width &&
+                   player.x + player.width > obstacle.x &&
+                   player.y < obstacle.y + obstacle.height &&
+                   player.y + player.height > obstacle.y;
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!game.running) return;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw ground line
+            ctx.strokeStyle = 'rgba(0, 255, 249, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 180);
+            ctx.lineTo(800, 180);
+            ctx.stroke();
+            
+            // Update player physics
+            game.player.velocityY += game.gravity;
+            game.player.y += game.player.velocityY;
+            
+            // Ground collision
+            if (game.player.y >= 150) {
+                game.player.y = 150;
+                game.player.velocityY = 0;
+                game.player.jumping = false;
+            }
+            
+            // Spawn obstacles
+            game.frameCount++;
+            if (game.frameCount % 120 === 0) {
+                const height = 40 + Math.random() * 40;
+                game.obstacles.push({
+                    x: 800,
+                    y: 180 - height,
+                    width: 30,
+                    height: height
+                });
+            }
+            
+            // Update and draw obstacles
+            const speed = 4 * game.speedMultiplier;
+            for (let i = game.obstacles.length - 1; i >= 0; i--) {
+                const obs = game.obstacles[i];
+                obs.x -= speed;
+                
+                // Check collision
+                if (checkCollision(game.player, obs)) {
+                    game.gameOver = true;
+                    game.running = false;
+                    
+                    // Update high score
+                    if (game.score > game.highScore) {
+                        game.highScore = game.score;
+                        localStorage.setItem('glitchRealm_highScore', game.highScore);
+                        highScoreEl.textContent = game.highScore;
+                    }
+                    
+                    // Game over text
+                    ctx.fillStyle = '#ff0080';
+                    ctx.font = 'bold 32px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('GAME OVER', 400, 80);
+                    ctx.font = '16px monospace';
+                    ctx.fillStyle = '#00fff9';
+                    ctx.fillText('Press SPACE or TAP to restart', 400, 110);
+                    return;
+                }
+                
+                // Remove off-screen obstacles and increment score
+                if (obs.x + obs.width < 0) {
+                    game.obstacles.splice(i, 1);
+                    game.score++;
+                    scoreEl.textContent = game.score;
+                } else {
+                    drawObstacle(obs);
+                }
+            }
+            
+            // Draw player
+            drawPlayer();
+            
+            // Continue loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Jump function
+        function jump() {
+            if (!game.player.jumping && game.player.y >= 150) {
+                game.player.velocityY = game.jumpStrength;
+                game.player.jumping = true;
+            }
+        }
+        
+        // Start/restart game
+        function startGame() {
+            game.running = true;
+            game.gameOver = false;
+            game.score = 0;
+            game.frameCount = 0;
+            game.obstacles = [];
+            game.player.y = 150;
+            game.player.velocityY = 0;
+            game.player.jumping = false;
+            game.speedMultiplier = 1;
+            scoreEl.textContent = '0';
+            gameLoop();
+        }
+        
+        // Konami code easter egg
+        let konamiCode = [];
+        const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        
+        // Input handlers
+        document.addEventListener('keydown', function(e) {
+            // Konami code
+            konamiCode.push(e.key);
+            konamiCode = konamiCode.slice(-10);
+            if (konamiCode.join('') === konamiSequence.join('')) {
+                if (game.running) {
+                    game.speedMultiplier = 2;
+                    canvas.style.filter = 'hue-rotate(180deg)';
+                }
+            }
+            
+            // Jump
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!game.running) {
+                    startGame();
+                } else {
+                    jump();
+                }
+            }
+        });
+        
+        canvas.addEventListener('click', function() {
+            if (!game.running) {
+                startGame();
+            } else {
+                jump();
+            }
+        });
+        
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (!game.running) {
+                startGame();
+            } else {
+                jump();
+            }
+        });
+        
+        // Initial message
+        ctx.fillStyle = '#00fff9';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Press SPACE or TAP to start', 400, 100);
+    </script>
+</body>
+</html>
