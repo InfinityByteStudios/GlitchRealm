@@ -46,6 +46,87 @@ function formatDate(timestamp) {
   });
 }
 
+function updateSEOMetaTags(article) {
+  // Update page title
+  document.title = `${article.title} - GlitchRealm News`;
+  
+  // Create or update meta description
+  const description = article.summary || article.content?.substring(0, 160) || 'Latest news and updates from GlitchRealm - your cyberpunk browser gaming platform.';
+  updateMetaTag('name', 'description', description);
+  
+  // Update keywords from tags and categories
+  const keywords = [...(article.tags || []), ...(article.categories || []), 'GlitchRealm', 'cyberpunk games', 'browser gaming'].join(', ');
+  updateMetaTag('name', 'keywords', keywords);
+  
+  // Update canonical URL
+  const articleUrl = `https://glitchrealm.ca/news/news-article.html?id=${article.id}`;
+  updateLinkTag('canonical', articleUrl);
+  
+  // Update Open Graph tags
+  updateMetaTag('property', 'og:title', `${article.title} - GlitchRealm News`);
+  updateMetaTag('property', 'og:description', description);
+  updateMetaTag('property', 'og:url', articleUrl);
+  if (article.coverImageUrl) {
+    updateMetaTag('property', 'og:image', article.coverImageUrl);
+  }
+  
+  // Update Twitter Card tags
+  updateMetaTag('name', 'twitter:title', `${article.title} - GlitchRealm News`);
+  updateMetaTag('name', 'twitter:description', description);
+  if (article.coverImageUrl) {
+    updateMetaTag('name', 'twitter:image', article.coverImageUrl);
+  }
+  
+  // Add article specific meta tags
+  if (article.authorUsername) {
+    updateMetaTag('property', 'article:author', article.authorUsername);
+  }
+  if (article.publishedAt?.toDate) {
+    updateMetaTag('property', 'article:published_time', article.publishedAt.toDate().toISOString());
+  }
+  if (article.lastEditedAt?.toDate) {
+    updateMetaTag('property', 'article:modified_time', article.lastEditedAt.toDate().toISOString());
+  }
+  if (article.categories?.length) {
+    article.categories.forEach(category => {
+      addMetaTag('property', 'article:section', category);
+    });
+  }
+  if (article.tags?.length) {
+    article.tags.forEach(tag => {
+      addMetaTag('property', 'article:tag', tag);
+    });
+  }
+}
+
+function updateMetaTag(attribute, attributeValue, content) {
+  let meta = document.querySelector(`meta[${attribute}="${attributeValue}"]`);
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.setAttribute(attribute, attributeValue);
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute('content', content);
+}
+
+function addMetaTag(attribute, attributeValue, content) {
+  // For tags that can have multiple instances (like article:tag)
+  const meta = document.createElement('meta');
+  meta.setAttribute(attribute, attributeValue);
+  meta.setAttribute('content', content);
+  document.head.appendChild(meta);
+}
+
+function updateLinkTag(rel, href) {
+  let link = document.querySelector(`link[rel="${rel}"]`);
+  if (!link) {
+    link = document.createElement('link');
+    link.setAttribute('rel', rel);
+    document.head.appendChild(link);
+  }
+  link.setAttribute('href', href);
+}
+
 function updateArticleActions() {
   const actionsContainer = document.getElementById('article-actions');
   if (!actionsContainer) return;
@@ -157,14 +238,41 @@ async function loadArticle(){
     const data = snap.data();
     currentArticle = { id, ...data };
     
+    // Update SEO meta tags with article data
+    updateSEOMetaTags(currentArticle);
+    
     document.getElementById('article-title').textContent = data.title || 'Untitled';
     
     // Check if author is verified
     const authorIsVerified = data.authorUid ? await isVerifiedWriter(data.authorUid) : false;
     
-    // Build meta line with verified writer badge and proper casing
+    // Fetch author avatar if available
+    let authorAvatar = '';
+    if (data.authorUid) {
+      try {
+        // Dynamically import Firestore functions
+        const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const db = getFirestore(window.firebaseApp);
+        const userDoc = doc(db, 'users', data.authorUid);
+        const userData = await getDoc(userDoc);
+        if (userData.exists()) {
+          const avatarUrl = userData.data().avatarUrl;
+          if (avatarUrl) {
+            authorAvatar = avatarUrl;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch author avatar:', e);
+      }
+    }
+    
+    // Build meta line with avatar, verified writer badge and proper casing
     let metaHTML = '';
     if (data.authorUsername) {
+      // Add avatar if available
+      if (authorAvatar) {
+        metaHTML += `<img src="${escapeHTML(authorAvatar)}" alt="${escapeHTML(data.authorUsername)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,255,249,0.3);margin-right:6px;">`;
+      }
       metaHTML += `<span class="author-name">By ${escapeHTML(data.authorUsername)}</span>`;
       if (authorIsVerified) {
         metaHTML += `<span class="verified-badge" title="Verified Writer" aria-label="Verified Writer"><svg viewBox="0 0 24 24"><defs><linearGradient id="blueGradientArticle" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0099ff;stop-opacity:1"/><stop offset="100%" style="stop-color:#00d4ff;stop-opacity:1"/></linearGradient></defs><path d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z"/></svg></span>`;
@@ -201,11 +309,11 @@ async function loadArticle(){
       cover.innerHTML = `<img src="${data.coverImageUrl}" alt="Cover">`;
     }
     
-    // Show summary if available
+    // Show summary if available (with markdown support)
     if (data.summary) {
       const summaryEl = document.createElement('div');
       summaryEl.className = 'article-summary';
-      summaryEl.textContent = data.summary;
+      summaryEl.innerHTML = renderMarkdown(escapeHTML(data.summary));
       document.getElementById('article-content').before(summaryEl);
     }
 
@@ -225,6 +333,48 @@ async function loadArticle(){
 
     const tagsEl = document.getElementById('article-tags');
     tagsEl.innerHTML = (data.tags||[]).map(t=>`<span>${t}</span>`).join('');
+    
+    // Display sources/citations if any
+    if (data.sources && data.sources.length > 0) {
+      const sourcesContainer = document.createElement('div');
+      sourcesContainer.className = 'article-sources';
+      sourcesContainer.style.cssText = 'margin:40px 0; padding:24px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.2); border-radius:12px;';
+      
+      const citationFormat = data.citationFormat || 'simple';
+      const sourcesHTML = data.sources.map((source, index) => {
+        let citation = '';
+        
+        switch(citationFormat) {
+          case 'apa':
+            // APA: Author (Year). Title. URL
+            citation = `${escapeHTML(source.author)}${source.year ? ` (${source.year})` : ''}. <em>${escapeHTML(source.title)}</em>. <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer" style="color:#00fff9; text-decoration:underline;">${escapeHTML(source.url)}</a>`;
+            break;
+          case 'mla':
+            // MLA: Author. "Title." URL, Year.
+            citation = `${escapeHTML(source.author)}. "${escapeHTML(source.title)}." <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer" style="color:#00fff9; text-decoration:underline;">${escapeHTML(source.url)}</a>${source.year ? `, ${source.year}` : ''}.`;
+            break;
+          case 'chicago':
+            // Chicago: Author. "Title." Accessed URL. Year.
+            citation = `${escapeHTML(source.author)}. "${escapeHTML(source.title)}." Accessed <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer" style="color:#00fff9; text-decoration:underline;">${escapeHTML(source.url)}</a>${source.year ? `. ${source.year}` : ''}.`;
+            break;
+          case 'simple':
+          default:
+            // Simple: Title - URL
+            citation = `<strong>${escapeHTML(source.title)}</strong> - <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer" style="color:#00fff9; text-decoration:underline;">${escapeHTML(source.url)}</a>`;
+            break;
+        }
+        
+        return `<div style="margin-bottom:12px; padding-left:20px; position:relative; font-size:0.85rem; line-height:1.6; color:#cfe2e6;">
+          <span style="position:absolute; left:0; color:#00f5ff; font-weight:600;">[${index + 1}]</span>
+          ${citation}
+        </div>`;
+      }).join('');
+      
+      sourcesContainer.innerHTML = `<h3 style="font-family:Orbitron;font-size:1rem;color:#00f5ff;margin:0 0 16px;letter-spacing:0.8px;">Sources & References</h3>${sourcesHTML}`;
+      
+      // Insert before tags
+      tagsEl.before(sourcesContainer);
+    }
     
     // Display social media links if any
     if (data.socialLinks && data.socialLinks.length > 0) {

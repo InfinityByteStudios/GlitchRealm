@@ -77,23 +77,6 @@
       
       console.log('[Firebase Core] Initialization complete');
       
-      // Initialize Gravatar integration (async, non-blocking)
-      import('./gravatar-integration.js')
-        .then((gravatarModule) => {
-          // Expose Gravatar functions globally for testing/debugging
-          window.GravatarAPI = gravatarModule;
-          window.testGravatarEnrichment = gravatarModule.testGravatarEnrichment;
-          window.getGravatarProfile = gravatarModule.getGravatarProfile;
-          window.getGravatarAvatarUrl = gravatarModule.getGravatarAvatarUrl;
-          
-          // Initialize the integration
-          gravatarModule.initGravatarIntegration();
-          console.log('[Firebase Core] Gravatar API exposed globally - try window.testGravatarEnrichment()');
-        })
-        .catch(err => {
-          console.warn('[Firebase Core] Gravatar integration failed to load:', err);
-        });
-      
     } catch(e){ 
       console.warn('[Firebase Core] Init failed:', e); 
     }
