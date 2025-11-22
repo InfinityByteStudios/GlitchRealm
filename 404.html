@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Article Not Found | GlitchRealm News</title>
+    
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="news.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase Core -->
+    <script type="module" src="../firebase-core.js"></script>
+    
+    <style>
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .error-content {
+            max-width: 600px;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-cyan);
+            text-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+            margin: 0;
+            line-height: 1;
+        }
+        
+        .error-title {
+            font-size: 2rem;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--white);
+            margin: 1rem 0;
+        }
+        
+        .error-message {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 1.5rem 0;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .error-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            text-decoration: none;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .error-btn-primary {
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            background: transparent;
+        }
+        
+        .error-btn-primary:hover {
+            background: var(--primary-cyan);
+            color: #0a0a0a;
+        }
+        
+        .error-btn-secondary {
+            color: var(--white);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: transparent;
+        }
+        
+        .error-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--white);
+        }
+        
+        .glitch-404 {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .glitch-404::before,
+        .glitch-404::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch-404::before {
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+            color: var(--primary-magenta);
+            z-index: -1;
+        }
+        
+        .glitch-404::after {
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+            color: var(--primary-cyan);
+            z-index: -2;
+        }
+        
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(40% 0 61% 0); transform: translate(0); }
+            20% { clip-path: inset(92% 0 1% 0); transform: translate(-2px, 2px); }
+            40% { clip-path: inset(43% 0 1% 0); transform: translate(-2px, -2px); }
+            60% { clip-path: inset(25% 0 58% 0); transform: translate(2px, 2px); }
+            80% { clip-path: inset(54% 0 7% 0); transform: translate(2px, -2px); }
+            100% { clip-path: inset(58% 0 43% 0); transform: translate(0); }
+        }
+        
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(25% 0 58% 0); transform: translate(0); }
+            20% { clip-path: inset(54% 0 7% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(58% 0 43% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(40% 0 61% 0); transform: translate(2px, 2px); }
+            80% { clip-path: inset(92% 0 1% 0); transform: translate(-2px, -2px); }
+            100% { clip-path: inset(43% 0 1% 0); transform: translate(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 5rem;
+            }
+            
+            .error-title {
+                font-size: 1.5rem;
+            }
+            
+            .error-actions {
+                flex-direction: column;
+            }
+            
+            .error-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation" aria-hidden="true"></div>
+    
+    <div id="header-placeholder"></div>
+    
+    <main class="error-container">
+        <div class="error-content">
+            <h1 class="error-code glitch-404" data-text="404">404</h1>
+            <h2 class="error-title">Article Not Found</h2>
+            <p class="error-message">
+                The article you're looking for doesn't exist or may have been removed. 
+                Check out our latest news or return to the news homepage.
+            </p>
+            <div class="error-actions">
+                <a href="/news/" class="error-btn error-btn-primary">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                        <path d="M6 1L1 6L6 11L6 7L11 7L11 5L6 5L6 1Z"/>
+                    </svg>
+                    Back to News
+                </a>
+                <a href="/" class="error-btn error-btn-secondary">Main Site</a>
+                <a href="../contact.html" class="error-btn error-btn-secondary">Contact Support</a>
+            </div>
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+    
+    <script src="script.js" defer></script>
+    <script type="module" src="../header-avatar-integration.js"></script>
+</body>
+</html>
