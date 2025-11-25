@@ -1,34 +1,34 @@
-<nav class="nav">
+<nav class="nav" role="navigation" aria-label="Main navigation">
     <div class="nav-container">
-    <a href="https://glitchrealm.ca/" class="logo">
-            <span class="glitch" data-text="GlitchRealm">GlitchRealm</span>
-            <span class="games-text">News</span>
+    <a href="/index.html" class="logo" aria-label="GlitchRealm Games - Home">
+            <span class="glitch" data-text="GlitchRealm" aria-hidden="true">GlitchRealm</span>
+            <span class="games-text" aria-hidden="true">Games</span>
         </a>
         
         <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
-            <span class="hamburger-line"></span>
-            <span class="hamburger-line"></span>
-            <span class="hamburger-line"></span>
+        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle mobile menu" aria-expanded="false" aria-controls="nav-links">
+            <span class="hamburger-line" aria-hidden="true"></span>
+            <span class="hamburger-line" aria-hidden="true"></span>
+            <span class="hamburger-line" aria-hidden="true"></span>
         </button>
         
-        <div class="nav-links" id="nav-links">
-            <a href="index.html" class="nav-link">News</a>
-            <a href="https://glitchrealm.ca/" class="nav-link">Home</a>
-            <a href="https://glitchrealm.ca/games.html" class="nav-link">Games</a>
-            <a href="https://glitchrealm.ca/about.html" class="nav-link" title="About GlitchRealm Games - Learn about our indie gaming platform">About</a>
-            <a href="https://glitchrealm.ca/contact.html" class="nav-link">Contact</a>
-            <a href="https://glitchrealm.ca/support.html" class="nav-link" id="support-nav-link">Support</a>
+        <div class="nav-links" id="nav-links" role="menubar">
+            <a href="/index.html" class="nav-link" role="menuitem">Home</a>
+            <a href="/games.html" class="nav-link" role="menuitem">Games</a>
+            <a href="/about.html" class="nav-link" role="menuitem" title="About GlitchRealm Games - Learn about our indie gaming platform">About</a>
+            <a href="/contact.html" class="nav-link" role="menuitem">Contact</a>
+            <a href="/support.html" class="nav-link" role="menuitem" id="support-nav-link">Support</a>
             <div class="nav-dropdown">
-                <button class="nav-link dropdown-trigger" type="button">More <span class="nav-dropdown-arrow">▼</span></button>
-                <div class="nav-dropdown-menu">
-                    <a href="https://glitchrealm.ca/community.html" class="nav-dropdown-link">Community</a>
-                    <a href="https://glitchrealm.ca/projects.html" class="nav-dropdown-link">Our Projects</a>
-                    <a href="https://glitchrealm.ca/user-portal.html" class="nav-dropdown-link">User Portal</a>
+                <button class="nav-link dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="more-menu">More <span class="nav-dropdown-arrow" aria-hidden="true">▼</span></button>
+                <div class="nav-dropdown-menu" id="more-menu" role="menu" aria-hidden="true">
+                    <a href="/community.html" class="nav-dropdown-link" role="menuitem">Community</a>
+                    <a href="/projects.html" class="nav-dropdown-link" role="menuitem">Our Projects</a>
+                    <a href="/user-portal.html" class="nav-dropdown-link" role="menuitem">User Portal</a>
+                    <a href="/developer-dashboard.html" class="nav-dropdown-link" role="menuitem" id="developer-dashboard-link" style="display: none;">Developer Dashboard</a>
                 </div>
             </div>
-            <a href="https://auth.glitchrealm.ca/" id="sign-in-btn" class="btn btn-primary nav-signin">Sign In</a>
-            <div id="user-profile" class="user-profile" style="display: none;">
+            <a href="https://auth.glitchrealm.ca/" id="sign-in-btn" class="btn btn-primary nav-signin" aria-label="Sign in to your account">Sign In</a>
+            <div id="user-profile" class="user-profile" style="display: none;" role="navigation" aria-label="User account menu">
                 <div class="profile-dropdown">
                     <button class="profile-trigger">
                         <span id="notification-count-badge" class="notification-count-badge" style="display: none;">0</span>
@@ -140,9 +140,9 @@
         <div class="terms-popup-content">
             <p>
                 We have updated our 
-                <a href="https://glitchrealm.ca/terms-of-service.html" class="popup-inline-link">Terms of Service</a>
+                <a href="/terms-of-service.html" class="popup-inline-link">Terms of Service</a>
                 and 
-                <a href="https://glitchrealm.ca/privacy-policy.html" class="popup-inline-link">Privacy Policy</a>.
+                <a href="/privacy-policy.html" class="popup-inline-link">Privacy Policy</a>.
                 Please review the changes.
             </p>
         </div>
@@ -303,7 +303,7 @@
 
             <!-- Terms Agreement -->
             <div class="terms-agreement">
-                <p>By signing in / signing up you agree to our <a href="https://glitchrealm.ca/terms-of-service.html" target="_blank">Terms of Service</a> and <a href="https://glitchrealm.ca/privacy-policy.html" target="_blank">Privacy Policy</a>.</p>
+                <p>By signing in / signing up you agree to our <a href="/terms-of-service.html" target="_blank">Terms of Service</a> and <a href="/privacy-policy.html" target="_blank">Privacy Policy</a>.</p>
             </div>
         </div>
 
