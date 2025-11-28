@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meiji Restoration Dictionary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: url('Bg.PNG') center/cover no-repeat fixed;
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .book-container {
+            perspective: 1500px;
+            width: 450px;
+            height: 600px;
+        }
+
+        .book {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #f9f6f0;
+            border: 2px solid #8b4513;
+            border-radius: 0 10px 10px 0;
+            padding: 60px 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backface-visibility: hidden;
+            transform-origin: left;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            transform: rotateY(0deg);
+        }
+
+        .page.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: #c41e3a;
+            color: #ffffff;
+            border-radius: 10px;
+        }
+
+        .cover h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .cover h2 {
+            font-size: 1.5em;
+            font-weight: normal;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .cover .japanese {
+            font-size: 2em;
+            margin-top: 20px;
+        }
+
+        .word-page h2 {
+            font-size: 1.8em;
+            color: #8b4513;
+            margin-bottom: 5px;
+            border-bottom: 2px solid #d2691e;
+            padding-bottom: 5px;
+        }
+
+        .pronunciation {
+            font-style: italic;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 3px;
+        }
+
+        .pos {
+            color: #999;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+        }
+
+        .definition {
+            font-size: 0.9em;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .example {
+            font-size: 0.85em;
+            line-height: 1.4;
+            color: #555;
+            font-style: italic;
+            padding-left: 15px;
+            border-left: 3px solid #d2691e;
+        }
+
+        .word-image {
+            width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 50px;
+            font-size: 1.2em;
+            color: #999;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 150px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 0.9em;
+            background: #c41e3a;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-family: 'Georgia', serif;
+        }
+
+        .btn:hover {
+            background: #a01729;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @media (max-width: 768px) {
+            .book-container {
+                width: 90vw;
+                height: 70vh;
+            }
+
+            .page {
+                padding: 40px 30px;
+            }
+
+            .cover h1 {
+                font-size: 1.8em;
+            }
+
+            .word-page h2 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-container">
+        <div class="book" id="book">
+            <!-- Cover Page -->
+            <div class="page cover" data-page="0">
+                <h1>A Pocket Dictionary</h1>
+                <h2>of the</h2>
+                <h1>Meiji Transformation</h1>
+                <p style="margin-top: 30px; font-size: 1.2em;">Five Essential Terms for Understanding<br>Japan's Great Renewal</p>
+                <div class="japanese">文明開化</div>
+            </div>
+
+            <!-- Page 1: Imperialift -->
+            <div class="page word-page" data-page="1">
+                <h2>Imperialift</h2>
+                <div class="pronunciation">[im-peer-ee-al-lift]</div>
+                <div class="pos">noun</div>
+                <img src="Imperialift.png" alt="Imperialift" class="word-image">
+                <div class="definition">
+                    A rapid rise in national power caused by imperial influence and modernization during the Meiji era.
+                </div>
+                <div class="example">
+                    The restoration of Emperor Meiji in 1868 triggered an unprecedented imperialift, propelling Japan from feudal isolation to industrial prominence within a single generation.
+                </div>
+                <div class="page-number">1</div>
+            </div>
+
+            <!-- Page 2: Nationlock -->
+            <div class="page word-page" data-page="2">
+                <h2>Nationlock</h2>
+                <div class="pronunciation">[nay-shun-lok]</div>
+                <div class="pos">noun</div>
+                <img src="Nationlock.png" alt="Nationlock" class="word-image">
+                <div class="definition">
+                    A state in which a country closes itself to outside contact to protect culture and authority, like Japan under the exclusion laws.
+                </div>
+                <div class="example">
+                    For over two centuries, the Tokugawa shogunate maintained a strict nationlock, permitting trade only through the controlled port of Nagasaki and forbidding Japanese citizens from traveling abroad.
+                </div>
+                <div class="page-number">2</div>
+            </div>
+
+            <!-- Page 3: Oligrachange -->
+            <div class="page word-page" data-page="3">
+                <h2>Oligrachange</h2>
+                <div class="pronunciation">[ol-ih-gra-chaynj]</div>
+                <div class="pos">noun</div>
+                <img src="Oligrachange.png" alt="Oligrachange" class="word-image">
+                <div class="definition">
+                    Major reforms directed by a small ruling group, reflecting the Meiji oligarchy transforming government and society.
+                </div>
+                <div class="example">
+                    The oligrachange of the 1870s saw powerful clan leaders abolish the feudal domains, establish a conscript army, and introduce Western legal codes, all decisions made by an elite circle around the imperial throne.
+                </div>
+                <div class="page-number">3</div>
+            </div>
+
+            <!-- Page 4: Shogunization -->
+            <div class="page word-page" data-page="4">
+                <h2>Shogunization</h2>
+                <div class="pronunciation">[show-gun-ih-zay-shun]</div>
+                <div class="pos">noun</div>
+                <img src="Shogunization.png" alt="Shogunization" class="word-image">
+                <div class="definition">
+                    A period of strict control and isolation shaped by military leadership, similar to the shogunate enforcing limited foreign contact.
+                </div>
+                <div class="example">
+                    The era of shogunization ended abruptly when Commodore Perry's black ships arrived in 1853, exposing the vulnerability of Japan's self-imposed seclusion.
+                </div>
+                <div class="page-number">4</div>
+            </div>
+
+            <!-- Page 5: Treatyshift -->
+            <div class="page word-page" data-page="5">
+                <h2>Treatyshift</h2>
+                <div class="pronunciation">[tree-tee-shift]</div>
+                <div class="pos">noun</div>
+                <img src="Treatyshift.png" alt="Treatyshift" class="word-image">
+                <div class="definition">
+                    A forced change in national direction after accepting unequal treaties that reduced independence and opened ports.
+                </div>
+                <div class="example">
+                    The humiliating treatyshift imposed by Western powers, granting them extraterritoriality and limiting Japanese tariffs, became a driving force behind the nation's desperate rush to modernize and renegotiate as equals.
+                </div>
+                <div class="page-number">5</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="prevBtn" onclick="previousPage()">← Previous</button>
+        <button class="btn" id="nextBtn" onclick="nextPage()">Next →</button>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        const totalPages = 5;
+
+        function updateBook() {
+            const pages = document.querySelectorAll('.page');
+            
+            pages.forEach((page, index) => {
+                if (index < currentPage) {
+                    page.classList.add('flipped');
+                    page.style.zIndex = index;
+                } else {
+                    page.classList.remove('flipped');
+                    page.style.zIndex = totalPages - index;
+                }
+            });
+
+            // Update button states
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                updateBook();
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                updateBook();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                nextPage();
+            } else if (e.key === 'ArrowLeft') {
+                previousPage();
+            }
+        });
+
+        // Initialize
+        updateBook();
+    </script>
+</body>
+</html>
