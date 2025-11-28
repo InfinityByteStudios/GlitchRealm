@@ -178,3 +178,5 @@ netlify.toml              # Deployment config
 **When in doubt**: Check `firebase-core.js` for initialization patterns, `firestore.rules` for data structure/validation, and `styles.css` for theme variables. Use semantic search for cross-file patterns.
 
 DO NOT EVER MAKE A .MD DO NOT CREATE TEST PAGES EITHER. Make sure to USE CLI to submit firestore rules changes.
+
+NEVER EVER TOUCH THE SCHOOL FOLDER
