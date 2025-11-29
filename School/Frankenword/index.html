@@ -192,6 +192,75 @@
             transform: none;
         }
 
+        .word-image {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .word-image:hover {
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+        }
+
+        .image-tooltip {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #c41e3a;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.65em;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .word-image-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .word-image-container.show-tooltip .image-tooltip {
+            opacity: 1;
+        }
+
         @media (max-width: 768px) {
             .book-container {
                 width: 90vw;
@@ -232,13 +301,17 @@
                 <h2>Imperialift</h2>
                 <div class="pronunciation">[im-peer-ee-al-lift]</div>
                 <div class="pos">noun</div>
-                <img src="Imperialift.png" alt="Imperialift" class="word-image">
+                <div class="word-image-container show-tooltip">
+                    <div class="image-tooltip">Click to enlarge (disappears after 1st click)</div>
+                    <img src="Imperialift.png" alt="Imperialift" class="word-image">
+                </div>
                 <div class="definition">
-                    A rapid rise in national power caused by imperial influence and modernization during the Meiji era.
+                    *A quick rise in a country's power caused by the emperor and making things modern during the Meiji time.
                 </div>
                 <div class="example">
-                    The restoration of Emperor Meiji in 1868 triggered an unprecedented imperialift, propelling Japan from feudal isolation to industrial prominence within a single generation.
+                    When Emperor Meiji came to power in 1868, Japan went through an imperialift, changing from a closed, old-fashioned country to a modern industrial nation in just one generation.
                 </div>
+                <p style="font-size: 0.75em; color: #999; margin-top: 15px; font-style: italic;">*Learned from research</p>
                 <div class="page-number">1</div>
             </div>
 
@@ -247,13 +320,17 @@
                 <h2>Nationlock</h2>
                 <div class="pronunciation">[nay-shun-lok]</div>
                 <div class="pos">noun</div>
-                <img src="Nationlock.png" alt="Nationlock" class="word-image">
+                <div class="word-image-container show-tooltip">
+                    <div class="image-tooltip">Click to enlarge (disappears after 1st click)</div>
+                    <img src="Nationlock.png" alt="Nationlock" class="word-image">
+                </div>
                 <div class="definition">
-                    A state in which a country closes itself to outside contact to protect culture and authority, like Japan under the exclusion laws.
+                    *When a country closes itself off from the outside world to protect its culture and power, like Japan did with its isolation laws.
                 </div>
                 <div class="example">
-                    For over two centuries, the Tokugawa shogunate maintained a strict nationlock, permitting trade only through the controlled port of Nagasaki and forbidding Japanese citizens from traveling abroad.
+                    For over 200 years, the Tokugawa shogunate kept a strict nationlock, only allowing trade through one port in Nagasaki and not letting Japanese people travel to other countries.
                 </div>
+                <p style="font-size: 0.75em; color: #999; margin-top: 15px; font-style: italic;">*Learned from research</p>
                 <div class="page-number">2</div>
             </div>
 
@@ -262,13 +339,17 @@
                 <h2>Oligrachange</h2>
                 <div class="pronunciation">[ol-ih-gra-chaynj]</div>
                 <div class="pos">noun</div>
-                <img src="Oligrachange.png" alt="Oligrachange" class="word-image">
+                <div class="word-image-container show-tooltip">
+                    <div class="image-tooltip">Click to enlarge (disappears after 1st click)</div>
+                    <img src="Oligrachange.png" alt="Oligrachange" class="word-image">
+                </div>
                 <div class="definition">
-                    Major reforms directed by a small ruling group, reflecting the Meiji oligarchy transforming government and society.
+                    *Big changes made by a small group of leaders, like how the Meiji rulers changed the government and society.
                 </div>
                 <div class="example">
-                    The oligrachange of the 1870s saw powerful clan leaders abolish the feudal domains, establish a conscript army, and introduce Western legal codes, all decisions made by an elite circle around the imperial throne.
+                    During the oligrachange of the 1870s, powerful clan leaders got rid of the old feudal lands, created a required army service, and brought in Western laws, with all decisions made by a small group of leaders around the emperor.
                 </div>
+                <p style="font-size: 0.75em; color: #999; margin-top: 15px; font-style: italic;">*Learned from research</p>
                 <div class="page-number">3</div>
             </div>
 
@@ -277,13 +358,17 @@
                 <h2>Shogunization</h2>
                 <div class="pronunciation">[show-gun-ih-zay-shun]</div>
                 <div class="pos">noun</div>
-                <img src="Shogunization.png" alt="Shogunization" class="word-image">
+                <div class="word-image-container show-tooltip">
+                    <div class="image-tooltip">Click to enlarge (disappears after 1st click)</div>
+                    <img src="Shogunization.png" alt="Shogunization" class="word-image">
+                </div>
                 <div class="definition">
-                    A period of strict control and isolation shaped by military leadership, similar to the shogunate enforcing limited foreign contact.
+                    *A time of strict control and isolation led by military leaders, like when the shogunate kept Japan separate from other countries.
                 </div>
                 <div class="example">
-                    The era of shogunization ended abruptly when Commodore Perry's black ships arrived in 1853, exposing the vulnerability of Japan's self-imposed seclusion.
+                    The era of shogunization ended suddenly when Commodore Perry's black ships came to Japan in 1853, showing how weak Japan had become by keeping itself isolated.
                 </div>
+                <p style="font-size: 0.75em; color: #999; margin-top: 15px; font-style: italic;">*Learned from research</p>
                 <div class="page-number">4</div>
             </div>
 
@@ -292,13 +377,17 @@
                 <h2>Treatyshift</h2>
                 <div class="pronunciation">[tree-tee-shift]</div>
                 <div class="pos">noun</div>
-                <img src="Treatyshift.png" alt="Treatyshift" class="word-image">
+                <div class="word-image-container show-tooltip">
+                    <div class="image-tooltip">Click to enlarge (disappears after 1st click)</div>
+                    <img src="Treatyshift.png" alt="Treatyshift" class="word-image">
+                </div>
                 <div class="definition">
-                    A forced change in national direction after accepting unequal treaties that reduced independence and opened ports.
+                    *A forced change in a country's path after agreeing to unfair treaties that took away freedom and opened ports to foreigners.
                 </div>
                 <div class="example">
-                    The humiliating treatyshift imposed by Western powers, granting them extraterritoriality and limiting Japanese tariffs, became a driving force behind the nation's desperate rush to modernize and renegotiate as equals.
+                    The embarrassing treatyshift forced by Western countries, giving them special rights and limiting Japan's taxes on imports, made Japan rush to modernize so it could renegotiate these treaties as an equal nation.
                 </div>
+                <p style="font-size: 0.75em; color: #999; margin-top: 15px; font-style: italic;">*Learned from research</p>
                 <div class="page-number">5</div>
             </div>
         </div>
@@ -307,6 +396,11 @@
     <div class="controls">
         <button class="btn" id="prevBtn" onclick="previousPage()">← Previous</button>
         <button class="btn" id="nextBtn" onclick="nextPage()">Next →</button>
+    </div>
+
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
     </div>
 
     <script>
@@ -356,6 +450,23 @@
 
         // Initialize
         updateBook();
+
+        // Image modal functionality
+        document.querySelectorAll('.word-image').forEach(img => {
+            img.addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('imageModal').style.display = 'flex';
+                document.getElementById('modalImage').src = this.src;
+                // Hide all tooltips after first click
+                document.querySelectorAll('.word-image-container').forEach(container => {
+                    container.classList.remove('show-tooltip');
+                });
+            });
+        });
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
