@@ -351,9 +351,9 @@
                 <div style="max-width: 500px; margin: 0 auto 3rem; text-align: center;">
                     <h3 class="section-title" style="font-size: 1.3rem; margin-bottom: 1rem;">Send Us a Message</h3>
                     <p style="opacity: 0.85; font-size: 0.9rem; margin-bottom: 1.5rem;">Got a question or want to work together?</p>
-                    <a href="mailto:contact@glitchrealm.ca" class="btn-portal" style="display: inline-block; padding: 0.9rem 1.8rem; background: #0a0a0a; border: 2px solid var(--primary-cyan); border-radius: 6px; color: var(--primary-cyan); font-weight: 600; text-decoration: none; transition: all 0.3s;">
+                    <button onclick="document.getElementById('contact-modal').style.display='flex';" class="btn-portal" style="padding: 0.9rem 1.8rem; background: #0a0a0a; border: 2px solid var(--primary-cyan); border-radius: 6px; color: var(--primary-cyan); font-weight: 600; cursor: pointer; transition: all 0.3s;">
                         Contact Us
-                    </a>
+                    </button>
                 </div>
 
                 <div class="contact-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">                    
@@ -498,84 +498,8 @@
                         </a>
                     </div>
                 </div>
-                <div style="max-width: 500px; margin: 0 auto;">
-                    <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <h3 class="section-title" style="font-size: 1.3rem;">Send Us a Message</h3>
-                        <p style="opacity: 0.85; font-size: 0.9rem;">Quick message? Use the form below</p>
-                    </div>
+                            
 
-                    <div class="contact-form" id="contact-form" style="background: rgba(0, 255, 249, 0.03); border: 1px solid rgba(0, 255, 249, 0.2); border-radius: 12px; padding: 1.5rem;">
-                        <form name="contact" method="POST" data-netlify="true" netlify data-netlify-honeypot="bot-field" class="neural-form" action="/thank-you">
-                            <!-- Hidden input required for Netlify static form detection -->
-                            <input type="hidden" name="form-name" value="contact" />
-                            <!-- Honeypot field -->
-                            <div style="display:none">
-                                <label>Don’t fill this out: <input name="bot-field" /></label>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="contact-name">Your Name</label>
-                                <input class="form-control" id="contact-name" type="text" name="name" placeholder="Enter your name" required />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="contact-email">Email</label>
-                                <input class="form-control" id="contact-email" type="email" name="email" placeholder="you@example.com" required />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="contact-subject">Subject</label>
-                                <input class="form-control" id="contact-subject" type="text" name="subject" placeholder="What’s this about?" required />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="contact-message">Message</label>
-                                <textarea class="form-control" id="contact-message" name="message" rows="6" placeholder="Write your message..." required></textarea>
-                            </div>
-
-                            <button type="submit" class="btn-portal">Send Message</button>
-                        </form>
-                    </div>
-                </div>
-                <div style="max-width: 500px; margin: 0 auto;">
-                    <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <h3 class="section-title" style="font-size: 1.3rem;">Send Us a Message</h3>
-                        <p style="opacity: 0.85; font-size: 0.9rem;">Quick message? Use the form below</p>
-                    </div>
-
-                    <div class="contact-form" id="contact-form-duplicate" style="background: rgba(0, 255, 249, 0.03); border: 1px solid rgba(0, 255, 249, 0.2); border-radius: 12px; padding: 1.5rem;">
-                        <form name="contact" method="POST" data-netlify="true" netlify data-netlify-honeypot="bot-field" class="neural-form" action="/thank-you">
-                            <!-- Hidden input required for Netlify static form detection -->
-                            <input type="hidden" name="form-name" value="contact" />
-                            <!-- Honeypot field -->
-                            <div style="display:none">
-                                <label>Don't fill this out: <input name="bot-field" /></label>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="contact-name-2">Your Name</label>
-                                <input class="form-control" id="contact-name-2" type="text" name="name" placeholder="Enter your name" required />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="contact-email-2">Email</label>
-                                <input class="form-control" id="contact-email-2" type="email" name="email" placeholder="you@example.com" required />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="contact-subject-2">Subject</label>
-                                <input class="form-control" id="contact-subject-2" type="text" name="subject" placeholder="What's this about?" required />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="contact-message-2">Message</label>
-                                <textarea class="form-control" id="contact-message-2" name="message" rows="6" placeholder="Write your message..." required></textarea>
-                            </div>
-
-                            <button type="submit" class="btn-portal">Send Message</button>
-                        </form>
-                    </div>
-                </div>
             </div>
         </section>
     </main>
@@ -583,6 +507,50 @@
     <div id="footer-placeholder"></div>
             
 
+    <!-- Contact Form Modal -->
+    <div id="contact-modal" class="auth-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="auth-panel" style="max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <span class="glitch" data-text="CONTACT US">CONTACT US</span>
+                </div>
+                <button class="auth-close" onclick="document.getElementById('contact-modal').style.display='none';">
+                    <span class="close-icon">×</span>
+                </button>
+            </div>
+            
+            <div class="auth-content">
+                <form name="contact" method="POST" data-netlify="true" netlify data-netlify-honeypot="bot-field" class="neural-form" action="/thank-you">
+                    <input type="hidden" name="form-name" value="contact" />
+                    <div style="display:none">
+                        <label>Don't fill this out: <input name="bot-field" /></label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contact-name">Your Name</label>
+                        <input class="form-control" id="contact-name" type="text" name="name" placeholder="Enter your name" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contact-email">Email</label>
+                        <input class="form-control" id="contact-email" type="email" name="email" placeholder="you@example.com" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contact-subject">Subject</label>
+                        <input class="form-control" id="contact-subject" type="text" name="subject" placeholder="What's this about?" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contact-message">Message</label>
+                        <textarea class="form-control" id="contact-message" name="message" rows="6" placeholder="Write your message..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-portal">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Account Deletion Confirmation Modal -->
     <div id="delete-account-modal" class="auth-overlay" style="display: none;">
