@@ -1,0 +1,84 @@
+<footer class="footer">
+    <div class="container">
+        <div class="footer-bottom">
+            <p>&copy; 2025 GlitchRealm Games. All rights reserved. | <a href="/pages/misc/privacy-policy.html" style="color: var(--primary-cyan); text-decoration: none;">Privacy Policy</a> | <a href="/pages/misc/terms-of-service.html" style="color: var(--primary-cyan); text-decoration: none;">Terms of Service</a> | <a href="/credits.html" style="color: var(--primary-cyan); text-decoration: none;">Credits</a> | <a href="#" onclick="window.openConsentManager && window.openConsentManager(); return false;" style="color: var(--primary-cyan); text-decoration: none;">Manage consent</a> | <iframe src="https://status.glitchrealm.ca/badge?theme=dark" width="250" height="30" frameborder="0" scrolling="no" style="color-scheme: normal; border: none; vertical-align: middle; margin-left: 8px;"></iframe></p>
+        </div>
+        <div class="netlify-branding">
+            <span>Powered by</span>
+            <a href="https://www.netlify.com" target="_blank" rel="noopener noreferrer" class="netlify-link">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/netlify/netlify-original.svg" alt="Netlify" class="netlify-logo" loading="lazy" decoding="async" width="24" height="24">
+                Netlify
+            </a>
+        </div>
+    </div>
+</footer>
+
+<!-- Chatbot removed from global footer; now only on support.html -->
+
+<!-- Buy Me a Coffee widget now embedded directly per-page (see individual HTML files) -->
+
+<!-- Structured Data: inject JSON-LD into <head> on every page -->
+<script>
+    (function addStructuredData() {
+        try {
+            if (document.getElementById('gr-structured-data')) return;
+            var data = {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "Organization",
+                        "@id": "https://glitchrealm.ca/#organization",
+                        "name": "GlitchRealm",
+                        "alternateName": "GlitchRealm Games",
+                        "url": "https://glitchrealm.ca",
+                        "description": "GlitchRealm is a browser-based gaming platform and community. Play original indie titles, track progress, and connect with fellow players.",
+                                                "logo": {
+                                                    "@type": "ImageObject",
+                                                    "url": "https://glitchrealm.ca/assets/Favicon and Icons/favicon.ico"
+                                                },
+                        "sameAs": [
+                            "https://github.com/InfinityByteStudios",
+                            "https://twitter.com/GlitchRealm",
+                            "https://glitchrealm.itch.io"
+                        ],
+                        "contactPoint": [
+                            {
+                                "@type": "ContactPoint",
+                                "contactType": "customer support",
+                                "email": "glitchrealm@outlook.com"
+                            }
+                        ]
+                    },
+                    {
+                        "@type": "WebSite",
+                        "@id": "https://glitchrealm.ca/#website",
+                        "url": "https://glitchrealm.ca",
+                        "name": "GlitchRealm",
+                        "description": "Cyberpunk-inspired indie games and a friendly gaming community—play in your browser on GlitchRealm.",
+                        "inLanguage": "en",
+                        "publisher": { "@id": "https://glitchrealm.ca/#organization" }
+                    },
+                    {
+                        "@type": "VideoGame",
+                        "@id": "https://glitchrealm.ca/#game-bytesurge",
+                        "name": "ByteSurge",
+                        "url": "https://glitchrealm.ca/Games/ByteSurge/",
+                        "description": "An original browser game available on the GlitchRealm platform.",
+                        "applicationCategory": "Game",
+                        "operatingSystem": "Web",
+                        "inLanguage": "en",
+                        "image": { "@type": "ImageObject", "url": "https://glitchrealm.ca/assets/Favicon and Icons/favicon.ico" },
+                        "author": { "@id": "https://glitchrealm.ca/#organization" },
+                        "publisher": { "@id": "https://glitchrealm.ca/#organization" }
+                    }
+                ]
+            };
+            var el = document.createElement('script');
+            el.type = 'application/ld+json';
+            el.id = 'gr-structured-data';
+            el.text = JSON.stringify(data);
+            (document.head || document.documentElement).appendChild(el);
+        } catch (e) { /* no-op */ }
+    })();
+    // Hint: Use a square-ish transparent logo (>=112x112). If you update it, change the URL above.
+</script>
