@@ -597,13 +597,13 @@
                 
                 // Update info
                 const ownerDisplay = game.ownerUsername || 'Community Creator';
-                const playUrl = game.playUrl || `game-detail.html?id=${gameId}`;
+                const detailUrl = `game-detail.html?id=${gameId}`;
                 
                 infoDiv.innerHTML = `
                     <h3>${game.title || 'Untitled Game'}</h3>
                     <p>${game.description || 'No description available.'}</p>
                     <p class="featured-developer">Made by <strong>${ownerDisplay}</strong></p>
-                    <a href="${playUrl}" target="_blank" rel="noopener noreferrer" class="play-btn" style="margin-top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; text-decoration: none; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-cyan); border: 1px solid var(--primary-cyan); border-radius: 9px; transition: all 0.2s ease;">
+                    <a href="${detailUrl}" class="play-btn" style="margin-top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; text-decoration: none; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-cyan); border: 1px solid var(--primary-cyan); border-radius: 9px; transition: all 0.2s ease;">
                         <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" style="flex-shrink: 0;">
                             <polygon points="0,0 10,6 0,12"/>
                         </svg>
