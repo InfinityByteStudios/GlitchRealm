@@ -528,31 +528,75 @@
             }
         }
         
-        /* High-contrast link styles for policy content */
-        .privacy-content a,
-        .privacy-document a,
-        .privacy-section a {
-            color: #00FFF9 !important; /* bright cyan for dark bg */
-            text-decoration: underline !important;
-            text-decoration-thickness: 2px;
-            text-underline-offset: 2px;
+        /* Policy container styles */
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
         }
-        .privacy-content a:hover,
-        .privacy-document a:hover,
-        .privacy-section a:hover,
-        .privacy-content a:focus,
-        .privacy-document a:focus,
-        .privacy-section a:focus,
-        .privacy-content a:focus-visible,
-        .privacy-document a:focus-visible,
-        .privacy-section a:focus-visible {
-            color: #7AF8FF !important; /* lighter on hover/focus */
-            outline: none;
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
         }
-        .privacy-content a:visited,
-        .privacy-document a:visited,
-        .privacy-section a:visited {
-            color: #35E9FF !important; /* subtle visited distinction */
+        
+        .effective-date {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .policy-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: rgba(0, 255, 249, 0.8);
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .policy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+        }
+        
+        .policy-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+            padding: 0;
+        }
+        
+        .policy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.75rem;
+        }
+        
+        .highlight {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .policy-section a {
+            color: var(--primary-cyan);
+            text-decoration: underline;
+        }
+        
+        .policy-section a:hover {
+            color: rgba(0, 255, 249, 0.8);
         }
     </style>
     
@@ -588,221 +632,221 @@
     <div id="header-placeholder"></div>
 
     <main class="main">
-        <section class="privacy-hero">
+        <section class="games-hero">
             <div class="container">
-                <div class="privacy-header">
-                    <h1 class="privacy-title">
-                        <span class="glitch" data-text="TERMS OF SERVICE">TERMS OF SERVICE</span>
-                    </h1>
-                    <p class="privacy-subtitle">GlitchRealm Games — Last updated: September 30, 2025</p>
-                </div>
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Terms of Service">Terms of Service</span>
+                </h1>
+                <p class="page-subtitle">Rules and Guidelines for Using GlitchRealm</p>
             </div>
         </section>
 
-        <section class="privacy-content">
-            <div class="container">
-                <div class="privacy-document">
-                    
-                    <div class="privacy-section">
-                        <h2 class="section-title">1. Acceptance of Terms</h2>
-                        <p>By accessing or using GlitchRealm Games ("we," "us," or "our") services, you agree to be bound by these Terms of Service. If you do not agree, please discontinue use of our services immediately.</p>
-                    </div>
+        <div class="policy-container">
+            <a href="legal.html" style="display: inline-block; color: var(--primary-cyan); text-decoration: none; margin-bottom: 20px; font-size: 0.9em;">
+                ← Back to Legal Hub
+            </a>
+            <div class="policy-header">
+                <p class="effective-date">Last updated: September 30, 2025</p>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">2. Description of Services</h2>
-                        <p>GlitchRealm Games provides online gaming experiences, including but not limited to browser-based games, user accounts, leaderboards, and related services. We reserve the right to modify, suspend, or discontinue any aspect of our services at any time.</p>
-                    </div>
+            <div class="policy-section">
+                <h2 >1. Acceptance of Terms</h2>
+                <p>By accessing or using GlitchRealm Games ("we," "us," or "our") services, you agree to be bound by these Terms of Service. If you do not agree, please discontinue use of our services immediately.</p>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">3. User Accounts</h2>
-                        <h3 class="subsection-title">3.1 Registration</h3>
-                        <ul>
-                            <li>You may create an account using Google, GitHub, or play anonymously.</li>
-                            <li>You are responsible for maintaining the confidentiality of your account.</li>
-                            <li>You must provide accurate and complete information.</li>
-                            <li>You are responsible for all activities that happen under your account.</li>
-                        </ul>
+            <div class="policy-section">
+                <h2 >2. Description of Services</h2>
+                <p>GlitchRealm Games provides online gaming experiences, including but not limited to browser-based games, user accounts, leaderboards, and related services. We reserve the right to modify, suspend, or discontinue any aspect of our services at any time.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2 >3. User Accounts</h2>
+                <h3 >3.1 Registration</h3>
+                <ul>
+                    <li>You may create an account using Google, GitHub, or play anonymously.</li>
+                    <li>You are responsible for maintaining the confidentiality of your account.</li>
+                    <li>You must provide accurate and complete information.</li>
+                    <li>You are responsible for all activities that happen under your account.</li>
+                </ul>
                         
-                        <h3 class="subsection-title">3.2 Prohibited Uses</h3>
-                        <p>You agree not to:</p>
-                        <ul>
-                            <li>Use the service for unlawful purposes or solicit unlawful acts.</li>
-                            <li>Attempt to gain unauthorized access to our systems.</li>
-                            <li>Interfere with or disrupt the service or its servers.</li>
-                            <li>Create multiple accounts to circumvent restrictions.</li>
-                            <li>Use automated scripts, bots, or similar tools without permission.</li>
-                            <li>Harass, abuse, or harm other users.</li>
-                            <li>Upload malicious code or compromise service security.</li>
-                        </ul>
-                    </div>
+                <h3 >3.2 Prohibited Uses</h3>
+                <p>You agree not to:</p>
+                <ul>
+                    <li>Use the service for unlawful purposes or solicit unlawful acts.</li>
+                    <li>Attempt to gain unauthorized access to our systems.</li>
+                    <li>Interfere with or disrupt the service or its servers.</li>
+                    <li>Create multiple accounts to circumvent restrictions.</li>
+                    <li>Use automated scripts, bots, or similar tools without permission.</li>
+                    <li>Harass, abuse, or harm other users.</li>
+                    <li>Upload malicious code or compromise service security.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">4. Our Creations</h2>
-                        <p>All games, code, graphics, art, and content are created by InfinityByte Studios, NanoShade, and GhostPixel, with artists SpriteSinner and Pixelpunk contributing their creative work.</p>
-                        <p>Currently, none of these names, logos, or trademarks are copyrighted or trademarked.</p>
-                        <p>We retain ownership of our creations, but appreciate community creativity and collaboration while honoring the spirit of GlitchRealm Games.</p>
-                    </div>
+            <div class="policy-section">
+                <h2 >4. Our Creations</h2>
+                <p>All games, code, graphics, art, and content are created by InfinityByte Studios, NanoShade, and GhostPixel, with artists SpriteSinner and Pixelpunk contributing their creative work.</p>
+                <p>Currently, none of these names, logos, or trademarks are copyrighted or trademarked.</p>
+                <p>We retain ownership of our creations, but appreciate community creativity and collaboration while honoring the spirit of GlitchRealm Games.</p>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">5. Privacy and Data Collection</h2>
-                        <ul>
-                            <li>We collect and use personal information as described in our Privacy Policy.</li>
-                            <li>We use authentication data from third-party providers (Google, GitHub) in compliance with their respective terms.</li>
-                            <li>Game data and progress may be stored to aid your experience.</li>
-                            <li>We do not sell your personal information.</li>
-                        </ul>
-                    </div>
+            <div class="policy-section">
+                <h2 >5. Privacy and Data Collection</h2>
+                <ul>
+                    <li>We collect and use personal information as described in our Privacy Policy.</li>
+                    <li>We use authentication data from third-party providers (Google, GitHub) in compliance with their respective terms.</li>
+                    <li>Game data and progress may be stored to aid your experience.</li>
+                    <li>We do not sell your personal information.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">6. Disclaimers and Limitations of Liability</h2>
-                        <h3 class="subsection-title">6.1 Service Availability</h3>
-                        <ul>
-                            <li>Services are provided "as is" without warranties of any kind.</li>
-                            <li>We do not guarantee uninterrupted or error-free service.</li>
-                            <li>Scheduled maintenance may temporarily affect service availability.</li>
-                        </ul>
+            <div class="policy-section">
+                <h2 >6. Disclaimers and Limitations of Liability</h2>
+                <h3 >6.1 Service Availability</h3>
+                <ul>
+                    <li>Services are provided "as is" without warranties of any kind.</li>
+                    <li>We do not guarantee uninterrupted or error-free service.</li>
+                    <li>Scheduled maintenance may temporarily affect service availability.</li>
+                </ul>
                         
-                        <h3 class="subsection-title">6.2 Limitation of Liability</h3>
-                        <ul>
-                            <li>We are not liable for any indirect, incidental, or consequential damages.</li>
-                            <li>Our total liability shall not exceed the amount (if any) you pay for using our services.</li>
-                            <li>We are not responsible for data loss, although we make reasonable efforts to protect and back up data.</li>
-                        </ul>
-                    </div>
+                <h3 >6.2 Limitation of Liability</h3>
+                <ul>
+                    <li>We are not liable for any indirect, incidental, or consequential damages.</li>
+                    <li>Our total liability shall not exceed the amount (if any) you pay for using our services.</li>
+                    <li>We are not responsible for data loss, although we make reasonable efforts to protect and back up data.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">7. User Conduct and Community Guidelines</h2>
-                        <h3 class="subsection-title">7.1 Respectful Behavior</h3>
-                        <ul>
-                            <li>Treat all users with respect and dignity.</li>
-                            <li>Harassment, discrimination, or hate speech is prohibited.</li>
-                            <li>Do not share sexually explicit or offensive content.</li>
-                        </ul>
+            <div class="policy-section">
+                <h2 >7. User Conduct and Community Guidelines</h2>
+                <h3 >7.1 Respectful Behavior</h3>
+                <ul>
+                    <li>Treat all users with respect and dignity.</li>
+                    <li>Harassment, discrimination, or hate speech is prohibited.</li>
+                    <li>Do not share sexually explicit or offensive content.</li>
+                </ul>
                         
-                        <h3 class="subsection-title">7.2 Fair Play</h3>
-                        <ul>
-                            <li>Do not cheat, exploit bugs, or use unauthorized tools.</li>
-                            <li>Play games as intended by the developers.</li>
-                            <li>Report bugs and vulnerabilities responsibly.</li>
-                        </ul>
-                    </div>
+                <h3 >7.2 Fair Play</h3>
+                <ul>
+                    <li>Do not cheat, exploit bugs, or use unauthorized tools.</li>
+                    <li>Play games as intended by the developers.</li>
+                    <li>Report bugs and vulnerabilities responsibly.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">8. Third-Party Services</h2>
-                        <ul>
-                            <li>Our games may integrate with third-party services (Google, GitHub).</li>
-                            <li>Use of these services is subject to their respective terms and policies.</li>
-                            <li>We are not responsible for the functionality, policy, or content of third-party services, including Netlify and Firebase.</li>
-                            <li>External links may direct you to sites we do not control.</li>
-                        </ul>
+            <div class="policy-section">
+                <h2 >8. Third-Party Services</h2>
+                <ul>
+                    <li>Our games may integrate with third-party services (Google, GitHub).</li>
+                    <li>Use of these services is subject to their respective terms and policies.</li>
+                    <li>We are not responsible for the functionality, policy, or content of third-party services, including Netlify and Firebase.</li>
+                    <li>External links may direct you to sites we do not control.</li>
+                </ul>
             
-                        <h3 class="subsection-title">8.1 Advertising and Monetization</h3>
-                        <ul>
-                            <li>We display advertising via Google AdSense and related Google advertising products.</li>
-                            <li>Ads may be personalized or non‑personalized depending on your consent and regional requirements.</li>
-                            <li>Third‑party vendors (including Google) may use cookies or device identifiers to serve and measure ads. See our Privacy Policy for details.</li>
-                            <li>We are not responsible for third‑party ad content, landing pages, or offers.</li>
-                            <li>Our authorized sellers are listed in <a href="/ads.txt">our authorized digital sellers list (ads.txt)</a>.</li>
-                        </ul>
+                <h3 >8.1 Advertising and Monetization</h3>
+                <ul>
+                    <li>We display advertising via Google AdSense and related Google advertising products.</li>
+                    <li>Ads may be personalized or non‑personalized depending on your consent and regional requirements.</li>
+                    <li>Third‑party vendors (including Google) may use cookies or device identifiers to serve and measure ads. See our Privacy Policy for details.</li>
+                    <li>We are not responsible for third‑party ad content, landing pages, or offers.</li>
+                    <li>Our authorized sellers are listed in <a href="/ads.txt">our authorized digital sellers list (ads.txt)</a>.</li>
+                </ul>
 
-                        <h3 class="subsection-title">8.2 Consent and Cookies</h3>
-                        <ul>
-                            <li>In the EEA/UK/CH, we use a Google‑certified CMP (Funding Choices) with Consent Mode v2 to collect and respect your choices.</li>
-                            <li>You can adjust your consent any time using “Manage consent” in the footer.</li>
-                            <li>If consent is not granted where required, we serve limited or non‑personalized ads.</li>
-                            <li>For information about how Google uses data, visit <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Google Ads Policies</a> and <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.</li>
-                        </ul>
-                    </div>
+                <h3 >8.2 Consent and Cookies</h3>
+                <ul>
+                    <li>In the EEA/UK/CH, we use a Google‑certified CMP (Funding Choices) with Consent Mode v2 to collect and respect your choices.</li>
+                    <li>You can adjust your consent any time using “Manage consent” in the footer.</li>
+                    <li>If consent is not granted where required, we serve limited or non‑personalized ads.</li>
+                    <li>For information about how Google uses data, visit <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Google Ads Policies</a> and <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">9. Modifications to These Terms</h2>
-                        <ul>
-                            <li>We reserve the right to modify these terms at any time.</li>
-                            <li>Such modifications will be posted on this page with an updated timestamp.</li>
-                            <li>Your continued use constitutes your agreement to the updated terms.</li>
-                            <li>Material tweaks may be communicated via email or in-app notifications.</li>
-                        </ul>
-                    </div>
+            <div class="policy-section">
+                <h2 >9. Modifications to These Terms</h2>
+                <ul>
+                    <li>We reserve the right to modify these terms at any time.</li>
+                    <li>Such modifications will be posted on this page with an updated timestamp.</li>
+                    <li>Your continued use constitutes your agreement to the updated terms.</li>
+                    <li>Material tweaks may be communicated via email or in-app notifications.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">10. Termination</h2>
-                        <h3 class="subsection-title">10.1 By You</h3>
-                        <ul>
-                            <li>You may delete your account at any time through your profile settings.</li>
-                            <li>Some data may be retained for legal or operational purposes.</li>
-                        </ul>
+            <div class="policy-section">
+                <h2 >10. Termination</h2>
+                <h3 >10.1 By You</h3>
+                <ul>
+                    <li>You may delete your account at any time through your profile settings.</li>
+                    <li>Some data may be retained for legal or operational purposes.</li>
+                </ul>
                         
-                        <h3 class="subsection-title">10.2 By Us</h3>
-                        <p>We may suspend or terminate your account for:</p>
-                        <ul>
-                            <li>Violation of these terms.</li>
-                            <li>Illegal activity or abuse.</li>
-                            <li>Extended inactivity (with reasonable notice).</li>
-                            <li>Security or technical issues.</li>
-                        </ul>
-                    </div>
+                <h3 >10.2 By Us</h3>
+                <p>We may suspend or terminate your account for:</p>
+                <ul>
+                    <li>Violation of these terms.</li>
+                    <li>Illegal activity or abuse.</li>
+                    <li>Extended inactivity (with reasonable notice).</li>
+                    <li>Security or technical issues.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">11. Digital Millennium Copyright Act (DMCA)</h2>
-                        <p>If you believe content on our site infringes your intellectual property:</p>
-                        <ul>
-                            <li>Send a written notice to our designated agent.</li>
-                            <li>Provide identification of the copyrighted work.</li>
-                            <li>Provide your contact information and a good faith statement.</li>
-                            <li>We will respond in compliance with DMCA procedures.</li>
-                        </ul>
-                    </div>
+            <div class="policy-section">
+                <h2 >11. Digital Millennium Copyright Act (DMCA)</h2>
+                <p>If you believe content on our site infringes your intellectual property:</p>
+                <ul>
+                    <li>Send a written notice to our designated agent.</li>
+                    <li>Provide identification of the copyrighted work.</li>
+                    <li>Provide your contact information and a good faith statement.</li>
+                    <li>We will respond in compliance with DMCA procedures.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">12. Governing Law and Disputes</h2>
-                        <ul>
-                            <li>These terms are governed by the laws of Canada.</li>
-                            <li>Disputes will be resolved through binding arbitration where applicable.</li>
-                            <li>Small-claims-court filing is preserved where applicable.</li>
-                            <li>Class action lawsuits are waived where legally permissible.</li>
-                        </ul>
-                    </div>
+            <div class="policy-section">
+                <h2 >12. Governing Law and Disputes</h2>
+                <ul>
+                    <li>These terms are governed by the laws of Canada.</li>
+                    <li>Disputes will be resolved through binding arbitration where applicable.</li>
+                    <li>Small-claims-court filing is preserved where applicable.</li>
+                    <li>Class action lawsuits are waived where legally permissible.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">13. International Users</h2>
-                        <ul>
-                            <li>Our services are operated from Canada.</li>
-                            <li>By using GlitchRealm Games, you consent to data transfer to our servers.</li>
-                            <li>Local laws in your jurisdiction may apply.</li>
-                            <li>Some features may not be available in all regions.</li>
-                        </ul>
-                    </div>
+            <div class="policy-section">
+                <h2 >13. International Users</h2>
+                <ul>
+                    <li>Our services are operated from Canada.</li>
+                    <li>By using GlitchRealm Games, you consent to data transfer to our servers.</li>
+                    <li>Local laws in your jurisdiction may apply.</li>
+                    <li>Some features may not be available in all regions.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">14. Age Requirements</h2>                        <ul>
-                            <li>Our services are intended for users 13 years of age or older.</li>
-                            <li>If you are under 13, you may use our services provided you are able to appreciate the consequences of sharing your information.</li>
-                        </ul>
-                    </div>
+            <div class="policy-section">
+                <h2 >14. Age Requirements</h2>                        <ul>
+                    <li>Our services are intended for users 13 years of age or older.</li>
+                    <li>If you are under 13, you may use our services provided you are able to appreciate the consequences of sharing your information.</li>
+                </ul>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">15. Contact Information</h2>
-                        <p>For questions about these Terms of Service, please contact us at:</p>                        <div class="contact-info">                            <p><strong>GlitchRealm Games</strong><br>
+            <div class="policy-section">
+                <h2 >15. Contact Information</h2>
+                <p>For questions about these Terms of Service, please contact us at:</p>                        <div class="contact-info">                            <p><strong>GlitchRealm Games</strong><br>
                             Canada<br>
                             Email: <a href="mailto:legal@glitchrealm.ca" style="color: var(--primary-cyan); text-decoration: none;">legal@glitchrealm.ca</a><br>
                             Website: <a href="https://glitchrealm.ca/" target="_blank" rel="noopener noreferrer" style="color: var(--primary-cyan); text-decoration: none;">GlitchRealm homepage</a></p>
                         </div>
-                    </div>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2 class="section-title">16. Severability</h2>
-                        <p>If any provision of these terms is found unenforceable, the remaining provisions will remain in full force and effect.</p>
-                    </div>
+            <div class="policy-section">
+                <h2 >16. Severability</h2>
+                <p>If any provision of these terms is found unenforceable, the remaining provisions will remain in full force and effect.</p>
+            </div>
 
-                    <div class="privacy-section agreement-section">
+                    <div class="policy-section agreement-section">
                         <div class="agreement-box">
                             <p class="agreement-text">✅ <strong>By using GlitchRealm Games, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</strong></p>
                         </div>
-                    </div>
-
-                </div>
             </div>
-        </section>
+
+        </div>
     </main>
 
     <div id="footer-placeholder"></div>

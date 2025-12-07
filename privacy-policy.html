@@ -527,31 +527,75 @@
             }
         }
         
-        /* High-contrast link styles for policy content */
-        .privacy-content a,
-        .privacy-document a,
-        .privacy-section a {
-            color: #00FFF9 !important; /* bright cyan for dark bg */
-            text-decoration: underline !important;
-            text-decoration-thickness: 2px;
-            text-underline-offset: 2px;
+        /* Policy container styles */
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
         }
-        .privacy-content a:hover,
-        .privacy-document a:hover,
-        .privacy-section a:hover,
-        .privacy-content a:focus,
-        .privacy-document a:focus,
-        .privacy-section a:focus,
-        .privacy-content a:focus-visible,
-        .privacy-document a:focus-visible,
-        .privacy-section a:focus-visible {
-            color: #7AF8FF !important; /* lighter on hover/focus */
-            outline: none;
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
         }
-        .privacy-content a:visited,
-        .privacy-document a:visited,
-        .privacy-section a:visited {
-            color: #35E9FF !important; /* subtle visited distinction */
+        
+        .effective-date {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .policy-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: rgba(0, 255, 249, 0.8);
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .policy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+        }
+        
+        .policy-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+            padding: 0;
+        }
+        
+        .policy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.75rem;
+        }
+        
+        .highlight {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .policy-section a {
+            color: var(--primary-cyan);
+            text-decoration: underline;
+        }
+        
+        .policy-section a:hover {
+            color: rgba(0, 255, 249, 0.8);
         }
     </style>
     
@@ -587,148 +631,148 @@
     <div id="header-placeholder"></div>
 
     <main class="main">
-        <section class="privacy-hero">
+        <section class="games-hero">
             <div class="container">
-                <div class="privacy-header">
-                    <h1 class="privacy-title">
-                        <span class="glitch" data-text="PRIVACY POLICY">PRIVACY POLICY</span>
-                    </h1>
-                    <p class="privacy-subtitle">GlitchRealm Games — Last updated: September 5, 2025</p>
-                </div>
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Privacy Policy">Privacy Policy</span>
+                </h1>
+                <p class="page-subtitle">How We Protect Your Information</p>
             </div>
         </section>
 
-        <section class="privacy-content">
-            <div class="container">
-                <div class="privacy-document">
-                    
-                    <div class="privacy-section">
-                        <h2 class="section-title">1. Information We Collect</h2>
-                        <p>GlitchRealm Games ("we," "us," or "our") collects information to provide better services to our users. This policy describes how we collect, use, and protect your information.</p>
-                        
-                        <h3 class="subsection-title">1.1 Account Information</h3>
-                        <ul>
-                            <li>When you sign in with Google or GitHub, we collect your profile information</li>
-                            <li>Display name, email address, and profile picture</li>
-                            <li>Authentication tokens (securely stored)</li>
-                        </ul>
-                        
-                        <h3 class="subsection-title">1.2 Game Data</h3>
-                        <ul>
-                            <li>Game scores and achievements</li>
-                            <li>Gameplay statistics and progress</li>
-                            <li>Preferences and settings</li>
-                        </ul>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">2. How We Use Your Information</h2>
-                        <p>We use the collected information for the following purposes:</p>
-                        <ul>
-                            <li>Providing and maintaining our gaming services</li>
-                            <li>Personalizing your gaming experience</li>
-                            <li>Tracking game progress and achievements</li>
-                            <li>Communicating with you about updates and new features</li>
-                            <li>Ensuring security and preventing fraud</li>
-                        </ul>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">3. Information Sharing</h2>
-                        <p>GlitchRealm does not sell your personal data. We share limited information only in the situations below:</p>
-                        <ul>
-                            <li>With your explicit consent</li>
-                            <li>With service providers that process data on our behalf (e.g., Google for ads/analytics, Firebase, Netlify) according to their own privacy policies and your consent choices</li>
-                            <li>To comply with legal obligations</li>
-                            <li>To protect our rights, users, and the security of our services</li>
-                            <li>Aggregated or de-identified analytics may be shared</li>
-                        </ul>
-                        <p>Note: Certain third parties (such as Google) may process data under their own policies and, depending on your region and consent, may use identifiers for advertising or measurement. See Section 5 and the <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google Partner Sites</a> notice.</p>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">4. Data Security</h2>
-                        <p>We implement appropriate security measures to protect your personal information:</p>
-                        <ul>
-                            <li>Secure HTTPS connections for all data transmission</li>
-                            <li>Firebase security rules and authentication</li>
-                            <li>Regular security audits and updates</li>
-                            <li>Limited access to personal data by authorized personnel only</li>
-                        </ul>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">5. Third-Party Services</h2>
-                        <p>Our services integrate with third-party providers:</p>
-                        
-                        <h3 class="subsection-title">5.1 Authentication Providers</h3>
-                        <ul>
-                            <li><strong>Google:</strong> Subject to Google's Privacy Policy</li>
-                            <li><strong>GitHub:</strong> Subject to GitHub's Privacy Policy</li>
-                        </ul>
-                        
-                        <h3 class="subsection-title">5.2 Service Providers</h3>
-                        <ul>
-                            <li><strong>Firebase:</strong> For authentication and data storage</li>
-                            <li><strong>Netlify:</strong> For website hosting</li>
-                        </ul>
-
-                        <h3 class="subsection-title">5.3 Advertising and Analytics</h3>
-                        <ul>
-                            <li><strong>Google AdSense/Ads:</strong> We show ads to support our service. Depending on your consent and region, ads may be personalized using cookies and identifiers. Our authorized sellers are listed in <a href="/ads.txt">ads.txt</a>.</li>
-                            <li><strong>Consent Mode v2 & CMP:</strong> In the EEA/UK/CH, we present a Google‑certified consent dialog (Funding Choices) and honor your choices across tags.</li>
-                            <li><strong>Analytics:</strong> We may use Google Analytics with consent‑aware configuration to measure usage. Data is aggregated; IP and identifiers may be processed depending on consent.</li>
-                            <li>You can learn how Google uses data at <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google Partner Sites</a>.</li>
-                        </ul>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">6. Your Rights</h2>
-                        <p>You have the following rights regarding your personal information:</p>
-                        <ul>
-                            <li><strong>Access:</strong> Request a copy of your personal data</li>
-                            <li><strong>Update:</strong> Modify your profile information</li>
-                            <li><strong>Delete:</strong> Request deletion of your account and data</li>
-                            <li><strong>Portability:</strong> Export your game data</li>
-                            <li><strong>Withdraw Consent:</strong> Opt out of data collection</li>
-                        </ul>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">7. Data Retention</h2>
-                        <p>We retain your information for as long as necessary to provide our services:</p>
-                        <ul>
-                            <li>Account data: Until account deletion</li>
-                            <li>Game progress: Until account deletion or 2 years of inactivity</li>
-                            <li>Analytics data: Anonymized and retained for 2 years</li>
-                        </ul>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">8. Children's Privacy</h2>
-                        <p>Our services are not directed to children under 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information, please contact us.</p>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">9. Changes to This Policy</h2>                        <p>We may update this Privacy Policy from time to time. We will notify users of any material changes by:</p>
-                        <ul>
-                            <li>Posting the new policy on this page</li>
-                            <li>Updating the "Last updated" date</li>
-                            <li>Sending email notifications for significant changes (only for signed up users)</li>
-                            <li>If the changes are significant, a popup will appear for you to re-agree to the updated terms</li>
-                        </ul>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2 class="section-title">10. Contact Information</h2>                        <p>If you have any questions about this Privacy Policy, please contact us:</p>
-                        <ul>
-                            <li><strong>Email:</strong> <a href="mailto:legal@glitchrealm.ca" style="color: var(--primary-cyan); text-decoration: none;">legal@glitchrealm.ca</a></li>
-                        </ul>
-                    </div>
-
-                </div>
+        <div class="policy-container">
+            <a href="legal.html" style="display: inline-block; color: var(--primary-cyan); text-decoration: none; margin-bottom: 20px; font-size: 0.9em;">
+                ← Back to Legal Hub
+            </a>
+            <div class="policy-header">
+                <p class="effective-date">Last updated: September 5, 2025</p>
             </div>
-        </section>
+
+            <div class="policy-section">
+                <h2 >1. Information We Collect</h2>
+                <p>GlitchRealm Games ("we," "us," or "our") collects information to provide better services to our users. This policy describes how we collect, use, and protect your information.</p>
+                        
+                <h3 >1.1 Account Information</h3>
+                <ul>
+                    <li>When you sign in with Google or GitHub, we collect your profile information</li>
+                    <li>Display name, email address, and profile picture</li>
+                    <li>Authentication tokens (securely stored)</li>
+                </ul>
+                        
+                <h3 >1.2 Game Data</h3>
+                <ul>
+                    <li>Game scores and achievements</li>
+                    <li>Gameplay statistics and progress</li>
+                    <li>Preferences and settings</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2 >2. How We Use Your Information</h2>
+                <p>We use the collected information for the following purposes:</p>
+                <ul>
+                    <li>Providing and maintaining our gaming services</li>
+                    <li>Personalizing your gaming experience</li>
+                    <li>Tracking game progress and achievements</li>
+                    <li>Communicating with you about updates and new features</li>
+                    <li>Ensuring security and preventing fraud</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2 >3. Information Sharing</h2>
+                <p>GlitchRealm does not sell your personal data. We share limited information only in the situations below:</p>
+                <ul>
+                    <li>With your explicit consent</li>
+                    <li>With service providers that process data on our behalf (e.g., Google for ads/analytics, Firebase, Netlify) according to their own privacy policies and your consent choices</li>
+                    <li>To comply with legal obligations</li>
+                    <li>To protect our rights, users, and the security of our services</li>
+                    <li>Aggregated or de-identified analytics may be shared</li>
+                </ul>
+                <p>Note: Certain third parties (such as Google) may process data under their own policies and, depending on your region and consent, may use identifiers for advertising or measurement. See Section 5 and the <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google Partner Sites</a> notice.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2 >4. Data Security</h2>
+                <p>We implement appropriate security measures to protect your personal information:</p>
+                <ul>
+                    <li>Secure HTTPS connections for all data transmission</li>
+                    <li>Firebase security rules and authentication</li>
+                    <li>Regular security audits and updates</li>
+                    <li>Limited access to personal data by authorized personnel only</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2 >5. Third-Party Services</h2>
+                <p>Our services integrate with third-party providers:</p>
+                        
+                <h3 >5.1 Authentication Providers</h3>
+                <ul>
+                    <li><strong>Google:</strong> Subject to Google's Privacy Policy</li>
+                    <li><strong>GitHub:</strong> Subject to GitHub's Privacy Policy</li>
+                </ul>
+                        
+                <h3 >5.2 Service Providers</h3>
+                <ul>
+                    <li><strong>Firebase:</strong> For authentication and data storage</li>
+                    <li><strong>Netlify:</strong> For website hosting</li>
+                </ul>
+
+                <h3 >5.3 Advertising and Analytics</h3>
+                <ul>
+                    <li><strong>Google AdSense/Ads:</strong> We show ads to support our service. Depending on your consent and region, ads may be personalized using cookies and identifiers. Our authorized sellers are listed in <a href="/ads.txt">ads.txt</a>.</li>
+                    <li><strong>Consent Mode v2 & CMP:</strong> In the EEA/UK/CH, we present a Google‑certified consent dialog (Funding Choices) and honor your choices across tags.</li>
+                    <li><strong>Analytics:</strong> We may use Google Analytics with consent‑aware configuration to measure usage. Data is aggregated; IP and identifiers may be processed depending on consent.</li>
+                    <li>You can learn how Google uses data at <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google Partner Sites</a>.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2 >6. Your Rights</h2>
+                <p>You have the following rights regarding your personal information:</p>
+                <ul>
+                    <li><strong>Access:</strong> Request a copy of your personal data</li>
+                    <li><strong>Update:</strong> Modify your profile information</li>
+                    <li><strong>Delete:</strong> Request deletion of your account and data</li>
+                    <li><strong>Portability:</strong> Export your game data</li>
+                    <li><strong>Withdraw Consent:</strong> Opt out of data collection</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2 >7. Data Retention</h2>
+                <p>We retain your information for as long as necessary to provide our services:</p>
+                <ul>
+                    <li>Account data: Until account deletion</li>
+                    <li>Game progress: Until account deletion or 2 years of inactivity</li>
+                    <li>Analytics data: Anonymized and retained for 2 years</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2 >8. Children's Privacy</h2>
+                <p>Our services are not directed to children under 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information, please contact us.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2 >9. Changes to This Policy</h2>                        <p>We may update this Privacy Policy from time to time. We will notify users of any material changes by:</p>
+                <ul>
+                    <li>Posting the new policy on this page</li>
+                    <li>Updating the "Last updated" date</li>
+                    <li>Sending email notifications for significant changes (only for signed up users)</li>
+                    <li>If the changes are significant, a popup will appear for you to re-agree to the updated terms</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2 >10. Contact Information</h2>                        <p>If you have any questions about this Privacy Policy, please contact us:</p>
+                <ul>
+                    <li><strong>Email:</strong> <a href="mailto:legal@glitchrealm.ca" style="color: var(--primary-cyan); text-decoration: none;">legal@glitchrealm.ca</a></li>
+                </ul>
+            </div>
+
+        </div>
     </main>
     
     <div id="footer-placeholder"></div>
@@ -757,14 +801,14 @@
                         <svg class="icon-svg" viewBox="0 0 24 24">
                             <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
                         </svg>
-                    </div>
+            </div>
                     <h3>Are you sure you want to delete your account?</h3>
                     <p>This action cannot be undone. All your game progress, achievements, and data will be permanently lost.</p>
                     
                     <div class="delete-actions">
                         <button onclick="closeDeleteModal()" class="neural-button secondary">Cancel</button>
                         <button onclick="confirmDeleteAccount()" class="neural-button danger">Delete Forever</button>
-                    </div>
+            </div>
                 </div>
             </div>
         </div>
@@ -792,8 +836,8 @@
                         refreshBtn.appendChild(textSpan);
                     }
                 }
-                        <div class="privacy-section">
-                            <h2 class="section-title">11. Cookies and Consent Controls</h2>
+                        <div class="policy-section">
+                            <h2 >11. Cookies and Consent Controls</h2>
                             <ul>
                                 <li>We use cookies and similar technologies for authentication, security, preferences, performance, and advertising.</li>
                                 <li>In regions where required, we request consent for advertising and analytics categories before setting related cookies.</li>

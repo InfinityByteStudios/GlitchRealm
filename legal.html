@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal - GlitchRealm Games</title>
+    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="auth-redirect-handler.js"></script>
+    <script type="module" src="firebase-core.js"></script>
+    
+    <style>
+        .legal-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .legal-intro {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .legal-intro p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .legal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .legal-card {
+            background: rgba(0, 255, 249, 0.05);
+            border: 2px solid rgba(0, 255, 249, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .legal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 255, 249, 0.3);
+            border-color: rgba(0, 255, 249, 0.4);
+        }
+        
+        .legal-card__icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(0, 255, 249, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .legal-card__icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--primary-cyan);
+        }
+        
+        .legal-card__title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 0.75rem;
+        }
+        
+        .legal-card__description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 1rem;
+        }
+        
+        .legal-card__date {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+        
+        .contact-section {
+            background: rgba(0, 255, 249, 0.05);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .contact-section h2 {
+            font-size: 1.5rem;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+        }
+        
+        .contact-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-section a {
+            color: var(--primary-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .contact-section a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Legal">Legal</span>
+                </h1>
+                <p class="page-subtitle">Policies, Terms, and Legal Information</p>
+            </div>
+        </section>
+
+        <div class="legal-container">
+            <div class="legal-intro">
+                <p>Welcome to GlitchRealm's legal hub. Here you'll find all our policies and terms that govern your use of our platform. We believe in transparency and want you to understand your rights and responsibilities.</p>
+            </div>
+
+            <div class="legal-grid">
+                <a href="privacy-policy.html" class="legal-card">
+                    <div class="legal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="legal-card__title">Privacy Policy</h3>
+                    <p class="legal-card__description">Learn how we collect, use, and protect your personal information when you use GlitchRealm.</p>
+                    <p class="legal-card__date">Last updated: Check document for details</p>
+                </a>
+
+                <a href="terms-of-service.html" class="legal-card">
+                    <div class="legal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="legal-card__title">Terms of Service</h3>
+                    <p class="legal-card__description">The rules and guidelines for using GlitchRealm's platform, games, and services.</p>
+                    <p class="legal-card__date">Last updated: Check document for details</p>
+                </a>
+
+                <a href="donation-policy.html" class="legal-card">
+                    <div class="legal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="legal-card__title">Donation Policy</h3>
+                    <p class="legal-card__description">Understand how voluntary contributions work, refund policies, and how we use donated funds.</p>
+                    <p class="legal-card__date">Effective: January 1, 2025</p>
+                </a>
+
+                <a href="code-of-conduct.html" class="legal-card">
+                    <div class="legal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3 class="legal-card__title">Code of Conduct</h3>
+                    <p class="legal-card__description">Community guidelines and standards for respectful behavior on GlitchRealm.</p>
+                    <p class="legal-card__date">For contributors and community members</p>
+                </a>
+
+                <a href="legal-information.html" class="legal-card">
+                    <div class="legal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                    </div>
+                    <h3 class="legal-card__title">Legal Information</h3>
+                    <p class="legal-card__description">Additional legal notices, licensing information, and intellectual property details.</p>
+                    <p class="legal-card__date">General legal information</p>
+                </a>
+
+                <a href="trademark-notice.html" class="legal-card">
+                    <div class="legal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </div>
+                    <h3 class="legal-card__title">Brand Protection</h3>
+                    <p class="legal-card__description">Information about GlitchRealm brand names, usage guidelines, and intellectual property rights.</p>
+                    <p class="legal-card__date">Brand protection and usage guidelines</p>
+                </a>
+            </div>
+
+            <div class="contact-section">
+                <h2>Legal Questions?</h2>
+                <p>If you have questions about any of our policies or need legal assistance, please contact our legal team:</p>
+                <a href="mailto:legal@glitchrealm.ca">legal@glitchrealm.ca</a>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
