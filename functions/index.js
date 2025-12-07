@@ -624,9 +624,17 @@ exports.beforeSignIn = functions.https.onRequest(async (req, res) => {
 
 // Callable: Exchange Firebase ID token for custom token (cross-domain auth)
 exports.exchangeAuthToken = functions.https.onCall(async (data, context) => {
+	console.log('[exchangeAuthToken] Received data:', { 
+		hasData: !!data, 
+		dataKeys: data ? Object.keys(data) : [],
+		idTokenType: data?.idToken ? typeof data.idToken : 'undefined',
+		idTokenLength: data?.idToken ? data.idToken.length : 0
+	});
+	
 	const { idToken } = data || {};
 	
 	if (!idToken) {
+		console.error('[exchangeAuthToken] No idToken in data. Full data:', JSON.stringify(data));
 		throw new functions.https.HttpsError('invalid-argument', 'ID token is required');
 	}
 	

@@ -103,6 +103,8 @@
           // Re-authenticate on main domain using Firebase ID token from auth subdomain
           const token = params.get('token');
           
+          console.log('[Auth Bridge] Token from params:', token ? `${token.substring(0, 20)}... (length: ${token.length})` : 'NULL');
+          
           if (!token) {
             throw new Error('Firebase ID token is missing');
           }
@@ -120,6 +122,7 @@
           // Call the Cloud Function to exchange the ID token for a custom token
           // that can be used on this domain
           const exchangeToken = httpsCallable(functions, 'exchangeAuthToken');
+          console.log('[Auth Bridge] Calling exchangeAuthToken with idToken length:', token.length);
           const result = await exchangeToken({ idToken: token });
           
           if (!result.data?.customToken) {
