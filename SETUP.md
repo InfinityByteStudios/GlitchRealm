@@ -143,6 +143,6 @@ Files to check:
 If something goes wrong:
 1. Remove CNAME record for `auth.glitchrealm.ca`
 2. Remove redirects from main site's netlify.toml
-3. Revert to using `/signin.html` on main domain
+3. Revert to using `auth.glitchrealm.ca` on main domain
 
 The old signin.html on the main site will still work as fallback.

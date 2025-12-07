@@ -181,26 +181,35 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('[Auth] Google sign-in successful, user:', res.user.email || res.user.uid);
       showMessage('Google sign-in successful! Redirecting...', 'success');
       
-      // Get the OAuth access token from Google (needed to re-authenticate on main domain)
+      // Get the OAuth credential from Google
       const { GoogleAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
       const credential = GoogleAuthProvider.credentialFromResult(res);
-      const oauthAccessToken = credential?.accessToken;
       
-      if (!oauthAccessToken) {
-        console.error('[Auth] No OAuth access token from Google credential');
-        showMessage('Could not get Google access token. Please try again.', 'error');
+      // Try to get ID token first (more reliable for re-authentication)
+      let authToken = credential?.idToken;
+      let tokenType = 'id';
+      
+      // Fall back to access token if ID token is not available
+      if (!authToken && credential?.accessToken) {
+        authToken = credential.accessToken;
+        tokenType = 'access';
+      }
+      
+      if (!authToken) {
+        console.error('[Auth] No OAuth token from Google credential');
+        showMessage('Could not get Google authentication token. Please try again.', 'error');
         return;
       }
       
-      console.log('[Auth] Got Google OAuth access token, length:', oauthAccessToken.length);
+      console.log('[Auth] Got Google OAuth token (type:', tokenType + ', length:', authToken.length + ')');
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
       console.log('[Auth] Will return to:', returnTo);
       
-      // Pass the OAuth access token to bridge so it can re-authenticate on main domain
+      // Pass the OAuth token to bridge so it can re-authenticate on main domain
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=google_oauth&token=${encodeURIComponent(oauthAccessToken)}&return=${encodeURIComponent(returnTo)}`;
+      bridgeUrl.hash = `provider=google_oauth&token=${encodeURIComponent(authToken)}&tokenType=${tokenType}&return=${encodeURIComponent(returnTo)}`;
       console.log('[Auth] Redirecting to bridge with OAuth token...');
       
       location.replace(bridgeUrl.toString());
