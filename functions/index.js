@@ -623,20 +623,21 @@ exports.beforeSignIn = functions.https.onRequest(async (req, res) => {
 });
 
 // Callable: Exchange Firebase ID token for custom token (cross-domain auth)
-exports.exchangeAuthToken = functions.https.onCall(async (data, context) => {
-	console.log('[exchangeAuthToken] Received data:', { 
-		hasData: !!data, 
-		dataKeys: data ? Object.keys(data) : [],
-		idTokenType: data?.idToken ? typeof data.idToken : 'undefined',
-		idTokenLength: data?.idToken ? data.idToken.length : 0
-	});
+exports.exchangeAuthToken = functions.https.onCall(async (request) => {
+	// In Firebase Functions v2, callable functions receive a CallableRequest object
+	// The actual data is in request.data
+	const data = request.data;
+	
+	console.log('[exchangeAuthToken] Received request, data type:', typeof data, 'has idToken:', !!data?.idToken);
 	
 	const { idToken } = data || {};
 	
-	if (!idToken) {
-		console.error('[exchangeAuthToken] No idToken in data. Full data:', JSON.stringify(data));
-		throw new functions.https.HttpsError('invalid-argument', 'ID token is required');
+	if (!idToken || typeof idToken !== 'string') {
+		console.error('[exchangeAuthToken] Invalid or missing idToken. Type:', typeof idToken);
+		throw new functions.https.HttpsError('invalid-argument', 'ID token is required and must be a string');
 	}
+	
+	console.log('[exchangeAuthToken] Processing idToken of length:', idToken.length);
 	
 	try {
 		// Verify the ID token from the auth subdomain
@@ -652,10 +653,10 @@ exports.exchangeAuthToken = functions.https.onCall(async (data, context) => {
 		
 		return { customToken };
 	} catch (error) {
-		console.error('[exchangeAuthToken] Error:', error);
+		console.error('[exchangeAuthToken] Error:', error.message || error);
 		throw new functions.https.HttpsError(
 			'internal',
-			'Failed to exchange token: ' + error.message
+			'Failed to exchange token: ' + (error.message || 'Unknown error')
 		);
 	}
 });
