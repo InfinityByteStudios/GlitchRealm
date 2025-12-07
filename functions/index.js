@@ -80,12 +80,13 @@ exports.cleanupExpiredReports = functions.scheduler.onSchedule('every 60 minutes
 });
 
 // Storage trigger: ensure uploaded image contentType is preserved (no-op placeholder)
-exports.onCoverUpload = functions.storage.object().onFinalize(async (object) => {
-	// You can add image processing here if needed (e.g., generate thumbnails)
-	// For now, we just log.
-	const { name, contentType } = object;
-	functions.logger.info('Uploaded:', name, contentType);
-});
+// Commented out due to v1/v2 API incompatibility - needs migration to v2 API
+// exports.onCoverUpload = functions.storage.object().onFinalize(async (object) => {
+// 	// You can add image processing here if needed (e.g., generate thumbnails)
+// 	// For now, we just log.
+// 	const { name, contentType } = object;
+// 	functions.logger.info('Uploaded:', name, contentType);
+// });
 
 // ========= Proper Express API ========= //
 
@@ -618,5 +619,35 @@ exports.beforeSignIn = functions.https.onRequest(async (req, res) => {
 	} catch (error) {
 		functions.logger.error('beforeSignIn error:', error);
 		res.status(500).json({ error: 'Internal error' });
+	}
+});
+
+// Callable: Exchange Firebase ID token for custom token (cross-domain auth)
+exports.exchangeAuthToken = functions.https.onCall(async (data, context) => {
+	const { idToken } = data || {};
+	
+	if (!idToken) {
+		throw new functions.https.HttpsError('invalid-argument', 'ID token is required');
+	}
+	
+	try {
+		// Verify the ID token from the auth subdomain
+		const decodedToken = await admin.auth().verifyIdToken(idToken);
+		const uid = decodedToken.uid;
+		
+		console.log('[exchangeAuthToken] Verified ID token for user:', uid);
+		
+		// Create a custom token for this user that can be used on the main domain
+		const customToken = await admin.auth().createCustomToken(uid);
+		
+		console.log('[exchangeAuthToken] Created custom token for user:', uid);
+		
+		return { customToken };
+	} catch (error) {
+		console.error('[exchangeAuthToken] Error:', error);
+		throw new functions.https.HttpsError(
+			'internal',
+			'Failed to exchange token: ' + error.message
+		);
 	}
 });

@@ -99,21 +99,86 @@
         setStatus('Verifying credentials…');
         console.log('[Auth Bridge] Starting OAuth sign-in with provider:', provider);
         
-        if (provider === 'google_oauth') {
-          // Re-authenticate on main domain using Google OAuth access token
+        if (provider === 'google_firebase') {
+          // Re-authenticate on main domain using Firebase ID token from auth subdomain
           const token = params.get('token');
+          
+          if (!token) {
+            throw new Error('Firebase ID token is missing');
+          }
+          console.log('[Auth Bridge] Signing in with Firebase ID token from auth subdomain');
+          setStatus('Transferring authentication…');
+          
+          // Since the user is already signed in on auth.glitchrealm.ca,
+          // we need to sign in on glitchrealm.ca using the same Firebase account
+          // We'll use signInWithCustomToken approach via Cloud Function
+          
+          // Import functions to call our Cloud Function
+          const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
+          const functions = getFunctions(app);
+          
+          // Call the Cloud Function to exchange the ID token for a custom token
+          // that can be used on this domain
+          const exchangeToken = httpsCallable(functions, 'exchangeAuthToken');
+          const result = await exchangeToken({ idToken: token });
+          
+          if (!result.data?.customToken) {
+            throw new Error('Failed to get custom token from server');
+          }
+          
+          console.log('[Auth Bridge] Got custom token, signing in on main domain...');
+          
+          // Import signInWithCustomToken
+          const { signInWithCustomToken } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+          
+          // Sign in with the custom token
+          await signInWithCustomToken(auth, result.data.customToken);
+          console.log('[Auth Bridge] ✓ Firebase sign-in successful on main domain');
+        } else if (provider === 'google_oauth') {
+          // Legacy OAuth flow (keeping for backwards compatibility)
+          const token = params.get('token');
+          
           if (!token) {
             throw new Error('Google OAuth token is missing');
           }
-          console.log('[Auth Bridge] Signing in with Google OAuth token...');
+          console.log('[Auth Bridge] Signing in with Google OAuth token');
           setStatus('Authenticating with Google…');
           
-          // Create a Google credential from the OAuth access token
           const cred = GoogleAuthProvider.credential(null, token);
           await signInWithCredential(auth, cred);
           console.log('[Auth Bridge] ✓ Google OAuth sign-in successful');
+        } else if (provider === 'github_firebase') {
+          // Re-authenticate on main domain using Firebase ID token from auth subdomain
+          const token = params.get('token');
+          
+          if (!token) {
+            throw new Error('Firebase ID token is missing');
+          }
+          console.log('[Auth Bridge] Signing in with Firebase ID token from auth subdomain (GitHub)');
+          setStatus('Transferring authentication…');
+          
+          // Import functions to call our Cloud Function
+          const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
+          const functions = getFunctions(app);
+          
+          // Call the Cloud Function to exchange the ID token for a custom token
+          const exchangeToken = httpsCallable(functions, 'exchangeAuthToken');
+          const result = await exchangeToken({ idToken: token });
+          
+          if (!result.data?.customToken) {
+            throw new Error('Failed to get custom token from server');
+          }
+          
+          console.log('[Auth Bridge] Got custom token, signing in on main domain...');
+          
+          // Import signInWithCustomToken
+          const { signInWithCustomToken } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+          
+          // Sign in with the custom token
+          await signInWithCustomToken(auth, result.data.customToken);
+          console.log('[Auth Bridge] ✓ Firebase sign-in successful on main domain (GitHub)');
         } else if (provider === 'github_oauth') {
-          // Re-authenticate on main domain using GitHub OAuth access token
+          // Legacy OAuth flow (keeping for backwards compatibility)
           const token = params.get('token');
           if (!token) {
             throw new Error('GitHub OAuth token is missing');
@@ -121,7 +186,6 @@
           console.log('[Auth Bridge] Signing in with GitHub OAuth token...');
           setStatus('Authenticating with GitHub…');
           
-          // Create a GitHub credential from the OAuth access token
           const cred = GithubAuthProvider.credential(token);
           await signInWithCredential(auth, cred);
           console.log('[Auth Bridge] ✓ GitHub OAuth sign-in successful');

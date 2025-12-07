@@ -58,7 +58,8 @@ function redirectHome() {
 function getBridgeUrl() {
   const returnUrl = getReturnUrl();
   const bridgeOrigin = new URL(returnUrl).origin;
-  return `${bridgeOrigin}/auth-bridge.html`;
+  // Add cache-busting version parameter to force reload of updated auth-bridge
+  return `${bridgeOrigin}/auth-bridge.html?v=${Date.now()}`;
 }
 
 function openBridgeAndPostPassword(email, password) {
@@ -181,27 +182,25 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('[Auth] Google sign-in successful, user:', res.user.email || res.user.uid);
       showMessage('Google sign-in successful! Redirecting...', 'success');
       
-      // Get the OAuth access token from Google (needed to re-authenticate on main domain)
-      const { GoogleAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-      const credential = GoogleAuthProvider.credentialFromResult(res);
-      const oauthAccessToken = credential?.accessToken;
+      // Get the user's ID token directly from the user object (this is the Firebase token)
+      const idToken = await res.user.getIdToken();
       
-      if (!oauthAccessToken) {
-        console.error('[Auth] No OAuth access token from Google credential');
-        showMessage('Could not get Google access token. Please try again.', 'error');
+      if (!idToken) {
+        console.error('[Auth] Could not get Firebase ID token');
+        showMessage('Authentication error. Please try again.', 'error');
         return;
       }
       
-      console.log('[Auth] Got Google OAuth access token, length:', oauthAccessToken.length);
+      console.log('[Auth] Got Firebase ID token, length:', idToken.length);
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
       console.log('[Auth] Will return to:', returnTo);
       
-      // Pass the OAuth access token to bridge so it can re-authenticate on main domain
+      // Pass the Firebase ID token to bridge so it can sign in on main domain
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=google_oauth&token=${encodeURIComponent(oauthAccessToken)}&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge with OAuth token...');
+      bridgeUrl.hash = `provider=google_firebase&token=${encodeURIComponent(idToken)}&return=${encodeURIComponent(returnTo)}`;
+      console.log('[Auth] Redirecting to bridge with Firebase ID token...');
       
       location.replace(bridgeUrl.toString());
     } catch (err) {
@@ -222,27 +221,25 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('[Auth] GitHub sign-in successful, user:', res.user.email || res.user.uid);
       showMessage('GitHub sign-in successful! Redirecting...', 'success');
       
-      // Get the OAuth access token from GitHub (needed to re-authenticate on main domain)
-      const { GithubAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-      const credential = GithubAuthProvider.credentialFromResult(res);
-      const oauthAccessToken = credential?.accessToken;
+      // Get the user's ID token directly from the user object (this is the Firebase token)
+      const idToken = await res.user.getIdToken();
       
-      if (!oauthAccessToken) {
-        console.error('[Auth] No OAuth access token from GitHub credential');
-        showMessage('Could not get GitHub access token. Please try again.', 'error');
+      if (!idToken) {
+        console.error('[Auth] Could not get Firebase ID token');
+        showMessage('Authentication error. Please try again.', 'error');
         return;
       }
       
-      console.log('[Auth] Got GitHub OAuth access token, length:', oauthAccessToken.length);
+      console.log('[Auth] Got Firebase ID token, length:', idToken.length);
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
       console.log('[Auth] Will return to:', returnTo);
       
-      // Pass the OAuth access token to bridge so it can re-authenticate on main domain
+      // Pass the Firebase ID token to bridge so it can sign in on main domain
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=github_oauth&token=${encodeURIComponent(oauthAccessToken)}&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge with OAuth token...');
+      bridgeUrl.hash = `provider=github_firebase&token=${encodeURIComponent(idToken)}&return=${encodeURIComponent(returnTo)}`;
+      console.log('[Auth] Redirecting to bridge with Firebase ID token...');
       
       location.replace(bridgeUrl.toString());
     } catch (err) {
