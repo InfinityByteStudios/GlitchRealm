@@ -623,12 +623,14 @@ exports.beforeSignIn = functions.https.onRequest(async (req, res) => {
 });
 
 // Callable: Exchange Firebase ID token for custom token (cross-domain auth)
-exports.exchangeAuthToken = functions.https.onCall(async (request) => {
+// Note: This function must accept unauthenticated calls since it's used during sign-in
+exports.exchangeAuthToken = functions.https.onCall({ cors: true }, async (request) => {
 	// In Firebase Functions v2, callable functions receive a CallableRequest object
 	// The actual data is in request.data
 	const data = request.data;
 	
 	console.log('[exchangeAuthToken] Received request, data type:', typeof data, 'has idToken:', !!data?.idToken);
+	console.log('[exchangeAuthToken] Request auth context:', request.auth ? `uid: ${request.auth.uid}` : 'unauthenticated');
 	
 	const { idToken } = data || {};
 	
@@ -641,7 +643,8 @@ exports.exchangeAuthToken = functions.https.onCall(async (request) => {
 	
 	try {
 		// Verify the ID token from the auth subdomain
-		const decodedToken = await admin.auth().verifyIdToken(idToken);
+		// checkRevoked: false allows recently created tokens to work immediately
+		const decodedToken = await admin.auth().verifyIdToken(idToken, false);
 		const uid = decodedToken.uid;
 		
 		console.log('[exchangeAuthToken] Verified ID token for user:', uid);
