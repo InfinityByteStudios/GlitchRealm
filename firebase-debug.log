@@ -1,0 +1,43 @@
+[debug] [2025-12-10T02:14:59.139Z] ----------------------------------------------------------------------
+[debug] [2025-12-10T02:14:59.151Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Hanan\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules
+[debug] [2025-12-10T02:14:59.151Z] CLI Version:   14.23.0
+[debug] [2025-12-10T02:14:59.151Z] Platform:      win32
+[debug] [2025-12-10T02:14:59.151Z] Node Version:  v22.16.0
+[debug] [2025-12-10T02:14:59.152Z] Time:          Tue Dec 09 2025 19:14:59 GMT-0700 (Mountain Standard Time)
+[debug] [2025-12-10T02:14:59.152Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-10T02:14:59.156Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-12-10T02:14:59.608Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-10T02:14:59.609Z] > authorizing via signed-in user (infinitybyte.dev@gmail.com)
+[debug] [2025-12-10T02:14:59.609Z] [iam] checking project shared-sign-in for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2025-12-10T02:14:59.611Z] Checked if tokens are valid: false, expires at: 1765130748573
+[debug] [2025-12-10T02:14:59.612Z] Checked if tokens are valid: false, expires at: 1765130748573
+[debug] [2025-12-10T02:14:59.612Z] > refreshing access token with scopes: []
+[debug] [2025-12-10T02:14:59.614Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-12-10T02:14:59.614Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-10T02:14:59.791Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-12-10T02:14:59.792Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-10T02:14:59.814Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions [none]
+[debug] [2025-12-10T02:14:59.815Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions x-goog-quota-user=projects/shared-sign-in
+[debug] [2025-12-10T02:14:59.815Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2025-12-10T02:14:59.847Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-12-10T02:14:59.847Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2025-12-10T02:15:00.149Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions 200
+[debug] [2025-12-10T02:15:00.149Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'shared-sign-in'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2025-12-10T02:15:00.317Z] Checked if tokens are valid: true, expires at: 1765336498792
+[debug] [2025-12-10T02:15:00.318Z] Checked if tokens are valid: true, expires at: 1765336498792
+[debug] [2025-12-10T02:15:00.318Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/shared-sign-in/databases/(default) [none]
+[debug] [2025-12-10T02:15:00.916Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/shared-sign-in/databases/(default) 200
+[debug] [2025-12-10T02:15:00.916Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/shared-sign-in/databases/(default) {"name":"projects/shared-sign-in/databases/(default)","uid":"46e9ec2b-e770-4e47-8359-89c121cd9fa2","createTime":"2025-06-16T03:34:20.725653Z","updateTime":"2025-06-16T03:34:20.725653Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"604800s","earliestVersionTime":"2025-12-03T02:15:00Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_ENABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","backupConfig":{"backupSchedulesEnabled":true},"databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IK2828L5sZEDMPPgr42P5Y8D"}
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2025-12-10T02:15:00.947Z] Checked if tokens are valid: true, expires at: 1765336498792
+[debug] [2025-12-10T02:15:00.947Z] Checked if tokens are valid: true, expires at: 1765336498792
+[debug] [2025-12-10T02:15:00.949Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/shared-sign-in:test [none]
+[debug] [2025-12-10T02:15:00.950Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/shared-sign-in:test [omitted]
