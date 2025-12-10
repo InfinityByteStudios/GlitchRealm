@@ -194,34 +194,17 @@ document.addEventListener('DOMContentLoaded', () => {
   googleBtn?.addEventListener('click', async () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
-      console.log('[Auth] Starting Google sign-in popup...');
+      console.log('[Auth] Starting Google sign-in via main domain...');
       showMessage('Connecting to Google...', 'info');
-      
-      // Sign in with Google OAuth popup
-      const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
-      
-      console.log('[Auth] Google sign-in successful, user:', res.user.email || res.user.uid);
-      showMessage('Google sign-in successful! Redirecting...', 'success');
-      
-      // Get the user's ID token directly from the user object (this is the Firebase token)
-      const idToken = await res.user.getIdToken();
-      
-      if (!idToken) {
-        console.error('[Auth] Could not get Firebase ID token');
-        showMessage('Authentication error. Please try again.', 'error');
-        return;
-      }
-      
-      console.log('[Auth] Got Firebase ID token, length:', idToken.length);
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
       console.log('[Auth] Will return to:', returnTo);
       
-      // Pass the Firebase ID token to bridge so it can sign in on main domain
+      // Redirect to bridge immediately - it will handle the OAuth popup on the main domain
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=google_firebase&token=${encodeURIComponent(idToken)}&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge with Firebase ID token...');
+      bridgeUrl.hash = `provider=google_oauth_popup&return=${encodeURIComponent(returnTo)}`;
+      console.log('[Auth] Redirecting to bridge for OAuth popup...');
       
       location.replace(bridgeUrl.toString());
     } catch (err) {
@@ -233,34 +216,17 @@ document.addEventListener('DOMContentLoaded', () => {
   githubBtn?.addEventListener('click', async () => {
     if (!firebaseReady) return showMessage('Loading auth…', 'info');
     try {
-      console.log('[Auth] Starting GitHub sign-in popup...');
+      console.log('[Auth] Starting GitHub sign-in via main domain...');
       showMessage('Connecting to GitHub...', 'info');
-      
-      // Sign in with GitHub OAuth popup
-      const res = await window.firebaseSignInWithPopup(window.firebaseAuth, window.githubProvider);
-      
-      console.log('[Auth] GitHub sign-in successful, user:', res.user.email || res.user.uid);
-      showMessage('GitHub sign-in successful! Redirecting...', 'success');
-      
-      // Get the user's ID token directly from the user object (this is the Firebase token)
-      const idToken = await res.user.getIdToken();
-      
-      if (!idToken) {
-        console.error('[Auth] Could not get Firebase ID token');
-        showMessage('Authentication error. Please try again.', 'error');
-        return;
-      }
-      
-      console.log('[Auth] Got Firebase ID token, length:', idToken.length);
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
       console.log('[Auth] Will return to:', returnTo);
       
-      // Pass the Firebase ID token to bridge so it can sign in on main domain
+      // Redirect to bridge immediately - it will handle the OAuth popup on the main domain
       const bridgeUrl = new URL(getBridgeUrl());
-      bridgeUrl.hash = `provider=github_firebase&token=${encodeURIComponent(idToken)}&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge with Firebase ID token...');
+      bridgeUrl.hash = `provider=github_oauth_popup&return=${encodeURIComponent(returnTo)}`;
+      console.log('[Auth] Redirecting to bridge for OAuth popup...');
       
       location.replace(bridgeUrl.toString());
     } catch (err) {
