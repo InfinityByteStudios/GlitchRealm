@@ -13,12 +13,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     
-    <script src="auth-redirect-handler.js"></script>
-    <script type="module" src="firebase-core.js"></script>
-    <script type="module" src="header-avatar-integration.js"></script>
+    <script src="../auth-redirect-handler.js"></script>
+    <script type="module" src="../firebase-core.js"></script>
+    <script type="module" src="../header-avatar-integration.js"></script>
     
     <style>
         .api-container {
@@ -387,7 +387,7 @@
     
     <div id="footer-placeholder"></div>
 
-    <script src="script.js" defer></script>
+    <script src="../script.js" defer></script>
     <script type="module">
         // Wait for firebase-core.js to initialize
         function waitForFirebase() {
@@ -413,94 +413,95 @@
             const auth = window.firebaseAuth;
             const db = window.firebaseFirestore;
             const { doc, getDoc, setDoc } = window.firestoreImports;
-        
-        const DEV_UIDS = new Set([
-            '6iZDTXC78aVwX22qrY43BOxDRLt1',
-            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-        ]);
-        
-        function generateApiKey() {
-            const array = new Uint8Array(32);
-            crypto.getRandomValues(array);
-            return 'gr_' + Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-        }
-        
-        async function checkVerifiedDeveloper(user) {
-            if (!user) {
-                document.getElementById('authStatus').className = 'auth-status denied';
-                document.getElementById('authMessage').innerHTML = 
-                    '<strong style="color: var(--primary-magenta);">Access Denied</strong><br>You must be signed in as a verified developer.';
-                return false;
+            
+            const DEV_UIDS = new Set([
+                '6iZDTXC78aVwX22qrY43BOxDRLt1',
+                'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+            ]);
+            
+            function generateApiKey() {
+                const array = new Uint8Array(32);
+                crypto.getRandomValues(array);
+                return 'gr_' + Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
             }
             
-            const isVerified = DEV_UIDS.has(user.uid);
-            
-            if (!isVerified) {
-                // Check verified_users collection
-                const verifiedDoc = await getDoc(doc(db, 'verified_users', user.uid));
-                if (!verifiedDoc.exists()) {
+            async function checkVerifiedDeveloper(user) {
+                if (!user) {
                     document.getElementById('authStatus').className = 'auth-status denied';
                     document.getElementById('authMessage').innerHTML = 
-                        '<strong style="color: var(--primary-magenta);">Access Denied</strong><br>API access is restricted to verified developers only.';
+                        '<strong style="color: var(--primary-magenta);">Access Denied</strong><br>You must be signed in as a verified developer.';
                     return false;
                 }
+                
+                const isVerified = DEV_UIDS.has(user.uid);
+                
+                if (!isVerified) {
+                    // Check verified_users collection
+                    const verifiedDoc = await getDoc(doc(db, 'verified_users', user.uid));
+                    if (!verifiedDoc.exists()) {
+                        document.getElementById('authStatus').className = 'auth-status denied';
+                        document.getElementById('authMessage').innerHTML = 
+                            '<strong style="color: var(--primary-magenta);">Access Denied</strong><br>API access is restricted to verified developers only.';
+                        return false;
+                    }
+                }
+                
+                // User is verified, show API content
+                document.getElementById('authStatus').className = 'auth-status verified';
+                document.getElementById('authMessage').innerHTML = 
+                    '<strong style="color: var(--success);">✓ Verified Developer</strong><br>You have access to the GlitchRealm API';
+                document.getElementById('apiContent').style.display = 'block';
+                
+                // Get or create API key
+                const apiKeyDoc = await getDoc(doc(db, 'api_keys', user.uid));
+                let apiKey;
+                
+                if (apiKeyDoc.exists()) {
+                    apiKey = apiKeyDoc.data().key;
+                } else {
+                    apiKey = generateApiKey();
+                    await setDoc(doc(db, 'api_keys', user.uid), {
+                        key: apiKey,
+                        userId: user.uid,
+                        createdAt: new Date().toISOString(),
+                        lastUsed: null,
+                        requestCount: 0
+                    });
+                }
+                
+                document.getElementById('apiKeyDisplay').textContent = apiKey;
+                window.currentApiKey = apiKey;
+                
+                return true;
             }
             
-            // User is verified, show API content
-            document.getElementById('authStatus').className = 'auth-status verified';
-            document.getElementById('authMessage').innerHTML = 
-                '<strong style="color: var(--success);">✓ Verified Developer</strong><br>You have access to the GlitchRealm API';
-            document.getElementById('apiContent').style.display = 'block';
+            auth.onAuthStateChanged(async (user) => {
+                await checkVerifiedDeveloper(user);
+            });
             
-            // Get or create API key
-            const apiKeyDoc = await getDoc(doc(db, 'api_keys', user.uid));
-            let apiKey;
-            
-            if (apiKeyDoc.exists()) {
-                apiKey = apiKeyDoc.data().key;
-            } else {
-                apiKey = generateApiKey();
-                await setDoc(doc(db, 'api_keys', user.uid), {
-                    key: apiKey,
-                    userId: user.uid,
-                    createdAt: new Date().toISOString(),
-                    lastUsed: null,
-                    requestCount: 0
-                });
-            }
-            
-            document.getElementById('apiKeyDisplay').textContent = apiKey;
-            window.currentApiKey = apiKey;
-            
-            return true;
+            window.copyApiKey = function() {
+                const apiKey = window.currentApiKey;
+                if (apiKey) {
+                    navigator.clipboard.writeText(apiKey).then(() => {
+                        const btn = event.target;
+                        const originalText = btn.textContent;
+                        btn.textContent = 'Copied!';
+                        btn.style.background = 'var(--success)';
+                        btn.style.borderColor = 'var(--success)';
+                        btn.style.color = 'var(--dark-bg)';
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                            btn.style.background = 'rgba(0, 255, 249, 0.1)';
+                            btn.style.borderColor = 'var(--primary-cyan)';
+                            btn.style.color = 'var(--primary-cyan)';
+                        }, 2000);
+                    });
+                }
+            };
         }
-        
-        onAuthStateChanged(auth, async (user) => {
-            await checkVerifiedDeveloper(user);
-        });
-        
-        window.copyApiKey = function() {
-            const apiKey = window.currentApiKey;
-            if (apiKey) {
-                navigator.clipboard.writeText(apiKey).then(() => {
-                    const btn = event.target;
-                    const originalText = btn.textContent;
-                    btn.textContent = 'Copied!';
-                    btn.style.background = 'var(--success)';
-                    btn.style.borderColor = 'var(--success)';
-                    btn.style.color = 'var(--dark-bg)';
-                    setTimeout(() => {
-                        btn.textContent = originalText;
-                        btn.style.background = 'rgba(0, 255, 249, 0.1)';
-                        btn.style.borderColor = 'var(--primary-cyan)';
-                        btn.style.color = 'var(--primary-cyan)';
-                    }, 2000);
-                });
-            }
-        };
     </script>
 </body>
 </html>

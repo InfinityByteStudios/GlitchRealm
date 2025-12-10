@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Policy - GlitchRealm Games</title>
+    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="auth-redirect-handler.js"></script>
+    <script type="module" src="firebase-core.js"></script>
+    
+    <style>
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .policy-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-cyan);
+            margin-bottom: 0.5rem;
+        }
+        
+        .effective-date {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .policy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+        }
+        
+        .policy-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+            padding: 0;
+        }
+        
+        .policy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.75rem;
+        }
+        
+        .highlight {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .contact-box {
+            background: rgba(0, 255, 249, 0.05);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .contact-box h3 {
+            font-size: 1.2rem;
+            color: var(--primary-cyan);
+            margin-bottom: 0.75rem;
+        }
+        
+        .contact-box p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .contact-box a {
+            color: var(--primary-cyan);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .contact-box a:hover {
+            text-decoration: underline;
+        }
+        
+        .policy-footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(0, 255, 249, 0.2);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Donation Policy">Donation Policy</span>
+                </h1>
+                <p class="page-subtitle">Supporting GlitchRealm's Development</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <a href="legal.html" style="display: inline-block; color: var(--primary-cyan); text-decoration: none; margin-bottom: 20px; font-size: 0.9em;">
+                ← Back to Legal Hub
+            </a>
+            <div class="policy-header">
+                <p class="effective-date">Effective Date: January 1, 2025</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Overview</h2>
+                <p>Thank you for supporting GlitchRealm! This Donation Policy explains how financial contributions work on our platform.</p>
+                <p>All financial contributions to GlitchRealm are <span class="highlight">voluntary donations</span>, not purchases. By contributing, you're helping us build better games and maintain our community infrastructure.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Voluntary Contributions</h2>
+                <p>All donations are made freely and without obligation. We deeply appreciate your support, but contributions are:</p>
+                <ul>
+                    <li><span class="highlight">Not purchases</span> of goods or services</li>
+                    <li><span class="highlight">Not investments</span> in GlitchRealm or its projects</li>
+                    <li><span class="highlight">Not contracts</span> for future products or features</li>
+                </ul>
+                <p>Your donation is a gesture of goodwill to support our ongoing development efforts.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>No Refunds Policy</h2>
+                <p>All donations are <span class="highlight">final and non-refundable</span>, except where required by applicable law.</p>
+                <p>Before making a contribution, please ensure you:</p>
+                <ul>
+                    <li>Understand that donations are voluntary and non-refundable</li>
+                    <li>Have authorization to use the payment method provided</li>
+                    <li>Are contributing of your own free will</li>
+                </ul>
+                <p>If you believe a charge was made in error or without your authorization, please contact us immediately at <a href="mailto:support@glitchrealm.ca" style="color: var(--primary-cyan); text-decoration: none;">support@glitchrealm.ca</a>.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>What Donations Do Not Grant</h2>
+                <p>Contributing to GlitchRealm does not provide:</p>
+                <ul>
+                    <li><span class="highlight">Ownership rights</span> in GlitchRealm or any of its intellectual property</li>
+                    <li><span class="highlight">Exclusive access</span> to content, features, or services</li>
+                    <li><span class="highlight">Guaranteed perks</span> or rewards</li>
+                    <li><span class="highlight">Transactional rights</span> or entitlements to specific deliverables</li>
+                    <li><span class="highlight">Influence or control</span> over development decisions</li>
+                </ul>
+                <p>Donations are gifts to support our mission, not exchanges for goods or services.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Optional Supporter Recognition</h2>
+                <p>From time to time, we may offer optional perks to our supporters as a <span class="highlight">gesture of appreciation</span>, such as:</p>
+                <ul>
+                    <li>Early access to announcements or development updates</li>
+                    <li>Supporter badges or recognition in our community</li>
+                    <li>Special thank-you messages or shout-outs</li>
+                </ul>
+                <p>These perks are <span class="highlight">never obligations</span> and may change or be discontinued at any time without notice. They do not constitute a transaction or guarantee of specific benefits.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Use of Funds</h2>
+                <p>Your contributions help us grow and maintain GlitchRealm. Donated funds may be used for:</p>
+                <ul>
+                    <li>Game development and content creation</li>
+                    <li>Server hosting and infrastructure costs</li>
+                    <li>Community support and moderation</li>
+                    <li>Marketing and outreach efforts</li>
+                    <li>Operational expenses and administrative costs</li>
+                    <li>Other purposes that support GlitchRealm's mission</li>
+                </ul>
+                <p>We reserve the right to allocate funds as needed to best serve the platform and community.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Chargebacks and Disputes</h2>
+                <p>We understand that mistakes happen. If you have concerns about a donation, <span class="highlight">please contact us first</span> at <a href="mailto:support@glitchrealm.ca" style="color: var(--primary-cyan); text-decoration: none;">support@glitchrealm.ca</a> before initiating a chargeback.</p>
+                <p>If a chargeback is filed for a voluntary donation that was properly authorized and processed, we may need to:</p>
+                <ul>
+                    <li>Review your account status and supporter benefits</li>
+                    <li>Temporarily suspend access while we investigate the dispute</li>
+                    <li>Remove associated supporter perks if the chargeback is finalized</li>
+                </ul>
+                <p>This policy exists to protect our community from fraudulent activity. <span class="highlight">Legitimate fraud cases or unauthorized charges are always handled with care</span> — we're here to help resolve genuine issues.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Governing Law</h2>
+                <p>This Donation Policy is governed by the <span class="highlight">laws of Canada and the province of Alberta</span>.</p>
+                <p>By making a donation, you agree that any legal matters related to your contribution will be handled under this jurisdiction. All disputes, claims, or legal proceedings arising from or relating to donations will be subject to Canadian federal law and the laws of Alberta.</p>
+            </div>
+
+            <div class="contact-box">
+                <h3>Questions or Concerns?</h3>
+                <p>If you have questions about this Donation Policy or need assistance with a contribution, please reach out to us:</p>
+                <p><strong>Email:</strong> <a href="mailto:support@glitchrealm.ca">support@glitchrealm.ca</a></p>
+                <p>We're here to help and will respond to all inquiries as quickly as possible.</p>
+            </div>
+
+            <div class="policy-footer">
+                <p>© 2025 GlitchRealm Games. All rights reserved.</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
