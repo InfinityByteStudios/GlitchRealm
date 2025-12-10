@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Analytics - GlitchRealm Developers</title>
+    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="../auth-redirect-handler.js"></script>
+    <script type="module" src="../firebase-core.js"></script>
+    <script type="module" src="../header-avatar-integration.js"></script>
+    
+    <style>
+        .analytics-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .game-selector {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .game-selector select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-cyan);
+            font-family: 'Orbitron', monospace;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .chart-section {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-section h2 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .placeholder-chart {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed rgba(0, 255, 249, 0.2);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .top-players {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 2rem;
+        }
+        
+        .top-players h2 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(0, 255, 249, 0.1);
+        }
+        
+        .player-item:last-child {
+            border-bottom: none;
+        }
+        
+        .player-name {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .player-time {
+            color: var(--primary-cyan);
+            font-family: 'Orbitron', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Game Analytics">Game Analytics</span>
+                </h1>
+                <p class="page-subtitle">Track your game's performance and player engagement</p>
+            </div>
+        </section>
+
+        <div class="analytics-container">
+            <div class="game-selector">
+                <label for="gameSelect" style="display: block; margin-bottom: 0.5rem; color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">Select Game:</label>
+                <select id="gameSelect">
+                    <option value="">Loading your games...</option>
+                </select>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPlayers">--</div>
+                    <div class="stat-label">Total Players</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPlaytime">--</div>
+                    <div class="stat-label">Total Hours</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgSession">--</div>
+                    <div class="stat-label">Avg Session (min)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="viewCount">--</div>
+                    <div class="stat-label">Page Views</div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2>Playtime Trend (Last 30 Days)</h2>
+                <div class="placeholder-chart">
+                    Chart visualization coming soon
+                </div>
+            </div>
+
+            <div class="top-players">
+                <h2>Top Players by Playtime</h2>
+                <div id="topPlayersList">
+                    <p style="text-align: center; color: rgba(255, 255, 255, 0.5);">Select a game to view top players</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+
+    <script src="../script.js" defer></script>
+    <script type="module">
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                if (window.firebaseApp && window.firebaseAuth && window.firebaseFirestore) {
+                    resolve();
+                } else {
+                    const checkInterval = setInterval(() => {
+                        if (window.firebaseApp && window.firebaseAuth && window.firebaseFirestore) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 100);
+                }
+            });
+        }
+        
+        function formatTime(seconds) {
+            return (seconds / 3600).toFixed(1);
+        }
+        
+        waitForFirebase().then(() => {
+            const auth = window.firebaseAuth;
+            const db = window.firebaseFirestore;
+            const { collection, query, where, getDocs, collectionGroup, orderBy, limit } = window.firestoreImports;
+            
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    document.getElementById('gameSelect').innerHTML = '<option>Please sign in</option>';
+                    return;
+                }
+                
+                try {
+                    // Load user's games
+                    const gamesRef = collection(db, 'game_submissions');
+                    const q = query(gamesRef, where('ownerId', '==', user.uid));
+                    const snapshot = await getDocs(q);
+                    
+                    const gameSelect = document.getElementById('gameSelect');
+                    gameSelect.innerHTML = '<option value="">Select a game...</option>';
+                    
+                    if (snapshot.empty) {
+                        gameSelect.innerHTML = '<option>No games found</option>';
+                        return;
+                    }
+                    
+                    snapshot.forEach(doc => {
+                        const game = doc.data();
+                        const option = document.createElement('option');
+                        option.value = doc.id;
+                        option.textContent = game.title;
+                        gameSelect.appendChild(option);
+                    });
+                    
+                    gameSelect.addEventListener('change', async (e) => {
+                        const gameId = e.target.value;
+                        if (!gameId) return;
+                        
+                        // Get playtime data for this game
+                        try {
+                            const playtimeQuery = query(
+                                collectionGroup(db, 'games'),
+                                where('gameId', '==', gameId)
+                            );
+                            const playtimeSnapshot = await getDocs(playtimeQuery);
+                            
+                            let totalPlayers = playtimeSnapshot.size;
+                            let totalSeconds = 0;
+                            
+                            playtimeSnapshot.forEach(doc => {
+                                totalSeconds += doc.data().totalPlaytime || 0;
+                            });
+                            
+                            document.getElementById('totalPlayers').textContent = totalPlayers;
+                            document.getElementById('totalPlaytime').textContent = formatTime(totalSeconds);
+                            document.getElementById('avgSession').textContent = totalPlayers > 0 
+                                ? ((totalSeconds / totalPlayers) / 60).toFixed(1)
+                                : '--';
+                            document.getElementById('viewCount').textContent = '--'; // Would need separate tracking
+                            
+                            // Load top players
+                            const topPlayersQuery = query(
+                                collectionGroup(db, 'games'),
+                                where('gameId', '==', gameId),
+                                orderBy('totalPlaytime', 'desc'),
+                                limit(10)
+                            );
+                            const topPlayersSnapshot = await getDocs(topPlayersQuery);
+                            
+                            const topPlayersList = document.getElementById('topPlayersList');
+                            topPlayersList.innerHTML = '';
+                            
+                            for (const doc of topPlayersSnapshot.docs) {
+                                const data = doc.data();
+                                const userId = data.userId;
+                                
+                                let username = 'Anonymous';
+                                try {
+                                    const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', userId), limit(1)));
+                                    if (!userDoc.empty) {
+                                        username = userDoc.docs[0].data().displayName || 'Anonymous';
+                                    }
+                                } catch (e) {}
+                                
+                                const playerItem = document.createElement('div');
+                                playerItem.className = 'player-item';
+                                playerItem.innerHTML = `
+                                    <span class="player-name">${username}</span>
+                                    <span class="player-time">${formatTime(data.totalPlaytime || 0)}h</span>
+                                `;
+                                topPlayersList.appendChild(playerItem);
+                            }
+                            
+                            if (topPlayersSnapshot.empty) {
+                                topPlayersList.innerHTML = '<p style="text-align: center; color: rgba(255, 255, 255, 0.5);">No playtime data yet</p>';
+                            }
+                        } catch (error) {
+                            console.error('Error loading analytics:', error);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error loading games:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

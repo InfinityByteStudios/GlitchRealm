@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Games - GlitchRealm Developers</title>
+    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="../auth-redirect-handler.js"></script>
+    <script type="module" src="../firebase-core.js"></script>
+    <script type="module" src="../header-avatar-integration.js"></script>
+    
+    <style>
+        .manage-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .games-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .game-item {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 120px 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        
+        .game-cover {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 255, 249, 0.2);
+        }
+        
+        .game-info h3 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-info p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-published {
+            background: rgba(0, 255, 65, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+        
+        .game-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .btn-manage {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 249, 0.1);
+            color: var(--primary-cyan);
+            border: 2px solid var(--primary-cyan);
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .btn-manage:hover {
+            background: var(--primary-cyan);
+            color: var(--dark-bg);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .empty-state h3 {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .game-item {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-cover {
+                width: 100%;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Manage Your Games">Manage Your Games</span>
+                </h1>
+                <p class="page-subtitle">Edit and monitor your published games</p>
+            </div>
+        </section>
+
+        <div class="manage-container">
+            <div id="gamesList" class="games-list">
+                <p style="text-align: center; color: rgba(255, 255, 255, 0.6);">Loading your games...</p>
+            </div>
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+
+    <script src="../script.js" defer></script>
+    <script type="module">
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                if (window.firebaseApp && window.firebaseAuth && window.firebaseFirestore) {
+                    resolve();
+                } else {
+                    const checkInterval = setInterval(() => {
+                        if (window.firebaseApp && window.firebaseAuth && window.firebaseFirestore) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 100);
+                }
+            });
+        }
+        
+        waitForFirebase().then(() => {
+            const auth = window.firebaseAuth;
+            const db = window.firebaseFirestore;
+            const { collection, query, where, getDocs, orderBy } = window.firestoreImports;
+            
+            auth.onAuthStateChanged(async (user) => {
+                const gamesList = document.getElementById('gamesList');
+                
+                if (!user) {
+                    gamesList.innerHTML = `
+                        <div class="empty-state">
+                            <h3>Not Signed In</h3>
+                            <p>Please sign in to view and manage your games.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                try {
+                    const gamesRef = collection(db, 'game_submissions');
+                    const q = query(
+                        gamesRef,
+                        where('ownerId', '==', user.uid),
+                        orderBy('createdAt', 'desc')
+                    );
+                    const snapshot = await getDocs(q);
+                    
+                    if (snapshot.empty) {
+                        gamesList.innerHTML = `
+                            <div class="empty-state">
+                                <h3>No Games Yet</h3>
+                                <p>You haven't submitted any games yet. Ready to share your creation?</p>
+                                <a href="submit-game.html" class="btn-manage" style="display: inline-block; margin-top: 1rem;">Submit Your First Game</a>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    gamesList.innerHTML = '';
+                    
+                    snapshot.forEach(doc => {
+                        const game = doc.data();
+                        const gameId = doc.id;
+                        
+                        const statusClass = game.status === 'published' ? 'status-published' : 'status-pending';
+                        const statusText = game.status === 'published' ? 'Published' : 'Pending Review';
+                        
+                        const gameCard = document.createElement('div');
+                        gameCard.className = 'game-item';
+                        gameCard.innerHTML = `
+                            <img src="${game.coverImageUrl || '/assets/placeholder.png'}" alt="${game.title}" class="game-cover">
+                            <div class="game-info">
+                                <h3>${game.title}</h3>
+                                <p>${game.description || 'No description'}</p>
+                                <span class="game-status ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="game-actions">
+                                <a href="../game-detail.html?id=${gameId}" class="btn-manage">View Page</a>
+                                <button class="btn-manage" onclick="editGame('${gameId}')">Edit Details</button>
+                            </div>
+                        `;
+                        gamesList.appendChild(gameCard);
+                    });
+                } catch (error) {
+                    console.error('Error loading games:', error);
+                    gamesList.innerHTML = `
+                        <div class="empty-state">
+                            <h3>Error Loading Games</h3>
+                            <p>Unable to load your games. Please try refreshing the page.</p>
+                        </div>
+                    `;
+                }
+            });
+        });
+        
+        window.editGame = function(gameId) {
+            window.location.href = `../games.html?edit=${gameId}`;
+        };
+    </script>
+</body>
+</html>
