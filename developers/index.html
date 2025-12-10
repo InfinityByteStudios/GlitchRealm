@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Developer API - GlitchRealm</title>
+    <title>Developer Hub - GlitchRealm</title>
     
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
@@ -21,173 +21,226 @@
     <script type="module" src="../header-avatar-integration.js"></script>
     
     <style>
-        .api-container {
-            max-width: 1000px;
+        .dev-hub-container {
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem 1.5rem;
+            padding: 3rem 2rem;
         }
         
-        .api-intro {
+        .hub-intro {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 4rem;
+            padding: 0 2rem;
         }
         
-        .api-intro p {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: rgba(255, 255, 255, 0.7);
-            max-width: 700px;
-            margin: 0 auto;
+        .hub-intro p {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 800px;
+            margin: 1.5rem auto 0;
+            font-weight: 300;
         }
         
-        .auth-status {
-            background: rgba(10, 10, 10, 0.6);
-            border: 1px solid rgba(0, 255, 249, 0.3);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 5rem;
+        }
+        
+        .hub-card {
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.8), rgba(20, 20, 20, 0.6));
+            border: 2px solid rgba(0, 255, 249, 0.2);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
             text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         
-        .auth-status.verified {
-            border-color: var(--success);
+        .hub-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-magenta));
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
-        .auth-status.denied {
-            border-color: var(--primary-magenta);
+        .hub-card:hover {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 8px 32px rgba(0, 255, 249, 0.2);
+            transform: translateY(-8px);
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(20, 20, 20, 0.8));
         }
         
-        .api-key-section {
-            background: rgba(10, 10, 10, 0.6);
-            border: 1px solid rgba(0, 255, 249, 0.3);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+        .hub-card:hover::before {
+            opacity: 1;
         }
         
-        .api-key-display {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(0, 255, 249, 0.2);
-            border-radius: 4px;
-            padding: 1rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: var(--primary-cyan);
-            word-break: break-all;
-            margin: 1rem 0;
+        .hub-card-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 249, 0.3));
         }
         
-        .api-section {
-            background: rgba(10, 10, 10, 0.6);
-            border: 1px solid rgba(0, 255, 249, 0.3);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .api-section h2 {
-            font-size: 1.4rem;
+        .hub-card h3 {
+            font-size: 1.5rem;
             color: #fff;
             margin-bottom: 1rem;
             font-weight: 600;
+            letter-spacing: 0.5px;
         }
         
-        .api-section h3 {
-            font-size: 1.1rem;
-            color: var(--primary-cyan);
-            margin: 1.5rem 0 0.75rem;
-            font-weight: 600;
+        .hub-card p {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            min-height: 60px;
         }
         
-        .api-section p {
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 1rem;
-        }
-        
-        .code-block {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(0, 255, 249, 0.2);
-            border-radius: 4px;
-            padding: 1rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.8);
-            overflow-x: auto;
-            margin: 1rem 0;
-        }
-        
-        .endpoint {
-            background: rgba(0, 255, 249, 0.05);
-            border-left: 3px solid var(--primary-cyan);
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-        
-        .endpoint-method {
+        .hub-card .neural-button {
             display: inline-block;
-            padding: 0.25rem 0.5rem;
-            background: var(--primary-cyan);
-            color: var(--dark-bg);
-            font-weight: 600;
-            font-size: 0.75rem;
-            border-radius: 3px;
-            margin-right: 0.5rem;
-        }
-        
-        .endpoint-path {
-            font-family: 'Courier New', monospace;
-            color: var(--primary-cyan);
+            padding: 0.75rem 2rem;
             font-size: 0.9rem;
-        }
-        
-        .param-table {
-            width: 100%;
-            margin: 1rem 0;
-            border-collapse: collapse;
-        }
-        
-        .param-table th {
-            background: rgba(0, 255, 249, 0.1);
-            padding: 0.75rem;
-            text-align: left;
-            font-size: 0.85rem;
-            color: var(--primary-cyan);
-            border-bottom: 1px solid rgba(0, 255, 249, 0.3);
-        }
-        
-        .param-table td {
-            padding: 0.75rem;
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.7);
-            border-bottom: 1px solid rgba(0, 255, 249, 0.1);
-        }
-        
-        .param-table code {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            color: var(--primary-cyan);
-            font-size: 0.8rem;
-        }
-        
-        .btn-copy {
-            padding: 0.5rem 1rem;
-            background: rgba(0, 255, 249, 0.1);
-            color: var(--primary-cyan);
-            border: 2px solid var(--primary-cyan);
-            border-radius: 6px;
             font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
+            letter-spacing: 0.5px;
         }
         
-        .btn-copy:hover {
-            background: var(--primary-cyan);
-            color: var(--dark-bg);
+        .features-section {
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.8), rgba(20, 20, 20, 0.6));
+            border: 2px solid rgba(0, 255, 249, 0.2);
+            border-radius: 16px;
+            padding: 3.5rem 3rem;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+        
+        .features-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-magenta));
+        }
+        
+        .features-section h2 {
+            text-align: center;
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 3rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+        }
+        
+        .feature-item {
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .feature-icon {
+            font-size: 2.8rem;
+            margin-bottom: 1.25rem;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 249, 0.3));
+        }
+        
+        .feature-item h4 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .feature-item p {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            padding: 2rem;
+            margin-bottom: 4rem;
+            background: rgba(0, 255, 249, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 249, 0.1);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-cyan);
+            font-family: 'Orbitron', monospace;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .cta-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, rgba(0, 255, 249, 0.05), rgba(255, 0, 128, 0.05));
+            border-radius: 16px;
+            border: 2px solid rgba(0, 255, 249, 0.2);
+        }
+        
+        .cta-section h2 {
+            font-size: 2.2rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .cta-section p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-bar {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            
+            .hub-intro p {
+                font-size: 1rem;
+            }
+            
+            .features-section {
+                padding: 2rem 1.5rem;
+            }
         }
     </style>
 </head>
@@ -200,187 +253,111 @@
         <section class="games-hero">
             <div class="container">
                 <h1 class="page-title">
-                    <span class="glitch" data-text="Developer API">Developer API</span>
+                    <span class="glitch" data-text="Developer Hub">Developer Hub</span>
                 </h1>
-                <p class="page-subtitle">Integrate GlitchRealm into your games</p>
+                <p class="page-subtitle">Build, publish, and grow your games on GlitchRealm</p>
             </div>
         </section>
 
-        <div class="api-container">
-            <div class="api-intro">
-                <p>Access our REST API to integrate playtime tracking, achievements, and leaderboards into your games. API access is restricted to verified developers.</p>
+        <div class="dev-hub-container">
+            <div class="hub-intro">
+                <p>
+                    A comprehensive suite of professional tools designed for game developers. 
+                    Leverage advanced analytics, seamless publishing workflows, and robust API integrations 
+                    to build and scale your browser gaming portfolio on GlitchRealm.
+                </p>
             </div>
 
-            <div class="auth-status" id="authStatus">
-                <p id="authMessage">Checking authentication...</p>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">Active Developers</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">100K+</span>
+                    <span class="stat-label">Monthly Players</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">99.9%</span>
+                    <span class="stat-label">Uptime SLA</span>
+                </div>
             </div>
 
-            <div id="apiContent" style="display: none;">
-                <div class="api-key-section">
-                    <h2>Your API Key</h2>
-                    <p>Use this key to authenticate your requests. Keep it secret and never expose it in client-side code.</p>
-                    <div class="api-key-display" id="apiKeyDisplay">Loading...</div>
-                    <button class="btn-copy" onclick="copyApiKey()">Copy API Key</button>
+            <div class="hub-grid">
+                <div class="hub-card" onclick="window.location.href='portal.html'">
+                    <div class="hub-card-icon">🎮</div>
+                    <h3>Developer Dashboard</h3>
+                    <p>Centralized control panel for managing your game portfolio with real-time metrics and quick-access tools.</p>
+                    <a href="portal.html" class="neural-button">Access Dashboard</a>
                 </div>
 
-                <div class="api-section">
-                    <h2>Authentication</h2>
-                    <p>Include your API key in the <code>Authorization</code> header of all requests:</p>
-                    <div class="code-block">Authorization: Bearer YOUR_API_KEY</div>
+                <div class="hub-card" onclick="window.location.href='submit-game.html'">
+                    <div class="hub-card-icon">🚀</div>
+                    <h3>Game Publishing</h3>
+                    <p>Streamlined submission workflow for deploying HTML5 games with automated validation and quality checks.</p>
+                    <a href="submit-game.html" class="neural-button">Publish Game</a>
                 </div>
 
-                <div class="api-section">
-                    <h2>Endpoints</h2>
-                    
-                    <h3>Record Playtime</h3>
-                    <div class="endpoint">
-                        <span class="endpoint-method">POST</span>
-                        <span class="endpoint-path">/api/playtime</span>
+                <div class="hub-card" onclick="window.location.href='manage.html'">
+                    <div class="hub-card-icon">⚙️</div>
+                    <h3>Content Management</h3>
+                    <p>Comprehensive game management system for updating metadata, assets, and publication settings.</p>
+                    <a href="manage.html" class="neural-button">Manage Content</a>
+                </div>
+
+                <div class="hub-card" onclick="window.location.href='analytics.html'">
+                    <div class="hub-card-icon">📊</div>
+                    <h3>Analytics Dashboard</h3>
+                    <p>Advanced performance metrics with player engagement tracking and demographic insights.</p>
+                    <a href="analytics.html" class="neural-button">View Analytics</a>
+                </div>
+            </div>
+
+            <div class="features-section">
+                <h2>Platform Capabilities</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🔐</div>
+                        <h4>Developer Verification</h4>
+                        <p>Establish credibility with verified status and custom badges displayed across all published content</p>
                     </div>
-                    <p>Record playtime for a user in a specific game.</p>
                     
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>userId</code></td>
-                                <td>string</td>
-                                <td>Yes</td>
-                                <td>Firebase UID of the user</td>
-                            </tr>
-                            <tr>
-                                <td><code>gameId</code></td>
-                                <td>string</td>
-                                <td>Yes</td>
-                                <td>Game submission document ID</td>
-                            </tr>
-                            <tr>
-                                <td><code>duration</code></td>
-                                <td>number</td>
-                                <td>Yes</td>
-                                <td>Playtime in seconds</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <p><strong>Example Request:</strong></p>
-                    <div class="code-block">{
-  "userId": "6iZDTXC78aVwX22qrY43BOxDRLt1",
-  "gameId": "bytesurge",
-  "duration": 3600
-}</div>
-
-                    <h3>Get User Stats</h3>
-                    <div class="endpoint">
-                        <span class="endpoint-method">GET</span>
-                        <span class="endpoint-path">/api/stats/:userId</span>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <h4>Real-Time Analytics</h4>
+                        <p>Access live performance metrics including playtime tracking, user engagement, and retention analytics</p>
                     </div>
-                    <p>Retrieve total playtime and game statistics for a user.</p>
                     
-                    <p><strong>Example Response:</strong></p>
-                    <div class="code-block">{
-  "userId": "6iZDTXC78aVwX22qrY43BOxDRLt1",
-  "totalPlaytime": 14400,
-  "gamesPlayed": 5,
-  "games": {
-    "bytesurge": {
-      "playtime": 7200,
-      "lastPlayed": "2025-12-08T12:00:00Z"
-    }
-  }
-}</div>
-
-                    <h3>Get Leaderboard</h3>
-                    <div class="endpoint">
-                        <span class="endpoint-method">GET</span>
-                        <span class="endpoint-path">/api/leaderboard/:gameId</span>
+                    <div class="feature-item">
+                        <div class="feature-icon">🎯</div>
+                        <h4>Enterprise Publishing</h4>
+                        <p>Deploy games through automated CI/CD pipelines with version control and rollback capabilities</p>
                     </div>
-                    <p>Get top players for a specific game by playtime.</p>
                     
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>limit</code></td>
-                                <td>number</td>
-                                <td>No</td>
-                                <td>Number of results (default: 10, max: 100)</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="feature-item">
+                        <div class="feature-icon">💬</div>
+                        <h4>Moderated Feedback</h4>
+                        <p>Collect structured player feedback through our quality-controlled review and rating system</p>
+                    </div>
                     
-                    <p><strong>Example Response:</strong></p>
-                    <div class="code-block">{
-  "gameId": "bytesurge",
-  "leaderboard": [
-    {
-      "userId": "6iZDTXC78aVwX22qrY43BOxDRLt1",
-      "username": "CyberDev",
-      "playtime": 7200,
-      "rank": 1
-    }
-  ]
-}</div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌐</div>
+                        <h4>Developer Network</h4>
+                        <p>Collaborate with verified developers through private channels and technical support resources</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">📱</div>
+                        <h4>Multi-Platform Support</h4>
+                        <p>Automatic optimization and responsive delivery across desktop, tablet, and mobile environments</p>
+                    </div>
                 </div>
+            </div>
 
-                <div class="api-section">
-                    <h2>Rate Limits</h2>
-                    <p>API requests are limited to:</p>
-                    <ul style="color: rgba(255, 255, 255, 0.7); line-height: 1.8;">
-                        <li><strong>100 requests per minute</strong> per API key</li>
-                        <li><strong>10,000 requests per day</strong> per API key</li>
-                    </ul>
-                    <p>If you exceed these limits, you'll receive a <code>429 Too Many Requests</code> response.</p>
-                </div>
-
-                <div class="api-section">
-                    <h2>Error Codes</h2>
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Message</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>401</code></td>
-                                <td>Unauthorized</td>
-                                <td>Invalid or missing API key</td>
-                            </tr>
-                            <tr>
-                                <td><code>403</code></td>
-                                <td>Forbidden</td>
-                                <td>API key doesn't have permission for this resource</td>
-                            </tr>
-                            <tr>
-                                <td><code>429</code></td>
-                                <td>Too Many Requests</td>
-                                <td>Rate limit exceeded</td>
-                            </tr>
-                            <tr>
-                                <td><code>500</code></td>
-                                <td>Internal Server Error</td>
-                                <td>Something went wrong on our end</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="cta-section">
+                <h2>Begin Your Development Journey</h2>
+                <p>Join our network of professional game developers leveraging enterprise-grade tools and infrastructure to reach a global audience</p>
+                <a href="submit-game.html" class="neural-button" style="font-size: 1rem; padding: 0.85rem 2.5rem;">Start Publishing</a>
             </div>
         </div>
     </main>
@@ -388,120 +365,5 @@
     <div id="footer-placeholder"></div>
 
     <script src="../script.js" defer></script>
-    <script type="module">
-        // Wait for firebase-core.js to initialize
-        function waitForFirebase() {
-            return new Promise((resolve) => {
-                if (window.firebaseApp && window.firebaseAuth && window.firebaseFirestore) {
-                    resolve();
-                } else {
-                    const checkInterval = setInterval(() => {
-                        if (window.firebaseApp && window.firebaseAuth && window.firebaseFirestore) {
-                            clearInterval(checkInterval);
-                            resolve();
-                        }
-                    }, 100);
-                }
-            });
-        }
-        
-        waitForFirebase().then(() => {
-            initializeApiPage();
-        });
-        
-        async function initializeApiPage() {
-            const auth = window.firebaseAuth;
-            const db = window.firebaseFirestore;
-            const { doc, getDoc, setDoc } = window.firestoreImports;
-            
-            const DEV_UIDS = new Set([
-                '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-            ]);
-            
-            function generateApiKey() {
-                const array = new Uint8Array(32);
-                crypto.getRandomValues(array);
-                return 'gr_' + Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-            }
-            
-            async function checkVerifiedDeveloper(user) {
-                if (!user) {
-                    document.getElementById('authStatus').className = 'auth-status denied';
-                    document.getElementById('authMessage').innerHTML = 
-                        '<strong style="color: var(--primary-magenta);">Access Denied</strong><br>You must be signed in as a verified developer.';
-                    return false;
-                }
-                
-                const isVerified = DEV_UIDS.has(user.uid);
-                
-                if (!isVerified) {
-                    // Check verified_users collection
-                    const verifiedDoc = await getDoc(doc(db, 'verified_users', user.uid));
-                    if (!verifiedDoc.exists()) {
-                        document.getElementById('authStatus').className = 'auth-status denied';
-                        document.getElementById('authMessage').innerHTML = 
-                            '<strong style="color: var(--primary-magenta);">Access Denied</strong><br>API access is restricted to verified developers only.';
-                        return false;
-                    }
-                }
-                
-                // User is verified, show API content
-                document.getElementById('authStatus').className = 'auth-status verified';
-                document.getElementById('authMessage').innerHTML = 
-                    '<strong style="color: var(--success);">✓ Verified Developer</strong><br>You have access to the GlitchRealm API';
-                document.getElementById('apiContent').style.display = 'block';
-                
-                // Get or create API key
-                const apiKeyDoc = await getDoc(doc(db, 'api_keys', user.uid));
-                let apiKey;
-                
-                if (apiKeyDoc.exists()) {
-                    apiKey = apiKeyDoc.data().key;
-                } else {
-                    apiKey = generateApiKey();
-                    await setDoc(doc(db, 'api_keys', user.uid), {
-                        key: apiKey,
-                        userId: user.uid,
-                        createdAt: new Date().toISOString(),
-                        lastUsed: null,
-                        requestCount: 0
-                    });
-                }
-                
-                document.getElementById('apiKeyDisplay').textContent = apiKey;
-                window.currentApiKey = apiKey;
-                
-                return true;
-            }
-            
-            auth.onAuthStateChanged(async (user) => {
-                await checkVerifiedDeveloper(user);
-            });
-            
-            window.copyApiKey = function() {
-                const apiKey = window.currentApiKey;
-                if (apiKey) {
-                    navigator.clipboard.writeText(apiKey).then(() => {
-                        const btn = event.target;
-                        const originalText = btn.textContent;
-                        btn.textContent = 'Copied!';
-                        btn.style.background = 'var(--success)';
-                        btn.style.borderColor = 'var(--success)';
-                        btn.style.color = 'var(--dark-bg)';
-                        setTimeout(() => {
-                            btn.textContent = originalText;
-                            btn.style.background = 'rgba(0, 255, 249, 0.1)';
-                            btn.style.borderColor = 'var(--primary-cyan)';
-                            btn.style.color = 'var(--primary-cyan)';
-                        }, 2000);
-                    });
-                }
-            };
-        }
-    </script>
 </body>
 </html>
