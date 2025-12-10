@@ -859,76 +859,22 @@ service cloud.firestore {
     }
     
     // ================================
-    // SDK Collections - Achievements
+    // API Keys Collection
     // ================================
-    match /achievements/{userId}/games/{gameId}/unlocked/{achievementId} {
-      // Users can read their own achievements
+    match /api_keys/{userId} {
+      // Only the user can read their own API key
       allow read: if request.auth != null && request.auth.uid == userId;
       
-      // Users can unlock their own achievements
+      // Only the user can create their own API key
       allow create: if request.auth != null && 
                        request.auth.uid == userId &&
-                       request.resource.data.userId == userId &&
-                       request.resource.data.gameId == gameId &&
-                       request.resource.data.achievementId == achievementId;
+                       (isDeveloper(request.auth.uid) || verifiedUser(request.auth.uid));
       
-      // No updates or deletes (achievements are permanent)
-      allow update, delete: if false;
-    }
-    
-    // ================================
-    // SDK Collections - Game Events
-    // ================================
-    match /game_events/{gameId}/events/{eventId} {
-      // Only authenticated users can create events
-      allow create: if request.auth != null &&
-                       request.resource.data.userId == request.auth.uid &&
-                       request.resource.data.gameId == gameId;
+      // Admins can delete API keys
+      allow delete: if isAdmin(request.auth.uid);
       
-      // Developers and admins can read events for their games
-      allow read: if isDeveloper(request.auth.uid) || isAdmin(request.auth.uid);
-      
-      // No updates or deletes
-      allow update, delete: if false;
-    }
-    
-    // ================================
-    // SDK Collections - Leaderboards
-    // ================================
-    match /leaderboards/{gameId}/scores/{userId} {
-      // Anyone can read leaderboard scores
-      allow read: if true;
-      
-      // Users can only create/update their own scores
-      allow create, update: if request.auth != null &&
-                               request.auth.uid == userId &&
-                               request.resource.data.userId == userId &&
-                               request.resource.data.gameId == gameId &&
-                               request.resource.data.score is number &&
-                               request.resource.data.score >= 0;
-      
-      // No deletes (preserve leaderboard history)
-      allow delete: if false;
-    }
-    
-    // ================================
-    // SDK Collections - Purchases
-    // ================================
-    match /purchases/{userId}/games/{gameId}/transactions/{transactionId} {
-      // Users can read their own purchase history
-      allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // Users can create their own purchase records
-      allow create: if request.auth != null &&
-                       request.auth.uid == userId &&
-                       request.resource.data.userId == userId &&
-                       request.resource.data.gameId == gameId;
-      
-      // Admins and developers can read purchases for analytics
-      allow read: if isDeveloper(request.auth.uid) || isAdmin(request.auth.uid);
-      
-      // No updates or deletes (preserve financial records)
-      allow update, delete: if false;
+      // No direct updates - keys are updated via Cloud Functions
+      allow update: if false;
     }
   }
 }

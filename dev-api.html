@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer API - GlitchRealm</title>
+    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="auth-redirect-handler.js"></script>
+    <script type="module" src="firebase-core.js"></script>
+    
+    <style>
+        .api-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .api-intro {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .api-intro p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .auth-status {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .auth-status.verified {
+            border-color: var(--success);
+        }
+        
+        .auth-status.denied {
+            border-color: var(--primary-magenta);
+        }
+        
+        .api-key-section {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .api-key-display {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--primary-cyan);
+            word-break: break-all;
+            margin: 1rem 0;
+        }
+        
+        .api-section {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .api-section h2 {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .api-section h3 {
+            font-size: 1.1rem;
+            color: var(--primary-cyan);
+            margin: 1.5rem 0 0.75rem;
+            font-weight: 600;
+        }
+        
+        .api-section p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 1rem;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .endpoint {
+            background: rgba(0, 255, 249, 0.05);
+            border-left: 3px solid var(--primary-cyan);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .endpoint-method {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--primary-cyan);
+            color: var(--dark-bg);
+            font-weight: 600;
+            font-size: 0.75rem;
+            border-radius: 3px;
+            margin-right: 0.5rem;
+        }
+        
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            color: var(--primary-cyan);
+            font-size: 0.9rem;
+        }
+        
+        .param-table {
+            width: 100%;
+            margin: 1rem 0;
+            border-collapse: collapse;
+        }
+        
+        .param-table th {
+            background: rgba(0, 255, 249, 0.1);
+            padding: 0.75rem;
+            text-align: left;
+            font-size: 0.85rem;
+            color: var(--primary-cyan);
+            border-bottom: 1px solid rgba(0, 255, 249, 0.3);
+        }
+        
+        .param-table td {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid rgba(0, 255, 249, 0.1);
+        }
+        
+        .param-table code {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            color: var(--primary-cyan);
+            font-size: 0.8rem;
+        }
+        
+        .btn-copy {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 249, 0.1);
+            color: var(--primary-cyan);
+            border: 2px solid var(--primary-cyan);
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        
+        .btn-copy:hover {
+            background: var(--primary-cyan);
+            color: var(--dark-bg);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Developer API">Developer API</span>
+                </h1>
+                <p class="page-subtitle">Integrate GlitchRealm into your games</p>
+            </div>
+        </section>
+
+        <div class="api-container">
+            <div class="api-intro">
+                <p>Access our REST API to integrate playtime tracking, achievements, and leaderboards into your games. API access is restricted to verified developers.</p>
+            </div>
+
+            <div class="auth-status" id="authStatus">
+                <p id="authMessage">Checking authentication...</p>
+            </div>
+
+            <div id="apiContent" style="display: none;">
+                <div class="api-key-section">
+                    <h2>Your API Key</h2>
+                    <p>Use this key to authenticate your requests. Keep it secret and never expose it in client-side code.</p>
+                    <div class="api-key-display" id="apiKeyDisplay">Loading...</div>
+                    <button class="btn-copy" onclick="copyApiKey()">Copy API Key</button>
+                </div>
+
+                <div class="api-section">
+                    <h2>Authentication</h2>
+                    <p>Include your API key in the <code>Authorization</code> header of all requests:</p>
+                    <div class="code-block">Authorization: Bearer YOUR_API_KEY</div>
+                </div>
+
+                <div class="api-section">
+                    <h2>Endpoints</h2>
+                    
+                    <h3>Record Playtime</h3>
+                    <div class="endpoint">
+                        <span class="endpoint-method">POST</span>
+                        <span class="endpoint-path">/api/playtime</span>
+                    </div>
+                    <p>Record playtime for a user in a specific game.</p>
+                    
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>userId</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Firebase UID of the user</td>
+                            </tr>
+                            <tr>
+                                <td><code>gameId</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Game submission document ID</td>
+                            </tr>
+                            <tr>
+                                <td><code>duration</code></td>
+                                <td>number</td>
+                                <td>Yes</td>
+                                <td>Playtime in seconds</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <p><strong>Example Request:</strong></p>
+                    <div class="code-block">{
+  "userId": "6iZDTXC78aVwX22qrY43BOxDRLt1",
+  "gameId": "bytesurge",
+  "duration": 3600
+}</div>
+
+                    <h3>Get User Stats</h3>
+                    <div class="endpoint">
+                        <span class="endpoint-method">GET</span>
+                        <span class="endpoint-path">/api/stats/:userId</span>
+                    </div>
+                    <p>Retrieve total playtime and game statistics for a user.</p>
+                    
+                    <p><strong>Example Response:</strong></p>
+                    <div class="code-block">{
+  "userId": "6iZDTXC78aVwX22qrY43BOxDRLt1",
+  "totalPlaytime": 14400,
+  "gamesPlayed": 5,
+  "games": {
+    "bytesurge": {
+      "playtime": 7200,
+      "lastPlayed": "2025-12-08T12:00:00Z"
+    }
+  }
+}</div>
+
+                    <h3>Get Leaderboard</h3>
+                    <div class="endpoint">
+                        <span class="endpoint-method">GET</span>
+                        <span class="endpoint-path">/api/leaderboard/:gameId</span>
+                    </div>
+                    <p>Get top players for a specific game by playtime.</p>
+                    
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Number of results (default: 10, max: 100)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <p><strong>Example Response:</strong></p>
+                    <div class="code-block">{
+  "gameId": "bytesurge",
+  "leaderboard": [
+    {
+      "userId": "6iZDTXC78aVwX22qrY43BOxDRLt1",
+      "username": "CyberDev",
+      "playtime": 7200,
+      "rank": 1
+    }
+  ]
+}</div>
+                </div>
+
+                <div class="api-section">
+                    <h2>Rate Limits</h2>
+                    <p>API requests are limited to:</p>
+                    <ul style="color: rgba(255, 255, 255, 0.7); line-height: 1.8;">
+                        <li><strong>100 requests per minute</strong> per API key</li>
+                        <li><strong>10,000 requests per day</strong> per API key</li>
+                    </ul>
+                    <p>If you exceed these limits, you'll receive a <code>429 Too Many Requests</code> response.</p>
+                </div>
+
+                <div class="api-section">
+                    <h2>Error Codes</h2>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Message</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>401</code></td>
+                                <td>Unauthorized</td>
+                                <td>Invalid or missing API key</td>
+                            </tr>
+                            <tr>
+                                <td><code>403</code></td>
+                                <td>Forbidden</td>
+                                <td>API key doesn't have permission for this resource</td>
+                            </tr>
+                            <tr>
+                                <td><code>429</code></td>
+                                <td>Too Many Requests</td>
+                                <td>Rate limit exceeded</td>
+                            </tr>
+                            <tr>
+                                <td><code>500</code></td>
+                                <td>Internal Server Error</td>
+                                <td>Something went wrong on our end</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+
+    <script src="script.js" defer></script>
+    <script type="module">
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        const auth = getAuth(window.firebaseApp);
+        const db = getFirestore(window.firebaseApp);
+        
+        const DEV_UIDS = new Set([
+            '6iZDTXC78aVwX22qrY43BOxDRLt1',
+            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+        ]);
+        
+        function generateApiKey() {
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            return 'gr_' + Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+        
+        async function checkVerifiedDeveloper(user) {
+            if (!user) {
+                document.getElementById('authStatus').className = 'auth-status denied';
+                document.getElementById('authMessage').innerHTML = 
+                    '<strong style="color: var(--primary-magenta);">Access Denied</strong><br>You must be signed in as a verified developer.';
+                return false;
+            }
+            
+            const isVerified = DEV_UIDS.has(user.uid);
+            
+            if (!isVerified) {
+                // Check verified_users collection
+                const verifiedDoc = await getDoc(doc(db, 'verified_users', user.uid));
+                if (!verifiedDoc.exists()) {
+                    document.getElementById('authStatus').className = 'auth-status denied';
+                    document.getElementById('authMessage').innerHTML = 
+                        '<strong style="color: var(--primary-magenta);">Access Denied</strong><br>API access is restricted to verified developers only.';
+                    return false;
+                }
+            }
+            
+            // User is verified, show API content
+            document.getElementById('authStatus').className = 'auth-status verified';
+            document.getElementById('authMessage').innerHTML = 
+                '<strong style="color: var(--success);">✓ Verified Developer</strong><br>You have access to the GlitchRealm API';
+            document.getElementById('apiContent').style.display = 'block';
+            
+            // Get or create API key
+            const apiKeyDoc = await getDoc(doc(db, 'api_keys', user.uid));
+            let apiKey;
+            
+            if (apiKeyDoc.exists()) {
+                apiKey = apiKeyDoc.data().key;
+            } else {
+                apiKey = generateApiKey();
+                await setDoc(doc(db, 'api_keys', user.uid), {
+                    key: apiKey,
+                    userId: user.uid,
+                    createdAt: new Date().toISOString(),
+                    lastUsed: null,
+                    requestCount: 0
+                });
+            }
+            
+            document.getElementById('apiKeyDisplay').textContent = apiKey;
+            window.currentApiKey = apiKey;
+            
+            return true;
+        }
+        
+        onAuthStateChanged(auth, async (user) => {
+            await checkVerifiedDeveloper(user);
+        });
+        
+        window.copyApiKey = function() {
+            const apiKey = window.currentApiKey;
+            if (apiKey) {
+                navigator.clipboard.writeText(apiKey).then(() => {
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    btn.style.background = 'var(--success)';
+                    btn.style.borderColor = 'var(--success)';
+                    btn.style.color = 'var(--dark-bg)';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = 'rgba(0, 255, 249, 0.1)';
+                        btn.style.borderColor = 'var(--primary-cyan)';
+                        btn.style.color = 'var(--primary-cyan)';
+                    }, 2000);
+                });
+            }
+        };
+    </script>
+</body>
+</html>

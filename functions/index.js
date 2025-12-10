@@ -660,3 +660,169 @@ exports.exchangeAuthToken = functions.https.onCall(async (request) => {
 		);
 	}
 });
+
+// API: Verify API key and check developer status
+async function verifyApiKey(req, res, next) {
+	const authHeader = req.headers.authorization;
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+	}
+	
+	const apiKey = authHeader.substring(7);
+	
+	try {
+		// Query api_keys collection
+		const apiKeysRef = db.collection('api_keys');
+		const snapshot = await apiKeysRef.where('key', '==', apiKey).limit(1).get();
+		
+		if (snapshot.empty) {
+			return res.status(401).json({ error: 'Invalid API key' });
+		}
+		
+		const apiKeyDoc = snapshot.docs[0];
+		const userId = apiKeyDoc.data().userId;
+		
+		// Verify user is still a developer
+		const isVerified = DEV_UIDS.has(userId);
+		if (!isVerified) {
+			const verifiedDoc = await db.collection('verified_users').doc(userId).get();
+			if (!verifiedDoc.exists()) {
+				return res.status(403).json({ error: 'API key belongs to non-verified user' });
+			}
+		}
+		
+		// Update last used timestamp
+		await apiKeyDoc.ref.update({
+			lastUsed: admin.firestore.FieldValue.serverTimestamp(),
+			requestCount: admin.firestore.FieldValue.increment(1)
+		});
+		
+		req.userId = userId;
+		req.apiKeyId = apiKeyDoc.id;
+		next();
+	} catch (error) {
+		console.error('API key verification error:', error);
+		return res.status(500).json({ error: 'Internal server error' });
+	}
+}
+
+// API: Record playtime
+const apiApp = express();
+apiApp.use(cors({ origin: true }));
+apiApp.use(express.json());
+
+apiApp.post('/playtime', verifyApiKey, async (req, res) => {
+	const { userId, gameId, duration } = req.body;
+	
+	if (!userId || !gameId || typeof duration !== 'number') {
+		return res.status(400).json({ 
+			error: 'Missing required fields: userId, gameId, duration' 
+		});
+	}
+	
+	if (duration < 0 || duration > 86400) {
+		return res.status(400).json({ 
+			error: 'Duration must be between 0 and 86400 seconds (24 hours)' 
+		});
+	}
+	
+	try {
+		const playtimeRef = db.collection('playtime').doc(userId)
+			.collection('games').doc(gameId);
+		
+		await playtimeRef.set({
+			totalPlaytime: admin.firestore.FieldValue.increment(duration),
+			lastPlayed: admin.firestore.FieldValue.serverTimestamp(),
+			gameId: gameId,
+			userId: userId
+		}, { merge: true });
+		
+		res.json({ 
+			success: true, 
+			message: 'Playtime recorded',
+			duration: duration
+		});
+	} catch (error) {
+		console.error('Record playtime error:', error);
+		res.status(500).json({ error: 'Failed to record playtime' });
+	}
+});
+
+apiApp.get('/stats/:userId', verifyApiKey, async (req, res) => {
+	const { userId } = req.params;
+	
+	try {
+		const gamesSnapshot = await db.collection('playtime').doc(userId)
+			.collection('games').get();
+		
+		let totalPlaytime = 0;
+		const games = {};
+		
+		gamesSnapshot.forEach(doc => {
+			const data = doc.data();
+			totalPlaytime += data.totalPlaytime || 0;
+			games[doc.id] = {
+				playtime: data.totalPlaytime || 0,
+				lastPlayed: data.lastPlayed?.toDate().toISOString() || null
+			};
+		});
+		
+		res.json({
+			userId: userId,
+			totalPlaytime: totalPlaytime,
+			gamesPlayed: gamesSnapshot.size,
+			games: games
+		});
+	} catch (error) {
+		console.error('Get stats error:', error);
+		res.status(500).json({ error: 'Failed to retrieve stats' });
+	}
+});
+
+apiApp.get('/leaderboard/:gameId', verifyApiKey, async (req, res) => {
+	const { gameId } = req.params;
+	const limit = Math.min(parseInt(req.query.limit) || 10, 100);
+	
+	try {
+		// Get all playtime docs for this game
+		const playtimeQuery = await db.collectionGroup('games')
+			.where('gameId', '==', gameId)
+			.orderBy('totalPlaytime', 'desc')
+			.limit(limit)
+			.get();
+		
+		const leaderboard = [];
+		let rank = 1;
+		
+		for (const doc of playtimeQuery.docs) {
+			const data = doc.data();
+			const userId = data.userId;
+			
+			// Get user display name
+			let username = 'Anonymous';
+			try {
+				const userRecord = await admin.auth().getUser(userId);
+				username = userRecord.displayName || userRecord.email || 'Anonymous';
+			} catch (e) {
+				// User might not exist anymore
+			}
+			
+			leaderboard.push({
+				userId: userId,
+				username: username,
+				playtime: data.totalPlaytime || 0,
+				rank: rank++
+			});
+		}
+		
+		res.json({
+			gameId: gameId,
+			leaderboard: leaderboard
+		});
+	} catch (error) {
+		console.error('Get leaderboard error:', error);
+		res.status(500).json({ error: 'Failed to retrieve leaderboard' });
+	}
+});
+
+exports.api = functions.https.onRequest(apiApp);
