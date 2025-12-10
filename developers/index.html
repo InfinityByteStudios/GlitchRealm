@@ -15,6 +15,7 @@
     
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="../auth-redirect-handler.js"></script>
     <script type="module" src="../firebase-core.js"></script>
@@ -22,40 +23,38 @@
     
     <style>
         .dev-hub-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 3rem 2rem;
+            padding: 2rem 1.5rem;
         }
         
         .hub-intro {
             text-align: center;
-            margin-bottom: 4rem;
-            padding: 0 2rem;
+            margin-bottom: 3rem;
         }
         
         .hub-intro p {
-            font-size: 1.15rem;
-            line-height: 1.8;
-            color: rgba(255, 255, 255, 0.8);
-            max-width: 800px;
-            margin: 1.5rem auto 0;
-            font-weight: 300;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 700px;
+            margin: 1rem auto 0;
         }
         
         .hub-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2.5rem;
-            margin-bottom: 5rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
         
         .hub-card {
-            background: linear-gradient(135deg, rgba(10, 10, 10, 0.8), rgba(20, 20, 20, 0.6));
-            border: 2px solid rgba(0, 255, 249, 0.2);
-            border-radius: 16px;
-            padding: 2.5rem 2rem;
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
             text-align: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
             overflow: hidden;
@@ -65,182 +64,143 @@
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-magenta));
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 249, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .hub-card:hover::before {
+            left: 100%;
         }
         
         .hub-card:hover {
             border-color: var(--primary-cyan);
-            box-shadow: 0 8px 32px rgba(0, 255, 249, 0.2);
-            transform: translateY(-8px);
-            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(20, 20, 20, 0.8));
-        }
-        
-        .hub-card:hover::before {
-            opacity: 1;
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.4), inset 0 0 20px rgba(0, 255, 249, 0.1);
+            transform: translateY(-5px);
         }
         
         .hub-card-icon {
-            font-size: 3.5rem;
+            font-size: 3rem;
             margin-bottom: 1.5rem;
-            filter: drop-shadow(0 0 10px rgba(0, 255, 249, 0.3));
+            color: var(--primary-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80px;
         }
         
         .hub-card h3 {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: #fff;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
         }
         
         .hub-card p {
-            color: rgba(255, 255, 255, 0.65);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-            min-height: 60px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
         }
         
         .hub-card .neural-button {
             display: inline-block;
-            padding: 0.75rem 2rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-        
-        .features-section {
-            background: linear-gradient(135deg, rgba(10, 10, 10, 0.8), rgba(20, 20, 20, 0.6));
-            border: 2px solid rgba(0, 255, 249, 0.2);
-            border-radius: 16px;
-            padding: 3.5rem 3rem;
-            margin-bottom: 4rem;
+            padding: 0.85rem 2.5rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--primary-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
             position: relative;
+            z-index: 1;
+            overflow: hidden;
+            transition: all 0.4s ease;
         }
         
-        .features-section::before {
+        .hub-card .neural-button::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-magenta));
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+            transition: left 0.6s ease;
+            opacity: 0.3;
+        }
+        
+        .hub-card .neural-button:hover::before {
+            left: 100%;
+        }
+        
+        .hub-card .neural-button:hover {
+            background: var(--primary-cyan);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.6), 0 0 60px rgba(0, 255, 249, 0.4);
+            transform: translateY(-2px);
+            border-color: var(--primary-cyan);
+        }
+        
+        .features-section {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
         }
         
         .features-section h2 {
             text-align: center;
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: #fff;
-            margin-bottom: 3rem;
-            font-weight: 600;
-            letter-spacing: 1px;
+            margin-bottom: 2rem;
         }
         
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 3rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
         }
         
         .feature-item {
             text-align: center;
-            padding: 1rem;
         }
         
         .feature-icon {
-            font-size: 2.8rem;
-            margin-bottom: 1.25rem;
-            filter: drop-shadow(0 0 8px rgba(0, 255, 249, 0.3));
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-cyan);
         }
         
         .feature-item h4 {
-            font-size: 1.2rem;
-            color: #fff;
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .feature-item p {
-            color: rgba(255, 255, 255, 0.65);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-        
-        .stats-bar {
-            display: flex;
-            justify-content: center;
-            gap: 4rem;
-            padding: 2rem;
-            margin-bottom: 4rem;
-            background: rgba(0, 255, 249, 0.05);
-            border-radius: 12px;
-            border: 1px solid rgba(0, 255, 249, 0.1);
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 1.1rem;
             color: var(--primary-cyan);
-            font-family: 'Orbitron', monospace;
-            display: block;
             margin-bottom: 0.5rem;
         }
         
-        .stat-label {
-            font-size: 0.9rem;
+        .feature-item p {
             color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
         
         .cta-section {
             text-align: center;
-            padding: 4rem 2rem;
-            background: linear-gradient(135deg, rgba(0, 255, 249, 0.05), rgba(255, 0, 128, 0.05));
-            border-radius: 16px;
-            border: 2px solid rgba(0, 255, 249, 0.2);
+            padding: 3rem 0;
         }
         
         .cta-section h2 {
-            font-size: 2.2rem;
+            font-size: 2rem;
             color: #fff;
             margin-bottom: 1rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
         }
         
         .cta-section p {
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.75);
-            margin-bottom: 2.5rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        @media (max-width: 768px) {
-            .stats-bar {
-                flex-direction: column;
-                gap: 2rem;
-            }
-            
-            .hub-intro p {
-                font-size: 1rem;
-            }
-            
-            .features-section {
-                padding: 2rem 1.5rem;
-            }
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
         }
     </style>
 </head>
@@ -262,102 +222,87 @@
         <div class="dev-hub-container">
             <div class="hub-intro">
                 <p>
-                    A comprehensive suite of professional tools designed for game developers. 
-                    Leverage advanced analytics, seamless publishing workflows, and robust API integrations 
-                    to build and scale your browser gaming portfolio on GlitchRealm.
+                    Welcome to the GlitchRealm Developer Hub. Access powerful tools to manage your games, 
+                    track analytics, and integrate with our platform API. Join our community of verified 
+                    developers building the future of browser gaming.
                 </p>
-            </div>
-
-            <div class="stats-bar">
-                <div class="stat-item">
-                    <span class="stat-number">50+</span>
-                    <span class="stat-label">Active Developers</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">100K+</span>
-                    <span class="stat-label">Monthly Players</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">99.9%</span>
-                    <span class="stat-label">Uptime SLA</span>
-                </div>
             </div>
 
             <div class="hub-grid">
                 <div class="hub-card" onclick="window.location.href='portal.html'">
-                    <div class="hub-card-icon">🎮</div>
-                    <h3>Developer Dashboard</h3>
-                    <p>Centralized control panel for managing your game portfolio with real-time metrics and quick-access tools.</p>
-                    <a href="portal.html" class="neural-button">Access Dashboard</a>
+                    <div class="hub-card-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <h3>Developer Portal</h3>
+                    <p>Access your personal dashboard with game statistics, quick actions, and development resources.</p>
+                    <a href="portal.html" class="neural-button">Open Portal</a>
                 </div>
 
                 <div class="hub-card" onclick="window.location.href='submit-game.html'">
-                    <div class="hub-card-icon">🚀</div>
-                    <h3>Game Publishing</h3>
-                    <p>Streamlined submission workflow for deploying HTML5 games with automated validation and quality checks.</p>
-                    <a href="submit-game.html" class="neural-button">Publish Game</a>
+                    <div class="hub-card-icon"><i class="fas fa-upload"></i></div>
+                    <h3>Submit Game</h3>
+                    <p>Publish your HTML5 game to GlitchRealm. Fill out the submission form and reach thousands of players.</p>
+                    <a href="submit-game.html" class="neural-button">Submit Now</a>
                 </div>
 
                 <div class="hub-card" onclick="window.location.href='manage.html'">
-                    <div class="hub-card-icon">⚙️</div>
-                    <h3>Content Management</h3>
-                    <p>Comprehensive game management system for updating metadata, assets, and publication settings.</p>
-                    <a href="manage.html" class="neural-button">Manage Content</a>
+                    <div class="hub-card-icon"><i class="fas fa-cogs"></i></div>
+                    <h3>Manage Games</h3>
+                    <p>Edit your published games, update descriptions, change screenshots, and manage game status.</p>
+                    <a href="manage.html" class="neural-button">Manage</a>
                 </div>
 
                 <div class="hub-card" onclick="window.location.href='analytics.html'">
-                    <div class="hub-card-icon">📊</div>
-                    <h3>Analytics Dashboard</h3>
-                    <p>Advanced performance metrics with player engagement tracking and demographic insights.</p>
-                    <a href="analytics.html" class="neural-button">View Analytics</a>
+                    <div class="hub-card-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Analytics</h3>
+                    <p>Track player engagement, view playtime statistics, and analyze your game's performance metrics.</p>
+                    <a href="analytics.html" class="neural-button">View Stats</a>
                 </div>
             </div>
 
             <div class="features-section">
-                <h2>Platform Capabilities</h2>
+                <h2>Developer Features</h2>
                 <div class="features-grid">
                     <div class="feature-item">
-                        <div class="feature-icon">🔐</div>
-                        <h4>Developer Verification</h4>
-                        <p>Establish credibility with verified status and custom badges displayed across all published content</p>
+                        <div class="feature-icon"><i class="fas fa-certificate"></i></div>
+                        <h4>Verified Badges</h4>
+                        <p>Get verified developer status with custom badges displayed on your games</p>
                     </div>
                     
                     <div class="feature-item">
-                        <div class="feature-icon">⚡</div>
-                        <h4>Real-Time Analytics</h4>
-                        <p>Access live performance metrics including playtime tracking, user engagement, and retention analytics</p>
+                        <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                        <h4>Real-time Analytics</h4>
+                        <p>Track playtime, player counts, and engagement metrics in real-time</p>
                     </div>
                     
                     <div class="feature-item">
-                        <div class="feature-icon">🎯</div>
-                        <h4>Enterprise Publishing</h4>
-                        <p>Deploy games through automated CI/CD pipelines with version control and rollback capabilities</p>
+                        <div class="feature-icon"><i class="fas fa-rocket"></i></div>
+                        <h4>Direct Publishing</h4>
+                        <p>Submit games directly to the platform with our streamlined process</p>
                     </div>
                     
                     <div class="feature-item">
-                        <div class="feature-icon">💬</div>
-                        <h4>Moderated Feedback</h4>
-                        <p>Collect structured player feedback through our quality-controlled review and rating system</p>
+                        <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                        <h4>Player Reviews</h4>
+                        <p>Receive feedback from players with moderated review system</p>
                     </div>
                     
                     <div class="feature-item">
-                        <div class="feature-icon">🌐</div>
-                        <h4>Developer Network</h4>
-                        <p>Collaborate with verified developers through private channels and technical support resources</p>
+                        <div class="feature-icon"><i class="fas fa-users"></i></div>
+                        <h4>Community Support</h4>
+                        <p>Connect with other developers and get help from the community</p>
                     </div>
                     
                     <div class="feature-item">
-                        <div class="feature-icon">📱</div>
-                        <h4>Multi-Platform Support</h4>
-                        <p>Automatic optimization and responsive delivery across desktop, tablet, and mobile environments</p>
+                        <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                        <h4>Cross-Platform</h4>
+                        <p>Your games work seamlessly across desktop and mobile browsers</p>
                     </div>
                 </div>
             </div>
 
             <div class="cta-section">
-                <h2>Begin Your Development Journey</h2>
-                <p>Join our network of professional game developers leveraging enterprise-grade tools and infrastructure to reach a global audience</p>
-                <a href="submit-game.html" class="neural-button" style="font-size: 1rem; padding: 0.85rem 2.5rem;">Start Publishing</a>
+                <h2>Ready to Get Started?</h2>
+                <p>Join verified developers building amazing browser games on GlitchRealm</p>
+                <a href="submit-game.html" class="neural-button" style="font-size: 0.95rem; padding: 1rem 3rem; font-weight: 700; border-width: 2px;">Submit Your First Game</a>
             </div>
         </div>
     </main>

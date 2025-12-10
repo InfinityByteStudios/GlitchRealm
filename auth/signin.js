@@ -157,11 +157,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (password.length < 6) return showMessage('Password too short', 'error');
     try {
       const cred = await window.firebaseCreateUserWithEmailAndPassword(window.firebaseAuth, email, password);
-      showMessage('Account created', 'success');
-      // Ensure main site is also signed in with the same credentials
-      openBridgeAndPostPassword(email, password);
+      console.log('[Auth] Account created successfully, user:', cred.user.email || cred.user.uid);
+      showMessage('Account created! Redirecting...', 'success');
+      
+      // Get the user's ID token (same approach as Google/GitHub)
+      const idToken = await cred.user.getIdToken();
+      
+      if (!idToken) {
+        console.error('[Auth] Could not get Firebase ID token after account creation');
+        showMessage('Authentication error. Please try signing in.', 'error');
+        return;
+      }
+      
+      console.log('[Auth] Got Firebase ID token, transferring to main domain...');
+      
+      // Get the return URL from sessionStorage (saved when page loaded)
+      const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
+      console.log('[Auth] Will return to:', returnTo);
+      
+      // Pass the Firebase ID token to bridge (same as Google/GitHub flow)
+      const bridgeUrl = new URL(getBridgeUrl());
+      bridgeUrl.hash = `provider=google_firebase&token=${encodeURIComponent(idToken)}&return=${encodeURIComponent(returnTo)}`;
+      console.log('[Auth] Redirecting to bridge with Firebase ID token...');
+      
+      location.replace(bridgeUrl.toString());
     } catch (err) {
-      console.error(err);
+      console.error('[Auth] Sign up error:', err);
       showMessage(err.message || 'Sign up failed', 'error');
     }
   });
