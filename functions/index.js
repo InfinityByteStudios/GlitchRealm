@@ -830,76 +830,68 @@ apiApp.get('/leaderboard/:gameId', verifyApiKey, async (req, res) => {
 
 exports.api = functions.https.onRequest(apiApp);
 
-// Firestore trigger: Notify user when they get verified
-exports.onUserVerified = functions.firestore
-	.document('verified_users/{userId}')
-	.onWrite(async (change, context) => {
-		const userId = context.params.userId;
-		const before = change.before.exists ? change.before.data() : null;
-		const after = change.after.exists ? change.after.data() : null;
+// Firestore trigger: Notify user when they get verified (v2 syntax)
+exports.onUserVerified = functions.firestore.onDocumentWritten('verified_users/{userId}', async (event) => {
+	const userId = event.params.userId;
+	const before = event.data?.before?.data();
+	const after = event.data?.after?.data();
+	
+	// Check if user just became verified (wasn't verified before, is verified now)
+	const wasVerified = before?.verified === true;
+	const isNowVerified = after?.verified === true;
+	
+	if (!wasVerified && isNowVerified) {
+		console.log(`[onUserVerified] User ${userId} just got verified!`);
 		
-		// Check if user just became verified (wasn't verified before, is verified now)
-		const wasVerified = before?.verified === true;
-		const isNowVerified = after?.verified === true;
-		
-		if (!wasVerified && isNowVerified) {
-			console.log(`[onUserVerified] User ${userId} just got verified!`);
+		try {
+			// Create notification in notifications collection
+			const notificationData = {
+				userId: userId,
+				type: 'verification',
+				title: '🎉 You\'re Verified!',
+				message: 'Congratulations! You are now a verified developer on GlitchRealm. You can now submit games, access the developer portal, and use the API.',
+				read: false,
+				createdAt: admin.firestore.FieldValue.serverTimestamp(),
+				badgeType: after.badgeType || 'developer'
+			};
 			
-			try {
-				// Create notification in notifications collection
-				const notificationData = {
-					userId: userId,
-					type: 'verification',
-					title: '🎉 You\'re Verified!',
-					message: 'Congratulations! You are now a verified developer on GlitchRealm. You can now submit games, access the developer portal, and use the API.',
-					read: false,
-					createdAt: admin.firestore.FieldValue.serverTimestamp(),
-					badgeType: after.badgeType || 'developer'
-				};
-				
-				await db.collection('notifications').add(notificationData);
-				console.log(`[onUserVerified] Created notification for user ${userId}`);
-			} catch (error) {
-				console.error('[onUserVerified] Error creating notification:', error);
-			}
+			await db.collection('notifications').add(notificationData);
+			console.log(`[onUserVerified] Created notification for user ${userId}`);
+		} catch (error) {
+			console.error('[onUserVerified] Error creating notification:', error);
 		}
-		
-		return null;
-	});
+	}
+});
 
-// Firestore trigger: Notify writer when they get verified
-exports.onWriterVerified = functions.firestore
-	.document('verified_writers/{userId}')
-	.onWrite(async (change, context) => {
-		const userId = context.params.userId;
-		const before = change.before.exists ? change.before.data() : null;
-		const after = change.after.exists ? change.after.data() : null;
+// Firestore trigger: Notify writer when they get verified (v2 syntax)
+exports.onWriterVerified = functions.firestore.onDocumentWritten('verified_writers/{userId}', async (event) => {
+	const userId = event.params.userId;
+	const before = event.data?.before?.data();
+	const after = event.data?.after?.data();
+	
+	// Check if writer just became verified
+	const wasVerified = before?.verified === true;
+	const isNowVerified = after?.verified === true;
+	
+	if (!wasVerified && isNowVerified) {
+		console.log(`[onWriterVerified] Writer ${userId} just got verified!`);
 		
-		// Check if writer just became verified
-		const wasVerified = before?.verified === true;
-		const isNowVerified = after?.verified === true;
-		
-		if (!wasVerified && isNowVerified) {
-			console.log(`[onWriterVerified] Writer ${userId} just got verified!`);
+		try {
+			// Create notification
+			const notificationData = {
+				userId: userId,
+				type: 'writer_verification',
+				title: '✍️ You\'re a Verified Writer!',
+				message: 'Congratulations! You can now publish articles on GlitchRealm News. Access the news portal to start writing.',
+				read: false,
+				createdAt: admin.firestore.FieldValue.serverTimestamp(),
+				badgeType: after.badgeType || 'writer'
+			};
 			
-			try {
-				// Create notification
-				const notificationData = {
-					userId: userId,
-					type: 'writer_verification',
-					title: '✍️ You\'re a Verified Writer!',
-					message: 'Congratulations! You can now publish articles on GlitchRealm News. Access the news portal to start writing.',
-					read: false,
-					createdAt: admin.firestore.FieldValue.serverTimestamp(),
-					badgeType: after.badgeType || 'writer'
-				};
-				
-				await db.collection('notifications').add(notificationData);
-				console.log(`[onWriterVerified] Created notification for writer ${userId}`);
-			} catch (error) {
-				console.error('[onWriterVerified] Error creating notification:', error);
-			}
+			await db.collection('notifications').add(notificationData);
+			console.log(`[onWriterVerified] Created notification for writer ${userId}`);
+		} catch (error) {
+			console.error('[onWriterVerified] Error creating notification:', error);
 		}
-		
-		return null;
-	});
+	}
+});
