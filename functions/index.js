@@ -831,7 +831,7 @@ apiApp.get('/leaderboard/:gameId', verifyApiKey, async (req, res) => {
 exports.api = functions.https.onRequest(apiApp);
 
 // Firestore trigger: Notify user when they get verified (v2 syntax)
-exports.onUserVerified = functions.firestore.onDocumentWritten('verified_users/{userId}', async (event) => {
+exports.onUserVerified = onDocumentWritten('verified_users/{userId}', async (event) => {
 	const userId = event.params.userId;
 	const before = event.data?.before?.data();
 	const after = event.data?.after?.data();
@@ -864,7 +864,7 @@ exports.onUserVerified = functions.firestore.onDocumentWritten('verified_users/{
 });
 
 // Firestore trigger: Notify writer when they get verified (v2 syntax)
-exports.onWriterVerified = functions.firestore.onDocumentWritten('verified_writers/{userId}', async (event) => {
+exports.onWriterVerified = onDocumentWritten('verified_writers/{userId}', async (event) => {
 	const userId = event.params.userId;
 	const before = event.data?.before?.data();
 	const after = event.data?.after?.data();
