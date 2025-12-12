@@ -1,0 +1,45 @@
+[debug] [2025-12-12T17:43:55.958Z] ----------------------------------------------------------------------
+[debug] [2025-12-12T17:43:55.972Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Hanan\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2025-12-12T17:43:55.974Z] CLI Version:   14.23.0
+[debug] [2025-12-12T17:43:55.975Z] Platform:      win32
+[debug] [2025-12-12T17:43:55.977Z] Node Version:  v22.16.0
+[debug] [2025-12-12T17:43:55.979Z] Time:          Fri Dec 12 2025 10:43:55 GMT-0700 (Mountain Standard Time)
+[debug] [2025-12-12T17:43:55.980Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-12T17:43:56.996Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-12T17:43:56.997Z] > authorizing via signed-in user (infinitybyte.dev@gmail.com)
+[debug] [2025-12-12T17:43:56.998Z] [iam] checking project shared-sign-in for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-12-12T17:43:57.002Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:43:57.002Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:43:57.005Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions [none]
+[debug] [2025-12-12T17:43:57.005Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions x-goog-quota-user=projects/shared-sign-in
+[debug] [2025-12-12T17:43:57.006Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-12-12T17:44:02.552Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions 200
+[debug] [2025-12-12T17:44:02.553Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-12-12T17:44:02.555Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:44:02.555Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:44:02.555Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/shared-sign-in/serviceAccounts/shared-sign-in@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2025-12-12T17:44:02.556Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/shared-sign-in/serviceAccounts/shared-sign-in@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-12-12T17:44:07.755Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/shared-sign-in/serviceAccounts/shared-sign-in@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2025-12-12T17:44:07.756Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/shared-sign-in/serviceAccounts/shared-sign-in@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'shared-sign-in'...
+[info] 
+[info] i  deploying functions 
+[debug] [2025-12-12T17:44:07.772Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:44:07.773Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:44:07.773Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in [none]
+[debug] [2025-12-12T17:44:12.972Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in 200
+[debug] [2025-12-12T17:44:12.972Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/shared-sign-in {"projectNumber":"332039027753","projectId":"shared-sign-in","lifecycleState":"ACTIVE","name":"GlitchRealm Hub","labels":{"firebase":"enabled","firebase-core":"disabled","generative-language":"enabled"},"createTime":"2025-06-11T15:43:35.800302Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2025-12-12T17:44:12.980Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:44:12.980Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:44:12.981Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/shared-sign-in/adminSdkConfig [none]
+[debug] [2025-12-12T17:44:13.731Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/shared-sign-in/adminSdkConfig 200
+[debug] [2025-12-12T17:44:13.731Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/shared-sign-in/adminSdkConfig {"projectId":"shared-sign-in","databaseURL":"https://shared-sign-in-default-rtdb.firebaseio.com","storageBucket":"shared-sign-in.firebasestorage.app"}
+[debug] [2025-12-12T17:44:13.732Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:44:13.732Z] Checked if tokens are valid: true, expires at: 1765564980602
+[debug] [2025-12-12T17:44:13.732Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/shared-sign-in/configs [none]

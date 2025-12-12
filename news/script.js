@@ -5030,8 +5030,155 @@ function handleNotificationClick() {
     // Clear notification count
     updateNotificationCount(0);
     
-    // Redirect to user portal where notifications are displayed
-    window.location.href = 'https://glitchrealm.ca/user-portal.html';
+    // Show notifications popup
+    showNotificationsPopup();
+}
+
+async function showNotificationsPopup() {
+    const auth = window.firebaseAuth;
+    const db = window.firebaseFirestore;
+    
+    if (!auth || !db) {
+        console.error('Firebase not initialized');
+        return;
+    }
+    
+    const user = auth.currentUser;
+    if (!user) {
+        alert('Please sign in to view notifications');
+        return;
+    }
+    
+    // Create modal HTML if it doesn't exist
+    let modal = document.getElementById('notifications-popup-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'notifications-popup-modal';
+        modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100000; align-items: center; justify-content: center;';
+        modal.innerHTML = `
+            <div style="background: linear-gradient(135deg, rgba(10,10,30,0.98), rgba(20,10,30,0.98)); border: 2px solid var(--primary-cyan); border-radius: 16px; max-width: 600px; width: 90%; max-height: 80vh; overflow: hidden; box-shadow: 0 0 40px rgba(0,255,249,0.3); position: relative;">
+                <div style="padding: 25px 30px; border-bottom: 1px solid rgba(0,255,249,0.2); display: flex; align-items: center; justify-content: space-between;">
+                    <h2 style="color: var(--primary-cyan); margin: 0; font-size: 1.8rem; display: flex; align-items: center; gap: 12px;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        Notifications
+                    </h2>
+                    <button id="close-notifications-popup" style="background: none; border: none; color: rgba(255,255,255,0.7); font-size: 2rem; cursor: pointer; line-height: 1; padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.3s ease;">&times;</button>
+                </div>
+                <div id="notifications-popup-list" style="padding: 20px 30px; overflow-y: auto; max-height: calc(80vh - 100px);"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Close button handler
+        document.getElementById('close-notifications-popup').onclick = () => {
+            modal.style.display = 'none';
+        };
+        
+        // Close on outside click
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Show modal
+    modal.style.display = 'flex';
+    
+    // Load notifications
+    const list = document.getElementById('notifications-popup-list');
+    list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">Loading notifications...</p>';
+    
+    try {
+        const { collection, query, where, orderBy, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        
+        const notificationsRef = collection(db, 'notifications');
+        const q = query(
+            notificationsRef,
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc')
+        );
+        
+        const snapshot = await getDocs(q);
+        const notifications = [];
+        snapshot.forEach(doc => {
+            notifications.push({ id: doc.id, ...doc.data() });
+        });
+        
+        list.innerHTML = '';
+        
+        if (notifications.length === 0) {
+            list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">No notifications yet</p>';
+        } else {
+            notifications.forEach(notif => {
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    background: ${notif.read ? 'rgba(0,255,249,0.05)' : 'rgba(0,255,249,0.12)'};
+                    border: 1px solid ${notif.read ? 'rgba(0,255,249,0.2)' : 'var(--primary-cyan)'};
+                    border-radius: 10px;
+                    padding: 18px;
+                    margin-bottom: 15px;
+                    cursor: ${notif.read ? 'default' : 'pointer'};
+                    transition: all 0.3s ease;
+                `;
+                
+                const time = notif.createdAt?.toDate ? notif.createdAt.toDate().toLocaleString() : 'Just now';
+                
+                item.innerHTML = `
+                    <div style="color: var(--primary-cyan); font-size: 1.1rem; font-weight: 600; margin-bottom: 8px;">${notif.title || 'Notification'}</div>
+                    <div style="color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px;">${notif.message || ''}</div>
+                    <div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">${time}</div>
+                `;
+                
+                // Mark as read when clicked
+                if (!notif.read) {
+                    item.onmouseenter = () => {
+                        item.style.background = 'rgba(0,255,249,0.15)';
+                        item.style.borderColor = 'rgba(0,255,249,0.6)';
+                    };
+                    item.onmouseleave = () => {
+                        item.style.background = 'rgba(0,255,249,0.12)';
+                        item.style.borderColor = 'var(--primary-cyan)';
+                    };
+                    
+                    item.onclick = async () => {
+                        try {
+                            await updateDoc(doc(db, 'notifications', notif.id), { read: true });
+                            item.style.background = 'rgba(0,255,249,0.05)';
+                            item.style.borderColor = 'rgba(0,255,249,0.2)';
+                            item.style.cursor = 'default';
+                            item.onmouseenter = null;
+                            item.onmouseleave = null;
+                            item.onclick = null;
+                            
+                            // Update badge count
+                            const currentCount = parseInt(document.getElementById('notification-count')?.textContent || '0');
+                            if (currentCount > 0) {
+                                updateNotificationCount(currentCount - 1);
+                            }
+                        } catch (error) {
+                            console.error('Error marking notification as read:', error);
+                        }
+                    };
+                }
+                
+                list.appendChild(item);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+        list.innerHTML = '<p style="text-align: center; color: rgba(255,100,100,0.8); padding: 30px;">Error loading notifications. Please try again later.</p>';
+    }
 }
 
 function updateNotificationCount(count) {
