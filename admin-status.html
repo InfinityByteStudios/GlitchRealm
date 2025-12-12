@@ -75,17 +75,9 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
     import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+    import { glitchRealmFirebaseConfig } from './firebase-config-glitchrealm.js';
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBu6Z3s66aDXeHQ3yxGW5O-VDUIv9cA8fM",
-      authDomain: "glitchrealm.firebaseapp.com",
-      projectId: "glitchrealm",
-      storageBucket: "glitchrealm.firebasestorage.app",
-      messagingSenderId: "510393316540",
-      appId: "1:510393316540:web:0029a8b1f73da2a485a87e"
-    };
-
-    const app = initializeApp(firebaseConfig);
+    const app = initializeApp(glitchRealmFirebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 

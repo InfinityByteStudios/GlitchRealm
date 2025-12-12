@@ -675,17 +675,17 @@
   let glitchRealmApp = null;
   let glitchRealmDb = null;
   
-  function initGlitchRealmFirestore() {
+  // Import config at top of file when modularizing
+  // For now, dynamically import when needed
+  async function getGlitchRealmConfig() {
+    const module = await import('./firebase-config-glitchrealm.js');
+    return module.glitchRealmFirebaseConfig;
+  }
+  
+  async function initGlitchRealmFirestore() {
     if (glitchRealmDb) return glitchRealmDb;
     
-    const glitchRealmConfig = {
-      apiKey: "AIzaSyBu6Z3s66aDXeHQ3yxGW5O-VDUIv9cA8fM",
-      authDomain: "glitchrealm.firebaseapp.com",
-      projectId: "glitchrealm",
-      storageBucket: "glitchrealm.firebasestorage.app",
-      messagingSenderId: "510393316540",
-      appId: "1:510393316540:web:0029a8b1f73da2a485a87e"
-    };
+    const glitchRealmConfig = await getGlitchRealmConfig();
     
     try {
       // Initialize separate app for GlitchRealm if not exists
