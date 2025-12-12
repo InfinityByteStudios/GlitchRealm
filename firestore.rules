@@ -876,5 +876,27 @@ service cloud.firestore {
       // No direct updates - keys are updated via Cloud Functions
       allow update: if false;
     }
+    
+    // ================================
+    // Notifications Collection
+    // ================================
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Users can mark their own notifications as read
+      allow update: if request.auth != null && 
+                       resource.data.userId == request.auth.uid &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']) &&
+                       request.resource.data.read is bool;
+      
+      // Only Cloud Functions can create notifications
+      allow create: if false;
+      
+      // Users can delete their own notifications
+      allow delete: if request.auth != null && 
+                       resource.data.userId == request.auth.uid;
+    }
   }
 }
