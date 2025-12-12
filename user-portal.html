@@ -472,17 +472,14 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
-        @media (min-width: 768px) {
+        @media (min-width: 980px) {
             .portal-sections {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (min-width: 1200px) {
-            .portal-sections {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: 1.3fr 1fr;
+                align-items: start;
             }
         }
         
@@ -603,6 +600,28 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            max-height: 420px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 6px;
+        }
+        
+        .playtime-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .playtime-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        
+        .playtime-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 249, 0.3);
+            border-radius: 3px;
+        }
+        
+        .playtime-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 249, 0.5);
         }
         
         .playtime-item {
@@ -793,12 +812,12 @@
         }
     </style>
 </head>
-<body>
+<body style="min-height: 100vh; display: flex; flex-direction: column; overflow: hidden;">
     <div class="background-animation"></div>
     
     <div id="header-placeholder"></div>
     
-    <main class="portal-container">
+    <main class="portal-container" style="flex: 1; overflow-y: auto; overflow-x: hidden;">
         <div class="portal-header">
             <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
                 <h1 class="portal-title" id="portal-title">User Portal</h1>
@@ -846,8 +865,87 @@
             <button class="btn-portal" onclick="(function(){try{sessionStorage.setItem('gr.returnTo', window.location.href);}catch(e){};window.location.href=`Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}`;})()">Sign In Now</button>
         </div>
         
-        <div id="portal-content" class="portal-sections" style="display: none;">
-            <!-- Profile Picture Section -->
+        <div id="portal-content" style="display: none;">
+            <!-- Two-column grid for desktop -->
+            <div class="portal-sections">
+                <!-- LEFT: Game Playtime -->
+                <div class="portal-section">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M13,17.5C13,19.98 10.98,22 8.5,22C6.02,22 4,19.98 4,17.5C4,15.02 6.02,13 8.5,13C10.98,13 13,15.02 13,17.5M20,16.5C20,19.58 16.58,22 12.5,22C8.42,22 5,19.58 5,16.5C5,13.42 8.42,11 12.5,11C16.58,11 20,13.42 20,16.5M20,5V9H12V5H20M20,4H12C11.45,4 11,4.45 11,5V9C11,9.55 11.45,10 12,10H20C20.55,10 21,9.55 21,9V5C21,4.45 20.55,4 20,4M14.5,2.5C14.5,3.33 13.83,4 13,4C12.17,4 11.5,3.33 11.5,2.5C11.5,1.67 12.17,1 13,1C13.83,1 14.5,1.67 14.5,2.5M5.5,4.5C5.5,6.05 4.05,7.5 2.5,7.5C0.95,7.5 -0.5,6.05 -0.5,4.5C-0.5,2.95 0.95,1.5 2.5,1.5C4.05,1.5 5.5,2.95 5.5,4.5Z" />
+                        </svg>
+                        Game Playtime
+                    </h2>
+                    <div id="playtime-loading" style="text-align: center; padding: 20px;">
+                        <div class="loading-spinner"></div>
+                    </div>
+                    <ul id="playtime-list" class="playtime-list" style="display: none;"></ul>
+                    <div class="total-playtime">
+                        Total: <span id="total-hours" class="total-hours">0</span>
+                    </div>
+                    <div class="playtime-note">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                        </svg>
+                        Playtime is only tracked when playing games on GlitchRealm.
+                    </div>
+                </div>
+
+                <!-- RIGHT: Creator Verification -->
+                <div class="portal-section" id="verification-section" style="min-height: auto;">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.1 14.8,9.5V11C15.4,11 16,11.6 16,12.3V15.8C16,16.4 15.4,17 14.7,17H9.2C8.6,17 8,16.4 8,15.7V12.2C8,11.6 8.6,11 9.2,11V9.5C9.2,8.1 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V11H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z" />
+                        </svg>
+                        Creator Verification
+                    </h2>
+                    
+                    <!-- Status display (updated by JS) -->
+                    <div id="verification-status-display" style="margin-bottom: 20px;">
+                        <p id="verif-status" class="form-help" style="margin:0; opacity:0.9;">Not verified. Submit a request below.</p>
+                    </div>
+                    
+                    <!-- Verification form (collapsible by JS when verified) -->
+                    <form id="verif-form" class="neural-form">
+                        <div class="form-group">
+                            <label class="form-label" for="verif-username">Username <span style="color: var(--primary-cyan);">*</span></label>
+                            <input type="text" id="verif-username" class="form-control" maxlength="50" placeholder="Your username" required />
+                            <div class="form-help">Shown as 'Made by [username]'</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="verif-name">Display Name</label>
+                            <input type="text" id="verif-name" class="form-control" maxlength="100" placeholder="Creator or studio name" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Verification Type <span style="color: var(--primary-cyan);">*</span></label>
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="verif-type-games" value="games" style="width: 18px; height: 18px; cursor: pointer;">
+                                    <span>Games - Submit and publish games</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="verif-type-news" value="news" style="width: 18px; height: 18px; cursor: pointer;">
+                                    <span>News - Write and publish articles</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="verif-bio">Bio</label>
+                            <textarea id="verif-bio" class="form-control" rows="3" maxlength="1000" placeholder="Tell us about your work"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Links (optional)</label>
+                            <input type="url" id="verif-link-1" class="form-control" placeholder="Portfolio, itch.io, Steam, GitHub, etc." style="margin-bottom: 8px;" />
+                            <input type="url" id="verif-link-2" class="form-control" placeholder="Additional link" />
+                        </div>
+                        <button id="verif-submit" type="button" class="btn-portal">Submit Request</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Full-width sections below -->
+            <div style="max-width: 1200px; margin: 20px auto 0; display: grid; gap: 20px;">
+                <!-- Profile Picture Section -->
             <div class="portal-section">
                 <h2 class="section-title">
                     <svg viewBox="0 0 24 24">

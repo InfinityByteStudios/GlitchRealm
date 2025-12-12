@@ -27,7 +27,15 @@
                     <a href="/developer-dashboard.html" class="nav-dropdown-link" role="menuitem" id="developer-dashboard-link" style="display: none;">Developer Dashboard</a>
                 </div>
             </div>
-            <a href="https://auth.glitchrealm.ca/" id="sign-in-btn" class="btn btn-primary nav-signin" aria-label="Sign in to your account">Sign In</a>
+            <a href="#" id="sign-in-btn" class="btn btn-primary nav-signin" aria-label="Sign in to your account">Sign In</a>
+            <script>
+            // Dynamically set auth URL based on environment
+            (function() {
+                const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.');
+                const authUrl = isDev ? '/auth/' : 'https://auth.glitchrealm.ca/';
+                document.getElementById('sign-in-btn').href = authUrl;
+            })();
+            </script>
             <div id="user-profile" class="user-profile" style="display: none;" role="navigation" aria-label="User account menu">
                 <div class="profile-dropdown">
                     <button class="profile-trigger">
