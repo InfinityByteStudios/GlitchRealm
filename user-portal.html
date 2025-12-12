@@ -547,11 +547,32 @@
         }
         
         .section-title {
+            font-family: 'Rajdhani', sans-serif;
             font-size: 1.8rem;
-            margin-bottom: 20px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            color: transparent;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+            background-clip: text;
+            -webkit-background-clip: text;
+            letter-spacing: 1px;
+            position: relative;
+            padding-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+        
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-magenta));
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--primary-cyan);
         }
         
         .section-title svg {
@@ -566,27 +587,39 @@
         
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-family: 'Orbitron', monospace;
-            font-size: 0.9rem;
-            color: var(--text-lighter);
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
         
         .form-control {
             width: 100%;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--primary-cyan);
-            border-radius: 6px;
-            color: var(--text-color);
+            padding: 14px 16px;
+            background: rgba(10, 10, 30, 0.6);
+            border: 2px solid rgba(0, 255, 249, 0.3);
+            border-radius: 10px;
+            color: var(--text-primary);
             font-family: 'Rajdhani', sans-serif;
-            transition: all 0.3s;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(5px);
         }
         
         .form-control:focus {
             outline: none;
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+            border-color: var(--primary-cyan);
+            background: rgba(10, 10, 30, 0.8);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.4), inset 0 0 10px rgba(0, 255, 249, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .form-control:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(10, 10, 30, 0.4);
         }
         
         .form-help {
@@ -597,27 +630,55 @@
         }
         
         .btn-portal {
-            background: linear-gradient(135deg, var(--primary-cyan), var(--accent-purple));
-            color: var(--dark-bg);
+            padding: 14px 35px;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
             border: none;
-            border-radius: 6px;
-            padding: 12px 25px;
-            font-family: 'Orbitron', monospace;
-            font-weight: bold;
+            border-radius: 12px;
+            color: #000;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 255, 249, 0.3);
+        }
+        
+        .btn-portal::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn-portal:hover::before {
+            width: 300px;
+            height: 300px;
         }
         
         .btn-portal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 255, 249, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0, 255, 249, 0.5), 0 0 30px rgba(255, 0, 128, 0.3);
         }
         
         .btn-portal:active {
-            transform: translateY(0);
+            transform: translateY(-2px);
+        }
+        
+        .btn-portal:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .playtime-list {
@@ -629,12 +690,24 @@
         .playtime-item {
             display: flex;
             justify-content: space-between;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(0, 255, 249, 0.2);
+            align-items: center;
+            padding: 18px;
+            margin-bottom: 12px;
+            background: rgba(10, 10, 30, 0.5);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .playtime-item:hover {
+            background: rgba(10, 10, 30, 0.7);
+            border-color: var(--primary-cyan);
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0, 255, 249, 0.2);
         }
         
         .playtime-item:last-child {
-            border-bottom: none;
+            margin-bottom: 0;
         }
         
         .game-info {
@@ -644,48 +717,65 @@
         }
         
         .game-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
             object-fit: cover;
-            border: 1px solid var(--primary-cyan);
+            border: 2px solid var(--primary-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 249, 0.3);
         }
         
         .game-name {
-            font-family: 'Orbitron', monospace;
-            font-weight: bold;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
         }
         
         .game-time {
             font-family: 'Rajdhani', sans-serif;
-            background: rgba(0, 255, 249, 0.1);
-            padding: 5px 12px;
-            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(0, 255, 249, 0.2), rgba(255, 0, 128, 0.2));
+            padding: 8px 18px;
+            border-radius: 25px;
             color: var(--primary-cyan);
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 1px solid rgba(0, 255, 249, 0.4);
+            letter-spacing: 0.5px;
         }
         
         .total-playtime {
-            margin-top: 25px;
-            text-align: right;
+            margin-top: 30px;
+            padding: 20px;
+            text-align: center;
             font-size: 1.2rem;
-            font-family: 'Orbitron', monospace;
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, rgba(10, 10, 30, 0.8), rgba(20, 10, 30, 0.6));
+            border-radius: 12px;
+            border: 2px solid rgba(0, 255, 249, 0.3);
         }
         
         .total-hours {
-            color: var(--primary-cyan);
-            font-weight: bold;
-            font-size: 1.4rem;
+            color: transparent;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+            background-clip: text;
+            -webkit-background-clip: text;
+            font-weight: 900;
+            font-size: 2rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
         }
         
         .playtime-note {
             margin-top: 20px;
-            padding: 15px;
-            background: rgba(138, 43, 226, 0.1);
-            border: 1px solid var(--accent-purple);
-            border-radius: 6px;
-            font-size: 0.9rem;
-            color: var(--text-lighter);
+            padding: 18px;
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.15), rgba(255, 0, 128, 0.1));
+            border: 1px solid rgba(138, 43, 226, 0.4);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Rajdhani', sans-serif;
+            line-height: 1.6;
         }
         
         .playtime-note svg {
@@ -698,23 +788,29 @@
         
         .auth-required {
             text-align: center;
-            padding: 50px 0;
+            padding: 60px 20px;
         }
         
         .auth-required-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
+            font-size: 4rem;
+            margin-bottom: 25px;
             display: block;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
         }
         
         .loading-spinner {
-            border: 5px solid rgba(0, 255, 249, 0.1);
+            border: 6px solid rgba(0, 255, 249, 0.1);
             border-radius: 50%;
-            border-top: 5px solid var(--primary-cyan);
-            width: 50px;
-            height: 50px;
+            border-top: 6px solid var(--primary-cyan);
+            border-right: 6px solid var(--primary-magenta);
+            width: 60px;
+            height: 60px;
             animation: spin 1s linear infinite;
             margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.3);
         }
         
         @keyframes spin {
@@ -724,30 +820,35 @@
         
         .email-messages {
             width: 100%;
-            word-wrap: break-word; /* Allows long words to break and wrap to next line */
-            margin-top: 15px; /* Maintains spacing from the button */
+            word-wrap: break-word;
+            margin-top: 15px;
             display: block;
         }
         
         #email-success,
         #email-error {
             width: 100%;
-            padding: 10px 15px;
-            border-radius: 6px;
+            padding: 14px 18px;
+            border-radius: 10px;
             display: none;
-            box-sizing: border-box; /* Ensures padding is included in width calculation */
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
         
         #email-success {
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid #00cc00;
-            color: #00cc00;
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.15), rgba(0, 255, 65, 0.05));
+            border: 2px solid var(--success);
+            color: var(--success);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
         }
         
         #email-error {
-            background: rgba(255, 0, 0, 0.1);
-            border: 1px solid #ff0000;
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.15), rgba(255, 0, 0, 0.05));
+            border: 2px solid #ff0000;
             color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
         }
 
         /* Password management messages */
@@ -760,15 +861,38 @@
         }
         #password-success, #password-error, #reset-success, #reset-error {
             width: 100%;
-            padding: 10px 15px;
-            border-radius: 6px;
+            padding: 14px 18px;
+            border-radius: 10px;
             display: none;
             box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
-        #password-success { background: rgba(0, 255, 0, 0.1); border: 1px solid #00cc00; color: #00cc00; }
-        #password-error   { background: rgba(255, 0, 0, 0.1); border: 1px solid #ff0000; color: #ff0000; }
-        #reset-success    { background: rgba(0, 255, 255, 0.1); border: 1px solid #00ffff; color: #00ffff; }
-        #reset-error      { background: rgba(255, 0, 0, 0.1); border: 1px solid #ff0000; color: #ff0000; }
+        #password-success { 
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.15), rgba(0, 255, 65, 0.05)); 
+            border: 2px solid var(--success); 
+            color: var(--success);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+        }
+        #password-error { 
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.15), rgba(255, 0, 0, 0.05)); 
+            border: 2px solid #ff0000; 
+            color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+        }
+        #reset-success { 
+            background: linear-gradient(135deg, rgba(0, 255, 249, 0.15), rgba(0, 255, 249, 0.05)); 
+            border: 2px solid var(--primary-cyan); 
+            color: var(--primary-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 249, 0.2);
+        }
+        #reset-error { 
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.15), rgba(255, 0, 0, 0.05)); 
+            border: 2px solid #ff0000; 
+            color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
