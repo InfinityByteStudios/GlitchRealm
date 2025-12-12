@@ -5030,13 +5030,8 @@ function handleNotificationClick() {
     // Clear notification count
     updateNotificationCount(0);
     
-    // Here you can add logic to:
-    // - Open a notifications dropdown/modal
-    // - Navigate to notifications page
-    // - Mark notifications as read
-    
-    // For now, just show an alert as placeholder
-    alert('Notifications feature coming soon!');
+    // Redirect to user portal where notifications are displayed
+    window.location.href = 'https://glitchrealm.ca/user-portal.html';
 }
 
 function updateNotificationCount(count) {
