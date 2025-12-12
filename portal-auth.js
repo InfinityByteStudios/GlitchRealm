@@ -12,8 +12,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 console.log('Sign-in button in header clicked');
                 
-                // Redirect to dedicated auth subdomain
-                window.location.href = 'https://auth.glitchrealm.ca/';
+                // Detect localhost vs production
+                const isDev = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1' || 
+                             window.location.hostname.startsWith('192.168.');
+                
+                // Store current URL as return destination
+                const returnUrl = window.location.href;
+                sessionStorage.setItem('gr.returnTo', returnUrl);
+                
+                // Redirect to auth (local folder or subdomain)
+                if (isDev) {
+                    window.location.href = `/auth/?return=${encodeURIComponent(returnUrl)}`;
+                } else {
+                    window.location.href = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
+                }
             });
             
             console.log('Event listener attached to sign-in button');

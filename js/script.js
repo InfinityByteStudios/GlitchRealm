@@ -468,6 +468,46 @@ function resetAuthButtonsText() {
 
 document.addEventListener('DOMContentLoaded', function() {
     
+    // Set up sign-in button with localhost support
+    const setupSignInButton = function() {
+        const signInBtn = document.getElementById('sign-in-btn');
+        if (signInBtn && !signInBtn.dataset.listenerAttached) {
+            console.log('[Auth] Setting up sign-in button handler');
+            
+            signInBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('[Auth] Sign-in button clicked');
+                
+                // Detect localhost vs production
+                const isDev = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1' || 
+                             window.location.hostname.startsWith('192.168.');
+                
+                // Store current URL as return destination
+                const returnUrl = window.location.href;
+                sessionStorage.setItem('gr.returnTo', returnUrl);
+                
+                // Redirect to auth (local folder or subdomain)
+                if (isDev) {
+                    const authUrl = `/auth/?return=${encodeURIComponent(returnUrl)}`;
+                    console.log('[Auth] Redirecting to local auth:', authUrl);
+                    window.location.href = authUrl;
+                } else {
+                    const authUrl = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
+                    console.log('[Auth] Redirecting to production auth:', authUrl);
+                    window.location.href = authUrl;
+                }
+            });
+            
+            signInBtn.dataset.listenerAttached = 'true';
+            console.log('[Auth] Sign-in button handler attached');
+        }
+    };
+    
+    // Set up immediately and after a delay for dynamically loaded headers
+    setupSignInButton();
+    setTimeout(setupSignInButton, 1000);
+    
     // IMMEDIATELY restore UI from cached auth state if available
     try {
         if (window.__cachedAuthState) {
