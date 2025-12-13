@@ -342,6 +342,16 @@
               approvedAt: vmod.serverTimestamp(),
               approvedBy: auth?.currentUser?.uid || null
             });
+            
+            // Create notification for the verified writer
+            await vmod.addDoc(vmod.collection(db, 'notifications'), {
+              userId: wvid,
+              title: '🎉 Writer Verification Approved',
+              message: 'Congratulations! Your writer verification request has been approved. You can now publish articles on GlitchRealm.',
+              read: false,
+              createdAt: vmod.serverTimestamp()
+            });
+            
             alert('✓ Writer verified successfully!');
           } else if (reject) {
             const reason = prompt('Rejection reason (optional):');
@@ -511,6 +521,16 @@
                   status: 'approved',
                   decidedAt: serverTimestamp(),
                   reviewerId: auth?.currentUser?.uid || null
+                });
+                
+                // Create notification for the verified user
+                const { addDoc, collection } = vmod;
+                await addDoc(collection(db, 'notifications'), {
+                  userId: uid,
+                  title: '✨ Creator Verification Approved',
+                  message: 'Your creator verification badge has been approved! Your profile now shows the verified creator badge.',
+                  read: false,
+                  createdAt: serverTimestamp()
                 });
               } else if (deny) {
                 await updateDoc(doc(db, 'verification_requests', uid), {
