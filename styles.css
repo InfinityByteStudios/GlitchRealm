@@ -4639,27 +4639,29 @@ body {
 /* Global: animated notification badge (top-left of the user module) */
 .notification-count-badge {
     position: absolute;
-    top: -5px;
-    left: -5px;
-    background: linear-gradient(135deg, #ff0080, #ff1493, #ff69b4);
-    color: var(--white);
+    top: 0px;
+    left: 0px;
+    background: linear-gradient(135deg, #ff0080, #ff1493);
+    color: #ffffff;
     border-radius: 50%;
-    min-width: 14px;
-    height: 14px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.55rem;
+    font-size: 0.7rem;
     font-weight: 800;
     line-height: 1;
-    /* removed solid white border; rely on glow + detached ring */
+    border: 2px solid #ffffff;
     box-shadow: 0 0 20px rgba(255, 0, 128, 0.8), 
                 0 0 40px rgba(255, 0, 128, 0.4),
-                0 2px 10px rgba(0, 0, 0, 0.3);
+                0 2px 10px rgba(0, 0, 0, 0.5);
     animation: badgePulse 1.5s infinite, badgeGlow 2s infinite alternate;
-    z-index: 999; /* ensure above card */
+    z-index: 999;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-    transform-origin: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
 }
 
 /* Detached halo ring that doesn't touch the badge */
