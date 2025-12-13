@@ -40,7 +40,6 @@ class GamePlaytimeTracker {
         
         // Check for Firebase
         if (typeof firebase === 'undefined') {
-            console.error('Firebase not available. Playtime tracking disabled.');
             return false;
         }
         
@@ -307,7 +306,7 @@ class GamePlaytimeTracker {
      */
     log(message) {
         if (this.DEBUG) {
-            console.log(`[PlaytimeTracker:${this.gameId}] ${message}`);
+            
         }
     }
 }
@@ -324,5 +323,5 @@ try {
     }
 } catch (e) {
     // Not in a module context, which is fine
-    console.log("Not running in module context, GamePlaytimeTracker is available globally");
+    
 }

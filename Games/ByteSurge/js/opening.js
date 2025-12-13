@@ -110,10 +110,8 @@ function completeOpening() {
 // ===== RENDERING FUNCTIONS =====
 function renderStudioSequence(ctx, elapsed) {
     const progress = elapsed / STUDIO_DURATION;
-    
-    
-    
-    if (progress >= 1) {
+
+if (progress >= 1) {
         
         startGameSequence();
         return;
@@ -162,9 +160,8 @@ function renderStudioSequence(ctx, elapsed) {
 
 function renderGameSequence(ctx, elapsed) {
     const progress = elapsed / GAME_DURATION;
-    
-    
-    if (progress >= 1) {
+
+if (progress >= 1) {
         
         startHomeScreen();
         return;

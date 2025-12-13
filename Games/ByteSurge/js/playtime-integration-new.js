@@ -3,8 +3,6 @@ import GamePlaytimeTracker from '../game-playtime-tracker.js';
 
 // Initialize the playtime tracker when the game starts
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Initializing playtime tracking for ByteSurge');
-    
     // Create and initialize the playtime tracker
     const tracker = new GamePlaytimeTracker();
     await tracker.init('bytesurge', 'ByteSurge', true);
@@ -21,7 +19,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add event listeners for game state if available
     window.addEventListener('gameStarted', () => {
         if (tracker && !tracker.isTracking) {
-            console.log('Game started - beginning playtime tracking');
             tracker.startTracking();
         }
     });
@@ -32,7 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     window.addEventListener('gameEnded', () => {
         if (tracker && tracker.isTracking) {
-            console.log('Game ended - saving final playtime');
             tracker.stopTracking(true);
         }
     });

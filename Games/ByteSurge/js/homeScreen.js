@@ -24,8 +24,7 @@ class HomeScreen {
         this.backgroundParticles = [];
         this.initBackgroundParticles();
         
-        console.log('🏠 Home Screen initialized');
-    }
+        }
       initBackgroundParticles() {
         this.backgroundParticles = [];
         const gameWidth = window.GAME_WIDTH || 1200;
@@ -452,9 +451,8 @@ class HomeScreen {
             });
         }
     }
-    
-    
-    renderBackgroundParticles() {
+
+renderBackgroundParticles() {
         this.ctx.save();
         
         this.backgroundParticles.forEach(particle => {

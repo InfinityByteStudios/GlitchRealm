@@ -101,7 +101,6 @@ export class UpgradeTestHelper {
 
             // Saw testing functions
             testSaws: () => {
-                console.log('🪚 Testing Saw Spawning...');
                 if (this.game.world && this.game.world.worldGenerator) {
                     const generator = this.game.world.worldGenerator;
                    
@@ -120,10 +119,8 @@ export class UpgradeTestHelper {
                         params.sawChance = 50; // 50% chance for testing
                         return params;
                     };
-                    
-                    
-                    
-                    // Restore original function after 5 seconds
+
+// Restore original function after 5 seconds
                     setTimeout(() => {
                         this.game.world.worldGenerator.getTerrainParameters = originalGetTerrainParams;
                         
@@ -143,14 +140,11 @@ export class UpgradeTestHelper {
                     generator.generateObstaclePattern = function(chunk, chunkX) {
                         const groundLevel = chunkX === 0 ? this.groundLevel : this.currentGroundLevel;
                         const clampedGroundLevel = Math.max(0, Math.min(16, groundLevel)); // Use constant instead of this.GAME_CONFIG
-                        
-                        
-                        this.createSawGauntletPattern(chunk, chunkX, 2, clampedGroundLevel);
+
+this.createSawGauntletPattern(chunk, chunkX, 2, clampedGroundLevel);
                     };
-                    
-                    
-                    
-                    // Restore original function after one use
+
+// Restore original function after one use
                     setTimeout(() => {
                         generator.generateObstaclePattern = originalGenerateObstaclePattern;
                         
@@ -161,8 +155,7 @@ export class UpgradeTestHelper {
             }
         };
 
-        
-    }
+}
 
     /**
      * Show current player upgrades in console

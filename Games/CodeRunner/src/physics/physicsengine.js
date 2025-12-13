@@ -23,15 +23,12 @@ export class PhysicsEngine {
         try {
             // Validate inputs - prevent NaN from undefined dimensions
             if (width === undefined || width === null || isNaN(width)) {
-                console.warn('Invalid width in checkCollision:', width);
                 width = 28; // GAME_CONFIG.PLAYER_WIDTH fallback
             }
             if (height === undefined || height === null || isNaN(height)) {
-                console.warn('Invalid height in checkCollision:', height);
                 height = 44; // GAME_CONFIG.PLAYER_HEIGHT fallback
             }
             if (isNaN(x) || isNaN(y)) {
-                console.warn('Invalid position in checkCollision:', x, y);
                 return { collision: false };
             }
         

@@ -82,10 +82,8 @@ export class LeaderboardSystem {
         this.setupNetworkListeners();
         
         if (this.isOnline) {
-            console.log('🌐 Connected to Firebase leaderboard');
             await this.loadFirebaseLeaderboards();
         } else {
-            console.log('💾 Using offline leaderboard mode');
             this.clearFakeSubmissions();
             this.loadLeaderboards();
         }
@@ -111,18 +109,14 @@ export class LeaderboardSystem {
                 const hasConnection = await this.checkNetworkConnectivity();
                 this.isOnline = hasConnection;
                 if (hasConnection) {
-                    console.log('Firebase database connected with network');
-                } else {
-                    console.log('Firebase available but no network connection');
-                }
+                    } else {
+                    }
             } else {
                 this.isOnline = false;
-                console.log('Firebase not available, using offline mode');
-            }
+                }
         } catch (error) {
             this.isOnline = false;
-            console.log('Firebase connection error:', error);
-        }
+            }
     }    /**
      * Check for actual network connectivity
      */
@@ -147,7 +141,6 @@ export class LeaderboardSystem {
             clearTimeout(timeoutId);
             return true;
         } catch (error) {
-            console.log('Network connectivity check failed:', error);
             return false;
         }
     }
@@ -156,7 +149,6 @@ export class LeaderboardSystem {
      */
     async submitScore(name, score, difficulty = this.selectedDifficulty, survivalTime = 0) {
         if (!this.isOnline || !this.firebaseDatabase) {
-            console.log('Firebase not available, using offline mode');
             return this.submitScoreOffline(name, score, difficulty, survivalTime);
         }        try {
             const scoresRef = this.firebaseDatabase.ref(`leaderboard/${difficulty}`);
@@ -176,19 +168,17 @@ export class LeaderboardSystem {
                     const existingScore = await this.getPlayerScoreFromFirebase(difficulty, name);
                     
                     if (existingScore && score <= existingScore) {
-                        console.log(`⚠️ Not submitting to Firebase: Existing score (${existingScore}) >= new score (${score})`);
+                        >= new score (${score})`);
                         return false;
                     }
                     
-                    console.log(`🔄 Replacing lower score (${existingScore}) with higher score (${score}) in Firebase`);
+                    with higher score (${score}) in Firebase`);
                     // For this update, we'll simply push the new score (Firebase doesn't easily support updating)
                 }
             }
             
             // Push to Firebase
             await scoresRef.push(newScore);
-            
-            console.log('✅ Score submitted to Firebase:', newScore);
             
             // Update local tracking
             this.uploadedDifficulties.add(difficulty);
@@ -240,7 +230,6 @@ export class LeaderboardSystem {
                     }                });
             }
         } catch (error) {
-            console.warn('Failed to load Firebase leaderboards:', error);
             this.isOnline = false;
         }
           // Update Game's bestScores after loading leaderboards
@@ -263,7 +252,6 @@ export class LeaderboardSystem {
      */
     showLeaderboard(difficulty = this.selectedDifficulty, enableLiveUpdates = true) {
         if (!this.isOnline || !this.firebaseDatabase) {
-            console.log('Firebase not available, showing offline leaderboard');
             this.showOfflineLeaderboard(difficulty);
             return;
         }
@@ -283,7 +271,6 @@ export class LeaderboardSystem {
 
             const leaderboardElement = document.getElementById("leaderboard");
             if (!leaderboardElement) {
-                console.warn('Leaderboard element not found in DOM');
                 return;
             }
             
@@ -352,7 +339,6 @@ export class LeaderboardSystem {
         const leaderboardElement = document.getElementById("leaderboard");
         
         if (!leaderboardElement) {
-            console.warn('Leaderboard element not found in DOM');
             return;
         }
         
@@ -406,33 +392,28 @@ export class LeaderboardSystem {
      */
     prepareScoreUpload(score, difficulty, startTime) {
         if (!score || !difficulty || !startTime) {
-            console.warn('Invalid parameters for prepareScoreUpload:', { score, difficulty, startTime });
             return false;
         }
 
         // Calculate survival time in seconds
         const survivalTime = Math.floor((Date.now() - startTime) / 1000);
         
-        console.log(`🎯 Preparing score upload: ${score} in ${difficulty} mode (${survivalTime}s)`);
+        `);
         
         // Check if we have a valid display name for automatic submission
         const displayName = this.getDisplayName();
         const isAuthenticated = this.isUserAuthenticated();
         
         if (this.hasValidDisplayName()) {
-            console.log(`🚀 Auto-submitting score with display name: ${displayName}`);
             return this.autoSubmitScore(score, difficulty, survivalTime, displayName);
         } else if (isAuthenticated && !this.hasValidDisplayName()) {
-            console.log(`📝 Authenticated user needs to set display name, showing name selection dialog`);
             return this.showNameSelectionDialog(difficulty, score, survivalTime);
         } else {
             // Check for saved name for guest users
             const savedName = this.getSavedPlayerName();
             if (savedName && savedName.trim() && savedName !== 'Anonymous') {
-                console.log(`🚀 Auto-submitting score with saved name: ${savedName}`);
                 return this.autoSubmitScore(score, difficulty, survivalTime, savedName);
             } else {
-                console.log(`📝 No saved name found, showing name selection dialog`);
                 return this.showNameSelectionDialog(difficulty, score, survivalTime);
             }
         }
@@ -448,24 +429,20 @@ export class LeaderboardSystem {
      */
     async autoSubmitScore(score, difficulty, survivalTime, playerName) {
         if (score < 100) {
-            console.log(`❌ Score ${score} too low for leaderboard (minimum 100)`);
+            `);
             return false;
         }
 
         // Validate player name for inappropriate content
         const validation = this.validatePlayerName(playerName);
         if (!validation.valid) {
-            console.warn(`❌ Saved name "${playerName}" failed validation:`, validation.message);
             // If the saved name is inappropriate, fall back to name selection dialog
             return this.showNameSelectionDialog(difficulty, score, survivalTime);
         }        // Note: Allowing same name across different difficulties
         // Players can use the same name in multiple difficulty levels
-        console.log(`✅ Using name "${playerName}" for ${difficulty} mode (same name allowed across difficulties)`);
-        
+        `);
 
-        console.log(`🚀 Auto-submitting score: ${score} for ${playerName} in ${difficulty} mode`);
-        
-        try {
+try {
             this.isUploading = true;
             const success = await this.submitScore(playerName, score, difficulty, survivalTime);
               if (success) {
@@ -473,8 +450,6 @@ export class LeaderboardSystem {
                     success: true,
                     message: `Score ${score} automatically uploaded to ${DIFFICULTY_LEVELS[difficulty].name} leaderboard!`
                 });
-                console.log(`✅ Auto-submission successful: ${score} for ${playerName}`);
-                
                 // Automatically show leaderboard after successful high score submission
                 this.scheduleLeaderboardDisplay();
             } else {
@@ -482,8 +457,7 @@ export class LeaderboardSystem {
                     success: false,
                     message: 'Auto-upload failed! Score not high enough or other error.'
                 });
-                console.log(`❌ Auto-submission failed for ${playerName}: ${score}`);
-            }
+                }
             
             return success;
             
@@ -505,8 +479,6 @@ export class LeaderboardSystem {
      * @returns {boolean} - Always returns true to indicate dialog was shown
      */
     showNameSelectionDialog(difficulty, score, survivalTime) {
-        console.log(`📝 Showing name selection dialog for score: ${score} in ${difficulty} mode`);
-        
         // Set up the upload context for the manual name entry flow
         this.currentUpload = { difficulty, score, survivalTime };
         this.showUploadPrompt = true;
@@ -526,12 +498,9 @@ export class LeaderboardSystem {
      */
     scheduleLeaderboardDisplay() {
         if (!this.gameInstance) {
-            console.warn('Cannot show leaderboard - no game instance reference');
             return;
         }
 
-        console.log('🏆 Scheduling leaderboard display for new high score...');
-        
         // Determine the difficulty to show:
         // 1. If we have a currentUpload context (manual submission), use that difficulty
         // 2. Otherwise, use the game's current difficulty (auto submission)
@@ -542,8 +511,6 @@ export class LeaderboardSystem {
         // Show leaderboard after a 2-second delay to let player see the success message
         setTimeout(() => {
             try {
-                console.log('🏆 Automatically showing leaderboard for new high score');
-                
                 // Import GAME_STATES at runtime to avoid circular dependencies
                 import('../utils/constants.js').then(({ GAME_STATES }) => {
                     if (this.gameInstance && this.gameInstance.gameState === GAME_STATES.GAME_OVER) {
@@ -553,8 +520,7 @@ export class LeaderboardSystem {
                         // Transition to leaderboard state
                         this.gameInstance.gameState = GAME_STATES.LEADERBOARD;
                         
-                        console.log(`✅ Successfully transitioned to leaderboard display for ${highScoreDifficulty} difficulty`);
-                    }
+                        }
                 }).catch(error => {
                     console.error('Error importing GAME_STATES:', error);
                 });
@@ -571,17 +537,12 @@ export class LeaderboardSystem {
      */
     scheduleLeaderboardDisplayForDifficulty(difficulty) {
         if (!this.gameInstance) {
-            console.warn('Cannot show leaderboard - no game instance reference');
             return;
         }
 
-        console.log(`🏆 Scheduling leaderboard display for ${difficulty} difficulty...`);
-        
         // Show leaderboard after a 2-second delay to let player see the success message
         setTimeout(() => {
             try {
-                console.log(`🏆 Automatically showing leaderboard for ${difficulty} difficulty`);
-                
                 // Import GAME_STATES at runtime to avoid circular dependencies
                 import('../utils/constants.js').then(({ GAME_STATES }) => {
                     if (this.gameInstance && this.gameInstance.gameState === GAME_STATES.GAME_OVER) {
@@ -591,8 +552,7 @@ export class LeaderboardSystem {
                         // Transition to leaderboard state
                         this.gameInstance.gameState = GAME_STATES.LEADERBOARD;
                         
-                        console.log(`✅ Successfully transitioned to leaderboard display for ${difficulty} difficulty`);
-                    }
+                        }
                 }).catch(error => {
                     console.error('Error importing GAME_STATES:', error);
                 });
@@ -620,12 +580,10 @@ export class LeaderboardSystem {
                 try {
                     const hasEntry = await this.checkPlayerEntryInFirebase(difficulty, playerName);
                     if (hasEntry) {
-                        console.log(`🔍 Found duplicate name "${playerName}" in ${difficulty} Firebase leaderboard`);
                         return true;
                     }
                 } catch (error) {
-                    console.warn(`Error checking Firebase for duplicates in ${difficulty}:`, error);
-                }
+                    }
             }
             
             // Check local leaderboards
@@ -634,7 +592,6 @@ export class LeaderboardSystem {
             );
             
             if (localEntry) {
-                console.log(`🔍 Found duplicate name "${playerName}" in ${difficulty} local leaderboard`);
                 return true;
             }
         }
@@ -662,8 +619,7 @@ export class LeaderboardSystem {
             
             if (existingEntry) {
                 // Just inform the user, but allow the submission
-                console.log(`Player has existing entry: ${existingEntry.score}, new score: ${score}`);
-            }
+                }
         }
         
         this.showUploadPrompt = true;
@@ -756,7 +712,7 @@ export class LeaderboardSystem {
             
             // Only submit if new score is higher than existing score
             if (existingEntry && score <= existingEntry.score) {
-                console.log(`⚠️ Not submitting offline: Existing score (${existingEntry.score}) >= new score (${score})`);
+                >= new score (${score})`);
                 return false;
             }
             
@@ -845,8 +801,7 @@ export class LeaderboardSystem {
         this.nameInputActive = false;
         this.currentUpload = null;
         this.playerName = '';
-        console.log('📊 Upload cancelled');
-    }
+        }
     
     /**
      * Clear upload result message
@@ -861,8 +816,7 @@ export class LeaderboardSystem {
         this.nameInputActive = false;
         this.showUploadPrompt = false;
         this.currentUpload = null;
-        console.log('🔄 LeaderboardSystem input state reset');
-    }
+        }
     
     /**
      * Save leaderboards to localStorage (offline mode)
@@ -871,8 +825,7 @@ export class LeaderboardSystem {
         try {
             localStorage.setItem('coderunner_leaderboards', JSON.stringify(this.leaderboards));
         } catch (error) {
-            console.warn('Failed to save leaderboards:', error);
-        }
+            }
     }
     
     /**
@@ -889,8 +842,7 @@ export class LeaderboardSystem {
                     }
                 });
             }        } catch (error) {
-            console.warn('Failed to load leaderboards:', error);
-        }
+            }
           // Update Game's bestScores after loading offline leaderboards
         if (this.gameInstance) {
             this.updateGameBestScores(this.gameInstance);
@@ -904,8 +856,7 @@ export class LeaderboardSystem {
         try {
             localStorage.setItem('coderunner_uploads', JSON.stringify([...this.uploadedDifficulties]));
         } catch (error) {
-            console.warn('Failed to save upload history:', error);
-        }
+            }
     }
     
     /**
@@ -919,8 +870,7 @@ export class LeaderboardSystem {
                 this.uploadedDifficulties = new Set(data);
             }
         } catch (error) {
-            console.warn('Failed to load upload history:', error);
-        }
+            }
     }
     
     /**
@@ -933,10 +883,8 @@ export class LeaderboardSystem {
             try {
                 localStorage.removeItem('coderunner_leaderboards');
                 localStorage.setItem('coderunner_no_fake_data', 'true');
-                console.log('Cleared all leaderboard data to remove fake submissions');
-            } catch (error) {
-                console.warn('Failed to clear legacy data:', error);
-            }
+                } catch (error) {
+                }
             
             Object.keys(this.leaderboards).forEach(difficulty => {
                 this.leaderboards[difficulty] = [];
@@ -1063,8 +1011,7 @@ export class LeaderboardSystem {
         try {
             localStorage.setItem('coderunner_moderation', JSON.stringify(this.moderationData));
         } catch (error) {
-            console.warn('Failed to save moderation data:', error);
-        }
+            }
     }
     
     /**
@@ -1091,8 +1038,7 @@ export class LeaderboardSystem {
                 }
             }
         } catch (error) {
-            console.warn('Failed to load moderation data:', error);
-        }
+            }
     }
     
     /**
@@ -1151,12 +1097,10 @@ export class LeaderboardSystem {
     setupNetworkListeners() {
         // Listen for online/offline events
         window.addEventListener('online', () => {
-            console.log('Network connection restored');
             this.handleNetworkStatusChange(true);
         });
 
         window.addEventListener('offline', () => {
-            console.log('Network connection lost');
             this.handleNetworkStatusChange(false);
         });
 
@@ -1179,7 +1123,6 @@ export class LeaderboardSystem {
             // Try to verify actual connectivity
             const hasConnection = await this.checkNetworkConnectivity();
             this.isOnline = hasConnection;            if (hasConnection) {
-                console.log('🌐 Switched to online mode');
                 // Refresh leaderboards when coming back online
                 await this.loadFirebaseLeaderboards();
                   // Update Game's bestScores after switching back online
@@ -1189,8 +1132,7 @@ export class LeaderboardSystem {
             }
         } else {
             this.isOnline = false;
-            console.log('💾 Switched to offline mode');
-        }
+            }
     }
     
     /**
@@ -1198,10 +1140,8 @@ export class LeaderboardSystem {
      * Usage in console: game.leaderboardSystem.testModeration("inappropriate_name")
      */
     testModeration(testName) {
-        console.log(`🧪 Testing moderation for name: "${testName}"`);
         const validation = this.validatePlayerName(testName);
-        console.log('📋 Validation result:', validation);
-        console.log('📊 Current moderation status:', this.getModerationStatus());
+        );
         return validation;
     }
     
@@ -1210,10 +1150,8 @@ export class LeaderboardSystem {
      * Usage in console: game.leaderboardSystem.forceViolation("test_name")
      */
     forceViolation(testName = "test_inappropriate") {
-        console.log(`⚠️ Forcing violation for name: "${testName}"`);
         const result = this.recordViolation(testName);
-        console.log('📋 Violation result:', result);
-        console.log('📊 Updated moderation status:', this.getModerationStatus());
+        );
         return result;
     }
     
@@ -1221,14 +1159,11 @@ export class LeaderboardSystem {
      * Debug function: Show current moderation data
      * Usage in console: game.leaderboardSystem.showModerationData()
      */
-    showModerationData() {        console.log('📊 Current Moderation Data:');
-        console.log('- Violations:', this.moderationData.violations);
-        console.log('- Last Violation:', new Date(this.moderationData.lastViolationTime));
-        console.log('- Ban End Time:', new Date(this.moderationData.banEndTime));
-        console.log('- Warning History:', this.moderationData.warningHistory);
-        console.log('- Is Banned:', this.isPlayerBanned());
+    showModerationData() {        );
+        );
+        );
         if (this.isPlayerBanned()) {
-            console.log('- Hours Remaining:', this.getBanTimeRemaining());
+            );
         }
         return this.moderationData;
     }
@@ -1241,8 +1176,7 @@ export class LeaderboardSystem {
             localStorage.setItem('coderunner_player_name', name);
             this.savedPlayerName = name;
         } catch (error) {
-            console.warn('Failed to save player name:', error);
-        }
+            }
     }
     
     /**
@@ -1255,8 +1189,7 @@ export class LeaderboardSystem {
                 this.savedPlayerName = saved;
             }
         } catch (error) {
-            console.warn('Failed to load player name:', error);
-        }
+            }
     }    /**
      * Get saved player name
      */    getSavedPlayerName() {        // If no saved name exists, try to get from profileManager
@@ -1409,8 +1342,7 @@ export class LeaderboardSystem {
                 this.refreshLeaderboards();
             }
             
-            console.log(`📊 Switched to ${difficulty} leaderboard`);
-        }
+            }
     }
     
     /**
@@ -1465,8 +1397,7 @@ export class LeaderboardSystem {
             const entriesObj = Object.fromEntries(this.playerEntries);
             localStorage.setItem('coderunner_player_entries', JSON.stringify(entriesObj));
         } catch (error) {
-            console.warn('Failed to save player entries:', error);
-        }
+            }
     }
     
     /**
@@ -1480,8 +1411,7 @@ export class LeaderboardSystem {
                 this.playerEntries = new Map(Object.entries(entriesObj));
             }
         } catch (error) {
-            console.warn('Failed to load player entries:', error);
-        }
+            }
     }
 
     /**
@@ -1549,8 +1479,6 @@ export class LeaderboardSystem {
      * Handle click events on the leaderboard with enhanced UI feedback
      */
     handleClick(x, y) {
-        console.log('📊 Leaderboard clicked at:', x, y);
-        
         // Handle difficulty tab clicks using the game's tab hit areas
         if (this.gameInstance && this.gameInstance.tabHitAreas) {
             const clickedTab = this.gameInstance.tabHitAreas.find(tab => 

@@ -41,13 +41,10 @@ function isTypingInInputField() {
 }
 
 function setupInputHandlers() {
-    console.log('🎮 Setting up advanced input system...');
-    
     // === KEYBOARD INPUT SYSTEM ===
     document.addEventListener('keydown', (e) => {
         // Check if user is typing in an input field
         if (isTypingInInputField()) {
-            console.log('🔤 User is typing in input field, ignoring game controls for key:', e.code);
             return; // Don't process game controls when typing
         }
         
@@ -67,15 +64,10 @@ function setupInputHandlers() {
             inputState.inputBuffer.shift();
         }// Handle upgrade menu input first (works even when game isn't running)
         if (e.code === 'KeyU') {
-            console.log('🔑 U key pressed - checking upgrade system...');
-            console.log('upgradeSystem exists:', !!window.upgradeSystem);
-            console.log('upgradeMenuUI exists:', !!window.upgradeMenuUI);
             if (window.upgradeSystem) {
-                console.log('upgradeSystem.isMenuOpen:', window.upgradeSystem.isMenuOpen);
-            }
+                }
             
             if (window.upgradeSystem && !window.upgradeSystem.isMenuOpen) {
-                console.log('Opening upgrade menu...');
                 window.upgradeMenuUI.openMenu();
                 if (window.togglePause && window.getGameRunning && window.getGameRunning()) {
                     window.togglePause();
@@ -83,7 +75,6 @@ function setupInputHandlers() {
                 e.preventDefault();
                 return;
             } else if (window.upgradeSystem && window.upgradeSystem.isMenuOpen) {
-                console.log('Closing upgrade menu...');
                 window.upgradeMenuUI.closeMenu();
                 e.preventDefault();
                 return;
@@ -128,23 +119,17 @@ function setupInputHandlers() {
         // Handle settings menu toggle (works even when game isn't running)
         if (e.code === 'Escape') {
             e.preventDefault();
-            console.log('🔑 ESC key pressed - toggling settings menu');
             if (window.isSettingsMenuOpen && window.isSettingsMenuOpen()) {
-                console.log('Closing settings menu');
                 window.closeSettingsMenu();
             } else if (window.openSettingsMenu) {
-                console.log('Opening settings menu');
                 window.openSettingsMenu();
             } else {
-                console.error('❌ openSettingsMenu function not found!');
-            }
+                }
             return;
         }        // Handle game-specific inputs
         if (!window.getGameRunning || !window.getGameRunning()) return;
-        
-      
-        
-        // Handle user interaction for audio on any key press during gameplay
+
+// Handle user interaction for audio on any key press during gameplay
         if (window.audioSystem) {
             window.audioSystem.handleUserInteraction();
         }
@@ -336,15 +321,12 @@ function setupInputHandlers() {
     
     // === GAMEPAD SUPPORT ===
     window.addEventListener('gamepadconnected', (e) => {
-        console.log(`🎮 Gamepad connected: ${e.gamepad.id}`);
-    });
+        });
     
     window.addEventListener('gamepaddisconnected', (e) => {
-        console.log(`🎮 Gamepad disconnected: ${e.gamepad.id}`);
-    });
+        });
     
-    console.log('✅ Advanced input system initialized');
-}
+    }
 
 // ===== INPUT HANDLERS =====
 function handleTurn() {

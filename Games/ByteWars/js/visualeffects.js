@@ -22,8 +22,7 @@ class VisualEffects {
         this.maxSparks = 50;
         this.maxDamageNumbers = 20;
         
-        console.log('🎯 Visual Effects Manager initialized');
-    }
+        }
     
     update(deltaTime) {
         this.updateScreenShake(deltaTime);
@@ -301,13 +300,12 @@ class VisualEffects {
     onWaveStart(waveNumber) {
         // Screen flash and shake when a new wave starts (reduced)
         this.addScreenShake(2.5, 0.1);
-        console.log(`🌊 Wave ${waveNumber} visual effects triggered!`);
-    }
+        }
     
     onWaveComplete(waveNumber) {
         // Celebration effect when wave is completed (reduced)
         this.addScreenShake(1.5, 0.08);
-        console.log(`✅ Wave ${waveNumber} completion effects triggered!`);    }    onEnemySpawn(x, y, enemyType) {
+        }    onEnemySpawn(x, y, enemyType) {
         // Subtle spawn effect
         let color = '#ffffff';
         if (enemyType === 'bitbug') {
@@ -358,6 +356,6 @@ class VisualEffects {
             this.damageNumbers.push(damageNumber);
         }
         
-        console.log('💚 Player healing visual effect triggered (no particles/shake)');
+        ');
     }
 }

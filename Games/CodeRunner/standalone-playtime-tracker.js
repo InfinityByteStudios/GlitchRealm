@@ -4,12 +4,8 @@
  */
 
 // Print the same messages as the module-based implementation for consistency
-console.log('[PlaytimeIntegration] 🔄 Loading playtime tracking module...');
-console.log('[PlaytimeIntegration] ✅ Successfully imported from module');
-
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[PlaytimeIntegration] 🎮 Document loaded, initializing playtime tracking for CodeRunner');
     initializePlaytimeTracking();
 });
 
@@ -21,8 +17,6 @@ async function initializePlaytimeTracking() {
             console.error('[PlaytimeIntegration] ❌ Firebase not available');
             return;
         }
-        
-        console.log('[PlaytimeIntegration] Creating tracker instance...');
         
         // 2. Create a simple tracker object
         const tracker = {
@@ -40,7 +34,6 @@ async function initializePlaytimeTracking() {
             startTracking() {
                 if (this.isTracking) return;
                 
-                console.log('[PlaytimeIntegration] Starting playtime tracking...');
                 this.isTracking = true;
                 this.startTime = new Date();
                 
@@ -56,7 +49,7 @@ async function initializePlaytimeTracking() {
                 if (!this.isTracking) return;
                 
                 this.updatePlaytime();
-                console.log(`[PlaytimeIntegration] Stopping tracking. Total: ${this.totalMinutes.toFixed(2)} minutes`);
+                } minutes`);
                 
                 this.isTracking = false;
                 
@@ -93,11 +86,10 @@ async function initializePlaytimeTracking() {
                     const minutesPlayed = this.totalMinutes;
                     
                     if (minutesPlayed <= 0) {
-                        console.log('[PlaytimeIntegration] No playtime to save');
                         return 0;
                     }
                     
-                    console.log(`[PlaytimeIntegration] 📊 Saving ${minutesPlayed.toFixed(2)} minutes for ${this.gameName}`);
+                    } minutes for ${this.gameName}`);
                     
                     // Reset for next interval
                     this.totalMinutes = 0;
@@ -105,7 +97,6 @@ async function initializePlaytimeTracking() {
                     
                     // If user is not signed in, store in local storage
                     if (!this.userId) {
-                        console.log('[PlaytimeIntegration] User not signed in, saving to local storage instead');
                         this.saveToLocalStorage(minutesPlayed);
                         return minutesPlayed;
                     }
@@ -116,14 +107,13 @@ async function initializePlaytimeTracking() {
                         .collection('games')
                         .doc(this.gameId);
                     
-                    console.log(`[PlaytimeIntegration] Saving to Firebase for user: ${this.userId.substring(0, 6)}...`);
+                    }...`);
                     
                     // Get current data
                     const doc = await userGameRef.get();
                     
                     if (doc.exists) {
                         // Update existing document
-                        console.log(`[PlaytimeIntegration] Updating existing playtime record`);
                         await userGameRef.update({
                             totalMinutes: firebase.firestore.FieldValue.increment(minutesPlayed),
                             lastPlayed: firebase.firestore.FieldValue.serverTimestamp(),
@@ -133,10 +123,8 @@ async function initializePlaytimeTracking() {
                                 timestamp: new Date() // Using regular Date instead of serverTimestamp
                             })
                         });
-                        console.log(`[PlaytimeIntegration] ✅ Successfully updated playtime record`);
-                    } else {
+                        } else {
                         // Create new document
-                        console.log(`[PlaytimeIntegration] Creating new playtime record for first play session`);
                         await userGameRef.set({
                             gameId: this.gameId,
                             gameName: this.gameName,
@@ -149,8 +137,7 @@ async function initializePlaytimeTracking() {
                                 timestamp: new Date() // Using regular Date instead of serverTimestamp
                             }]
                         });
-                        console.log(`[PlaytimeIntegration] ✅ Successfully created new playtime record`);
-                    }
+                        }
                     
                     return minutesPlayed;
                 } catch (error) {
@@ -187,7 +174,6 @@ async function initializePlaytimeTracking() {
                     
                     // Save back to local storage
                     localStorage.setItem('playtime-data', JSON.stringify(data));
-                    console.log('[PlaytimeIntegration] ✅ Saved to local storage');
                     return true;
                 } catch (error) {
                     console.error('[PlaytimeIntegration] ❌ Error saving to local storage:', error);
@@ -200,23 +186,20 @@ async function initializePlaytimeTracking() {
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
                 tracker.userId = user.uid;
-                console.log(`[PlaytimeIntegration] 👤 User signed in: ${tracker.userId.substring(0, 6)}...`);
+                }...`);
             } else {
                 tracker.userId = null;
-                console.log('[PlaytimeIntegration] User signed out, using local storage for tracking');
-            }
+                }
         });
         
         // 4. Set up visibility handling
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                console.log('[PlaytimeIntegration] 🔴 Tab hidden - saving current playtime');
                 if (tracker.isTracking) {
                     tracker.updatePlaytime();
                     tracker.savePlaytime();
                 }
             } else {
-                console.log('[PlaytimeIntegration] 🟢 Tab visible again - resuming playtime tracking');
                 if (!tracker.isTracking) {
                     tracker.startTracking();
                 }
@@ -225,7 +208,6 @@ async function initializePlaytimeTracking() {
         
         // 5. Handle page unload
         window.addEventListener('beforeunload', () => {
-            console.log('[PlaytimeIntegration] 👋 Page unloading - saving final playtime');
             if (tracker.isTracking) {
                 tracker.stopTracking();
             }
@@ -233,14 +215,10 @@ async function initializePlaytimeTracking() {
         
         // 6. Make the tracker globally available
         window.playtimeTracker = tracker;
-        console.log('[PlaytimeIntegration] Initializing tracker with game details...');
-        console.log('[PlaytimeIntegration] Tracker accessible via window.playtimeTracker for debugging');
-        
         // 7. Start tracking
         tracker.startTracking();
         
-        console.log('[PlaytimeIntegration] ✅ Playtime tracking setup complete');
-    } catch (error) {
+        } catch (error) {
         console.error('[PlaytimeIntegration] ❌ Failed to set up playtime tracking:', error);
     }
 }

@@ -320,8 +320,7 @@ export class SettingsSystem {
         
         // Load saved settings (async)
         this.loadSettings().catch(error => {
-            console.warn('Failed to load settings during initialization:', error);
-        });
+            });
     }
     
     /**
@@ -399,22 +398,18 @@ export class SettingsSystem {
             const localData = localStorage.getItem('coderunner_settings');
             if (localData) {
                 localSettings = JSON.parse(localData);
-                console.log('📱 Local settings loaded');
-            }
+                }
             
             // Try to load from cloud if logged in
             if (this.gameInstance?.userProfileSystem?.isLoggedIn) {
                 try {
                     cloudSettings = await this.loadFromCloud();
                     if (cloudSettings && Object.keys(cloudSettings).length > 0) {
-                        console.log('☁️ Cloud settings loaded');
-                        
                         // Check for discrepancies and log them
                         this.checkSettingsDiscrepancies(localSettings, cloudSettings);
                     }
                 } catch (error) {
-                    console.warn('☁️ Failed to load cloud settings:', error);
-                }
+                    }
             }
             
             // Merge settings with cloud taking precedence over local
@@ -432,15 +427,12 @@ export class SettingsSystem {
             // If we loaded cloud settings, save them locally for offline access
             if (Object.keys(cloudSettings).length > 0) {
                 localStorage.setItem('coderunner_settings', JSON.stringify(mergedSettings));
-                console.log('💾 Cloud settings saved to local storage for offline access');
-            }
+                }
             
             // Apply settings to game after loading
             setTimeout(() => this.applySettingsToGame(), 100);
-            console.log('✅ Settings loaded successfully');
-        } catch (e) {
-            console.warn('❌ Failed to load settings:', e);
-        }
+            } catch (e) {
+            }
     }
 
     /**
@@ -453,7 +445,6 @@ export class SettingsSystem {
                 
                 // Get settings from user profile
                 if (userProfileSystem.userProfile && userProfileSystem.userProfile.settings) {
-                    console.log('☁️ Settings found in user profile');
                     return userProfileSystem.userProfile.settings;
                 }
                 
@@ -467,15 +458,13 @@ export class SettingsSystem {
                     if (profileDoc.exists) {
                         const data = profileDoc.data();
                         if (data.settings) {
-                            console.log('☁️ Settings loaded directly from Firestore');
                             return data.settings;
                         }
                     }
                 }
             }
         } catch (error) {
-            console.warn('☁️ Failed to load from cloud:', error);
-        }
+            }
         return {};
     }
     
@@ -493,8 +482,6 @@ export class SettingsSystem {
             
             // Save to localStorage
             localStorage.setItem('coderunner_settings', JSON.stringify(settings));
-            console.log('💾 Settings saved to localStorage');
-            
             // Save to cloud storage if logged in
             if (this.gameInstance?.userProfileSystem?.isLoggedIn) {
                 this.saveToCloud(settings);
@@ -502,12 +489,10 @@ export class SettingsSystem {
                 // Also trigger comprehensive cloud save
                 if (this.gameInstance?.cloudSaveSystem) {
                     this.gameInstance.cloudSaveSystem.saveAllGameData().catch(error => {
-                        console.warn('Failed to save settings to cloud:', error);
-                    });
+                        });
                 }
             } else {
-                console.log('📝 Not logged in - settings saved locally only');
-            }
+                }
             
             // Create backup if enabled
             if (this.getSettingValue('localBackup')) {
@@ -515,9 +500,7 @@ export class SettingsSystem {
             }
             
             this.showSaveConfirmation();
-            console.log('✅ Settings saved successfully');
-        } catch (e) {
-            console.warn('❌ Failed to save settings:', e);
+            } catch (e) {
             this.showSaveError();
         }
     }
@@ -537,14 +520,11 @@ export class SettingsSystem {
                     
                     // Save the profile
                     await userProfileSystem.saveUserProfile();
-                    console.log('☁️ Settings synced to cloud');
-                } else {
-                    console.warn('☁️ User profile not available for settings sync');
-                }
+                    } else {
+                    }
             }
         } catch (error) {
-            console.warn('☁️ Failed to sync settings to cloud:', error);
-        }
+            }
     }
 
     /**
@@ -567,10 +547,8 @@ export class SettingsSystem {
             }
             
             localStorage.setItem('coderunner_settings_backups', JSON.stringify(backups));
-            console.log('💾 Local backup created');
-        } catch (error) {
-            console.warn('💾 Failed to create local backup:', error);
-        }
+            } catch (error) {
+            }
     }
 
     /**
@@ -583,8 +561,7 @@ export class SettingsSystem {
             const settings = this.getAllSettings();
             await this.saveToCloud(settings);
         } catch (error) {
-            console.warn('☁️ Failed to sync to cloud:', error);
-        }
+            }
     }
     
     /**
@@ -713,8 +690,7 @@ export class SettingsSystem {
             this.gameInstance.applyGraphicsQuality();
         }
 
-        console.log('✅ Settings applied to game instance');
-    }
+        }
     
     /**
      * Get setting value by key
@@ -853,7 +829,6 @@ export class SettingsSystem {
                 // Apply graphics quality changes immediately
                 this.gameInstance.graphicsQuality = setting.value;
                 this.gameInstance.applyGraphicsQuality();
-                console.log('🎨 Graphics quality changed to:', setting.value);
                 break;
             case 'showParticles':
                 // Apply particle setting changes
@@ -1919,8 +1894,6 @@ export class SettingsSystem {
      * Handle slider value changes
      */
     handleSliderChange(key, value) {
-        console.log('🎛️ Settings slider change:', key, value);
-        
         // Update the setting value first
         this.setSettingValue(key, value);
         
@@ -1968,15 +1941,12 @@ export class SettingsSystem {
             }
         }
         
-        console.log('✅ Setting applied:', key, value);
-    }
+        }
 
     /**
      * Handle toggle changes
      */
     handleToggleChange(key) {
-        console.log('🔄 Settings toggle change:', key);
-        
         // Get current value and toggle it
         const currentValue = this.getSettingValue(key);
         const newValue = !currentValue;
@@ -2055,8 +2025,7 @@ export class SettingsSystem {
             }
         }
         
-        console.log('✅ Toggle setting applied:', key, newValue);
-    }
+        }
 
     /**
      * Handle dropdown toggle
@@ -2073,8 +2042,6 @@ export class SettingsSystem {
      * Handle dropdown value changes
      */
     handleDropdownChange(key, value) {
-        console.log('📝 Settings dropdown change:', key, value);
-        
         // Update the setting value
         this.setSettingValue(key, value);
         
@@ -2104,14 +2071,12 @@ export class SettingsSystem {
             }
         }
         
-        console.log('✅ Dropdown setting applied:', key, value);
-    }
+        }
 
     /**
      * Handle track selection
      */
     handleTrackSelection(trackFilename) {
-        console.log('🎵 Track selected:', trackFilename);
         this.handleDropdownChange('musicTrack', trackFilename);
         this.expandedDropdown = null; // Close dropdown after selection
     }
@@ -2120,8 +2085,6 @@ export class SettingsSystem {
      * Handle button actions
      */
     handleButtonAction(key) {
-        console.log('🔘 Button action:', key);
-        
         switch (key) {
             case 'exportSaveData':
                 this.exportSaveData();
@@ -2133,8 +2096,7 @@ export class SettingsSystem {
                 this.resetAllProgress();
                 break;
             default:
-                console.warn('Unknown button action:', key);
-        }
+                }
     }
 
     /**
@@ -2159,8 +2121,7 @@ export class SettingsSystem {
             link.click();
             
             URL.revokeObjectURL(url);
-            console.log('✅ Save data exported successfully');
-        } catch (error) {
+            } catch (error) {
             console.error('❌ Failed to export save data:', error);
         }
     }
@@ -2190,7 +2151,6 @@ export class SettingsSystem {
                             this.gameInstance.saveSystem.importData(saveData.gameData);
                         }
                         
-                        console.log('✅ Save data imported successfully');
                         this.showImportSuccessMessage();
                     } catch (error) {
                         console.error('❌ Failed to import save data:', error);
@@ -2222,7 +2182,6 @@ export class SettingsSystem {
                     localStorage.removeItem('coderunner_settings');
                     localStorage.removeItem('coderunner_save');
                     
-                    console.log('✅ All progress reset successfully');
                     this.showResetSuccessMessage();
                 } catch (error) {
                     console.error('❌ Failed to reset progress:', error);
@@ -2311,8 +2270,7 @@ export class SettingsSystem {
      */
     showImportSuccessMessage() {
         // You can implement a toast or notification system here
-        console.log('📥 Import successful!');
-    }
+        }
 
     /**
      * Show import error message
@@ -2327,8 +2285,7 @@ export class SettingsSystem {
      */
     showResetSuccessMessage() {
         // You can implement a toast or notification system here
-        console.log('🔄 Reset successful!');
-    }
+        }
 
     /**
      * Render settings content for active category
@@ -2873,24 +2830,12 @@ export class SettingsSystem {
      * Enhanced click handling with support for all new features
      */
     handleClick(x, y, hitAreas) {
-        console.log('🎯 SettingsSystem handleClick called with:', {
-            x, y, 
-            hitAreasCount: hitAreas.length,
-            hitAreas: hitAreas.map(area => ({
-                x: area.x,
-                y: area.y,
-                width: area.width,
-                height: area.height,
-                action: area.action,
-                key: area.key
-            }))
+        )
         });
         
         for (const area of hitAreas) {
             if (x >= area.x && x <= area.x + area.width && 
                 y >= area.y && y <= area.y + area.height) {
-                
-                console.log('🎯 Hit area found:', area);
                 
                 if (this.gameInstance?.audioSystem) {
                     this.gameInstance.audioSystem.onMenuClick();
@@ -2907,7 +2852,6 @@ export class SettingsSystem {
                 
                 // Handle back button
                 if (area.action === 'back') {
-                    console.log('🔙 Settings back button clicked');
                     return 'back';
                 }
                 
@@ -2916,35 +2860,30 @@ export class SettingsSystem {
                     const sliderWidth = area.width;
                     const progress = Math.max(0, Math.min(1, (x - area.x) / sliderWidth));
                     const newValue = area.min + progress * (area.max - area.min);
-                    console.log('🎛️ Slider interaction:', area.key, newValue);
                     this.handleSliderChange(area.key, newValue);
                     return null;
                 }
                 
                 // Handle toggle interactions
                 if (area.action === 'toggle') {
-                    console.log('🔄 Toggle interaction:', area.key);
                     this.handleToggleChange(area.key);
                     return null;
                 }
                 
                 // Handle dropdown interactions
                 if (area.action === 'dropdown') {
-                    console.log('▼ Dropdown interaction:', area.key);
                     this.expandedDropdown = this.expandedDropdown === area.key ? null : area.key;
                     return null;
                 }
                 
                 // Handle dropdown option selection
                 if (area.action === 'selectTrack') {
-                    console.log('✅ Track selected:', area.trackFilename);
                     this.handleTrackSelection(area.trackFilename);
                     return null;
                 }
                 
                 // Handle dropdown option selection (legacy)
                 if (area.action === 'dropdown-option') {
-                    console.log('✅ Dropdown option selected:', area.key, area.value);
                     this.handleDropdownChange(area.key, area.value);
                     this.expandedDropdown = null; // Close dropdown
                     return null;
@@ -2952,7 +2891,6 @@ export class SettingsSystem {
                 
                 // Handle button actions
                 if (area.action === 'button') {
-                    console.log('🔘 Button clicked:', area.key);
                     this.handleButtonAction(area.key);
                     return null;
                 }
@@ -3109,8 +3047,7 @@ export class SettingsSystem {
             this.lastActiveTab = this.activeTab;
         }
         
-        console.log('📜 Scroll:', { deltaY, scrollAmount, targetOffset: this.targetScrollOffset, maxScroll });
-    }
+        }
 
     /**
      * Calculate maximum scroll offset for current tab
@@ -3396,13 +3333,11 @@ export class SettingsSystem {
         });
         
         if (discrepancies.length > 0) {
-            console.log('⚠️ Settings discrepancies detected (cloud will take precedence):');
+            :');
             discrepancies.forEach(disc => {
-                console.log(`  ${disc.setting}: local="${disc.local}" vs cloud="${disc.cloud}"`);
-            });
+                });
         } else {
-            console.log('✅ Local and cloud settings are in sync');
-        }
+            }
         
         return discrepancies;
     }

@@ -11,8 +11,7 @@ const authUI = {
         this.updateUI();
         this.initialized = true;
         
-        console.log('🎮 Auth UI initialized');
-    },
+        },
     
     // Create floating auth button
     createAuthButton() {
@@ -462,8 +461,6 @@ const authUI = {
                     const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
                     
                     // Debug logging for score data
-                    console.log('Leaderboard entry:', entry);
-                    
                     // Clean up display name - show only username part of email, or display name
                     let displayName = entry.displayName || 'Anonymous';
                     if (displayName.includes('@') && !entry.displayName) {

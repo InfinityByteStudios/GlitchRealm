@@ -81,7 +81,6 @@ export class TutorialSystem {
                 this.hasShownSettings = this.tutorialProgress.settings || false;
             }
         } catch (error) {
-            console.warn('🎓 Failed to load tutorial progress:', error);
             this.tutorialProgress = {};
         }
     }
@@ -93,8 +92,7 @@ export class TutorialSystem {
         try {
             localStorage.setItem('coderunner_tutorial_progress', JSON.stringify(this.tutorialProgress));
         } catch (error) {
-            console.warn('🎓 Failed to save tutorial progress:', error);
-        }
+            }
     }
     
     /**
@@ -115,7 +113,6 @@ export class TutorialSystem {
      */
     startTutorial(tutorialType = 'welcome') {
         if (!this.tutorials[tutorialType]) {
-            console.warn('🎓 Unknown tutorial type:', tutorialType);
             return;
         }
         
@@ -126,7 +123,6 @@ export class TutorialSystem {
         this.targetAlpha = 1;
         this.pulseAnimation = 0;
         
-        console.log('🎓 Starting tutorial:', tutorialType);
         this.addEventListeners();
     }
     
@@ -620,8 +616,7 @@ export class TutorialSystem {
             this.game.gameState = GAME_STATES.HOME;
         }
         
-        console.log('🎓 Tutorial completed');
-    }
+        }
       /**
      * Stop the tutorial without completing it (for state transitions)
      */
@@ -630,8 +625,7 @@ export class TutorialSystem {
         this.currentTutorial = null;
         this.currentStep = 0;
         this.removeEventListeners();
-        console.log('🎓 Tutorial stopped');
-    }
+        }
     /**
      * Update tutorial system (animations, etc.)
      */
@@ -1272,8 +1266,7 @@ export class TutorialSystem {
         this.hasShownUpgrades = false;
         this.hasShownSettings = false;
         this.saveTutorialProgress();
-        console.log('🎓 Tutorial progress reset');
-    }
+        }
     
     /**
      * Show a quick tooltip hint (non-blocking tutorial)

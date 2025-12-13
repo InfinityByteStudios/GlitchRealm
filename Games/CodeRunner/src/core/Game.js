@@ -202,7 +202,7 @@ export class Game {
     determineInitialState() {
         // This is a fallback method that sets default states
         // The actual navigation logic happens in initAsync after settings are loaded
-        console.log('🔄 Game.determineInitialState() - setting temporary LOADING state');
+        - setting temporary LOADING state');
         this.gameState = GAME_STATES.LOADING;
         // Don't set pendingGameState here - it will be determined after settings load
     }
@@ -299,8 +299,6 @@ export class Game {
      */
     start() {
         try {
-            console.log('🎮 Starting game loop...');
-            
             // Check if loading screen should be shown and initialize accordingly
             const shouldShowLoadingScreen = this.initialization.getShouldShowLoadingScreen();
             
@@ -326,8 +324,7 @@ export class Game {
                 this.initAsync();
             }
             
-            console.log('✅ Game loop started successfully');
-        } catch (error) {
+            } catch (error) {
             console.error('Failed to start game:', error);
             // Show error state instead of crashing
             this.gameState = GAME_STATES.HOME;
@@ -387,8 +384,7 @@ export class Game {
         // Clear intervals/timeouts
         // (Autosave interval would be cleared here if implemented)
         
-        console.log('🎮 Game destroyed and resources cleaned up');
-    }
+        }
 
     /**
      * Get current game statistics

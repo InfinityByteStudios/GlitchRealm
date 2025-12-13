@@ -6,8 +6,6 @@ import './systems/ProfileManager.js'; // Initialize ProfileManager
 // Initialize and start the game when the page loads
 window.addEventListener('DOMContentLoaded', () => {
     try {
-        console.log('🚀 main.js DOMContentLoaded event fired');
-        
         // Initialize performance monitoring
         performanceMonitor.reset();
         
@@ -18,14 +16,11 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Connect global audio system to game instance
     if (window.audioSystem) {
-        console.log('🎵 Connecting audioSystem to game immediately');
         game.audioSystem = window.audioSystem;
     } else {
         // Wait for audio system to be initialized
-        console.log('🎵 AudioSystem not ready, setting up delayed connection');
         const checkAudioSystem = () => {
             if (window.audioSystem) {
-                console.log('🎵 Connecting audioSystem to game after delay');
                 game.audioSystem = window.audioSystem;
             } else {
                 setTimeout(checkAudioSystem, 50);
@@ -34,19 +29,15 @@ window.addEventListener('DOMContentLoaded', () => {
         checkAudioSystem();
     }    // Connect general settings to game instance
     if (window.generalSettings) {
-        console.log('⚙️ Connecting generalSettings to game immediately');
         const fpsEnabled = window.generalSettings.isShowFpsCounterEnabled();
-        console.log('⚙️ FPS counter enabled from settings:', fpsEnabled);
         game.showFpsCounter = fpsEnabled;
         game.initializeGraphicsSettings(); // Refresh graphics settings
     } else {
         // Wait for general settings to be initialized
-        console.log('⚙️ GeneralSettings not ready, setting up delayed connection');
         const checkGeneralSettings = () => {
             if (window.generalSettings) {
-                console.log('⚙️ Connecting generalSettings to game after delay');
                 const fpsEnabled = window.generalSettings.isShowFpsCounterEnabled();
-                console.log('⚙️ FPS counter enabled from settings (delayed):', fpsEnabled);
+                :', fpsEnabled);
                 game.showFpsCounter = fpsEnabled;
                 game.initializeGraphicsSettings(); // Refresh graphics settings
             } else {
@@ -56,11 +47,8 @@ window.addEventListener('DOMContentLoaded', () => {
         checkGeneralSettings();
     }
         
-        console.log('🎮 Starting game...');
         game.start();
-        console.log('🎮 Game initialization completed');
-        
-    } catch (error) {
+        } catch (error) {
         console.error('Failed to initialize game:', error);
         
         // Show error message to user

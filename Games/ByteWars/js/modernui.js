@@ -524,7 +524,6 @@ class ModernUI {    constructor() {
         });
         
         this.elements.difficultySelect.addEventListener('change', (e) => {
-            console.log('Difficulty changed to:', e.target.value);
             // This could be used to adjust enemy spawn rates, damage, etc.
         });
     }

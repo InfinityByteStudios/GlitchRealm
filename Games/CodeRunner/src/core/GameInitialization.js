@@ -52,7 +52,6 @@ export class GameInitialization {
             if (this.game.settingsSystem) {
                 const showLoadingScreen = this.game.settingsSystem.getSettingValue('showLoadingScreen');
                 if (showLoadingScreen !== undefined) {
-                    console.log('🔄 Loading screen setting from SettingsSystem:', showLoadingScreen);
                     return showLoadingScreen;
                 }
             }
@@ -65,14 +64,12 @@ export class GameInitialization {
             // Check localStorage for settings
             const settings = JSON.parse(localStorage.getItem('coderunner_settings') || '{}');
             if (settings.showLoadingScreen !== undefined) {
-                console.log('🔄 Loading screen setting from localStorage:', settings.showLoadingScreen);
                 return settings.showLoadingScreen;
             }
             
             // Default to showing loading screen
             return true;
         } catch (error) {
-            console.warn('⚠️ Could not check loading screen setting:', error);
             return true; // Default to showing loading screen
         }
     }
@@ -85,7 +82,6 @@ export class GameInitialization {
             // Force opening animation after sign out
             const forceLoginAfterSignout = sessionStorage.getItem('coderunner_force_login_after_signout');
             if (forceLoginAfterSignout === 'true') {
-                console.log('🎬 Forcing opening animation after sign out');
                 return true;
             }
             
@@ -93,7 +89,6 @@ export class GameInitialization {
             if (this.game.settingsSystem) {
                 const showOpeningAnimation = this.game.settingsSystem.getSettingValue('showOpeningAnimation');
                 if (showOpeningAnimation !== undefined) {
-                    console.log('🎬 Opening animation setting from SettingsSystem:', showOpeningAnimation);
                     return showOpeningAnimation;
                 }
             }
@@ -106,60 +101,47 @@ export class GameInitialization {
             // Check localStorage for settings
             const settings = JSON.parse(localStorage.getItem('coderunner_settings') || '{}');
             if (settings.showOpeningAnimation !== undefined) {
-                console.log('🎬 Opening animation setting from localStorage:', settings.showOpeningAnimation);
                 return settings.showOpeningAnimation;
             }
             
             // Default to showing opening animation
             return true;
         } catch (error) {
-            console.warn('⚠️ Could not check opening animation setting:', error);
             return true; // Default to showing opening animation
         }
     }
 
     async initAsync() {
         try {
-            console.log('🎮 Game.initAsync() started');
+            started');
             
             // Initialize basic systems first so we can load settings
             this.createSystems();
             
             // Load settings before making any navigation decisions
             if (this.game.settingsSystem) {
-                console.log('⚙️ Loading settings before navigation decisions...');
                 await this.game.settingsSystem.loadSettings();
-                console.log('✅ Settings loaded successfully');
-            }
+                }
             
             // Determine what state to show after initialization
             const shouldShowLoadingScreen = this.getShouldShowLoadingScreen();
             const shouldShowOpeningAnimation = this.getShouldShowOpeningAnimation();
             
-            console.log('🎬 DEBUG: shouldShowLoadingScreen =', shouldShowLoadingScreen);
-            console.log('🎬 DEBUG: shouldShowOpeningAnimation =', shouldShowOpeningAnimation);
-            console.log('🎬 DEBUG: settingsSystem exists =', !!this.game.settingsSystem);
             if (this.game.settingsSystem) {
                 const loadingScreenSetting = this.game.settingsSystem.getSettingValue('showLoadingScreen');
                 const openingAnimationSetting = this.game.settingsSystem.getSettingValue('showOpeningAnimation');
-                console.log('🎬 DEBUG: showLoadingScreen setting value =', loadingScreenSetting);
-                console.log('🎬 DEBUG: showOpeningAnimation setting value =', openingAnimationSetting);
-            }
+                }
             
             // Determine the target state after loading/initialization
             let targetState = GAME_STATES.HOME;
             if (shouldShowOpeningAnimation) {
-                console.log('🎬 Opening animation enabled - will transition to opening animation');
                 targetState = GAME_STATES.OPENING_ANIMATION;
             }
             
             if (shouldShowLoadingScreen) {
-                console.log('🔄 Loading screen enabled - setting LOADING state');
                 this.game.gameState = GAME_STATES.LOADING;
                 this.game.pendingGameState = targetState;
-                console.log('🔄 DEBUG: Set pendingGameState to:', targetState);
-            } else {
-                console.log('⏭️ Loading screen disabled - going directly to target state:', targetState);
+                } else {
                 // Use navigation system to properly handle state transitions
                 if (this.game.navigation) {
                     this.game.navigation.setGameState(targetState);
@@ -172,16 +154,14 @@ export class GameInitialization {
             await this.init();
             
             this.game.initializationComplete = true;
-            console.log('✅ Game initialization completed');
-            
-        } catch (error) {
+            } catch (error) {
             console.error('❌ Game initialization failed:', error);
             this.game.gameState = GAME_STATES.HOME; // Fallback to home screen
         }
     }
 
     async init() {
-        console.log('🎮 Game.init() started');
+        started');
         
         // Make game instance available globally for HTML UI
         window.gameInstance = this.game;
@@ -199,9 +179,9 @@ export class GameInitialization {
         this.loadBestScores();
         
         // Load saved game data (excluding settings which are already loaded)
-        console.log('🎮 Game.init() about to call loadGameData()');
+        about to call loadGameData()');
         await this.loadGameData();
-        console.log('🎮 Game.init() finished loadGameData()');
+        finished loadGameData()');
         
         // Start continuous autosave system (runs regardless of game state)
         this.startAutosave();
@@ -210,20 +190,17 @@ export class GameInitialization {
         connectRenderingModules(this.game);
         
         // Check authentication state and determine initial navigation
-        console.log('🔑 Checking authentication state for automatic navigation...');
         await this.determineInitialNavigation();
         
         // Update HTML UI with initial login status
         if (window.updateLoginStatus) {
-            console.log('🔑 Calling initial updateLoginStatus');
             window.updateLoginStatus();
         }
         
         // Ensure proper scroll behavior for initial state
         this.ensureProperScrollBehavior();
         
-        console.log('🎮 Game initialization completed');
-    }
+        }
 
     createSystems() {
         this.game.inputManager = new InputManager();
@@ -255,8 +232,7 @@ export class GameInitialization {
         
         try {
             this.game.powerUpSystem = new PowerUpSystem(this.game);
-            console.log('✅ PowerUpSystem initialized successfully');
-        } catch (error) {
+            } catch (error) {
             console.error('❌ PowerUpSystem initialization failed:', error);
             this.game.powerUpSystem = null;
         }
@@ -313,16 +289,13 @@ export class GameInitialization {
             // Only prevent scrolling during gameplay, not on menus
             if (this.game.gameState === GAME_STATES.PLAYING || this.game.gameState === GAME_STATES.PAUSED) {
                 document.body.classList.add('game-focused');
-                console.log('🎮 Canvas focused during gameplay - preventing page scroll');
-            } else {
-                console.log('🎮 Canvas focused in menu state - allowing page scroll');
-            }
+                } else {
+                }
         });
         
         this.game.canvas.addEventListener('blur', () => {
             document.body.classList.remove('game-focused');
-            console.log('🎮 Canvas blurred - allowing page scroll');
-        });
+            });
     }
 
     setupWindowEventListeners() {
@@ -349,20 +322,16 @@ export class GameInitialization {
             // Only prevent scrolling during gameplay, not on menus
             if (this.game.gameState === GAME_STATES.PLAYING || this.game.gameState === GAME_STATES.PAUSED) {
                 document.body.classList.add('game-focused');
-                console.log('🎮 Preventing scroll for gameplay');
-            } else {
+                } else {
                 // Remove the class to allow scrolling in menus
                 document.body.classList.remove('game-focused');
-                console.log('🎮 Allowing scroll for menu state:', this.game.gameState);
-            }
+                }
             
             // Focus the canvas to ensure keyboard events are captured
             this.game.canvas.focus({ preventScroll: true });
             
-            console.log('🎮 Canvas focused for keyboard input');
-        } catch (error) {
-            console.warn('⚠️ Could not focus canvas:', error);
-        }
+            } catch (error) {
+            }
     }
 
     /**
@@ -425,26 +394,22 @@ export class GameInitialization {
         if (window.generalSettings) {
             this.game.graphicsQuality = window.generalSettings.getGraphicsQuality();
             this.game.showFpsCounter = window.generalSettings.isShowFpsCounterEnabled();
-            console.log('🎮 Graphics settings initialized - FPS counter:', this.game.showFpsCounter);
             this.game.applyGraphicsQuality();
         } else {
             // Default values if settings not available yet
             this.game.graphicsQuality = 'medium';
             this.game.showFpsCounter = false;
-            console.log('🎮 Using default graphics settings - FPS counter:', this.game.showFpsCounter);
-        }
+            }
     }
 
     // Placeholder methods for event handlers that would need to be implemented
     handleMouseDown(e) {
         // Handle mouse down events if needed
-        console.log('🖱️ Mouse down event');
-    }
+        }
 
     handleMouseUp(e) {
         // Handle mouse up events if needed
-        console.log('🖱️ Mouse up event');
-    }
+        }
 
     handleMouseWheel(e) {
         // Handle mouse wheel events for scrolling
@@ -460,14 +425,12 @@ export class GameInitialization {
             // Handle character customization scrolling
             if (this.game.characterCustomizationSystem && this.game.characterCustomizationSystem.handleWheel) {
                 this.game.characterCustomizationSystem.handleWheel(e.deltaY);
-                console.log('🎭 Character customization scroll:', e.deltaY);
-            }
+                }
         } else if (this.game.gameState === GAME_STATES.SETTINGS) {
             // Handle settings scrolling
             if (this.game.settingsSystem && this.game.settingsSystem.handleScroll) {
                 this.game.settingsSystem.handleScroll(e.deltaY);
-                console.log('⚙️ Settings scroll:', e.deltaY);
-            }
+                }
         }
     }
 
@@ -477,8 +440,7 @@ export class GameInitialization {
             // Resume game if it was auto-paused due to focus loss
             this.game.wasAutoPaused = false;
             this.game.isPaused = false;
-            console.log('🎮 Window focused - resuming auto-paused game');
-        }
+            }
     }
 
     handleWindowBlur() {
@@ -487,8 +449,7 @@ export class GameInitialization {
             // Auto-pause the game when window loses focus
             this.game.wasAutoPaused = true;
             this.game.isPaused = true;
-            console.log('🎮 Window blurred - auto-pausing game');
-        }
+            }
     }
 
     /**
@@ -504,11 +465,9 @@ export class GameInitialization {
     ensureProperScrollBehavior() {
         if (this.game.gameState === GAME_STATES.PLAYING || this.game.gameState === GAME_STATES.PAUSED) {
             document.body.classList.add('game-focused');
-            console.log('🔒 Initial state: Preventing page scroll for gameplay');
-        } else {
+            } else {
             document.body.classList.remove('game-focused');
-            console.log('📜 Initial state: Allowing page scroll for menu state:', this.game.gameState);
-        }
+            }
     }
 
     // Placeholder methods that would be implemented in the main Game class
@@ -524,31 +483,27 @@ export class GameInitialization {
                 toggleAudio: () => {
                     if (this.game.audioSystem) {
                         this.game.audioSystem.toggleMute();
-                        console.log('Audio muted:', this.game.audioSystem.getIsMuted());
+                        );
                     }
                 },
                 setVolume: (volume) => {
                     if (this.game.audioSystem) {
                         this.game.audioSystem.setMasterVolume(volume);
-                        console.log('Master volume set to:', volume);
-                    }
+                        }
                 }
             };
-            console.log('🐛 Debug commands added to window.gameDebug');
-        }
+            }
         
         // Debug helper methods for fixing character selection
         window.debugCharacterSelection = {
             getCurrentSprite: () => {
                 if (window.profileManager) {
                     const current = window.profileManager.getSelectedSprite();
-                    console.log('Current sprite in ProfileManager:', current);
                     return current;
                 }
             },
             setSprite: (spriteId) => {
                 if (window.profileManager) {
-                    console.log('Setting sprite to:', spriteId);
                     window.profileManager.setSelectedSprite(spriteId);
                     // Force update player sprite
                     if (window.game && window.game.player) {
@@ -563,7 +518,6 @@ export class GameInitialization {
             },
             getCurrentPlayerSprite: () => {
                 if (window.game && window.game.player && window.game.player.sprite) {
-                    console.log('Current player sprite src:', window.game.player.sprite.src);
                     return window.game.player.sprite.src;
                 }
             },
@@ -571,8 +525,7 @@ export class GameInitialization {
                 if (this.game.characterCustomizationSystem) {
                     return this.game.characterCustomizationSystem.debugKingRunnerStatus();
                 } else {
-                    console.log('❌ Character customization system not available');
-                }
+                    }
             }
         };
     }
@@ -583,19 +536,15 @@ export class GameInitialization {
             const savedScores = localStorage.getItem('coderunner_best_scores');
             if (savedScores) {
                 this.game.bestScores = JSON.parse(savedScores);
-                console.log('📊 Best scores loaded:', this.game.bestScores);
-            }
+                }
         } catch (error) {
-            console.warn('⚠️ Could not load best scores:', error);
-        }
+            }
     }
 
     async loadGameData() {
         // Load saved game data
         try {
             // This would load data packets, upgrade states, etc.
-            console.log('💾 Loading game data...');
-            
             // Load upgrade system data
             if (this.game.upgradeSystem) {
                 await this.game.upgradeSystem.loadUpgradeData();
@@ -604,8 +553,7 @@ export class GameInitialization {
             // Achievement system loads data in constructor
             // Shop system loads data in constructor
             
-            console.log('✅ Game data loaded successfully');
-        } catch (error) {
+            } catch (error) {
             console.error('❌ Could not load game data:', error);
         }
     }
@@ -616,8 +564,7 @@ export class GameInitialization {
             setInterval(() => {
                 this.saveGameData();
             }, 30000); // Autosave every 30 seconds
-            console.log('💾 Autosave system started');
-        }
+            }
     }
 
     saveGameData() {
@@ -642,29 +589,23 @@ export class GameInitialization {
             // Trigger comprehensive cloud save if user is logged in
             if (this.game.cloudSaveSystem && this.game.cloudSaveSystem.isUserLoggedIn()) {
                 this.game.cloudSaveSystem.saveAllGameData().catch(error => {
-                    console.warn('Failed to autosave to cloud:', error);
-                });
+                    });
             }
         } catch (error) {
-            console.warn('⚠️ Could not save game data:', error);
-        }
+            }
     }
 
     async determineInitialNavigation() {
         // Check authentication state and determine initial navigation
         try {
             // This would check if user is logged in and navigate accordingly
-            console.log('🔑 Determining initial navigation...');
-            
             // Only set default navigation if not already set
             if (this.game.gameState === GAME_STATES.LOADING) {
                 // Only override pendingGameState if it's not already set
                 if (!this.game.pendingGameState) {
-                    console.log('🔑 No pending state set, defaulting to HOME');
                     this.game.pendingGameState = GAME_STATES.HOME;
                 } else {
-                    console.log('🔑 Pending state already set to:', this.game.pendingGameState);
-                }
+                    }
             } else {
                 this.game.gameState = GAME_STATES.HOME;
             }

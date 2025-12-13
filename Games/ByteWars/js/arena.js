@@ -309,6 +309,5 @@ class Arena {
         this.safeZoneTimeRemaining = this.safeZoneMaxTime;
         this.safeZoneCooldownRemaining = 0;
         this.playerInSafeZone = false;
-        console.log('🛡️ Safe zone reset - full protection restored');
-    }
+        }
 }

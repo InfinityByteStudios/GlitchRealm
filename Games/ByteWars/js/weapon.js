@@ -42,8 +42,7 @@ class Weapon {    constructor() {        this.fireRate = 5; // bullets per secon
         this.fireRate = this.baseFireRate * multipliers.fireRate;
         this.damage = this.baseDamage * multipliers.damage;
         
-        console.log(`Weapon overclocked! Fire rate: ${this.fireRate}, Damage: ${this.damage}`);
-    }
+        }
     
     removeOverclock() {
         if (!this.isOverclocked) return; // Not overclocked
@@ -52,8 +51,7 @@ class Weapon {    constructor() {        this.fireRate = 5; // bullets per secon
         this.fireRate = this.baseFireRate;
         this.damage = this.baseDamage;
         
-        console.log('Weapon overclock removed. Stats returned to normal.');
-    }
+        }
     
     getDamage() {
         return this.damage;

@@ -235,9 +235,8 @@ window.upgradeSystem = {
                 this.applyAllUpgrades();
             }
         } catch (e) {
-            
 
-        }
+}
     }
 };
 
@@ -253,8 +252,7 @@ window.upgradeMenuUI = {
         if (this.initialized) return;
         this.initialized = true;
         this.calculateBounds();
-        console.log('🛠️ Upgrade menu UI initialized');
-    },
+        },
 
     // Open upgrade menu
     openMenu() {

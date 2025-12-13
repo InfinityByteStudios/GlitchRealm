@@ -99,40 +99,29 @@ export class LoginSystem {
         // Initialize Firebase Auth if available - use the separate auth app
         if (window.firebase && window.firebaseAuth) {
             this.auth = window.firebaseAuth;
-            console.log('🔑 Firebase Auth available, setting up auth state listener');
-            
             // Set up auth state listener
             this.auth.onAuthStateChanged((user) => {
                 const wasLoggedIn = this.isLoggedIn;
-                console.log('🔑 Firebase Auth state changed:', { user: !!user, email: user?.email, wasLoggedIn });
-                  if (user) {this.currentUser = user;                    this.isLoggedIn = true;
+                if (user) {this.currentUser = user;                    this.isLoggedIn = true;
                     this.isGuest = false;
-                    console.log('🔑 Firebase Auth: User signed in:', user.email);
-                    
                     // Update HTML UI
                     if (window.updateLoginStatus) {
-                        console.log('🔑 Calling updateLoginStatus after sign in');
                         window.updateLoginStatus();
                     } else {
-                        console.warn('🔑 updateLoginStatus not available on window');
-                    }
+                        }
                       // If this is a state change after initialization, update navigation
                     if (!wasLoggedIn && this.game && this.game.gameState === GAME_STATES.LOGIN_PROMPT) {
-                        console.log('🔑 Firebase Auth: Auth state changed, proceeding to next state');
                         this.loading = false; // Stop loading indicator
                         this.proceedToNextState(); // Properly transition away from login
                     }
                     
                     // Migrate local data to cloud when user logs in
                     if (!wasLoggedIn && this.game && this.game.cloudSaveSystem) {
-                        console.log('☁️ User logged in, checking for data migration...');
                         this.game.cloudSaveSystem.migrateLocalDataToCloud().then((migrated) => {
                             if (migrated) {
-                                console.log('☁️ Successfully migrated local data to cloud');
                                 // Optionally show a popup about migration
                                 // Data synced successfully - log to console instead of showing popup
-                                console.log('✅ Data synced to cloud successfully');
-                            }
+                                }
                         }).catch((error) => {
                             console.error('❌ Error migrating data to cloud:', error);
                         });
@@ -144,9 +133,6 @@ export class LoginSystem {
                     // This ensures the login screen will appear after sign out + reload
                     this.isGuest = false;
                     
-                    console.log('🔑 Firebase Auth: User signed out');
-                    console.log('🔑 Current auth state:', { isLoggedIn: this.isLoggedIn, isGuest: this.isGuest });
-                    
                     // Update HTML UI
                     if (window.updateLoginStatus) {
                         window.updateLoginStatus();
@@ -154,7 +140,6 @@ export class LoginSystem {
                 }
             });
         } else {
-            console.warn('🔑 Firebase Auth not available - user will need to use guest mode');
             // Ensure we're not in a logged-in state if Firebase isn't available
             this.currentUser = null;
             this.isLoggedIn = false;
@@ -228,7 +213,7 @@ export class LoginSystem {
         this.positionButtons();
         this.addEventListeners();
         
-        console.log('🔑 LoginSystem.start() completed - isActive:', this.isActive);
+        completed - isActive:', this.isActive);
     }
 
     positionButtons() {
@@ -354,12 +339,10 @@ export class LoginSystem {
     }
 
     async handleLoginChoice() {
-        console.log('Login chosen');
         // This method can be used for additional login logic if needed
     }
     
     handleGuestChoice() {
-        console.log('Guest mode chosen');
         this.isGuest = true;
         this.isLoggedIn = false;
         this.currentUser = null;
@@ -374,7 +357,6 @@ export class LoginSystem {
 
     enableCloudSaving() {
         if (this.isLoggedIn && this.currentUser) {
-            console.log('Cloud saving enabled for:', this.currentUser.email);
             // Implement cloud saving logic here
         }
     }
@@ -385,7 +367,6 @@ export class LoginSystem {
         
         // Check if tutorial should be shown for new users or guests
         if (this.game.tutorialSystem && this.game.tutorialSystem.shouldShowTutorial()) {
-            console.log('🎓 Showing tutorial for new user/guest');
             this.game.gameState = GAME_STATES.TUTORIAL;
             this.game.tutorialSystem.startTutorial('welcome');
         } else {
@@ -404,8 +385,7 @@ export class LoginSystem {
                 this.currentUser = null;
                 this.isLoggedIn = false;
                 this.isGuest = false;
-                console.log('User logged out');
-            } catch (error) {
+                } catch (error) {
                 console.error('Logout error:', error);
             }
         }
@@ -834,12 +814,6 @@ export class LoginSystem {
             this.isGuest = false;
             this.successMessage = 'Successfully signed in with GitHub!';
             
-            console.log('🐙 GitHub sign-in successful:', {
-                user: result.user.email,
-                displayName: result.user.displayName,
-                photoURL: result.user.photoURL
-            });
-            
             setTimeout(() => {
                 this.proceedToNextState();
             }, 1500);
@@ -1060,7 +1034,6 @@ export class LoginSystem {
             
             // Set up a timeout
             const timeout = setTimeout(() => {
-                console.log('🔑 Firebase auth state timeout');
                 unsubscribe();
                 resolve(false);
             }, timeoutMs);

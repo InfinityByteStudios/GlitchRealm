@@ -1,6 +1,4 @@
 // CodeRunner Game - Direct Playtime Tracking Integration
-console.log('[PlaytimeDirectIntegration] 🔄 Setting up direct playtime tracking for CodeRunner');
-
 // Helper function to format playtime in a human-readable format
 function formatPlaytime(minutes) {
     if (minutes < 1) {
@@ -19,22 +17,15 @@ function formatPlaytime(minutes) {
 
 // Initialize the playtime tracker when the document is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('[PlaytimeDirectIntegration] 🎮 Document loaded, initializing playtime tracking for CodeRunner');
-    
     try {
         // Directly create tracker from global variable
-        console.log('[PlaytimeDirectIntegration] Creating tracker instance from global GamePlaytimeTracker');
         const tracker = new GamePlaytimeTracker();
         
-        console.log('[PlaytimeDirectIntegration] Initializing tracker with game details...');
         await tracker.init('coderunner', 'CodeRunner', true);
         
         // Store the tracker instance for debugging and access
         window.playtimeTracker = tracker;
-        console.log('[PlaytimeDirectIntegration] Tracker accessible via window.playtimeTracker');
-        
         // Start tracking playtime
-        console.log('[PlaytimeDirectIntegration] Starting playtime tracking...');
         tracker.startTracking();
         
         // Also handle page visibility changes
@@ -45,12 +36,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const currentMinutes = window.playtimeTracker.getTotalMinutes();
                 const formattedTime = formatPlaytime(currentMinutes);
                 
-                console.log(`[PlaytimeDirectIntegration] 🔴 Tab hidden - Updated playtime to ${formattedTime}`);
-                
                 // Save playtime data
                 window.playtimeTracker.savePlaytimeData().then(() => {
-                    console.log(`[PlaytimeDirectIntegration] 💾 Saved playtime data to your profile`);
-                }).catch(err => {
+                    }).catch(err => {
                     console.error('[PlaytimeDirectIntegration] Error saving playtime:', err);
                 });
             }
@@ -61,7 +49,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const totalMinutes = window.playtimeTracker.totalMinutes || 0;
                 const formattedTime = formatPlaytime(totalMinutes);
                 
-                console.log(`[PlaytimeDirectIntegration] 🟢 Tab visible again - Current total playtime: ${formattedTime}`);
                 window.playtimeTracker.startTracking();
             }
         });
@@ -73,15 +60,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const currentMinutes = window.playtimeTracker.getTotalMinutes();
                 const formattedTime = formatPlaytime(currentMinutes);
                 
-                console.log(`[PlaytimeDirectIntegration] 👋 Page unloading - Total playtime: ${formattedTime}`);
-                
                 // Save playtime data
                 window.playtimeTracker.savePlaytimeData();
             }
         });
         
-        console.log('[PlaytimeDirectIntegration] ✅ Playtime tracking setup complete');
-    } catch (error) {
+        } catch (error) {
         console.error('[PlaytimeDirectIntegration] ❌ Error setting up playtime tracking:', error);
     }
 });

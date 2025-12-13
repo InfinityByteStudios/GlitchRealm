@@ -85,26 +85,21 @@ class TutorialSystem {    constructor(canvas, ctx) {
             }
         ];
         
-        console.log('📖 Tutorial System initialized');
-    }
+        }
 
     start() {
         // Remove any existing tutorial modal first
         const existingModal = document.getElementById('tutorial-modal-overlay');
         if (existingModal) {
             existingModal.remove();
-            console.log('🧹 Removed existing tutorial modal');
-        }
+            }
         
         this.isActive = true;
         this.currentStep = 0;
         this.showTutorialModal();
-        console.log('📖 Tutorial started - modal should be visible now');
-    }
+        }
 
     showTutorialModal() {
-        console.log('🎯 showTutorialModal called - currentStep:', this.currentStep, 'total steps:', this.steps.length);
-        
         if (this.currentStep >= this.steps.length) {
             this.complete();
             return;
@@ -113,14 +108,11 @@ class TutorialSystem {    constructor(canvas, ctx) {
         const step = this.steps[this.currentStep];
         const isLastStep = this.currentStep === this.steps.length - 1;
         
-        console.log('📋 Creating tutorial modal for step:', step.title);
-        
         // Remove any existing modal first
         const existingModal = document.getElementById('tutorial-modal-overlay');
         if (existingModal) {
             existingModal.remove();
-            console.log('🧹 Removed existing tutorial modal overlay');
-        }
+            }
 
         // Create modal overlay
         const overlay = document.createElement('div');
@@ -306,18 +298,12 @@ class TutorialSystem {    constructor(canvas, ctx) {
           overlay.appendChild(modal);
         document.body.appendChild(overlay);
         
-        console.log('✅ Tutorial modal added to DOM. Overlay element:', overlay);
-        console.log('📊 Modal visible?', overlay.style.display !== 'none');
-        console.log('🎯 Modal z-index:', overlay.style.zIndex);
-        
         // Force visibility and bring to front
         overlay.style.display = 'flex';
         overlay.style.zIndex = '99999';
         overlay.style.visibility = 'visible';
         overlay.style.opacity = '1';
         
-        console.log('🔧 Forced modal visibility settings applied');
-
         // Add keyboard navigation
         const handleKeyPress = (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -387,8 +373,6 @@ class TutorialSystem {    constructor(canvas, ctx) {
         
         // Mark tutorial as completed in localStorage
         localStorage.setItem('tutorialCompleted', 'true');
-        
-        console.log('📖 Tutorial completed');
         
         // Show completion message
         if (window.authUI && window.authUI.showToast) {

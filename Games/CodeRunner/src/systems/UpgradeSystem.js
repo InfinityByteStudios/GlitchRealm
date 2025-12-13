@@ -27,8 +27,7 @@ export class UpgradeSystem {    constructor(game) {
         // Only load data immediately if user is not logged in
         // If user is logged in, wait for cloud save system to apply data
         this.initializeData().catch(error => {
-            console.warn('Failed to initialize upgrade data:', error);
-        });
+            });
     }
     
     /**
@@ -47,8 +46,7 @@ export class UpgradeSystem {    constructor(game) {
         } else {
             // User is logged in, mark as initialized but don't load data yet
             // Cloud save system will call loadSavedData() with the cloud data
-            console.log('💾 UpgradeSystem waiting for cloud data...');
-        }
+            }
         
         this.isInitializing = false;
     }
@@ -60,8 +58,7 @@ export class UpgradeSystem {    constructor(game) {
         
         // Debug logging for datapackets changes
         if (window.debugMode) {
-            console.log(`💾 DataPackets added: ${previousAmount} + ${amount} = ${this.dataPackets}`);
-        }
+            }
         
         // Save immediately when data packets are added
         this.saveUpgradeData();
@@ -75,8 +72,7 @@ export class UpgradeSystem {    constructor(game) {
             
             // Debug logging for datapackets changes
             if (window.debugMode) {
-                console.log(`💰 DataPackets spent: ${previousAmount} - ${amount} = ${this.dataPackets}`);
-            }
+                }
             
             // Save immediately when data packets are spent
             this.saveUpgradeData();
@@ -224,14 +220,11 @@ export class UpgradeSystem {    constructor(game) {
             // Trigger comprehensive cloud save if user is logged in
             if (this.game && this.game.cloudSaveSystem && this.game.cloudSaveSystem.isUserLoggedIn()) {
                 this.game.cloudSaveSystem.saveAllGameData().catch(error => {
-                    console.warn('Failed to save upgrade data to cloud:', error);
-                });
+                    });
             }
             
-            console.log(`💾 Upgrade data saved - Data Packets: ${this.dataPackets}`);
-        } catch (error) {
-            console.warn('⚠️ Failed to save upgrade data:', error);
-        }
+            } catch (error) {
+            }
     }
     
     /**
@@ -239,7 +232,6 @@ export class UpgradeSystem {    constructor(game) {
      */
     async loadUpgradeData() {
         if (this.hasLoadedData) {
-            console.log('⚠️ UpgradeSystem data already loaded, ignoring duplicate call');
             return;
         }
         
@@ -250,11 +242,9 @@ export class UpgradeSystem {    constructor(game) {
                 const upgradeData = JSON.parse(saved);
                 if (upgradeData.dataPackets !== undefined) {
                     this.dataPackets = upgradeData.dataPackets;
-                    console.log(`💾 Loaded data packets from localStorage: ${this.dataPackets}`);
-                }
+                    }
             }
         } catch (error) {
-            console.warn('⚠️ Failed to load upgrade data:', error);
             // Keep default values on error
         }
         
@@ -276,18 +266,15 @@ export class UpgradeSystem {    constructor(game) {
      */
     loadSavedData(upgradeData) {
         if (this.hasLoadedData) {
-            console.log('⚠️ UpgradeSystem data already loaded, ignoring duplicate call');
             return;
         }
         
         try {
             if (upgradeData && upgradeData.dataPackets !== undefined) {
                 this.dataPackets = upgradeData.dataPackets;
-                console.log(`💾 Loaded data packets from unified save: ${this.dataPackets}`);
-            }
+                }
         } catch (error) {
-            console.warn('Failed to load upgrade data from unified save:', error);
-        }
+            }
         
         this.hasLoadedData = true;
     }

@@ -140,18 +140,15 @@ export class ShopSystem {
     }    buyUpgrade(upgradeId) {
         const upgrade = this.upgradeData[upgradeId];
         if (!upgrade) {
-            console.warn(`❌ Upgrade not found: ${upgradeId}`);
             return false;
         }
 
         if (this.isOwned(upgradeId)) {
-            console.warn(`❌ Upgrade already owned: ${upgradeId}`);
             return false;
         }
 
         // Prevent purchasing placeholder items
         if (upgradeId === 'coming-soon') {
-            console.warn(`❌ Cannot purchase placeholder item: ${upgradeId}`);
             return false;
         }
 
@@ -159,7 +156,6 @@ export class ShopSystem {
         if (upgrade.prerequisites && upgrade.prerequisites.length > 0) {
             for (const prereq of upgrade.prerequisites) {
                 if (!this.isOwned(prereq)) {
-                    console.warn(`❌ Prerequisites not met for ${upgradeId}: missing ${prereq}`);
                     return false; // Prerequisites not met
                 }
             }
@@ -167,7 +163,6 @@ export class ShopSystem {
 
         const currentCurrency = this.game.upgradeSystem ? this.game.upgradeSystem.getDataPackets() : 0;
         if (currentCurrency < upgrade.price) {
-            console.warn(`❌ Insufficient funds for ${upgradeId}: ${currentCurrency} < ${upgrade.price}`);
             return false;
         }
 
@@ -188,8 +183,7 @@ export class ShopSystem {
             this.game.triggerManualSave();
         }
         
-        console.log(`✅ Successfully purchased upgrade: ${upgradeId} for ${upgrade.price} datapackets`);
-        console.log(`📦 Owned upgrades now: [${Array.from(this.ownedUpgrades).join(', ')}]`);
+        .join(', ')}]`);
         
         // Track achievement: Style.exe for cosmetic purchases
         if (this.game.achievementSystem && upgrade.category === 'cosmetic') {
@@ -204,8 +198,6 @@ export class ShopSystem {
         
         // Handle powerup unlocks
         if (upgrade.effect && upgrade.effect.type === 'powerupUnlock') {
-            console.log(`🔓 Powerup unlocked: ${upgrade.effect.value}`);
-            
             // Refresh the powerup system's unlocked powerups
             if (this.game.powerUpSystem) {
                 this.game.powerUpSystem.refreshUnlockedPowerUps();
@@ -216,8 +208,6 @@ export class ShopSystem {
         if (upgrade.effect && upgrade.effect.type === 'sprite') {
             // For sprite cosmetics, just unlock them - don't automatically apply
             // The user should choose which sprite to use via character customization
-            console.log(`🔓 Cosmetic sprite unlocked: ${upgrade.effect.value}`);
-            
             // Don't change the selected sprite here - let the user choose via character customization
             // if (window.profileManager) {
             //     window.profileManager.profileData.selectedSprite = upgrade.effect.value;
@@ -226,8 +216,7 @@ export class ShopSystem {
             //         player.changeSprite(`./assets/${upgrade.effect.value}`);
             //     }
             //     window.profileManager.refreshSpriteSelector();
-            //     console.log(`✨ Applied cosmetic sprite: ${upgrade.effect.value}`);
-            // }
+            //     // }
             return;
         }
         
@@ -278,7 +267,6 @@ export class ShopSystem {
                 this.saveOwnedUpgrades();
             }
         } catch (error) {
-            console.warn('Failed to load owned upgrades from array:', error);
             this.ownedUpgrades = new Set();
         }
     }
@@ -363,6 +351,5 @@ export class ShopSystem {
     resetAnimations() {
         // ShopSystem doesn't have animation states to reset
         // This method exists for compatibility with the navigation system
-        console.log('🛒 Shop animations reset');
-    }
+        }
 }

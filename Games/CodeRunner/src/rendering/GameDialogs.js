@@ -2725,14 +2725,10 @@ export class GameDialogs {    constructor(game) {
      */
     handleShopClick(x, y) {
         const shopHitAreas = this.game.shopHitAreas || [];
-        console.log(`🛒 GameDialogs.handleShopClick called with ${shopHitAreas ? shopHitAreas.length : 0} hit areas`);
-        
         for (const area of shopHitAreas) {
-            console.log(`🛒 Checking area: ${area.upgradeId} at (${area.x}, ${area.y}) size ${area.width}x${area.height}`);
+            size ${area.width}x${area.height}`);
             if (x >= area.x && x <= area.x + area.width &&
                 y >= area.y && y <= area.y + area.height) {
-                
-                console.log(`🛒 Hit detected for ${area.upgradeId} with action: ${area.action}`);
                 
                 // Purchase upgrade if click is on a purchasable item
                 if (area.action === 'buy') {
@@ -2775,7 +2771,6 @@ export class GameDialogs {    constructor(game) {
             }
         }
         
-        console.log('🛒 No hit areas matched the click');
         return false;
     }
     
@@ -3702,9 +3697,7 @@ export class GameDialogs {    constructor(game) {
         }
     }
 
-
-
-    /**
+/**
      * Draw the options menu
      */
     drawOptionsMenu(optionsHitAreas, hoveredOptionsButton) {

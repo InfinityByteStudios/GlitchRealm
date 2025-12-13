@@ -255,4 +255,3 @@ window.selectRandomBlobType = selectRandomBlobType;
 window.renderCorruptionBlobWithType = renderCorruptionBlobWithType;
 window.renderOriginalCorruption = renderOriginalCorruption;
 
-console.log('🎨 Enhanced corruption blob types system loaded!');

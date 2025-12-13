@@ -710,8 +710,7 @@ export class LeaderboardSystem {
             }
         } else {
             this.isOnline = false;
-            console.log('💾 Switched to offline mode');
-        }
+            }
     }
     
     /**
@@ -719,10 +718,8 @@ export class LeaderboardSystem {
      * Usage in console: game.leaderboardSystem.testModeration("inappropriate_name")
      */
     testModeration(testName) {
-        console.log(`🧪 Testing moderation for name: "${testName}"`);
         const validation = this.validatePlayerName(testName);
-        console.log('📋 Validation result:', validation);
-        console.log('📊 Current moderation status:', this.getModerationStatus());
+        );
         return validation;
     }
     
@@ -731,10 +728,8 @@ export class LeaderboardSystem {
      * Usage in console: game.leaderboardSystem.forceViolation("test_name")
      */
     forceViolation(testName = "test_inappropriate") {
-        console.log(`⚠️ Forcing violation for name: "${testName}"`);
         const result = this.recordViolation(testName);
-        console.log('📋 Violation result:', result);
-        console.log('📊 Updated moderation status:', this.getModerationStatus());
+        );
         return result;
     }
     
@@ -743,14 +738,11 @@ export class LeaderboardSystem {
      * Usage in console: game.leaderboardSystem.showModerationData()
      */
     showModerationData() {
-        console.log('📊 Current Moderation Data:');
-        console.log('- Violations:', this.moderationData.violations);
-        console.log('- Last Violation:', new Date(this.moderationData.lastViolationTime));
-        console.log('- Ban End Time:', new Date(this.moderationData.banEndTime));
-        console.log('- Warning History:', this.moderationData.warningHistory);
-        console.log('- Is Banned:', this.isPlayerBanned());
+        );
+        );
+        );
         if (this.isPlayerBanned()) {
-            console.log('- Hours Remaining:', this.getBanTimeRemaining());
+            );
         }
         return this.moderationData;
     }

@@ -350,8 +350,7 @@ class GamePlaytimeTracker {
      */
     log(message) {
         if (this.DEBUG) {
-            console.log(`[PlaytimeTracker] ${message}`);
-        }
+            }
     }
 }
 

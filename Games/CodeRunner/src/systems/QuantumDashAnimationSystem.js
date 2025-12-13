@@ -50,9 +50,7 @@ export class QuantumDashAnimationSystem {
     startAnimation(startX, startY, endX, endY) {
         if (this.isAnimating) return; // Prevent multiple animations
 
-      
-        
-        this.isAnimating = true;
+this.isAnimating = true;
         this.animationStartTime = Date.now();
         
         // Store positions
@@ -138,10 +136,8 @@ export class QuantumDashAnimationSystem {
      */
     updateChargePhase(phaseTime) {
         const progress = phaseTime / this.phases.charge.duration;
-        
-       
-        
-        // Play charge sound once
+
+// Play charge sound once
         if (!this.audioPlayed.charge && this.game.audioSystem) {
             this.game.audioSystem.playSound('powerup');
             this.audioPlayed.charge = true;
@@ -159,10 +155,8 @@ export class QuantumDashAnimationSystem {
      */
     updateBurstPhase(phaseTime) {
         const progress = phaseTime / this.phases.burst.duration;
-        
-    
-        
-        // Play burst sound once
+
+// Play burst sound once
         if (!this.audioPlayed.burst && this.game.audioSystem) {
             this.game.audioSystem.playSound('jump'); // Using jump sound as placeholder
             this.audioPlayed.burst = true;
@@ -170,9 +164,8 @@ export class QuantumDashAnimationSystem {
         
         // Maximum flash
         this.flashIntensity = 0.8 * (1 - progress);
-      
-        
-        // Intense screen shake
+
+// Intense screen shake
         this.screenShake.intensity = 15 * (1 - progress);
         
         // Create lightning bolts
@@ -365,9 +358,8 @@ export class QuantumDashAnimationSystem {
      * End the animation and resume game
      */
     endAnimation() {
-      
-        
-        this.isAnimating = false;
+
+this.isAnimating = false;
         
         // Resume the game if it was paused for the dash
         if (this.game && this.game.wasPlayingBeforeDash) {
@@ -389,9 +381,7 @@ export class QuantumDashAnimationSystem {
     render(ctx, camera) {
         if (!this.isAnimating) return;
 
-      
-        
-        ctx.save();
+ctx.save();
         
         // Apply screen shake to the entire canvas
         ctx.translate(this.screenShake.x, this.screenShake.y);
@@ -417,9 +407,7 @@ export class QuantumDashAnimationSystem {
     renderLightningBolts(ctx, camera) {
         if (this.lightningBolts.length === 0) return;
 
-      
-        
-        ctx.save();
+ctx.save();
         ctx.globalCompositeOperation = 'screen'; // Additive blending for lightning
         
         for (const bolt of this.lightningBolts) {
@@ -456,9 +444,7 @@ export class QuantumDashAnimationSystem {
     renderRipples(ctx, camera) {
         if (this.ripples.length === 0) return;
 
-       
-        
-        ctx.save();
+ctx.save();
           for (const ripple of this.ripples) {
             const alpha = ripple.life / ripple.maxLife;
             const screenX = ripple.x - camera.x;
@@ -503,9 +489,7 @@ export class QuantumDashAnimationSystem {
     renderScreenFlash(ctx) {
         if (this.flashIntensity <= 0) return;
 
-      
-        
-        ctx.save();
+ctx.save();
         ctx.globalCompositeOperation = 'screen';
         ctx.fillStyle = `rgba(100, 200, 255, ${this.flashIntensity})`;
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);

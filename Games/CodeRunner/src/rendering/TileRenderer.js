@@ -52,7 +52,6 @@ export class TileRenderer {
      */    drawTile(ctx, tileType, screenX, screenY) {
         // Safety check for invalid coordinates
         if (!isFinite(screenX) || !isFinite(screenY)) {
-            console.warn('TileRenderer.drawTile: Invalid screen coordinates', { screenX, screenY, tileType });
             return;
         }
 
@@ -140,7 +139,6 @@ export class TileRenderer {
      */    drawSpikeTile(ctx, x, y, time) {
         // Safety check for invalid coordinates
         if (!isFinite(x) || !isFinite(y) || !isFinite(time)) {
-            console.warn('TileRenderer.drawSpikeTile: Invalid coordinates', { x, y, time });
             return;
         }
 
@@ -471,10 +469,8 @@ export class TileRenderer {
             const degrees = (rotation * 180 / Math.PI) % 360;
             
         }
-        
-        
-        
-        // Enhanced danger warning glow with pulsing effect
+
+// Enhanced danger warning glow with pulsing effect
         const pulseIntensity = Math.sin(time * 6) * 0.3 + 0.7;
         ctx.shadowColor = `rgba(239, 68, 68, ${pulseIntensity * 0.8})`;
         ctx.shadowBlur = 15 * pulseIntensity;
@@ -604,9 +600,8 @@ export class TileRenderer {
      * Draw a laser beam that fires periodically
      */
     drawLaserTile(ctx, x, y, time) {
-        
-        
-        const centerX = x + GAME_CONFIG.TILE_SIZE / 2;
+
+const centerX = x + GAME_CONFIG.TILE_SIZE / 2;
         const centerY = y + GAME_CONFIG.TILE_SIZE / 2;
         const laserInterval = GAME_CONFIG.LASER_INTERVAL;
         const laserDuration = 1000; // 1 second beam duration
@@ -615,10 +610,8 @@ export class TileRenderer {
         const cycleTime = time * 1000 % laserInterval;
         const isActive = cycleTime < laserDuration;
         const warningPhase = !isActive && cycleTime > laserInterval - 1000;
-        
-        
-        
-        // Draw laser source
+
+// Draw laser source
         ctx.beginPath();
         ctx.arc(centerX, centerY, GAME_CONFIG.TILE_SIZE * 0.2, 0, Math.PI * 2);
         ctx.fillStyle = COLORS.LASER_SOURCE;

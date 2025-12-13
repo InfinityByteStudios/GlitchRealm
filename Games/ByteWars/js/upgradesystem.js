@@ -107,7 +107,7 @@ class UpgradeSystem {
         
         this.activeUpgrades.set(upgradeId, newLevel);
         
-        console.log(`🔧 Applied upgrade: ${this.upgradeDefinitions[upgradeId].name} (Level ${newLevel})`);
+        `);
         
         // Return the effects for this upgrade level
         const definition = this.upgradeDefinitions[upgradeId];

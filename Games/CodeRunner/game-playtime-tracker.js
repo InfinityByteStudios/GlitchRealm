@@ -35,11 +35,8 @@ class GamePlaytimeTracker {
         this.gameName = gameName;
         this.DEBUG = debug;
         this.sessionId = this._generateSessionId();
-        
-        console.log(`[PlaytimeTracker] 🎮 Initializing playtime tracker for ${gameName} (${gameId})`);
-        console.log(`[PlaytimeTracker] Session ID: ${this.sessionId}`);
-        
-        // Check for Firebase
+
+// Check for Firebase
         if (typeof firebase === 'undefined') {
             console.error(`[PlaytimeTracker] ❌ Firebase not available. Playtime tracking disabled.`);
             return false;
@@ -48,22 +45,20 @@ class GamePlaytimeTracker {
         try {
             // Get Firestore instance
             this.db = firebase.firestore();
-            console.log(`[PlaytimeTracker] Connected to Firebase Firestore`);
-            
-            // Set up auth listener
+
+// Set up auth listener
             firebase.auth().onAuthStateChanged((user) => {
                 if (user) {
                     this.userId = user.uid;
-                    console.log(`[PlaytimeTracker] 👤 User signed in: ${this.userId.substring(0, 6)}...`);
-                    
-                    // If we're already tracking, save current session
+
+// If we're already tracking, save current session
                     if (this.isTracking) {
-                        console.log(`[PlaytimeTracker] User signed in while tracking, saving current session`);
+                        
                         this._savePlaytime();
                     }
                 } else {
                     this.userId = null;
-                    console.log(`[PlaytimeTracker] User signed out, using local storage for tracking`);
+                    
                 }
             });
             
@@ -71,18 +66,14 @@ class GamePlaytimeTracker {
             document.addEventListener('visibilitychange', this._handleVisibilityChange.bind(this));
             window.addEventListener('blur', this._handleWindowBlur.bind(this));
             window.addEventListener('focus', this._handleWindowFocus.bind(this));
-            console.log(`[PlaytimeTracker] Set up visibility and focus event listeners`);
-            
-            // Set up interval for periodic saves
+
+// Set up interval for periodic saves
             this.saveInterval = setInterval(this._savePlaytime.bind(this), 5000); // Save every 5 seconds
-            console.log(`[PlaytimeTracker] Set up automatic save every 5 seconds`);
-            
-            // Set up beforeunload handler to save on exit
+
+// Set up beforeunload handler to save on exit
             window.addEventListener('beforeunload', this._handleBeforeUnload.bind(this));
-            console.log(`[PlaytimeTracker] Set up save on page unload/close`);
-            
-            console.log(`[PlaytimeTracker] ✅ Initialization complete`);
-            return true;
+
+return true;
         } catch (error) {
             console.error(`[PlaytimeTracker] ❌ Error initializing playtime tracker:`, error);
             return false;
@@ -93,16 +84,15 @@ class GamePlaytimeTracker {
      */
     startTracking() {
         if (this.isTracking) {
-            console.log(`[PlaytimeTracker] Playtime tracking already active`);
+            
             return false;
         }
         
         this.startTime = new Date();
         this.isTracking = true;
         this.totalMinutes = 0;
-        
-        console.log(`[PlaytimeTracker] 🕹️ Started playtime tracking at ${this.startTime.toLocaleTimeString()}`);
-        return true;
+
+return true;
     }
     
     /**
@@ -173,7 +163,7 @@ class GamePlaytimeTracker {
      */
     async _savePlaytime() {
         if (!this.db || !this.gameId) {
-            console.log(`[PlaytimeTracker] Cannot save: ${!this.db ? 'No database connection' : 'No game ID'}`);
+            
             return false;
         }
         
@@ -181,22 +171,20 @@ class GamePlaytimeTracker {
             // Calculate current playtime
             const minutesPlayed = this.getTotalMinutes();
             if (minutesPlayed <= 0) {
-                console.log(`[PlaytimeTracker] No playtime to save (${minutesPlayed} minutes)`);
+                
                 return 0;
             }
-            
-            console.log(`[PlaytimeTracker] 📊 Saving playtime: ${minutesPlayed.toFixed(2)} minutes for ${this.gameName}`);
-            
-            // Reset tracking but keep active
+
+// Reset tracking but keep active
             if (this.isTracking) {
-                console.log(`[PlaytimeTracker] Resetting session timer but keeping tracking active`);
+                
                 this.totalMinutes = 0;
                 this.startTime = new Date();
             }
             
             // If user is not signed in, store in local storage
             if (!this.userId) {
-                console.log(`[PlaytimeTracker] User not signed in, saving to local storage instead`);
+                
                 this._saveLocalPlaytime(minutesPlayed);
                 return minutesPlayed;
             }
@@ -206,15 +194,13 @@ class GamePlaytimeTracker {
                 .doc(this.userId)
                 .collection('games')
                 .doc(this.gameId);
-            
-            console.log(`[PlaytimeTracker] Saving to Firebase for user: ${this.userId.substring(0, 6)}...`);
-            
-            // Get current data
+
+// Get current data
             const doc = await userGameRef.get();
             
             if (doc.exists) {
                 // Update existing document
-                console.log(`[PlaytimeTracker] Updating existing playtime record`);
+                
                 await userGameRef.update({
                     totalMinutes: firebase.firestore.FieldValue.increment(minutesPlayed),
                     lastPlayed: firebase.firestore.FieldValue.serverTimestamp(),
@@ -224,10 +210,10 @@ class GamePlaytimeTracker {
                         timestamp: new Date() // Using regular Date instead of serverTimestamp
                     })
                 });
-                console.log(`[PlaytimeTracker] ✅ Successfully updated playtime record`);
+                
             } else {
                 // Create new document
-                console.log(`[PlaytimeTracker] Creating new playtime record for first play session`);
+                
                 await userGameRef.set({
                     gameId: this.gameId,
                     gameName: this.gameName,
@@ -240,7 +226,7 @@ class GamePlaytimeTracker {
                         timestamp: new Date() // Using regular Date instead of serverTimestamp
                     }]
                 });
-                console.log(`[PlaytimeTracker] ✅ Successfully created new playtime record`);
+                
             }
             
             return minutesPlayed;
@@ -296,10 +282,10 @@ class GamePlaytimeTracker {
      */
     _handleVisibilityChange(event) {
         if (document.hidden) {
-            console.log(`[PlaytimeTracker] 🔴 Page hidden (tab inactive), pausing tracking`);
+            
             this._pauseTracking();
         } else {
-            console.log(`[PlaytimeTracker] 🟢 Page visible (tab active), resuming tracking`);
+            
             this._resumeTracking();
         }
     }
@@ -310,7 +296,7 @@ class GamePlaytimeTracker {
      * @param {Event} event - Blur event
      */
     _handleWindowBlur(event) {
-        console.log(`[PlaytimeTracker] 🔴 Window lost focus, pausing tracking`);
+        
         this._pauseTracking();
     }
     
@@ -320,7 +306,7 @@ class GamePlaytimeTracker {
      * @param {Event} event - Focus event
      */
     _handleWindowFocus(event) {
-        console.log(`[PlaytimeTracker] 🟢 Window gained focus, resuming tracking`);
+        
         this._resumeTracking();
     }
     
@@ -381,7 +367,7 @@ class GamePlaytimeTracker {
      */
     log(message) {
         // Always show important logs regardless of debug setting
-        console.log(`[PlaytimeTracker] ${message}`);
+        
     }
 }
 

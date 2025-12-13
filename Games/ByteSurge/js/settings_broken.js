@@ -174,8 +174,7 @@ let settingsSystem = {
     saveSettings() {
         try {
             localStorage.setItem('bytesurge_settings', JSON.stringify(gameSettings));
-            console.log('⚙️ Settings saved');
-        } catch (e) {
+            } catch (e) {
             console.error('❌ Failed to save settings:', e);
         }
     },
@@ -194,7 +193,6 @@ let settingsSystem = {
                     }
                 });
                 
-                console.log('⚙️ Settings loaded');
                 this.applyAllSettings();
             }
         } catch (e) {
@@ -275,8 +273,6 @@ let settingsMenuUI = {
         
         this.panelBounds = { x: panelX, y: panelY, width: panelWidth, height: panelHeight };
         
-        console.log('⚙️ Calculating bounds with game dimensions:', gameWidth, 'x', gameHeight, 'Panel:', this.panelBounds);
-        
         // Calculate category bounds (left side)
         this.categoryBounds = [];
         const categoryStartY = panelY + 80;
@@ -338,12 +334,9 @@ let settingsMenuUI = {
     handleMouseClick(x, y, button) {
         if (!settingsSystem.isMenuOpen || button !== 0) return false;
         
-        console.log('⚙️ Settings menu click at:', x, y, 'Panel bounds:', this.panelBounds);
-        
         // Check if click is outside panel
         if (x < this.panelBounds.x || x > this.panelBounds.x + this.panelBounds.width ||
             y < this.panelBounds.y || y > this.panelBounds.y + this.panelBounds.height) {
-            console.log('⚙️ Click outside panel, closing menu');
             this.closeMenu();
             return true;
         }
@@ -351,7 +344,6 @@ let settingsMenuUI = {
         for (let bounds of this.categoryBounds) {
             if (x >= bounds.x && x <= bounds.x + bounds.width &&
                 y >= bounds.y && y <= bounds.y + bounds.height) {
-                console.log('⚙️ Category clicked:', bounds.index);
                 settingsSystem.selectedCategory = bounds.index;
                 this.calculateBounds(); // Recalculate setting bounds
                 return true;
@@ -362,13 +354,11 @@ let settingsMenuUI = {
         for (let bounds of this.settingBounds) {
             if (x >= bounds.x && x <= bounds.x + bounds.width &&
                 y >= bounds.y && y <= bounds.y + bounds.height) {
-                console.log('⚙️ Setting clicked:', bounds.index);
                 this.toggleSetting(bounds.index);
                 return true;
             }
         }
         
-        console.log('⚙️ Click inside panel but no hit');
         return false;
     },
       // Toggle or modify a setting
@@ -378,8 +368,6 @@ let settingsMenuUI = {
         
         const setting = category.settings[settingIndex];
         const currentValue = settingsSystem.getSetting(setting.key);
-        
-        console.log('⚙️ Toggling setting:', setting.name, 'from', currentValue);
         
         switch (setting.type) {
             case 'boolean':
@@ -403,7 +391,7 @@ let settingsMenuUI = {
                 break;
         }
         
-        console.log('⚙️ Setting changed to:', settingsSystem.getSetting(setting.key));
+        );
         
         // Visual feedback
         if (window.createScreenFlash && settingsSystem.getSetting('screenFlashEnabled')) {
@@ -616,10 +604,7 @@ function shouldSkipOpeningAnimation() {
 }
 
 // Initialize settings system
-console.log('⚙️ Initializing settings system...');
 settingsSystem.loadSettings();
-console.log('⚙️ Settings system initialized');
-
 // Export for global access
 window.gameSettings = gameSettings;
 window.settingsSystem = settingsSystem;

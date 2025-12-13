@@ -124,8 +124,7 @@ export class CacheManager {
             this.lastCleanup = now;
             
             if (expiredKeys.length > 0) {
-                console.log(`Cache cleanup: removed ${expiredKeys.length} expired entries`);
-            }
+                }
         } catch (error) {
             console.error('Error during cache cleanup:', error);
         }
@@ -143,8 +142,7 @@ export class CacheManager {
             
             toEvict.forEach(([key]) => this.delete(key));
             
-            console.log(`Cache eviction: removed ${toEvict.length} least recent entries`);
-        } catch (error) {
+            } catch (error) {
             console.error('Error during cache eviction:', error);
         }
     }

@@ -78,17 +78,14 @@ class DifficultyManager {
             neurofork: 27          // Average of 20-35 range
         };
         
-        console.log('🎮 Difficulty Manager initialized with default difficulty: medium');
-    }
+        }
     
     // Set difficulty level
     setDifficulty(difficulty) {
         if (this.difficulties[difficulty]) {
             this.currentDifficulty = difficulty;
-            console.log(`🎮 Difficulty set to: ${this.difficulties[difficulty].emoji} ${this.difficulties[difficulty].name}`);
             return true;
         }
-        console.warn(`⚠️ Invalid difficulty: ${difficulty}`);
         return false;
     }
     
@@ -150,9 +147,7 @@ class DifficultyManager {
         // Apply player speed multiplier
         player.setSpeedMultiplier(config.playerSpeedMultiplier);
         
-        console.log(`🎮 Applied ${config.name} difficulty modifiers to player:`, {
-            health: player.health,
-            speed: Math.round(player.speed),
+        ,
             speedMultiplier: `${Math.round(config.playerSpeedMultiplier * 100)}%`,
             dashCooldown: player.dashCooldown.toFixed(1),
             overclockCharge: player.overclockChargePerKill

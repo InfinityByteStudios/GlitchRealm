@@ -31,19 +31,15 @@ export class Player {
     constructor(x, y, game = null, upgrades = null) {
         // Validate and sanitize input parameters
         if (isNaN(x) || x === null || x === undefined) {
-            console.warn('Invalid x position provided to Player constructor:', x);
             x = 0;
         }
         if (isNaN(y) || y === null || y === undefined) {
-            console.warn('Invalid y position provided to Player constructor:', y);
             y = 256;
         }
         if (game && typeof game !== 'object') {
-            console.warn('Invalid game object provided to Player constructor:', game);
             game = null;
         }
         if (upgrades && typeof upgrades !== 'object') {
-            console.warn('Invalid upgrades object provided to Player constructor:', upgrades);
             upgrades = null;
         }
         
@@ -156,11 +152,9 @@ export class Player {
         try {
             // Validate input parameters
             if (!deltaTime || isNaN(deltaTime) || deltaTime <= 0) {
-                console.warn('Invalid deltaTime provided to Player.update:', deltaTime);
                 deltaTime = 16.67; // Default to 60fps frame time
             }
             if (!inputKeys || typeof inputKeys !== 'object') {
-                console.warn('Invalid inputKeys provided to Player.update:', inputKeys);
                 inputKeys = {}; // Default to empty object
             }
             
@@ -300,8 +294,7 @@ export class Player {
         // Add input to buffer when jump is pressed (for both ground and air)
         if (this.jumpState.justPressed) {
             this.jumpState.inputBuffer = 150; // 150ms buffer for responsive controls
-            console.debug(`Jump input detected - onGround: ${this.onGround}, airTime: ${this.jumpState.airTime}ms`);
-        }
+            }
         
         // Update input buffer countdown
         if (this.jumpState.inputBuffer > 0) {
@@ -425,18 +418,12 @@ export class Player {
     }
     
     takeDamage(amount, source) {
-        console.log(`💥 takeDamage called: amount=${amount}, source=${source}`);
-        console.log(`🔍 Current health: ${this.health}`);
-        console.log(`🔍 Invulnerability time: ${this.invulnerabilityTime}`);
-        
         if (this.invulnerabilityTime > 0) {
-            console.log(`🛡️ Damage blocked by invulnerability frames`);
             return;
         }
         
         // Check if player is in quantum dash (invulnerable)
         if (this.quantumDashActive) {
-            console.log('⚡ Damage blocked by Quantum Dash invulnerability!');
             return;
         }
         
@@ -444,11 +431,8 @@ export class Player {
         if (this.game && this.game.powerUpSystem) {
             const shieldResult = this.game.powerUpSystem.onPlayerDamage();
             if (shieldResult.absorbed) {
-                console.log('🛡️ Shield absorbed damage in takeDamage - returning early');
-                
                 // Grant invulnerability frames if the shield requests it
                 if (shieldResult.grantInvulnerability) {
-                    console.log('🛡️ Granting invulnerability frames after shield absorption');
                     this.invulnerabilityTime = GAME_CONFIG.INVULNERABILITY_DURATION;
                     this.lastDamageTime = Date.now();
                 }
@@ -457,9 +441,7 @@ export class Player {
             }
         }
         
-        console.log(`💔 No protection active - applying ${amount} damage`);
         this.health -= amount;
-        console.log(`💔 Health after damage: ${this.health}`);
         this.invulnerabilityTime = GAME_CONFIG.INVULNERABILITY_DURATION;
         this.lastDamageTime = Date.now();
         
@@ -478,7 +460,7 @@ export class Player {
             color: '#ff4444'
         });
           if (this.health <= 0) {
-            console.log(`💀 Health <= 0, calling die(${source})`);
+            `);
             this.die(source);
         } else if (this.health === 1 && this.game && this.game.tutorialSystem) {
             // Show low health hint when player has only 1 health left
@@ -526,7 +508,7 @@ export class Player {
                 // Add score when collecting data packet
                 if (this.game) {
                     this.game.score += 10;
-                    console.log(`📦 Data packet collected! +10 score (Total: ${this.game.score})`);
+                    `);
                 }
                 
                 // Create collection effect
@@ -890,24 +872,21 @@ export class Player {
         
         // Multiple validation checks for double jump availability
         if (!hasDoubleJump) {
-            console.debug('Double jump failed: No upgrade available');
             return false;
         }
         
         if (this.onGround) {
-            console.debug('Double jump failed: Player is on ground');
             return false;
         }
         
         // Check if player has already used their double jump for this air session
         if (!this.jumpState.doubleJumpAvailable) {
-            console.debug('Double jump failed: Already used this air session');
             return false;
         }
         
         // Additional safety check: ensure we're actually in the air for some minimum time
         if (this.jumpState.airTime < 50) {
-            console.debug('Double jump failed: Not enough air time (possible ground state race condition)');
+            ');
             return false;
         }
         
@@ -946,8 +925,7 @@ export class Player {
         
         // Debug logging for double jump reset
         if (!wasDoubleJumpAvailable && this.jumpState.doubleJumpAvailable) {
-            console.debug('Double jump reset: Now available for next air session');
-        }
+            }
     }
       /**
      * Load the selected sprite from profile manager
@@ -955,34 +933,27 @@ export class Player {
     loadSelectedSprite() {
         let selectedSprite = 'player-sprite.png'; // Default sprite
         
-        console.log('🎭 Loading selected sprite...');
-        console.log('🎭 ProfileManager available:', !!(typeof window !== 'undefined' && window.profileManager));
+        );
         
         // Try to get selected sprite from profile manager
         if (typeof window !== 'undefined' && window.profileManager) {
             selectedSprite = window.profileManager.getSelectedSprite();
-            console.log('🎭 Sprite from ProfileManager:', selectedSprite);
-          
             // Ensure we're getting a valid sprite name
             if (!selectedSprite || typeof selectedSprite !== 'string') {
                 selectedSprite = 'player-sprite.png';
-                console.log('🎭 Invalid sprite from ProfileManager, using default');
-            }
+                }
         } else {
             // Fallback: try to get from localStorage directly
             try {
                 const savedSprite = localStorage.getItem('coderunner_selected_sprite');
                 if (savedSprite && typeof savedSprite === 'string') {
                     selectedSprite = savedSprite;
-                    console.log('🎭 Sprite from localStorage:', selectedSprite);
-                }
+                    }
             } catch (error) {
-                console.warn('⚠️ Failed to load sprite from localStorage:', error);
-            }
+                }
             
             // If profile manager isn't ready yet, retry after a short delay
             if (typeof window !== 'undefined' && !window.profileManager) {
-                console.log('🎭 ProfileManager not ready, retrying in 200ms...');
                 setTimeout(() => this.loadSelectedSprite(), 200);
                 return;
             }
@@ -1000,10 +971,6 @@ export class Player {
             // Root assets folder
             spritePath = `./assets/${selectedSprite}`;
         }
-        
-        console.log(`🎮 Loading sprite: ${selectedSprite} from ${spritePath}`);
-        console.log(`🎮 Current sprite src: ${this.sprite.src}`);
-        console.log(`🎮 Target sprite path: ${spritePath}`);
         
         // Use changeSprite to properly handle sprite loading state
         this.changeSprite(spritePath);
@@ -1024,45 +991,33 @@ export class Player {
      * Change the player sprite dynamically
      */
     changeSprite(spritePath) {
-       
-        
-        // Normalize paths for comparison (extract just the filename)
+
+// Normalize paths for comparison (extract just the filename)
         const currentFilename = this.sprite.src ? this.sprite.src.split('/').pop() : '';
         const newFilename = spritePath ? spritePath.split('/').pop() : '';
         
-        console.log(`🎮 changeSprite called with: ${spritePath}`);
-        console.log(`🎮 Current sprite file: ${currentFilename}`);
-        console.log(`🎮 New sprite file: ${newFilename}`);
-        console.log(`🎮 Sprite already loaded: ${this.spriteLoaded}`);
-        
         // Don't reload if it's the same sprite file and it's already loaded
         if (currentFilename === newFilename && this.spriteLoaded) {
-            console.log(`🎮 Same sprite already loaded, skipping: ${newFilename}`);
             return;
         }
         
         const previousSrc = this.sprite.src;
         this.spriteLoaded = false;
         
-        console.log(`🎮 Starting sprite load: ${spritePath}`);
-          
         // Set up new load handlers
         this.sprite.onload = () => {
             this.spriteLoaded = true;
-            console.log(`✅ Sprite loaded successfully: ${spritePath}`);
-        };
+            };
           
         this.sprite.onerror = (error) => {
             console.error(`❌ Failed to load sprite: ${spritePath}`, error);
             this.spriteLoaded = false;
             // Try the default instead
             if (!previousSrc.endsWith('player-sprite.png')) {
-                console.log(`🔄 Trying default sprite: ./assets/player-sprite.png`);
                 this.sprite.src = './assets/player-sprite.png';
             }
         };
         
-        console.log(`🔄 Setting sprite.src to: ${spritePath}`);
         this.sprite.src = spritePath;
     }
 
@@ -1113,7 +1068,7 @@ export class Player {
             this.game.audioSystem.onJump(); // Reuse jump sound for now
         }
 
-        console.log(`🏃‍♂️ Started smooth dash (module level ${level})`);
+        `);
     }    /**
      * Update dash state and apply dash movement
      */
@@ -1188,8 +1143,7 @@ export class Player {
             this.game.audioSystem.onJump(); // Reuse dash sound for now
         }
 
-        console.log(`🏃‍♂️ Started simple smooth dash`);
-    }
+        }
 
     /**
      * Create dash particles when dash starts

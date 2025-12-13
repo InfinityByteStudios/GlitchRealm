@@ -3,8 +3,6 @@ import GamePlaytimeTracker from '../../game-playtime-tracker.js';
 
 // Initialize the playtime tracker when the game starts
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Initializing playtime tracking for ByteSurge');
-    
     // Create and initialize the playtime tracker
     const tracker = new GamePlaytimeTracker();
     await tracker.init('bytesurge', 'ByteSurge', true);
@@ -21,7 +19,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add event listeners for game state if available
     window.addEventListener('gameStarted', () => {
         if (tracker && !tracker.isTracking) {
-            console.log('Game started - beginning playtime tracking');
             tracker.startTracking();
         }
     });
@@ -32,7 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     window.addEventListener('gameEnded', () => {
         if (tracker && tracker.isTracking) {
-            console.log('Game ended - saving final playtime');
             tracker.stopTracking(true);
         }
     });
@@ -45,13 +41,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 document.addEventListener('visibilitychange', () => {
     // When tab becomes hidden, save the current playtime
     if (document.hidden && window.playtimeTracker && window.playtimeTracker.isTracking) {
-        console.log('Tab hidden - saving current playtime');
         window.playtimeTracker.savePlaytimeData();
     }
     
     // When tab becomes visible again, make sure tracking is active
     if (!document.hidden && window.playtimeTracker && !window.playtimeTracker.isTracking) {
-        console.log('Tab visible again - resuming playtime tracking');
         window.playtimeTracker.startTracking();
     }
 });
@@ -59,7 +53,6 @@ document.addEventListener('visibilitychange', () => {
 // Handle page unload
 window.addEventListener('beforeunload', () => {
     if (window.playtimeTracker && window.playtimeTracker.isTracking) {
-        console.log('Page unloading - saving final playtime');
         window.playtimeTracker.savePlaytimeData();
     }
 });

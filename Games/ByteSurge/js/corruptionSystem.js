@@ -218,7 +218,7 @@ const CorruptionSystem = {    init: function() {
         }
         
         this.zones.push(zone);
-        console.log(`🧪 Debug spawned ${type} corruption at (${x}, ${y})`);
+        `);
     },
 
     increaseZoneDifficulty: function(zoneLevel) {
@@ -415,7 +415,7 @@ const CorruptionSystem = {    init: function() {
 
 // Initialize the corruption system globally
 window.corruptionSystem = Object.create(CorruptionSystem).init();
-console.log('🔥 Corruption system initialized with methods:', Object.keys(window.corruptionSystem.__proto__));
+);
 
 // Global function to render corruption zones
 function renderCorruptionZones(ctx) {

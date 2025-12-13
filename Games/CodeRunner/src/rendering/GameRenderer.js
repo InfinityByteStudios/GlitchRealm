@@ -253,9 +253,8 @@ export class GameRenderer {
             this.drawCreditsScreen();
             return;
         }
-        
-        
-        if (this.game.gameState === GAME_STATES.DIFFICULTY_SELECT) {
+
+if (this.game.gameState === GAME_STATES.DIFFICULTY_SELECT) {
            
             this.drawDifficultySelection();
             return;
@@ -1337,6 +1336,5 @@ export class GameRenderer {
             ...options
         };
         
-        console.log('🎮 Render optimizations applied:', this.renderOptimizations);
-    }
+        }
 }

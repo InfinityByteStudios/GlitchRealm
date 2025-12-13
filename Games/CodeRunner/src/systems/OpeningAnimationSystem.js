@@ -43,10 +43,8 @@ export class OpeningAnimationSystem {
         this.logoImage = new Image();
         this.logoImage.onload = () => {
             this.logoImageLoaded = true;
-            console.log('🎮 Main logo loaded successfully');
-        };
+            };
         this.logoImage.onerror = () => {
-            console.warn('❌ Failed to load main logo');
             this.logoImageLoaded = false;
         };
         this.logoImage.src = './assets/opening animation logo.png';
@@ -55,10 +53,8 @@ export class OpeningAnimationSystem {
         this.gameLogoImage = new Image();
         this.gameLogoImage.onload = () => {
             this.gameLogoImageLoaded = true;
-            console.log('🎮 Game logo loaded successfully');
-        };
+            };
         this.gameLogoImage.onerror = () => {
-            console.warn('❌ Failed to load game logo');
             this.gameLogoImageLoaded = false;
         };
         this.gameLogoImage.src = './assets/opening animation game logo.png';
@@ -72,45 +68,38 @@ export class OpeningAnimationSystem {
         try {
             if (this.game && this.game.settingsSystem) {
                 const shouldShow = this.game.settingsSystem.getSettingValue('showOpeningAnimation');
-                console.log('🎬 Opening animation setting from SettingsSystem:', shouldShow);
                 if (shouldShow === false) {
                     return false;
                 }
             }
         } catch (error) {
-            console.warn('🎬 Could not check SettingsSystem opening animation setting:', error);
-        }
+            }
         
         // Check if opening animation is enabled in UserProfileSystem settings
         try {
             if (this.game && this.game.userProfileSystem) {
                 const shouldShow = this.game.userProfileSystem.shouldShowOpeningAnimation();
-                console.log('🎬 Opening animation setting from UserProfileSystem:', shouldShow);
                 if (!shouldShow) {
                     return false;
                 }
             }
         } catch (error) {
-            console.warn('🎬 Could not check UserProfileSystem opening animation setting:', error);
-        }
+            }
         
         // Fallback to localStorage check
         try {
             const settings = JSON.parse(localStorage.getItem('coderunner_settings') || '{}');
             if (settings.showOpeningAnimation === false) {
-                console.log('🎬 Opening animation disabled in localStorage settings');
                 return false;
             }
             
             // Also check the old settings location
             const gameSettings = JSON.parse(localStorage.getItem('gameSettings') || '{}');
             if (gameSettings.showOpeningAnimation === false) {
-                console.log('🎬 Opening animation disabled in old localStorage settings');
                 return false;
             }
         } catch (error) {
-            console.warn('🎬 Could not check localStorage opening animation setting:', error);
-        }
+            }
         
         return !this.hasPlayed;
     }
@@ -119,12 +108,10 @@ export class OpeningAnimationSystem {
      * Start the opening animation
      */
     start() {
-        console.log('🎬 OpeningAnimationSystem.start() called');
-        console.log('🎬 hasPlayed:', this.hasPlayed);
-        console.log('🎬 shouldPlay():', this.shouldPlay());
+        called');
+        :', this.shouldPlay());
         
         if (this.hasPlayed) {
-            console.log('🎬 Animation already played, skipping');
             return;
         }
         
@@ -137,10 +124,7 @@ export class OpeningAnimationSystem {
         this.glowIntensity = 0;
         this.audioPlayed = false;
         
-        console.log('🎬 Starting opening animation sequence');
-        console.log('🎬 Logo image loaded:', this.logoImageLoaded);
-        console.log('🎬 Game logo image loaded:', this.gameLogoImageLoaded);
-    }
+        }
     
     /**
      * Update animation logic
@@ -181,26 +165,15 @@ export class OpeningAnimationSystem {
                 const hasChosenAuth = this.hasUserChosenAuthentication();
                 const loginSystem = this.game?.loginSystem;
                 
-                console.log(`🎬 Login phase check - elapsed: ${phaseElapsed}ms`);
-                console.log(`🎬 - userIsAuthenticated: ${userIsAuthenticated}`);
-                console.log(`🎬 - hasChosenAuth: ${hasChosenAuth}`);
                 if (loginSystem) {
-                    console.log(`🎬 - loginSystem.isLoggedIn: ${loginSystem.isLoggedIn}`);
-                    console.log(`🎬 - loginSystem.isGuest: ${loginSystem.isGuest}`);
-                    console.log(`🎬 - loginSystem.hasShown: ${loginSystem.hasShown}`);
-                }
+                    }
                 
                 // Only transition away if:
                 // 1. User has explicitly chosen authentication AND time has passed
                 // 2. OR maximum timeout has been reached
                 const shouldTransition = (phaseElapsed > 2000 && userIsAuthenticated && hasChosenAuth) || phaseElapsed > 15000;
                 
-                console.log(`🎬 - shouldTransition: ${shouldTransition}`);
-                console.log(`🎬 - condition1: ${phaseElapsed > 2000 && userIsAuthenticated && hasChosenAuth}`);
-                console.log(`🎬 - condition2: ${phaseElapsed > 15000}`);
-                
                 if (shouldTransition) {
-                    console.log('🎬 Login phase complete, transitioning to homescreen');
                     this.transitionToPhase('homescreen');
                 }
                 break;
@@ -225,7 +198,6 @@ export class OpeningAnimationSystem {
      * Transition to a new phase
      */
     transitionToPhase(newPhase) {
-        console.log(`🎬 Animation transitioning from ${this.currentPhase} to ${newPhase}`);
         this.currentPhase = newPhase;
         this.phaseStartTime = performance.now();
         this.fadeAlpha = 0;
@@ -288,18 +260,14 @@ export class OpeningAnimationSystem {
         
         // On first frame of login phase, start the login system and update UI
         if (elapsed < 50 && !this.loginSystemStarted) { // Within first 50ms and not already started
-            console.log('🎬 Login phase started, initiating login system');
             this.loginSystemStarted = true;
             
             // Set game state to login prompt - let GameNavigation handle starting the appropriate system
             this.game.setGameState(GAME_STATES.LOGIN_PROMPT);
             
             // Don't manually start systems here - let GameNavigation handle it
-            console.log('🎬 Game state set to LOGIN_PROMPT, GameNavigation will handle system startup');
-            
             // Update HTML UI to show login state
             if (window.updateLoginStatus) {
-                console.log('🎬 Updating login status during login phase');
                 window.updateLoginStatus();
             }
         }
@@ -319,7 +287,6 @@ export class OpeningAnimationSystem {
         // First check if this is after a sign out (force login popup)
         const forceLoginAfterSignout = sessionStorage.getItem('coderunner_force_login_after_signout');
         if (forceLoginAfterSignout === 'true') {
-            console.log('🎬 Login check - forcing login after sign out');
             // NOTE: Don't clear the flag here - let LoginSystem handle it
             return true;
         }
@@ -327,18 +294,15 @@ export class OpeningAnimationSystem {
         // Check if user is already logged in via UserProfileSystem
         if (this.game && this.game.userProfileSystem) {
             const isAuthenticated = this.game.userProfileSystem.isLoggedIn;
-            console.log('🎬 Login check - UserProfileSystem isLoggedIn:', isAuthenticated);
             return !isAuthenticated;
         }
         
         // Fallback check for legacy login system
         if (this.game && this.game.loginSystem) {
             const isAuthenticated = this.game.loginSystem.isUserAuthenticated();
-            console.log('🎬 Login check - LoginSystem isAuthenticated:', isAuthenticated);
             return !isAuthenticated;
         }
         
-        console.log('🎬 Login check - no authentication system, showing login');
         return true; // Default to showing login if system not ready
     }
     
@@ -356,7 +320,6 @@ export class OpeningAnimationSystem {
      */
     hasUserChosenAuthentication() {
         if (!window.gameInstance || !window.gameInstance.loginSystem) {
-            console.log('🎬 hasUserChosenAuthentication: no login system');
             return false;
         }
         
@@ -364,17 +327,14 @@ export class OpeningAnimationSystem {
         
         // Check if user is logged in with an actual account (not guest)
         if (loginSystem.isLoggedIn && loginSystem.currentUser) {
-            console.log('🎬 User has authenticated with account:', loginSystem.currentUser.email);
             return true;
         }
         
         // Check if user explicitly chose guest mode (not default state)
         if (loginSystem.isGuest && loginSystem.hasShown) {
-            console.log('🎬 User has explicitly chosen guest mode');
             return true;
         }
         
-        console.log('🎬 User has not made authentication choice yet - isLoggedIn:', loginSystem.isLoggedIn, 'isGuest:', loginSystem.isGuest, 'hasShown:', loginSystem.hasShown);
         return false;
     }
 
@@ -383,11 +343,11 @@ export class OpeningAnimationSystem {
      */
     render() {
         if (!this.isActive) {
-            console.log('🎬 render() called but animation not active');
+            called but animation not active');
             return;
         }
         
-        console.log('🎬 render() called - phase:', this.currentPhase, 'fadeAlpha:', this.fadeAlpha);
+        called - phase:', this.currentPhase, 'fadeAlpha:', this.fadeAlpha);
         
         // Clear canvas with dark background
         this.ctx.fillStyle = '#000000';
@@ -560,16 +520,12 @@ export class OpeningAnimationSystem {
         this.phaseStartTime = 0;
         this.fadeAlpha = 0;
         this.showContent = false;
-        console.log('🎬 Opening animation reset');
-    }    /**
+        }    /**
      * Animation complete callback
      */
     onComplete() {
-        console.log('🎬 Opening animation sequence completed');
-        
         // Check if user needs to login after animation
         if (this.shouldShowLogin()) {
-            console.log('🎬 → Transitioning to login after animation');
             this.game.setGameState(GAME_STATES.LOGIN_PROMPT);
             
             // Start UserProfileSystem if available
@@ -581,7 +537,6 @@ export class OpeningAnimationSystem {
             }
         } else {
             // User is logged in or doesn't need login, go to home
-            console.log('🎬 → Transitioning to home after animation');
             this.game.setGameState(GAME_STATES.HOME);
         }
     }

@@ -11,7 +11,6 @@ window.EnergyNodeSystem = {
     init() {
         this.nodes = [];
         this.spawnTimer = 0;
-        console.log('⚡ Energy node system initialized');
         return this;
     },
     
@@ -129,7 +128,7 @@ class EnergyNode {
         this.particles = [];
         this.maxParticles = 8;
         
-        console.log(`⚡ Zone ${zoneLevel} energy node spawned at (${x.toFixed(1)}, ${y.toFixed(1)})`);
+        }, ${y.toFixed(1)})`);
     }
     
     getZoneType(zoneLevel) {
@@ -319,7 +318,6 @@ class EnergyNode {
         this.isCollected = true;
         this.collectionTime = 0;
         
-        console.log(`⚡ Energy node collected! +${this.value} energy`);
         return this.value;
     }
     
@@ -389,7 +387,7 @@ class EnergyNode {
         harvester.isAuraBoosted = true;
         harvester.auraBoostLevel = this.zoneLevel;
         
-        console.log(`🌟 Harvester boosted by Zone ${this.zoneLevel} energy node! Bonus: +${((this.auraBonus - 1) * 100).toFixed(0)}%`);
+        * 100).toFixed(0)}%`);
     }
     
     removeAuraBonus(harvester) {
@@ -403,8 +401,7 @@ class EnergyNode {
         harvester.isAuraBoosted = false;
         harvester.auraBoostLevel = 0;
         
-        console.log(`💔 Harvester lost aura bonus`);
-    }
+        }
     
     // Called when energy node is collected
     removeAllAuraBonuses() {
@@ -413,8 +410,7 @@ class EnergyNode {
         });
         this.affectedHarvesters.clear();
         
-        console.log(`⚡ Zone ${this.zoneLevel} energy node collected - all aura bonuses removed`);
-    }
+        }
       renderAura(ctx) {
         ctx.save();
         
@@ -560,8 +556,7 @@ function renderEnergyNodes(ctx) {
 function resetEnergyNodes() {
     energyNodes = [];
     lastEnergyNodeSpawn = performance.now();
-    console.log('🔄 Energy nodes reset');
-}
+    }
 
 function checkEnergyCollisions(drone) {
     if (!drone) return 0;

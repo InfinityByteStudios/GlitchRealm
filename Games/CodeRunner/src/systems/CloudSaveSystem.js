@@ -17,15 +17,13 @@ export class CloudSaveSystem {
         try {
             if (window.firebaseAuth) {
                 this.auth = window.firebaseAuth;
-               
-                
-                // Only initialize Firestore if it's available and working
+
+// Only initialize Firestore if it's available and working
                 if (window.firebaseFirestore) {
                     this.firestore = window.firebaseFirestore;
                     this.isInitialized = true;
-                   
-                    
-                    // Test Firestore connectivity on a delay to avoid blocking initialization
+
+// Test Firestore connectivity on a delay to avoid blocking initialization
                     setTimeout(() => this.testFirestoreConnectivity(), 2000);
                 } else {
                    
@@ -91,9 +89,8 @@ export class CloudSaveSystem {
             await Promise.race([testPromise, timeoutPromise]);
             return true;
         } catch (error) {
-          
-            
-            // If we get specific offline errors, disable Firestore temporarily
+
+// If we get specific offline errors, disable Firestore temporarily
             if (error.message.includes('offline') || 
                 error.message.includes('unavailable') ||
                 error.code === 'unavailable') {
@@ -235,9 +232,8 @@ export class CloudSaveSystem {
                 // Fall back to localStorage for now
                 return this.saveToLocalStorage(sanitizedData);
             }
-            
-         
-            return this.saveToLocalStorage(sanitizedData);
+
+return this.saveToLocalStorage(sanitizedData);
         }
     }
     
@@ -376,10 +372,8 @@ export class CloudSaveSystem {
             
             return await Promise.race([migrationPromise, timeoutPromise]);
               } catch (error) {
-          
-        
-            
-            // Disable Firestore if we get permissions or connectivity errors
+
+// Disable Firestore if we get permissions or connectivity errors
             if (error.message.includes('offline') || 
                 error.message.includes('unavailable') ||
                 error.message.includes('permissions') ||
@@ -533,7 +527,6 @@ export class CloudSaveSystem {
      */
     async saveUserProfile(profileData) {
         if (!this.isUserLoggedIn() || !this.isInitialized) {
-            console.log('☁️ User not logged in or Firebase not initialized - saving profile locally');
             return this.saveProfileToLocalStorage(profileData);
         }
         
@@ -558,12 +551,9 @@ export class CloudSaveSystem {
                     cloudProfileData.lastUpdated = firebase.firestore.FieldValue.serverTimestamp();
                 }
             } catch (timestampError) {
-                console.log('⚠️ Server timestamp not available, using local timestamp');
-            }
+                }
             
             await docRef.set(cloudProfileData, { merge: true });
-            console.log('☁️ User profile saved to cloud successfully');
-            
             // Also save to localStorage as backup
             this.saveProfileToLocalStorage(profileData);
             
@@ -582,7 +572,6 @@ export class CloudSaveSystem {
      */
     async loadUserProfile() {
         if (!this.isUserLoggedIn() || !this.isInitialized) {
-            console.log('☁️ User not logged in or Firebase not initialized - loading profile locally');
             return this.loadProfileFromLocalStorage();
         }
         
@@ -599,14 +588,11 @@ export class CloudSaveSystem {
             
             if (doc.exists) {
                 const data = doc.data();
-                console.log('☁️ User profile loaded from cloud successfully');
-                
                 // Update localStorage with cloud data
                 this.saveProfileToLocalStorage(data);
                 
                 return data;
             } else {
-                console.log('☁️ No cloud profile found, checking local storage');
                 return this.loadProfileFromLocalStorage();
             }
             
@@ -624,7 +610,6 @@ export class CloudSaveSystem {
     saveProfileToLocalStorage(profileData) {
         try {
             localStorage.setItem('coderunner_user_profile', JSON.stringify(profileData));
-            console.log('💾 User profile saved to localStorage');
             return true;
         } catch (error) {
             console.error('❌ Error saving profile to localStorage:', error);
@@ -640,7 +625,6 @@ export class CloudSaveSystem {
             const saved = localStorage.getItem('coderunner_user_profile');
             if (saved) {
                 const data = JSON.parse(saved);
-                console.log('💾 User profile loaded from localStorage');
                 return data;
             }
             return null;
@@ -672,8 +656,6 @@ export class CloudSaveSystem {
             };
             
             await docRef.set(cloudStatsData, { merge: true });
-            console.log('📊 User stats synced to cloud successfully');
-            
             // Also save to localStorage as backup
             this.saveStatsToLocalStorage(userStats);
             
@@ -708,14 +690,11 @@ export class CloudSaveSystem {
             
             if (doc.exists) {
                 const data = doc.data();
-                console.log('📊 User stats loaded from cloud successfully');
-                
                 // Update localStorage with cloud data
                 this.saveStatsToLocalStorage(data);
                 
                 return data;
             } else {
-                console.log('📊 No cloud stats found, checking local storage');
                 return this.loadStatsFromLocalStorage();
             }
             
@@ -733,7 +712,6 @@ export class CloudSaveSystem {
     saveStatsToLocalStorage(statsData) {
         try {
             localStorage.setItem('coderunner_user_stats', JSON.stringify(statsData));
-            console.log('💾 User stats saved to localStorage');
             return true;
         } catch (error) {
             console.error('❌ Error saving stats to localStorage:', error);
@@ -749,7 +727,6 @@ export class CloudSaveSystem {
             const saved = localStorage.getItem('coderunner_user_stats');
             if (saved) {
                 const data = JSON.parse(saved);
-                console.log('💾 User stats loaded from localStorage');
                 return data;
             }
             return null;
@@ -854,7 +831,6 @@ export class CloudSaveSystem {
      */
     applyGameData(gameData) {
         if (!gameData || typeof gameData !== 'object') {
-            console.warn('❌ Invalid game data provided to applyGameData');
             return false;
         }
         
@@ -862,45 +838,38 @@ export class CloudSaveSystem {
             // Apply best scores
             if (gameData.bestScores) {
                 this.game.bestScores = { ...this.game.bestScores, ...gameData.bestScores };
-                console.log('✅ Best scores applied from cloud save');
-            }
+                }
             
             // Apply upgrade data
             if (gameData.dataPackets !== undefined && this.game.upgradeSystem) {
                 this.game.upgradeSystem.loadSavedData({ dataPackets: gameData.dataPackets });
-                console.log(`✅ Data packets applied from cloud save: ${gameData.dataPackets}`);
-            }
+                }
             
             // Apply shop upgrade data
             if (gameData.ownedUpgrades && this.game.shopSystem) {
                 this.game.shopSystem.loadOwnedUpgrades(gameData.ownedUpgrades);
-                console.log(`✅ Shop upgrades applied from cloud save: ${gameData.ownedUpgrades.length} upgrades`);
-            }
+                }
             
             // Apply achievement data
             if (gameData.achievementData && this.game.achievementSystem) {
                 this.game.achievementSystem.loadSavedData(gameData.achievementData);
-                console.log('✅ Achievement data applied from cloud save');
-            }
+                }
             
             // Apply settings data
             if (gameData.settingsData && this.game.settingsSystem) {
                 this.game.settingsSystem.importSettings(gameData.settingsData);
-                console.log('✅ Settings applied from cloud save');
-            }
+                }
             
             // Apply profile data
             if (gameData.profileData && typeof window !== 'undefined' && window.profileManager) {
                 window.profileManager.loadFromCloud(gameData.profileData);
-                console.log('✅ Profile data applied from cloud save');
-            }
+                }
             
             // Apply audio settings
             if (gameData.audioSettings && this.game.audioSystem) {
                 Object.assign(this.game.audioSystem, gameData.audioSettings);
                 this.game.audioSystem.saveSettings();
-                console.log('✅ Audio settings applied from cloud save');
-            }
+                }
             
             // Apply leaderboard data
             if (gameData.leaderboardData && this.game.leaderboardSystem) {
@@ -911,8 +880,7 @@ export class CloudSaveSystem {
                 if (gameData.leaderboardData.uploadedDifficulties) {
                     this.game.leaderboardSystem.uploadedDifficulties = new Set(gameData.leaderboardData.uploadedDifficulties);
                 }
-                console.log('✅ Leaderboard data applied from cloud save');
-            }
+                }
             
             // Apply user stats
             if (gameData.userStats && this.game.userProfileSystem) {
@@ -920,8 +888,7 @@ export class CloudSaveSystem {
                     ...this.game.userProfileSystem.userStats, 
                     ...gameData.userStats 
                 };
-                console.log('✅ User stats applied from cloud save');
-            }
+                }
             
             return true;
         } catch (error) {
@@ -935,14 +902,10 @@ export class CloudSaveSystem {
      */
     async saveAllGameData() {
         try {
-            console.log('💾 Starting comprehensive cloud save...');
-            
             const gameData = this.collectGameData();
             const success = await this.saveGameData(gameData);
             
             if (success) {
-                console.log('✅ Comprehensive cloud save completed successfully');
-                
                 // Also update the user profile with latest data
                 if (this.game.userProfileSystem && this.game.userProfileSystem.isLoggedIn) {
                     await this.game.userProfileSystem.saveUserProfile();
@@ -950,7 +913,6 @@ export class CloudSaveSystem {
                 
                 return true;
             } else {
-                console.warn('⚠️ Cloud save failed, data saved locally only');
                 return false;
             }
         } catch (error) {
@@ -964,22 +926,17 @@ export class CloudSaveSystem {
      */
     async loadAllGameData() {
         try {
-            console.log('📥 Starting comprehensive cloud load...');
-            
             const gameData = await this.loadGameData();
             
             if (gameData) {
                 const success = this.applyGameData(gameData);
                 
                 if (success) {
-                    console.log('✅ Comprehensive cloud load completed successfully');
                     return true;
                 } else {
-                    console.warn('⚠️ Error applying loaded game data');
                     return false;
                 }
             } else {
-                console.log('ℹ️ No cloud save data found');
                 return false;
             }
         } catch (error) {
@@ -994,7 +951,6 @@ export class CloudSaveSystem {
     startAutoSave() {
         // Only start auto-save for logged-in users
         if (!this.isUserLoggedIn()) {
-            console.log('ℹ️ Auto-save not started - user not logged in');
             return;
         }
         
@@ -1006,7 +962,6 @@ export class CloudSaveSystem {
         // Auto-save every 2 minutes for logged-in users
         this.autoSaveInterval = setInterval(async () => {
             if (this.isUserLoggedIn()) {
-                console.log('⏰ Auto-saving game data...');
                 await this.saveAllGameData();
             } else {
                 // Stop auto-save if user logs out
@@ -1014,7 +969,7 @@ export class CloudSaveSystem {
             }
         }, 120000); // 2 minutes
         
-        console.log('✅ Auto-save started (every 2 minutes)');
+        ');
     }
     
     /**
@@ -1024,8 +979,7 @@ export class CloudSaveSystem {
         if (this.autoSaveInterval) {
             clearInterval(this.autoSaveInterval);
             this.autoSaveInterval = null;
-            console.log('⏹️ Auto-save stopped');
-        }
+            }
     }
     
     /**
@@ -1033,20 +987,16 @@ export class CloudSaveSystem {
      */
     async syncWithCloud() {
         if (!this.isUserLoggedIn()) {
-            console.warn('⚠️ Cannot sync with cloud - user not logged in');
             return false;
         }
         
         try {
-            console.log('🔄 Syncing with cloud...');
-            
             // First save current data
             await this.saveAllGameData();
             
             // Then load any newer data from cloud
             await this.loadAllGameData();
             
-            console.log('✅ Cloud sync completed');
             return true;
         } catch (error) {
             console.error('❌ Error during cloud sync:', error);

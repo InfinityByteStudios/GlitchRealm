@@ -96,8 +96,7 @@ export class UserProfileSystem {
         this.loadGameSettings();
         this.initializeRealStats();
         
-        console.log('👤 UserProfileSystem initialized');
-    }
+        }
 
     /**
      * Setup Firebase authentication and providers
@@ -123,10 +122,8 @@ export class UserProfileSystem {
                     this.handleAuthStateChange(user);
                 });
                 
-                console.log('🔑 Firebase authentication configured with GitHub and Google support');
-            } else {
-                console.warn('⚠️ Firebase not available - limited functionality');
-            }
+                } else {
+                }
         } catch (error) {
             console.error('❌ Error setting up Firebase:', error);
         }
@@ -159,9 +156,7 @@ export class UserProfileSystem {
                 this.updateUserStats();
             }
             
-            console.log('👤 User authenticated:', user.email || user.displayName);
-            console.log('☁️ Cloud save system activated');
-        } else {
+            } else {
             // Save current progress before signing out
             if (this.isLoggedIn && this.game && this.game.cloudSaveSystem) {
                 await this.game.cloudSaveSystem.saveAllGameData();
@@ -173,9 +168,7 @@ export class UserProfileSystem {
             this.userProfile = null;
             this.resetUserStats();
             
-            console.log('👤 User signed out');
-            console.log('☁️ Cloud save system deactivated');
-        }
+            }
         
         // Notify game of auth state change
         if (this.game && this.game.loginSystem) {
@@ -240,12 +233,10 @@ export class UserProfileSystem {
                     
                     // Try async save but don't wait for it
                     this.game.cloudSaveSystem.saveAllGameData().catch(error => {
-                        console.warn('⚠️ Failed to save data on page unload:', error);
-                    });
+                        });
                     
                 } catch (error) {
-                    console.warn('⚠️ Failed to save data on page unload:', error);
-                }
+                    }
             }
         };
         
@@ -277,8 +268,7 @@ export class UserProfileSystem {
         this.positionElements();
         this.addEventListeners();
         
-        console.log('👤 User profile system started with view:', this.currentView);
-    }
+        }
 
     /**
      * Stop the user profile system
@@ -286,8 +276,7 @@ export class UserProfileSystem {
     stop() {
         this.isActive = false;
         this.removeEventListeners();
-        console.log('👤 User profile system stopped');
-    }
+        }
 
     /**
      * Add event listeners
@@ -354,8 +343,7 @@ export class UserProfileSystem {
                 this.inputFields.displayName.value = this.userProfile.displayName;
             }
             
-            console.log('👤 User profile loaded successfully');
-        } catch (error) {
+            } catch (error) {
             console.error('❌ Error loading user profile:', error);
             this.showError('Failed to load profile data');
         }
@@ -389,8 +377,7 @@ export class UserProfileSystem {
                 .doc(this.currentUser.uid)
                 .set(sanitizedProfile, { merge: true });
             
-            console.log('👤 User profile saved successfully with selected sprite:', this.userProfile.selectedSprite);
-        } catch (error) {
+            } catch (error) {
             console.error('❌ Error saving user profile:', error);
             this.showError('Failed to save profile data');
         }
@@ -515,8 +502,7 @@ export class UserProfileSystem {
                 this.userStats = { ...this.userStats, ...parsed };
             }
         } catch (error) {
-            console.warn('⚠️ Failed to load local user data:', error);
-        }
+            }
     }
 
     /**
@@ -526,8 +512,7 @@ export class UserProfileSystem {
         try {
             localStorage.setItem('coderunner_user_stats', JSON.stringify(this.userStats));
         } catch (error) {
-            console.warn('⚠️ Failed to save local user data:', error);
-        }
+            }
     }
 
     /**
@@ -642,14 +627,11 @@ export class UserProfileSystem {
         
         try {
             // CRITICAL FIX: Save all data to cloud BEFORE signing out!
-            console.log('💾 Saving all progress to cloud before signing out...');
-            
             // Save all game data to cloud first
             if (this.game && this.game.cloudSaveSystem) {
                 try {
                     await this.game.cloudSaveSystem.saveAllGameData();
-                    console.log('✅ All data saved to cloud successfully before sign out');
-                } catch (saveError) {
+                    } catch (saveError) {
                     console.error('❌ Failed to save data to cloud before sign out:', saveError);
                     // Continue with sign out even if save fails
                 }
@@ -658,8 +640,7 @@ export class UserProfileSystem {
             // Save user profile data to cloud
             try {
                 await this.saveUserProfile();
-                console.log('✅ User profile saved to cloud before sign out');
-            } catch (profileSaveError) {
+                } catch (profileSaveError) {
                 console.error('❌ Failed to save profile to cloud before sign out:', profileSaveError);
                 // Continue with sign out even if profile save fails
             }
@@ -669,8 +650,6 @@ export class UserProfileSystem {
             
             // Now proceed with sign out
             await this.auth.signOut();
-            console.log('🔄 User signed out successfully, reloading page...');
-            
             // Clear all localStorage data to ensure clean state
             localStorage.clear();
             
@@ -798,8 +777,7 @@ export class UserProfileSystem {
         this.successMessage = message;
         this.errorMessage = '';
         this.messageTimer = Date.now();
-        console.log('👤 Success:', message);
-    }
+        }
 
     /**
      * Position UI elements
@@ -1239,8 +1217,7 @@ export class UserProfileSystem {
         if (this.gameSettings.hasOwnProperty(setting)) {
             this.gameSettings[setting] = !this.gameSettings[setting];
             this.saveGameSettings();
-            console.log(`${setting} toggled to:`, this.gameSettings[setting]);
-        }
+            }
     }
     
     /**
@@ -2129,8 +2106,7 @@ export class UserProfileSystem {
                 gameSettings: this.gameSettings,
                 lastUpdated: new Date().toISOString()
             });
-            console.log('✅ Game settings saved to cloud');
-        } catch (error) {
+            } catch (error) {
             console.error('❌ Error saving game settings to cloud:', error);
             throw error;
         }
@@ -2150,8 +2126,7 @@ export class UserProfileSystem {
                 const data = doc.data();
                 if (data.gameSettings) {
                     this.gameSettings = { ...this.gameSettings, ...data.gameSettings };
-                    console.log('✅ Game settings loaded from cloud');
-                }
+                    }
             }
         } catch (error) {
             console.error('❌ Error loading game settings from cloud:', error);
@@ -2307,8 +2282,7 @@ export class UserProfileSystem {
         this.game.setGameState(GAME_STATES.PLAYING);
         
         this.showSuccess('Playing as guest!');
-        console.log('👤 Playing as guest');
-    }
+        }
 
     /**
      * Initialize guest profile with default values
@@ -2352,8 +2326,7 @@ export class UserProfileSystem {
         // Initialize actualGameCompleted flag
         this.actualGameCompleted = false;
         
-        console.log('📊 Real stats initialized');
-    }
+        }
     
     /**
      * Handle manual cloud sync
@@ -2372,11 +2345,9 @@ export class UserProfileSystem {
             
             if (success) {
                 this.showMessage('✅ Successfully synced with cloud!', 'success');
-                console.log('☁️ Manual cloud sync completed successfully');
-            } else {
+                } else {
                 this.showMessage('⚠️ Cloud sync completed with warnings', 'warning');
-                console.log('☁️ Manual cloud sync completed with issues');
-            }
+                }
         } catch (error) {
             console.error('❌ Manual cloud sync failed:', error);
             this.showMessage('❌ Failed to sync with cloud', 'error');

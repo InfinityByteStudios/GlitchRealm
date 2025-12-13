@@ -41,14 +41,14 @@ class Game {    constructor() {
         this.showSplashScreen();
     }    showSplashScreen() {
         // Try to start intro music immediately when game loads
-        console.log('🎵 Attempting to start Loading Intro music...');
+        
         this.audioManager.testAutoplayAndPrompt().then(result => {
             if (result.success) {
-                console.log('✅ Audio autoplay successful');
+                
                 // If autoplay works, proceed normally
                 this.proceedWithSplashSequence();
             } else if (result.requiresPrompt) {
-                console.log('🔇 Audio autoplay blocked, showing prompt');
+                
                 // If autoplay is blocked, show audio prompt
                 this.showAudioPrompt();
             }
@@ -71,12 +71,12 @@ class Game {    constructor() {
             
             // Set up event listeners for the buttons
             const enableAudioHandler = () => {
-                console.log('🎵 User enabled audio');
+                
                 this.audioManager.enableAudioAfterInteraction().then(success => {
                     if (success) {
-                        console.log('✅ Audio enabled after user interaction');
+                        
                     } else {
-                        console.log('❌ Audio still failed after user interaction');
+                        
                     }
                 });
                 this.hideAudioPromptAndProceed();
@@ -85,7 +85,7 @@ class Game {    constructor() {
             };
             
             const continueWithoutAudioHandler = () => {
-                console.log('🔇 User chose to continue without audio');
+                
                 this.audioManager.disableAudio();
                 this.hideAudioPromptAndProceed();
                 enableAudioBtn.removeEventListener('click', enableAudioHandler);
@@ -95,7 +95,7 @@ class Game {    constructor() {
             enableAudioBtn.addEventListener('click', enableAudioHandler);
             continueWithoutAudioBtn.addEventListener('click', continueWithoutAudioHandler);
         } else {
-            console.warn('Audio prompt elements not found, proceeding without audio prompt');
+            
             this.proceedWithSplashSequence();
         }
     }
@@ -127,7 +127,7 @@ class Game {    constructor() {
                 setTimeout(() => {
                     // Start audio crossfade 500ms before visual transition for seamless experience
                     this.audioManager.crossfadeAudio().catch(error => {
-                        console.log('🔇 Enhanced crossfade failed, attempting fallback audio start:', error);
+                        
                     });
                     
                     // Start visual transition after brief delay
@@ -144,9 +144,8 @@ class Game {    constructor() {
         const gameContainer = document.getElementById('gameContainer');
         
         // Audio crossfade is handled earlier in showGameLogo() for perfect timing
-        console.log('🎬 Starting visual transition to game...');
-        
-        if (gameSplash) {
+
+if (gameSplash) {
             // Start fading out game logo
             gameSplash.classList.remove('fade-in');
             gameSplash.classList.add('fade-out');
@@ -187,7 +186,7 @@ class Game {    constructor() {
     showDifficultySelection() {
         // Only show difficulty selection if game hasn't started or is over
         if (this.gameStarted && !this.gameOver) {
-            console.log('Cannot show difficulty selection during active gameplay');
+            
             return;
         }
         
@@ -224,13 +223,11 @@ class Game {    constructor() {
     selectDifficulty(difficulty) {
         // Ignore difficulty selection if game is already in progress
         if (this.gameStarted && !this.gameOver) {
-            console.log('Cannot change difficulty during active gameplay');
+            
             return;
         }
-        
-        console.log(`🎮 Player selected difficulty: ${difficulty}`);
-        
-        // Reset game state
+
+// Reset game state
         this.score = 0;
         this.kills = 0;
         this.gameOver = false;
@@ -268,9 +265,8 @@ class Game {    constructor() {
     }
 
     changeDifficultyOnGameOver() {
-        console.log('🎮 Player requested difficulty change from game over screen');
-        
-        // Hide game over screen
+
+// Hide game over screen
         const gameOverScreen = document.getElementById('gameOverScreen');
         if (gameOverScreen) {
             gameOverScreen.style.display = 'none';
@@ -445,8 +441,7 @@ class Game {    constructor() {
                 // Reset safe zone when player dies
                 this.arena.resetSafeZone();
                 this.gameOver = true;
-                console.log('Game Over!');
-            }
+                }
         }
         
         // Check for wave completion to show upgrade menu
@@ -508,9 +503,8 @@ class Game {    constructor() {
         if (!this.gameStarted) {
             return;
         }
-  
-        
-        // Close settings with ESC key
+
+// Close settings with ESC key
         if (this.input.wasKeyPressed('Escape')) {
             if (this.ui.settingsVisible) {
                 this.ui.hideSettings();
@@ -674,9 +668,8 @@ class Game {    constructor() {
         });
     }
       handleUpgradeSelected(upgradeId) {
-        console.log(`🔧 Player selected upgrade: ${upgradeId}`);
-        
-        // Apply the upgrade
+
+// Apply the upgrade
         const effects = this.upgradeSystem.applyUpgrade(upgradeId);
         
         // Apply effects to player
@@ -693,8 +686,7 @@ class Game {    constructor() {
         // Apply individual upgrade effects to player
         this.player.applyUpgradeEffects(effects);
         
-        console.log(`🎯 Applied upgrade effects:`, effects);
-    }
+        }
     
     checkForWaveCompletion() {
         const waveState = this.enemyManager.getWaveState();
@@ -712,9 +704,8 @@ class Game {    constructor() {
             }
         }
     }    showUpgradeMenu() {
-        console.log('🎮 Showing upgrade menu...');
-        
-        // Generate upgrade choices
+
+// Generate upgrade choices
         const choices = this.upgradeSystem.generateUpgradeChoices();
         
         if (choices.length > 0) {
@@ -740,7 +731,7 @@ class Game {    constructor() {
             if (this.gameStarted && !this.gameOver && !this.paused) {
                 this.wasManuallyPaused = false; // This is an auto-pause
                 this.paused = true;
-                console.log('🔄 Game auto-paused (focus lost)');
+                
             } else if (this.gameStarted && !this.gameOver && this.paused) {
                 // Game was already paused, remember it was manual
                 this.wasManuallyPaused = true;
@@ -752,7 +743,7 @@ class Game {    constructor() {
             // is currently paused, and was not manually paused
             if (this.gameStarted && !this.gameOver && this.paused && !this.wasManuallyPaused) {
                 this.paused = false;
-                console.log('▶️ Game auto-resumed (focus regained)');
+                
             }
         });
     }
@@ -799,9 +790,8 @@ class Game {    constructor() {
                 
                 // Trigger healing visual effect with heal amount
                 this.visualEffects.onPlayerHeal(this.player.x, this.player.y, healAmount);
-                
-                console.log(`💚 Wave ${currentWave} healing: +${healAmount} HP (${config.healingType})`);
-            }
+
+}
         }
     }
 }

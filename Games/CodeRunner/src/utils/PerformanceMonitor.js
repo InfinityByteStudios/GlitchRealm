@@ -75,7 +75,6 @@ export class PerformanceMonitor {
         if (fps < this.thresholds.lowFPS) {
             this.warnings.lowFPSCount++;
             if (this.warnings.lowFPSCount >= 30) { // 30 consecutive low FPS frames
-                console.warn('Performance Warning: Low FPS detected', fps);
                 this.warnings.lowFPSCount = 0; // Reset counter
             }
         } else {
@@ -85,7 +84,6 @@ export class PerformanceMonitor {
         if (frameTime > this.thresholds.highFrameTime) {
             this.warnings.highFrameTimeCount++;
             if (this.warnings.highFrameTimeCount >= 30) { // 30 consecutive high frame times
-                console.warn('Performance Warning: High frame time detected', frameTime);
                 this.warnings.highFrameTimeCount = 0; // Reset counter
             }
         } else {
@@ -100,8 +98,7 @@ export class PerformanceMonitor {
         if (performance.memory && performance.memory.usedJSHeapSize > this.thresholds.memoryWarning) {
             this.warnings.memoryWarningCount++;
             if (this.warnings.memoryWarningCount >= 10) { // Every 10 frames when memory is high
-                console.warn('Memory Warning: High memory usage detected', 
-                    Math.round(performance.memory.usedJSHeapSize / (1024 * 1024)) + 'MB');
+                ) + 'MB');
                 this.warnings.memoryWarningCount = 0; // Reset counter
             }
         } else {

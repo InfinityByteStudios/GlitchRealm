@@ -15,15 +15,12 @@ const firebaseConfig = {
 
 // Initialize Firebase if not already initialized
 if (typeof firebase === 'undefined') {
-    console.error('Firebase is not loaded. Cannot initialize playtime tracking for ByteWars.');
-} else if (!firebase.apps || !firebase.apps.length) {
+    } else if (!firebase.apps || !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
 // Initialize the playtime tracker when the game starts
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Initializing playtime tracking for ByteWars');
-    
     // Create and initialize the playtime tracker
     const tracker = new PlaytimeTracker();
     await tracker.init('bytewars', 'NeuroCore: Byte Wars', true);
@@ -39,7 +36,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // If the game has a specific "start" event
         window.addEventListener('gameStarted', () => {
             if (tracker && !tracker.isTracking) {
-                console.log('Game started - beginning playtime tracking');
                 tracker.startTracking();
             }
         });
@@ -47,7 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // If the game has a specific "end" event
         window.addEventListener('gameEnded', () => {
             if (tracker && tracker.isTracking) {
-                console.log('Game ended - saving final playtime');
                 tracker.savePlaytimeData();
             }
         });
@@ -58,13 +53,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 document.addEventListener('visibilitychange', () => {
     // When tab becomes hidden, save the current playtime
     if (document.hidden && window.playtimeTracker && window.playtimeTracker.isTracking) {
-        console.log('Tab hidden - saving current playtime');
         window.playtimeTracker.savePlaytimeData();
     }
     
     // When tab becomes visible again, make sure tracking is active
     if (!document.hidden && window.playtimeTracker && !window.playtimeTracker.isTracking) {
-        console.log('Tab visible again - resuming playtime tracking');
         window.playtimeTracker.startTracking();
     }
 });
@@ -72,7 +65,6 @@ document.addEventListener('visibilitychange', () => {
 // Handle page unload
 window.addEventListener('beforeunload', () => {
     if (window.playtimeTracker && window.playtimeTracker.isTracking) {
-        console.log('Page unloading - saving final playtime');
         window.playtimeTracker.savePlaytimeData();
     }
 });

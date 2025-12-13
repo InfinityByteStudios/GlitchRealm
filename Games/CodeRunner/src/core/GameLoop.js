@@ -281,7 +281,7 @@ export class GameLoop {
             if (this.game.consecutiveSuccesses >= 3) {
                 this.game.adaptiveDifficultyMultiplier = Math.min(1.5, this.game.adaptiveDifficultyMultiplier + 0.1);
                 this.game.consecutiveSuccesses = 0;
-                console.log(`🎮 Adaptive difficulty increased: ${this.game.adaptiveDifficultyMultiplier.toFixed(2)}x`);
+                }x`);
             }
         } else if (avgPerformance < 0.8 || recentDamage) { // Player struggling
             this.game.consecutiveFailures++;
@@ -289,7 +289,7 @@ export class GameLoop {
             if (this.game.consecutiveFailures >= 2) {
                 this.game.adaptiveDifficultyMultiplier = Math.max(0.7, this.game.adaptiveDifficultyMultiplier - 0.1);
                 this.game.consecutiveFailures = 0;
-                console.log(`🎮 Adaptive difficulty decreased: ${this.game.adaptiveDifficultyMultiplier.toFixed(2)}x`);
+                }x`);
             }
         }
     }
@@ -357,8 +357,6 @@ export class GameLoop {
         
         this.game.performanceMetrics.adaptiveOptimizationLevel++;
         
-        console.log(`⚡ Applying performance optimization level ${this.game.performanceMetrics.adaptiveOptimizationLevel}`);
-        
         switch (this.game.performanceMetrics.adaptiveOptimizationLevel) {
             case 1:
                 // Level 1: Reduce particle count
@@ -385,8 +383,6 @@ export class GameLoop {
      */
     restorePerformanceOptimizations() {
         if (this.game.performanceMetrics.adaptiveOptimizationLevel <= 0) return; // No optimizations to restore
-        
-        console.log(`⚡ Restoring performance optimization level ${this.game.performanceMetrics.adaptiveOptimizationLevel}`);
         
         switch (this.game.performanceMetrics.adaptiveOptimizationLevel) {
             case 1:

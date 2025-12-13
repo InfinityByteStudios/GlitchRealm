@@ -56,18 +56,15 @@ const firebaseSystem = {
                 if (user) {
                     currentUser = user;
                     isSignedIn = true;
-                    console.log('🔑 User signed in:', user.displayName || user.email);
                     this.onSignIn(user);
                 } else {
                     currentUser = null;
                     isSignedIn = false;
-                    console.log('🚪 User signed out');
                     this.onSignOut();
                 }
             });
             
             this.initialized = true;
-            console.log('✅ Firebase initialized successfully');
             return true;
         } catch (error) {
             console.error('❌ Firebase initialization failed:', error);
@@ -86,8 +83,7 @@ const firebaseSystem = {
             if (result.additionalUserInfo && result.additionalUserInfo.isNewUser) {
                 // Mark this as a new user for tutorial purposes
                 localStorage.setItem('isNewUser', 'true');
-                console.log('🆕 New user detected via Google sign-in');
-            }
+                }
             
             return result.user;
         } catch (error) {
@@ -107,8 +103,7 @@ const firebaseSystem = {
             if (result.additionalUserInfo && result.additionalUserInfo.isNewUser) {
                 // Mark this as a new user for tutorial purposes
                 localStorage.setItem('isNewUser', 'true');
-                console.log('🆕 New user detected via GitHub sign-in');
-            }
+                }
             
             return result.user;
         } catch (error) {
@@ -134,8 +129,6 @@ const firebaseSystem = {
             
             // This is always a new user when creating an account
             localStorage.setItem('isNewUser', 'true');
-            console.log('🆕 New user detected via email account creation');
-            
             // Update display name if provided
             if (displayName && result.user) {
                 await result.user.updateProfile({
@@ -168,8 +161,6 @@ const firebaseSystem = {
             // Clear any previous tutorial completion status and mark as new user
             localStorage.removeItem('tutorialCompleted');
             localStorage.setItem('isNewUser', 'true');
-            console.log('🆕 Anonymous user signed in - will show tutorial');
-            
             return result.user;
         } catch (error) {
             console.error('❌ Anonymous sign-in failed:', error);
@@ -201,8 +192,6 @@ const firebaseSystem = {
             // Update all existing leaderboard entries with the new display name
             await this.updateLeaderboardDisplayName(newDisplayName);
             
-            console.log('✅ Display name updated to:', newDisplayName);
-            console.log('🔄 All leaderboard entries updated with new display name');
             return true;
         } catch (error) {
             console.error('❌ Failed to update display name:', error);
@@ -212,7 +201,6 @@ const firebaseSystem = {
     async updateLeaderboardDisplayName(newDisplayName) {
         try {
             if (!currentUser || !leaderboardDatabase) {
-                console.log('⚠️ Cannot update leaderboard - not signed in or database not available');
                 return;
             }
 
@@ -222,11 +210,9 @@ const firebaseSystem = {
                 const bestSnapshot = await userBestRef.once('value');
                 if (bestSnapshot.exists()) {
                     await userBestRef.child('displayName').set(newDisplayName);
-                    console.log('✅ Updated personal best score display name');
-                }
+                    }
             } catch (error) {
-                console.log('⚠️ Could not update personal best score:', error.message);
-            }
+                }
 
             // For the main leaderboard, try to update entries individually
             // This approach works better with restrictive Firebase rules
@@ -235,7 +221,6 @@ const firebaseSystem = {
                 const snapshot = await leaderboardRef.orderByChild('userId').equalTo(currentUser.uid).once('value');
                 
                 if (!snapshot.exists()) {
-                    console.log('ℹ️ No existing leaderboard entries found for user');
                     return;
                 }
 
@@ -256,8 +241,7 @@ const firebaseSystem = {
                                 successCount++;
                             })
                             .catch((error) => {
-                                console.log(`⚠️ Could not update entry ${entryKey}:`, error.message);
-                            });
+                                });
                         updatePromises.push(updatePromise);
                     }
                 });
@@ -266,16 +250,11 @@ const firebaseSystem = {
                 await Promise.all(updatePromises);
                 
                 if (successCount > 0) {
-                    console.log(`🏆 Successfully updated ${successCount}/${totalCount} leaderboard entries with new display name: "${newDisplayName}"`);
-                } else if (totalCount > 0) {
-                    console.log(`⚠️ Could not update any of the ${totalCount} leaderboard entries due to permissions`);
-                    console.log('💡 Note: Your new display name will be used for future score submissions');
-                }
+                    } else if (totalCount > 0) {
+                    }
 
             } catch (error) {
-                console.log('⚠️ Could not access leaderboard entries:', error.message);
-                console.log('💡 Your new display name will be used for future score submissions');
-            }
+                }
 
         } catch (error) {
             console.error('❌ Failed to update leaderboard display names:', error);
@@ -307,24 +286,14 @@ const firebaseSystem = {
         const hasCompletedTutorial = window.tutorialSystem?.hasBeenCompleted();
           // Only auto-start tutorial for confirmed new users
         if (isNewUser && !hasCompletedTutorial && window.tutorialSystem) {
-            console.log('🎓 Will start tutorial for new user - scheduling...');
             // Small delay to ensure the UI and game systems are ready
             setTimeout(() => {
-                console.log('🕐 Tutorial timer fired - checking readiness...');
-                console.log('📚 Tutorial system available:', !!window.tutorialSystem);
-                console.log('🎮 Tutorial active?', window.tutorialSystem?.isActive);
-                console.log('📄 DOM ready?', document.readyState);
-                console.log('🎬 Opening animation showing?', window.showingOpeningAnimation);
-                console.log('🏠 Home screen showing?', window.showingHomeScreen);
-                
                 if (window.tutorialSystem && !window.tutorialSystem.isActive) {
-                    console.log('🎓 Starting tutorial for new user NOW');
                     window.tutorialSystem.start();
                     // Clear the new user flag after starting tutorial
                     localStorage.removeItem('isNewUser');
                 } else {
-                    console.log('❌ Could not start tutorial - conditions not met');
-                }
+                    }
             }, 800); // Increased delay to ensure everything is ready
         } else if (isNewUser) {
             // Clear the new user flag if tutorial was already completed
@@ -338,8 +307,7 @@ const firebaseSystem = {
         const wasAnonymous = currentUser && currentUser.isAnonymous;
         if (wasAnonymous) {
             localStorage.removeItem('tutorialCompleted');
-            console.log('🔄 Cleared tutorial status for anonymous user logout');
-        }
+            }
         
         // Clear any cached data
         if (window.cloudSaveSystem) {
@@ -358,13 +326,11 @@ const cloudSaveSystem = {
       // Save game data to cloud
     async saveToCloud(gameData) {
         if (!isSignedIn || !currentUser) {
-            console.log('⚠️ Not signed in - cannot save to cloud');
             return false;
         }
 
         // Check if we're online
         if (!navigator.onLine) {
-            console.log('⚠️ Offline - cannot save to cloud');
             return false;
         }
 
@@ -377,14 +343,12 @@ const cloudSaveSystem = {
             };
             
             await db.collection('playerData').doc(currentUser.uid).set(userData, { merge: true });
-            console.log('☁️ Game data saved to cloud');            return true;
+            return true;
         } catch (error) {
             // Handle specific Firebase errors
             if (error.code === 'unavailable' || error.code === 'failed-precondition') {
-                console.log('⚠️ Firebase temporarily unavailable - save will retry later');
-            } else if (error.code === 'permission-denied') {
-                console.log('⚠️ Permission denied - check Firebase rules');
-            } else {
+                } else if (error.code === 'permission-denied') {
+                } else {
                 console.error('❌ Failed to save to cloud:', error.message);
             }
             return false;
@@ -393,13 +357,11 @@ const cloudSaveSystem = {
       // Load game data from cloud
     async loadFromCloud() {
         if (!isSignedIn || !currentUser) {
-            console.log('⚠️ Not signed in - cannot load from cloud');
             return null;
         }
 
         // Check if we're online
         if (!navigator.onLine) {
-            console.log('⚠️ Offline - cannot load from cloud');
             return null;
         }
 
@@ -408,19 +370,15 @@ const cloudSaveSystem = {
             
             if (doc.exists) {
                 const data = doc.data();
-                console.log('☁️ Game data loaded from cloud');
                 return data;
             } else {
-                console.log('📝 No cloud save found - starting fresh');
                 return null;
             }
         } catch (error) {
             // Handle specific Firebase errors
             if (error.code === 'unavailable' || error.code === 'failed-precondition') {
-                console.log('⚠️ Firebase temporarily unavailable - using local data');
-            } else if (error.code === 'permission-denied') {
-                console.log('⚠️ Permission denied - check Firebase rules');
-            } else {
+                } else if (error.code === 'permission-denied') {
+                } else {
                 console.error('❌ Failed to load from cloud:', error.message);
             }
             return null;
@@ -430,7 +388,6 @@ const cloudSaveSystem = {
     async loadUserData() {
         // Only try to load if we're online and signed in
         if (!isSignedIn || !navigator.onLine) {
-            console.log('⚠️ Offline or not signed in - skipping cloud load');
             return;
         }
 
@@ -454,8 +411,7 @@ const cloudSaveSystem = {
                 window.gameState.energy = cloudData.gameState.energy || 0;                // Don't restore distance/score as those are per-run
             }
             
-            console.log('✅ Cloud data applied to game');
-        } catch (error) {
+            } catch (error) {
             console.error('❌ Failed to apply cloud data:', error);
         }
     },
@@ -489,8 +445,7 @@ const cloudSaveSystem = {
     // Clear local cache
     clearLocalCache() {
         // Could clear localStorage items if needed
-        console.log('🧹 Local cache cleared');
-    }
+        }
 };
 
 // Leaderboard System (uses Realtime Database)
@@ -498,23 +453,19 @@ const leaderboardSystem = {
       // Submit score to leaderboard
     async submitScore(score, distance, zone) {
         if (!isSignedIn || !currentUser) {
-            console.log('⚠️ Not signed in - cannot submit score');
             return false;
         }
         
         // Validate score data
         if (typeof score !== 'number' || score < 0) {
-            console.log('⚠️ Invalid score data:', score);
             return false;
         }
         
         if (typeof distance !== 'number' || distance < 0) {
-            console.log('⚠️ Invalid distance data:', distance);
             return false;
         }
         
         if (typeof zone !== 'number' || zone < 1) {
-            console.log('⚠️ Invalid zone data:', zone);
             return false;
         }
         
@@ -529,8 +480,6 @@ const leaderboardSystem = {
                 photoURL: currentUser.photoURL || null
             };
             
-            console.log('📊 Score data being submitted:', scoreData);
-            
             // Add to leaderboard (using Realtime Database)
             const leaderboardRef = leaderboardDatabase.ref('leaderboard');
             await leaderboardRef.push(scoreData);
@@ -544,7 +493,6 @@ const leaderboardSystem = {
                 await userRef.set(scoreData);
             }
             
-            console.log('🏆 Score submitted to leaderboard:', score);
             return true;
         } catch (error) {
             console.error('❌ Failed to submit score:', error);
@@ -553,23 +501,19 @@ const leaderboardSystem = {
     },    // Submit score to leaderboard (manual submission - no personal best check)
     async submitScoreManual(score, distance, zone) {
         if (!isSignedIn || !currentUser) {
-            console.log('⚠️ Not signed in - cannot submit score');
             return false;
         }
         
         // Validate score data
         if (typeof score !== 'number' || score < 0) {
-            console.log('⚠️ Invalid score data for manual submission:', score);
             return false;
         }
         
         if (typeof distance !== 'number' || distance < 0) {
-            console.log('⚠️ Invalid distance data for manual submission:', distance);
             return false;
         }
         
         if (typeof zone !== 'number' || zone < 1) {
-            console.log('⚠️ Invalid zone data for manual submission:', zone);
             return false;
         }
         
@@ -585,13 +529,10 @@ const leaderboardSystem = {
                 manualSubmission: true // Flag to indicate this was manually uploaded
             };
             
-            console.log('📊 Manual score data being submitted:', scoreData);
-            
             // Add to leaderboard (using Realtime Database)
             const leaderboardRef = leaderboardDatabase.ref('leaderboard');
             await leaderboardRef.push(scoreData);
             
-            console.log('🏆 Score manually submitted to leaderboard:', score);
             return true;
         } catch (error) {
             console.error('❌ Failed to manually submit score:', error);
@@ -676,8 +617,7 @@ setInterval(() => {
     if (isSignedIn && window.gameRunning && navigator.onLine) {
         cloudSaveSystem.autoSave().catch(error => {
             // Silently handle auto-save failures to avoid spam
-            console.log('⚠️ Auto-save failed, will retry next interval');
-        });
+            });
     }
 }, 60000); // Auto-save every 60 seconds (reduced frequency)
 

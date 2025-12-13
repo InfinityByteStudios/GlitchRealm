@@ -18,11 +18,9 @@ class Player {    constructor(x, y) {        this.x = x;
 
         this.sprite.onload = () => {
             this.spriteLoaded = true;
-            console.log('✅ Player sprite loaded successfully');
-        };
+            };
 
         this.sprite.onerror = () => {
-            console.error('❌ Failed to load player sprite');
             this.spriteLoaded = false;
         };
 
@@ -227,7 +225,6 @@ class Player {    constructor(x, y) {        this.x = x;
         this.velocity.x = this.dashDirection.x * this.dashSpeed;
         this.velocity.y = this.dashDirection.y * this.dashSpeed;
         
-        console.log('Dash activated!');
         return true; // Return true to indicate dash was activated
     }
     
@@ -293,8 +290,7 @@ class Player {    constructor(x, y) {        this.x = x;
             this.overclockCharge = this.overclockMaxCharge;
         }
         
-        console.log(`Overclock charge: ${this.overclockCharge}/${this.overclockMaxCharge}`);
-    }
+        }
     
     canActivateOverclock() {
         return !this.isOverclocked && this.overclockCharge >= this.overclockMaxCharge;
@@ -311,7 +307,6 @@ class Player {    constructor(x, y) {        this.x = x;
             this.weapon.applyOverclock(this.overclockMultipliers);
         }
         
-        console.log('OVERCLOCK ACTIVATED! Neural systems enhanced!');
         return true; // Return true to indicate overclock was activated
     }
     
@@ -324,8 +319,7 @@ class Player {    constructor(x, y) {        this.x = x;
             this.weapon.removeOverclock();
         }
         
-        console.log('Overclock deactivated. Systems returning to normal.');
-    }
+        }
     
     onKill() {
         // Called when player kills an enemy
@@ -372,14 +366,7 @@ class Player {    constructor(x, y) {        this.x = x;
             this.weapon.piercing = effects.bulletPiercing;
         }
         
-        console.log(`🔧 Player stats updated:`, {
-            damage: this.weapon.damage,
-            fireRate: this.weapon.fireRate,
-            dashCooldown: this.dashCooldown,
-            overclockChargePerKill: this.overclockChargePerKill,
-            piercing: this.weapon.piercing || 0
-        });
-    }
+        }
     
     // Reset all player stats to base values
     resetUpgradeEffects() {
@@ -395,8 +382,7 @@ class Player {    constructor(x, y) {        this.x = x;
         // Reset overclock stats
         this.overclockChargePerKill = this.baseOverclockChargePerKill;
         
-        console.log('🔄 Player stats reset to base values');
-    }
+        }
     
     shoot() {
         const currentTime = Date.now();
@@ -430,8 +416,6 @@ class Player {    constructor(x, y) {        this.x = x;
         this.isFlashing = true;
         this.flashTimer = 0.2; // Flash for 0.2 seconds
         
-        console.log(`Player took ${damage} damage! Health: ${this.health}/${this.maxHealth}`);
-        
         return this.health <= 0; // Return true if player died
     }
     
@@ -454,8 +438,7 @@ class Player {    constructor(x, y) {        this.x = x;
                 this.isGlitched = false;
                 this.glitchTimer = 0;
                 this.glitchVisualTimer = 0;
-                console.log('Player glitch effect ended');
-            }
+                }
         }
     }
 
@@ -464,8 +447,7 @@ class Player {    constructor(x, y) {        this.x = x;
         this.glitchTimer = duration;
         this.glitchIntensity = intensity;
         this.glitchVisualTimer = 0;
-        console.log(`Player glitched! Duration: ${duration}s, Intensity: ${intensity}`);
-    }
+        }
 
     // Modify movement input when glitched
     getGlitchedMovement(originalMovement) {
@@ -750,6 +732,6 @@ class Player {    constructor(x, y) {        this.x = x;
     setSpeedMultiplier(multiplier) {
         this.speedMultiplier = multiplier;
         this.speed = this.baseSpeed * this.speedMultiplier;
-        console.log(`🏃 Player speed adjusted: ${Math.round(this.speed)} (${Math.round(this.speedMultiplier * 100)}% of base)`);
+        } (${Math.round(this.speedMultiplier * 100)}% of base)`);
     }
 }

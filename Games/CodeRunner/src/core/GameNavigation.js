@@ -1,13 +1,10 @@
 /**
  * Game Navigation an        } else if (newState === GAME_STATES.LOGIN_PROMPT && this.game.loginSystem) {
-            console.log('🔑 Starting login system for login prompt');
-            console.log('🔑 LoginSystem exists:', !!this.game.loginSystem);
-            console.log('🔑 LoginSystem shouldShow():', this.game.loginSystem.shouldShow());
+            :', this.game.loginSystem.shouldShow());
             if (this.game.loginSystem.shouldShow()) {
-                console.log('🔑 Calling loginSystem.start()');
+                ');
                 this.game.loginSystem.start();
             } else {
-                console.log('🔑 Login system should not show, redirecting to home');
                 this.game.gameState = GAME_STATES.HOME;
             }
         } else if (newState === GAME_STATES.PROFILE && this.game.userProfileSystem) {anagement
@@ -28,28 +25,22 @@ export class GameNavigation {
      */
     setGameState(newState) {
         const oldState = this.game.gameState;
-        console.log(`🎮 GameNavigation.setGameState: ${oldState} → ${newState}`);
         this.game.gameState = newState;
         
         // Handle state change logic
         if (newState === GAME_STATES.OPENING_ANIMATION && this.game.openingAnimation) {
-            console.log('🎬 Starting opening animation system');
             this.game.openingAnimation.start();
         } else if (newState === GAME_STATES.LOGIN_PROMPT && this.game.loginSystem) {
-            console.log('� Starting login system for login prompt');
             if (this.game.loginSystem.shouldShow()) {
                 this.game.loginSystem.start();
             } else {
-                console.log('🔑 Login system should not show, redirecting to home');
                 this.game.gameState = GAME_STATES.HOME;
             }
         } else if (newState === GAME_STATES.PROFILE && this.game.userProfileSystem) {
-            console.log('👤 Starting user profile system for profile view');
             this.game.userProfileSystem.start();
         }
         
-        console.log(`🎮 Game state changed: ${oldState} → ${newState}`);
-    }
+        }
 
     /**
      * Navigate to a new game state and track previous state for back navigation
@@ -81,15 +72,14 @@ export class GameNavigation {
             
             // Keep the legacy previousGameState for backward compatibility
             this.game.previousGameState = this.game.gameState;
-            console.log(`🔄 Navigation: ${this.game.gameState} → ${newState} (history: [${this.navigationHistory.join(' → ')}])`);
+            }])`);
         }
         
         // Handle exiting states
         if (this.game.gameState === GAME_STATES.TUTORIAL && newState !== GAME_STATES.TUTORIAL && this.game.tutorialSystem) {
             // Stop tutorial when leaving tutorial state
             this.game.tutorialSystem.stopTutorial();
-            console.log('🎓 Exiting tutorial state - stopping tutorial');
-        }
+            }
         
         this.game.gameState = newState;
         
@@ -97,16 +87,13 @@ export class GameNavigation {
         if (newState === GAME_STATES.PLAYING || newState === GAME_STATES.PAUSED) {
             // Prevent scrolling during gameplay
             document.body.classList.add('game-focused');
-            console.log('🔒 Preventing page scroll for gameplay state:', newState);
-        } else {
+            } else {
             // Allow scrolling for all menu states
             document.body.classList.remove('game-focused');
-            console.log('📜 Allowing page scroll for menu state:', newState);
-        }
+            }
         
         // Start music when entering home screen
         if (newState === GAME_STATES.HOME && this.game.audioSystem) {
-            console.log('🎵 Starting music on home screen');
             this.game.audioSystem.playMusic('chill');
         }
         
@@ -129,8 +116,7 @@ export class GameNavigation {
         } else if (newState === GAME_STATES.TUTORIAL && this.game.tutorialSystem) {
             // Start the tutorial when entering tutorial state
             this.game.tutorialSystem.startTutorial('welcome');
-            console.log('🎓 Tutorial state entered - starting tutorial');
-        }
+            }
     }
 
     /**
@@ -187,7 +173,6 @@ export class GameNavigation {
                 break;
                 
             default:
-                console.log('Continue action not applicable in current state:', this.game.gameState);
                 break;
         }
     }
@@ -220,7 +205,6 @@ export class GameNavigation {
                 break;
                 
             default:
-                console.log('Confirm action not applicable in current state:', this.game.gameState);
                 break;
         }
     }
@@ -249,8 +233,7 @@ export class GameNavigation {
                 this.game.audioSystem.onPause();
             }
             
-            console.log('🎮 Game paused');
-        } else if (this.game.gameState === GAME_STATES.PAUSED) {
+            } else if (this.game.gameState === GAME_STATES.PAUSED) {
             this.game.isPaused = false;
             this.game.pauseStartTime = null; // Clear pause start time
             this.navigateToState(GAME_STATES.PLAYING);
@@ -260,8 +243,7 @@ export class GameNavigation {
                 this.game.audioSystem.onResume();
             }
             
-            console.log('🎮 Game resumed');
-        }
+            }
     }
 
     /**
@@ -296,8 +278,6 @@ export class GameNavigation {
      * Start a new game
      */
     async startGame() {
-        console.log(`🎮 Starting game with difficulty: ${this.game.selectedDifficulty}`);
-        
         // Initialize game objects
         await this.initializeGameObjects();
         
@@ -320,15 +300,12 @@ export class GameNavigation {
         // Focus canvas for input
         this.game.initialization.ensureCanvasFocus();
         
-        console.log('🎮 Game started successfully');
-    }
+        }
 
     /**
      * Restart the current game
      */
     async restart() {
-        console.log('🎮 Restarting game');
-        
         // Reset game state
         this.resetGameState();
         
@@ -341,15 +318,12 @@ export class GameNavigation {
         // Focus canvas for input
         this.game.initialization.ensureCanvasFocus();
         
-        console.log('🎮 Game restarted');
-    }
+        }
 
     /**
      * End the current game
      */
     endGame(reason = 'Game Over', message = null) {
-        console.log(`🎮 Game ended: ${reason}`);
-        
         // Set game over data
         this.game.gameOverReason = reason;
         this.game.gameOverMessage = message;
@@ -370,8 +344,7 @@ export class GameNavigation {
         // Trigger cloud save for logged-in users
         if (this.game.cloudSaveSystem && this.game.cloudSaveSystem.isUserLoggedIn()) {
             this.game.cloudSaveSystem.saveAllGameData().catch(error => {
-                console.warn('Failed to save game data to cloud after game end:', error);
-            });
+                });
         }
         
         // Stop background music and play game over sound
@@ -401,19 +374,14 @@ export class GameNavigation {
             
             // Create world generator
             this.game.world = new WorldGenerator(this.game);
-            console.log('🌍 World generator created');
-            
             // Create player at starting position (0 meters distance)
             this.game.player = new Player(0, 200, this.game); // Start at x=0 for 0 meters distance
-            console.log('👤 Player created');
-            
             // Force load the selected sprite after player creation to ensure it's applied
             if (this.game.player && this.game.player.loadSelectedSprite) {
                 // Small delay to ensure ProfileManager is fully ready
                 setTimeout(() => {
                     this.game.player.loadSelectedSprite();
-                    console.log('🎭 Forced sprite reload after player creation');
-                }, 100);
+                    }, 100);
             }
             
             // Reapply all owned shop upgrades to the new player instance
@@ -444,18 +412,14 @@ export class GameNavigation {
                     }
                 }
                 
-                console.log(`🔄 Reapplied ${ownedUpgrades.length} shop upgrades to new player`);
-            }
+                }
             
             // Create physics engine with world
             this.game.physics = new PhysicsEngine(this.game.world);
-            console.log('⚡ Physics engine created');
-            
             // Reset camera
             this.game.camera = { x: 0, y: 0 };
             
-            console.log('✅ Game objects initialized successfully');
-        } catch (error) {
+            } catch (error) {
             console.error('❌ Failed to initialize game objects:', error);
             throw error;
         }
@@ -512,8 +476,7 @@ export class GameNavigation {
             this.game.powerUpSystem.reset();
         }
         
-        console.log('🔄 Game state reset');
-    }
+        }
 
     /**
      * Check if current score is a new high score
@@ -530,10 +493,9 @@ export class GameNavigation {
             // Save best scores
             try {
                 localStorage.setItem('coderunner_best_scores', JSON.stringify(this.game.bestScores));
-                console.log(`🏆 New high score for ${difficulty}: ${currentScore} (previous: ${previousBest})`);
+                `);
             } catch (error) {
-                console.warn('⚠️ Could not save high score:', error);
-            }
+                }
             
             // Trigger achievement if available
             if (this.game.achievementSystem) {
@@ -555,7 +517,6 @@ export class GameNavigation {
     uploadScoreToLeaderboard(score, difficulty) {
         // Check if leaderboard system is available
         if (!this.game.leaderboardSystem) {
-            console.warn('⚠️ Leaderboard system not available, skipping upload');
             return;
         }
         
@@ -564,9 +525,8 @@ export class GameNavigation {
             const uploadInitiated = this.game.leaderboardSystem.prepareScoreUpload(score, difficulty, this.game.startTime);
             
             if (uploadInitiated) {
-                console.log(`📊 Score upload initiated for ${difficulty}: ${score}`);
-            } else {
-                console.log(`📊 Score upload not initiated (score too low or other reason)`);
+                } else {
+                `);
             }
         } catch (error) {
             console.error('❌ Error uploading score to leaderboard:', error);
@@ -587,8 +547,7 @@ export class GameNavigation {
                 } else if (this.game.canvas.msRequestFullscreen) {
                     this.game.canvas.msRequestFullscreen();
                 }
-                console.log('🖥️ Entering fullscreen mode');
-            } else {
+                } else {
                 // Exit fullscreen
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
@@ -597,11 +556,9 @@ export class GameNavigation {
                 } else if (document.msExitFullscreen) {
                     document.msExitFullscreen();
                 }
-                console.log('🖥️ Exiting fullscreen mode');
-            }
+                }
         } catch (error) {
-            console.warn('⚠️ Could not toggle fullscreen:', error);
-        }
+            }
     }
 
     /**
@@ -609,8 +566,6 @@ export class GameNavigation {
      */
     togglePerformanceDisplay() {
         this.game.showFpsCounter = !this.game.showFpsCounter;
-        console.log(`📊 Performance display ${this.game.showFpsCounter ? 'enabled' : 'disabled'}`);
-        
         // Save setting if available
         if (window.generalSettings && typeof window.generalSettings.setShowFpsCounterEnabled === 'function') {
             window.generalSettings.setShowFpsCounterEnabled(this.game.showFpsCounter);
@@ -736,7 +691,7 @@ export class GameNavigation {
         // If we have history, go back to the previous state
         if (this.navigationHistory.length > 0) {
             const previousState = this.navigationHistory.pop();
-            console.log(`🔙 Navigating back to ${previousState} (remaining history: [${this.navigationHistory.join(' → ')}])`);
+            }])`);
             
             // Update legacy previousGameState for backward compatibility
             this.game.previousGameState = this.navigationHistory[this.navigationHistory.length - 1] || GAME_STATES.HOME;
@@ -747,7 +702,6 @@ export class GameNavigation {
         }
         
         // No history available, default behavior
-        console.log('🔙 No navigation history available, going to HOME');
         if (this.game.gameState !== GAME_STATES.HOME) {
             this.setGameStateDirectly(GAME_STATES.HOME);
             return true;
@@ -765,8 +719,7 @@ export class GameNavigation {
         if (this.game.gameState === GAME_STATES.TUTORIAL && newState !== GAME_STATES.TUTORIAL && this.game.tutorialSystem) {
             // Stop tutorial when leaving tutorial state
             this.game.tutorialSystem.stopTutorial();
-            console.log('🎓 Exiting tutorial state - stopping tutorial');
-        }
+            }
         
         this.game.gameState = newState;
         
@@ -774,16 +727,13 @@ export class GameNavigation {
         if (newState === GAME_STATES.PLAYING || newState === GAME_STATES.PAUSED) {
             // Prevent scrolling during gameplay
             document.body.classList.add('game-focused');
-            console.log('🔒 Preventing page scroll for gameplay state:', newState);
-        } else {
+            } else {
             // Allow scrolling for all menu states
             document.body.classList.remove('game-focused');
-            console.log('📜 Allowing page scroll for menu state:', newState);
-        }
+            }
         
         // Start music when entering home screen
         if (newState === GAME_STATES.HOME && this.game.audioSystem) {
-            console.log('🎵 Starting music on home screen');
             this.game.audioSystem.playMusic('chill');
         }
         
@@ -806,8 +756,7 @@ export class GameNavigation {
         } else if (newState === GAME_STATES.TUTORIAL && this.game.tutorialSystem) {
             // Start the tutorial when entering tutorial state
             this.game.tutorialSystem.startTutorial('welcome');
-            console.log('🎓 Tutorial state entered - starting tutorial');
-        }
+            }
     }
 
     /**
@@ -816,6 +765,5 @@ export class GameNavigation {
      */
     clearNavigationHistory() {
         this.navigationHistory = [];
-        console.log('🧹 Navigation history cleared');
-    }
+        }
 }

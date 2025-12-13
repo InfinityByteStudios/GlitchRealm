@@ -78,8 +78,7 @@ export class LoadingScreenSystem {
         this.rainDrops = [];
         this.initRainEffect();
         
-        console.log('🔄 LoadingScreenSystem initialized');
-    }
+        }
     
     /**
      * Load the game logo image
@@ -88,10 +87,8 @@ export class LoadingScreenSystem {
         this.logoImage = new Image();
         this.logoImage.onload = () => {
             this.logoLoaded = true;
-            console.log('🔄 Loading screen logo loaded successfully');
-        };
+            };
         this.logoImage.onerror = () => {
-            console.warn('⚠️ Failed to load loading screen logo, using text fallback');
             this.logoLoaded = false;
         };
         // Try the opening animation game logo first, fallback to opening animation logo
@@ -125,7 +122,7 @@ export class LoadingScreenSystem {
         
         // Debug logging
         if (Math.floor(elapsed / 1000) !== Math.floor((elapsed - deltaTime) / 1000)) {
-            console.log(`🔄 Loading screen: ${Math.floor(elapsed/1000)}s elapsed, progress: ${Math.floor(this.loadingProgress)}%`);
+            }s elapsed, progress: ${Math.floor(this.loadingProgress)}%`);
         }
         
         // Check if game initialization is complete
@@ -146,8 +143,7 @@ export class LoadingScreenSystem {
         // Check if progress just reached 100%
         if (this.loadingProgress >= 100 && this.progressCompleteTime === null) {
             this.progressCompleteTime = currentTime;
-            console.log('🔄 Progress bar completed, holding before transition');
-        }
+            }
         
         // Check if we can transition - ONLY based on time and progress, ignore game initialization
         const progressHoldComplete = this.progressCompleteTime && 
@@ -170,8 +166,7 @@ export class LoadingScreenSystem {
         if (this.game.initializationComplete && !this.gameInitialized) {
             this.gameInitialized = true;
             this.targetProgress = 100;
-            console.log('🔄 Game initialization detected as complete');
-        }
+            }
     }
     
     /**
@@ -307,7 +302,6 @@ export class LoadingScreenSystem {
     startFadeOut() {
         if (this.fadeInterval) return; // Prevent multiple fade outs
         
-        console.log('🔄 Starting loading screen fade out');
         this.fadeInterval = setInterval(() => {
             this.fadeOpacity -= 0.02;
             if (this.fadeOpacity <= 0) {
@@ -317,21 +311,17 @@ export class LoadingScreenSystem {
                 
                 // Transition to the pending state if available, otherwise default to HOME
                 if (this.game.pendingGameState) {
-                    console.log(`🔄 Loading screen completed, transitioning to ${this.game.pendingGameState}`);
                     this.game.setGameState(this.game.pendingGameState);
                     this.game.pendingGameState = null;
                 } else if (this.game.initializationComplete) {
-                    console.log('🔄 Loading screen completed, defaulting to HOME state');
                     this.game.gameState = GAME_STATES.HOME;
                 } else {
-                    console.log('🔄 Loading screen completed but game still initializing - waiting...');
                     // Keep checking until game is ready
                     const waitForInit = setInterval(() => {
                         if (this.game.initializationComplete) {
                             clearInterval(waitForInit);
                             this.game.gameState = GAME_STATES.HOME;
-                            console.log('🔄 Game initialization now complete, transitioned to HOME');
-                        }
+                            }
                     }, 50);
                 }
             }
@@ -623,6 +613,5 @@ export class LoadingScreenSystem {
         this.loadingSpeed = 2; // Speed up significantly
         this.gameInitialized = true;
         this.currentLoadingItem = this.assetsToLoad.length;
-        console.log('🔄 Loading completion forced - speeding up progress');
-    }
+        }
 }

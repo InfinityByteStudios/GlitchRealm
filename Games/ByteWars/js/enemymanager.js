@@ -24,8 +24,7 @@ class EnemyManager {    constructor(arena, difficultyManager = null) {
         // Initialize first wave
         this.reset();
         
-        console.log('🎯 Enemy Manager initialized with difficulty support');
-    }reset() {
+        }reset() {
         // Clear all enemies
         this.enemies = [];
         
@@ -39,8 +38,7 @@ class EnemyManager {    constructor(arena, difficultyManager = null) {
         // Setup first wave
         this.setupWave(this.currentWave);
         
-        console.log('🔄 Enemy Manager reset');
-    }update(deltaTime, player) {
+        }update(deltaTime, player) {
         this.waveTimer += deltaTime;
         
         // Handle wave state transitions
@@ -62,8 +60,6 @@ class EnemyManager {    constructor(arena, difficultyManager = null) {
                     this.waveState = 'spawning';
                     this.waveTimer = 0;
                     this.spawnTimer = 0;
-                    console.log(`🚀 Wave ${this.currentWave} starting! Enemies incoming: ${this.enemiesToSpawn.length}`);
-                    
                     // Trigger wave start visual effect
                     if (this.visualEffects) {
                         this.visualEffects.onWaveStart(this.currentWave);
@@ -82,8 +78,7 @@ class EnemyManager {    constructor(arena, difficultyManager = null) {
                 // Check if all enemies have been spawned
                 if (this.enemiesToSpawn.length === 0) {
                     this.waveState = 'active';
-                    console.log(`⚔️ Wave ${this.currentWave} fully spawned! Defeat all enemies to continue.`);
-                }
+                    }
                 break;
                 
             case 'active':
@@ -91,8 +86,6 @@ class EnemyManager {    constructor(arena, difficultyManager = null) {
                 const activeEnemies = this.enemies.filter(e => e.active).length;                if (activeEnemies === 0) {
                     this.waveState = 'completed';
                     this.waveTimer = 0;
-                    console.log(`✅ Wave ${this.currentWave} completed! Preparing next wave...`);
-                    
                     // Trigger wave completion visual effect
                     if (this.visualEffects) {
                         this.visualEffects.onWaveComplete(this.currentWave);
@@ -117,8 +110,8 @@ class EnemyManager {    constructor(arena, difficultyManager = null) {
         this.waveState = 'preparing';
         this.waveTimer = 0;
         
-        console.log(`🌊 Setting up Wave ${waveNumber}: ${this.enemiesToSpawn.length} enemies (${this.waveConfig.enemies.join(', ')})`);
-        console.log(`📊 Wave ${waveNumber} composition:`, this.waveConfig.enemies.reduce((acc, type) => {
+        })`);
+        => {
             acc[type] = (acc[type] || 0) + 1;
             return acc;
         }, {}));
@@ -281,7 +274,7 @@ class EnemyManager {    constructor(arena, difficultyManager = null) {
         if (this.visualEffects) {
             this.visualEffects.onEnemySpawn(spawnX, spawnY, enemyType);
         }
-          console.log(`👾 Spawned ${enemyType} at (${Math.round(spawnX)}, ${Math.round(spawnY)}) - Wave ${this.currentWave} (${this.enemiesSpawnedThisWave}/${this.waveConfig.enemies.length})`);
+          }, ${Math.round(spawnY)}) - Wave ${this.currentWave} (${this.enemiesSpawnedThisWave}/${this.waveConfig.enemies.length})`);
     }
       // Check bullet collisions and return points scored
     checkBulletCollisions(bullets, visualEffects = null) {
@@ -329,8 +322,7 @@ class EnemyManager {    constructor(arena, difficultyManager = null) {
                     
                     if (points > 0) {
                         killCount++;
-                        console.log(`${enemy.type} destroyed! +${points} points`);
-                    }
+                        }
                     
                     // Check if bullet should continue piercing
                     if (bullet.piercing <= 0 || bullet.enemiesHit.length > bullet.piercing) {

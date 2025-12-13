@@ -112,7 +112,7 @@ class Harvester {
         // Pickup system
         this.isBeingCarried = false;
         
-        console.log(`🏭 Harvester deployed at (${x.toFixed(1)}, ${y.toFixed(1)})`);
+        }, ${y.toFixed(1)})`);
     }
     
     update(deltaTime) {
@@ -168,8 +168,7 @@ class Harvester {
                 window.createScreenFlash('#00ff00', 0.05, 80);
             }
             
-            console.log(`🏭 Harvester generated +${this.energyGenerationRate} energy! Total: ${this.totalEnergyGenerated}`);
-        }
+            }
     }
     
     updateParticles(deltaTime) {
@@ -621,8 +620,7 @@ function resetHarvesters() {
     if (window.gameState) {
         window.gameState.harvesters = 0;
     }
-    console.log('🔄 Harvesters reset');
-}
+    }
 
 function applyHarvesterUpgrades() {
     // Get harvester rate upgrade level

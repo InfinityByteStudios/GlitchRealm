@@ -43,7 +43,7 @@ class Drone {
         this.isBoostActive = false;
         this.boostTime = 0;
         
-        console.log(`🚁 Drone spawned at center: (${x}, ${y})`);
+        `);
     }
     
     update(deltaTime) {

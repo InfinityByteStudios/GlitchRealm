@@ -13,8 +13,7 @@ export class ProfileManager {
         // Load saved profile data
         this.loadProfile();
         
-        console.log('🎭 ProfileManager initialized');
-    }
+        }
 
     /**
      * Load profile data from localStorage
@@ -27,13 +26,10 @@ export class ProfileManager {
                 // Validate parsed data structure
                 if (typeof parsed === 'object' && parsed !== null) {
                     this.profileData = { ...this.profileData, ...parsed };
-                    console.log('📄 Profile loaded from localStorage', this.profileData);
-                } else {
-                    console.warn('⚠️ Invalid profile data format, using defaults');
-                }
+                    } else {
+                    }
             }
         } catch (error) {
-            console.warn('⚠️ Failed to load profile data:', error);
             // Reset to defaults if localStorage is corrupted
             this.profileData = {
                 name: '',
@@ -49,10 +45,8 @@ export class ProfileManager {
     saveProfile() {
         try {
             localStorage.setItem('coderunner_profile', JSON.stringify(this.profileData));
-            console.log('💾 Profile saved to localStorage', this.profileData);
-        } catch (error) {
-            console.warn('⚠️ Failed to save profile data:', error);
-        }
+            } catch (error) {
+            }
     }
 
     /**
@@ -69,7 +63,6 @@ export class ProfileManager {
         try {
             // Validate sprite ID
             if (!spriteId || typeof spriteId !== 'string') {
-                console.warn('⚠️ Invalid sprite ID provided:', spriteId);
                 return;
             }
             
@@ -79,8 +72,7 @@ export class ProfileManager {
             // Also save to cloud if user is logged in
             this.saveToCloud();
             
-            console.log(`🎮 Selected sprite updated: ${spriteId}`);
-        } catch (error) {
+            } catch (error) {
             console.error('Failed to set selected sprite:', error);
         }
     }
@@ -98,8 +90,7 @@ export class ProfileManager {
     setPlayerName(name) {
         this.profileData.name = name;
         this.saveProfile();
-        console.log(`👤 Player name updated: ${name}`);
-    }
+        }
 
     /**
      * Refresh sprite selector (compatibility method for existing code)
@@ -107,8 +98,7 @@ export class ProfileManager {
     refreshSpriteSelector() {
         // This method is called by other systems for compatibility
         // In a more complex system, this would update UI elements
-        console.log('🔄 Sprite selector refreshed');
-    }
+        }
 
     /**
      * Reset profile to defaults
@@ -120,8 +110,7 @@ export class ProfileManager {
             preferences: {}
         };
         this.saveProfile();
-        console.log('🔄 Profile reset to defaults');
-    }
+        }
 
     /**
      * Save profile data to cloud if user is logged in
@@ -134,8 +123,7 @@ export class ProfileManager {
             
             // Trigger cloud save through UserProfileSystem
             window.userProfileSystem.saveUserProfile();
-            console.log('☁️ Profile data saved to cloud');
-        }
+            }
     }
 
     /**
@@ -151,8 +139,6 @@ export class ProfileManager {
             
             this.profileData.selectedSprite = spriteId;
             this.saveProfile(); // Save to localStorage for offline access
-            console.log('☁️ Profile data loaded from cloud:', cloudData.selectedSprite, '-> normalized to:', spriteId);
-            
             // Update player sprite immediately if game is running
             if (typeof window !== 'undefined' && window.game && window.game.player) {
                 window.game.player.loadSelectedSprite();
@@ -164,7 +150,6 @@ export class ProfileManager {
      * Force save current profile to cloud (for debugging/fixing cloud data)
      */
     forceSaveToCloud() {
-        console.log('🔧 Force saving current profile to cloud:', this.profileData.selectedSprite);
         this.saveToCloud();
     }
 }
@@ -172,5 +157,4 @@ export class ProfileManager {
 // Auto-initialize ProfileManager and make it globally available
 if (typeof window !== 'undefined') {
     window.profileManager = new ProfileManager();
-    console.log('🌐 ProfileManager available globally as window.profileManager');
-}
+    }

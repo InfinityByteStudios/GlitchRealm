@@ -75,8 +75,7 @@ export class WorldGenerator {
                 keysToRemove.forEach(key => this.chunkPooling.delete(key));
             }
             
-            console.log('🧹 WorldGenerator cleanup completed');
-        } catch (error) {
+            } catch (error) {
             console.error('Error during WorldGenerator cleanup:', error);
         }
     }
@@ -92,7 +91,6 @@ export class WorldGenerator {
     update(deltaTime, camera) {
         // Safety check for camera
         if (!camera || typeof camera.x !== 'number' || typeof camera.y !== 'number') {
-            console.warn('WorldGenerator.update: Invalid camera object', camera);
             return;
         }
 
@@ -402,10 +400,8 @@ export class WorldGenerator {
         baseParams.sawChance = Math.min(baseParams.sawChance, 60);
         baseParams.laserChance = Math.min(baseParams.laserChance, 25);
         baseParams.crusherChance = Math.min(baseParams.crusherChance, 20);
-        
-       
 
-        // Check for extra-lane upgrade - reduces obstacles and increases safety
+// Check for extra-lane upgrade - reduces obstacles and increases safety
         const hasExtraLane = this.game && this.game.player && this.game.player.shopUpgrades.extraLane;
         if (hasExtraLane) {
             // Apply extra-lane modifiers for safer, more rewarding terrain
@@ -491,9 +487,8 @@ export class WorldGenerator {
               
                 break;
         }
-        
-       
-        return resultParams;
+
+return resultParams;
     }
 
     updateGroundLevel(chunkX, terrainType) {
@@ -906,7 +901,6 @@ export class WorldGenerator {
     }    drawChunk(ctx, camera, chunkX) {
         // Safety check for camera
         if (!camera || !isFinite(camera.x) || !isFinite(camera.y)) {
-            console.warn('WorldGenerator.drawChunk: Invalid camera', camera);
             return;
         }
 
@@ -1001,9 +995,8 @@ export class WorldGenerator {
                 return false;
             }
         }
-        
-       
-        return true;
+
+return true;
     }
 
     /**
@@ -1053,9 +1046,8 @@ export class WorldGenerator {
      * @param {Object} chunk - The chunk to add obstacles to
      * @param {number} chunkX - The X coordinate of the chunk
      */    generateDynamicObstacles(chunk, chunkX) {
-      
-        
-        const terrainParams = this.getTerrainParameters(chunk.terrainType);
+
+const terrainParams = this.getTerrainParameters(chunk.terrainType);
         
         // Skip obstacles on spawn chunk
         if (chunk.terrainType === 'spawn') {
@@ -1063,10 +1055,8 @@ export class WorldGenerator {
             return;
         }        // Get dynamic ground level
         const groundLevel = chunkX === 0 ? this.groundLevel : this.currentGroundLevel;
-        
-       
-        
-        let sawPlacementAttempts = 0;
+
+let sawPlacementAttempts = 0;
         let sawPlacements = 0;
         let validSurfaceCount = 0;
         
@@ -1085,9 +1075,8 @@ export class WorldGenerator {
                     
                     // Enhanced saw placement based on terrain type
                     let sawChance = terrainParams.sawChance || 30; // Fallback to 30%
-                 
-                    
-                    // Increase saw probability around gaps to create challenging jumps
+
+// Increase saw probability around gaps to create challenging jumps
                     if (x > 0 && x < GAME_CONFIG.CHUNK_WIDTH - 1) {
                         if (y < GAME_CONFIG.CHUNK_HEIGHT - 1 && 
                             (chunk.tiles[y+1][x-1] === TILE_TYPES.GAP || 
@@ -1123,16 +1112,12 @@ export class WorldGenerator {
                 }
             }
         }
-        
-        
-        
-        // Place lasers in strategic positions based on terrain type
+
+// Place lasers in strategic positions based on terrain type
         let laserPlacementAttempts = 0;
         let successfulLaserPlacements = 0;
-        
-      
-        
-        for (let y = groundLevel - 3; y >= 3; y--) {
+
+for (let y = groundLevel - 3; y >= 3; y--) {
             for (let x = 0; x < GAME_CONFIG.CHUNK_WIDTH; x++) {
                 const worldX = chunkX * GAME_CONFIG.CHUNK_WIDTH + x;
                 
@@ -1168,10 +1153,8 @@ export class WorldGenerator {
                     }
                     
                     const roll = Math.random() * 100;
-                    
-                  
-                    
-                    // Place laser if conditions are met
+
+// Place laser if conditions are met
                     if (clearSpace && roll < laserChance && isFarEnough) {
                         chunk.tiles[y][x] = TILE_TYPES.LASER;
                         this.obstaclePositions.push(worldX);

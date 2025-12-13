@@ -86,24 +86,18 @@ export class PowerUpSystem {
             
             // 🧪 TESTING: Always unlock quantum dash for testing - NO CONDITIONS!
             this.unlockedPowerUps.add('quantum-dash');
-            console.log('🧪 DEBUG: Quantum Dash powerup force-unlocked for testing');
-            
             // Map shop upgrade IDs to powerup IDs
             if (ownedUpgrades.has('quantum-dash')) {
                 this.unlockedPowerUps.add('quantum-dash');
-                console.log('✨ Quantum Dash powerup unlocked for spawning');
-            }
+                }
             if (ownedUpgrades.has('firewall-shield')) {
                 this.unlockedPowerUps.add('firewall-shield');
-                console.log('🛡️ Firewall Shield powerup unlocked for spawning');
-            }
+                }
             if (ownedUpgrades.has('coin-magnetizer')) {
                 this.unlockedPowerUps.add('coin-magnetizer');
-                console.log('🧲 Coin Magnetizer powerup unlocked for spawning');
-            }
+                }
         } else {
-            console.log('⚠️ Shop system not available yet');
-        }
+            }
     }
 
     // Method to refresh unlocked powerups (call this when player buys new powerups)
@@ -113,7 +107,7 @@ export class PowerUpSystem {
         // Debug log every few seconds to confirm update is being called (reduced frequency)
         if (!this.lastUpdateLog) this.lastUpdateLog = 0;
         if (Date.now() - this.lastUpdateLog > 10000) { // Log every 10 seconds instead of 3
-            console.log(`🔄 PowerUpSystem.update() - spawned: ${this.spawnedPowerUps.length}, active: ${this.activePowerUps.size}`);
+            - spawned: ${this.spawnedPowerUps.length}, active: ${this.activePowerUps.size}`);
             this.lastUpdateLog = Date.now();
         }
         
@@ -197,7 +191,7 @@ export class PowerUpSystem {
         if (currentMeter < 50) {
             // Log when approaching the 50m threshold
             if (currentMeter % 10 === 0 && currentMeter !== this.lastLoggedMeter && currentMeter >= 30) {
-                console.log(`🚫 ${currentMeter}m - Powerups disabled until 50m (${50 - currentMeter}m remaining)`);
+                `);
                 this.lastLoggedMeter = currentMeter;
             }
             return;
@@ -205,21 +199,19 @@ export class PowerUpSystem {
         
         // Log when powerups become available for the first time
         if (currentMeter === 50 && this.lastLoggedMeter < 50) {
-            console.log(`🎉 50m reached! Powerups are now available for spawning!`);
-        }
+            }
         
         // Check for guaranteed spawn every 400m (only if no random spawn occurred)
         const distanceSinceLastGuaranteed = currentMeter - this.lastGuaranteedSpawnDistance;
         if (distanceSinceLastGuaranteed >= this.guaranteedSpawnInterval) {
             if (!this.hadRandomSpawnSinceLastGuaranteed) {
-                console.log(`🎯 Guaranteed spawn triggered at ${currentMeter}m (400m since last guaranteed, no random spawns)`);
+                `);
                 this.spawnGuaranteedPowerUp();
                 this.lastGuaranteedSpawnDistance = currentMeter;
                 this.lastActualSpawnDistance = currentMeter;
                 this.hadRandomSpawnSinceLastGuaranteed = false;
                 return; // Skip random spawn check this frame
             } else {
-                console.log(`✅ 400m reached but skipping guaranteed spawn - had random spawn since last guaranteed`);
                 // Reset for next 400m cycle
                 this.lastGuaranteedSpawnDistance = currentMeter;
                 this.hadRandomSpawnSinceLastGuaranteed = false;
@@ -232,9 +224,8 @@ export class PowerUpSystem {
         if (currentMeter % this.spawnInterval === 0 && currentMeter !== this.lastLoggedMeter) {
             const distanceSinceLastSpawn = currentMeter - this.lastActualSpawnDistance;
             const distanceToNextGuaranteed = this.guaranteedSpawnInterval - distanceSinceLastGuaranteed;
-            console.log(`🏃 Current distance: ${currentMeter}m - Distance since last spawn: ${distanceSinceLastSpawn}m`);
-            console.log(`🔓 Unlocked powerups: ${Array.from(this.unlockedPowerUps).join(', ')}`);
-            console.log(`⏰ Next guaranteed spawn in: ${distanceToNextGuaranteed}m (random spawn since last: ${this.hadRandomSpawnSinceLastGuaranteed})`);
+            .join(', ')}`);
+            `);
             
             this.lastLoggedMeter = currentMeter;
         }
@@ -256,39 +247,31 @@ export class PowerUpSystem {
                 spawnChance = 0.50; // 50% after 350m (close to guaranteed threshold)
             }
             
-            console.log(`🎯 Reached ${currentMeter}m milestone - ${distanceSinceLastSpawn}m since last spawn`);
-            console.log(`🎲 Random spawn chance: ${(spawnChance * 100).toFixed(0)}%`);
+            .toFixed(0)}%`);
             
             // Roll for random powerup spawn
             if (Math.random() < spawnChance) {
-                console.log(`✅ Random powerup spawn chance succeeded!`);
                 this.lastActualSpawnDistance = currentMeter; // Update last spawn distance
                 this.hadRandomSpawnSinceLastGuaranteed = true; // Mark that we had a random spawn
                 this.spawnRandomPowerUp();
             } else {
-                console.log(`❌ Random powerup spawn chance failed, trying again in ${this.spawnInterval}m`);
-            }
+                }
         }
     }
 
     spawnGuaranteedPowerUp() {
-        console.log(`🔎 spawnGuaranteedPowerUp() called - guaranteed spawn every 400m`);
+        called - guaranteed spawn every 400m`);
           // Enforce 50m minimum distance rule even for guaranteed spawns
         const currentDistance = this.game.player ? this.game.player.x : 0;
         const currentMeter = Math.floor(currentDistance / 10);
         
         if (currentMeter < 50) {
-            console.log(`🚫 spawnGuaranteedPowerUp blocked: Only ${currentMeter}m traveled, need 50m minimum`);
-            console.log(`💡 ${50 - currentMeter}m remaining until powerups are available`);
             return;
         }
         
-        console.log(`🔍 Attempting guaranteed powerup spawn - Unlocked count: ${this.unlockedPowerUps.size}`);
-        console.log(`🔍 Unlocked powerups: [${Array.from(this.unlockedPowerUps).join(', ')}]`);
+        .join(', ')}]`);
         
         if (this.unlockedPowerUps.size === 0) {
-            console.log('❌ No powerups unlocked - cannot spawn');
-            console.log('💡 Buy powerups in the shop first!');
             return;
         }
           // Get available powerups (all unlocked ones for guaranteed spawn)
@@ -296,12 +279,10 @@ export class PowerUpSystem {
             .map(id => this.powerUpDefinitions[id])
             .filter(def => def); // Make sure definition exists
         
-        console.log(`🔍 Available powerup definitions: ${availablePowerUps.length}`);
-        console.log(`🔍 Available powerup names:`, availablePowerUps.map(p => p.name));
+        );
         
         if (availablePowerUps.length === 0) {
-            console.log('❌ No valid powerup definitions found');
-            console.log('🔍 PowerUp definitions loaded:', Object.keys(this.powerUpDefinitions));
+            );
             return;
         }          // Pick random powerup with anti-repetition logic
         let chosenPowerUp;
@@ -314,147 +295,113 @@ export class PowerUpSystem {
             if (varietyPowerUps.length > 0) {
                 const randomIndex = Math.floor(Math.random() * varietyPowerUps.length);
                 chosenPowerUp = varietyPowerUps[randomIndex];
-                console.log(`🔄 Variety selection: avoiding ${this.lastSpawnedPowerUpId}, chose ${chosenPowerUp.name}`);
-            } else {
+                } else {
                 // Fallback to normal selection if all powerups are filtered out
                 const randomIndex = Math.floor(Math.random() * availablePowerUps.length);
                 chosenPowerUp = availablePowerUps[randomIndex];
-                console.log(`🎯 Normal selection: ${chosenPowerUp.name}`);
-            }
+                }
         } else {
             // Normal random selection
             const randomIndex = Math.floor(Math.random() * availablePowerUps.length);
             chosenPowerUp = availablePowerUps[randomIndex];
-            console.log(`🎯 Random selection: index ${randomIndex} of ${availablePowerUps.length} = ${chosenPowerUp.name}`);
-        }
+            }
         
         // Remember this powerup for next time
         this.lastSpawnedPowerUpId = chosenPowerUp.id;
         
-        console.log(`🎯 Chosen powerup for guaranteed spawn:`, chosenPowerUp);
-        console.log(`🚀 About to call spawnPowerUp with:`, chosenPowerUp.name);
-        
         this.spawnPowerUp(chosenPowerUp);
         
-        console.log(`✨ Guaranteed powerup spawned at 400m milestone: ${chosenPowerUp.name}`);
-        console.log(`📍 Spawned powerups on screen: ${this.spawnedPowerUps.length}`);
-    }
+        }
 
     spawnRandomPowerUp() {
-        console.log(`🎲 spawnRandomPowerUp() called - rolling individual spawn chances`);
+        called - rolling individual spawn chances`);
         
         if (this.unlockedPowerUps.size === 0) {
-            console.log('❌ No unlocked powerups available for spawning');
             return;
         }
-        
-        console.log(`🎲 Rolling individual powerup spawn chances...`);
         
         // Get available powerups that can spawn based on their individual rarity
         const availablePowerUps = Array.from(this.unlockedPowerUps)
             .map(id => this.powerUpDefinitions[id])
             .filter(def => {
                 const spawns = Math.random() < def.rarity;
-                console.log(`   ${def.name}: ${(def.rarity * 100).toFixed(1)}% chance - ${spawns ? '✅ SUCCESS' : '❌ failed'}`);
+                .toFixed(1)}% chance - ${spawns ? '✅ SUCCESS' : '❌ failed'}`);
                 return spawns;
             });
         
         if (availablePowerUps.length === 0) {
-            console.log('❌ No powerups passed their individual spawn chances');
             return;
         }
         
         // Pick random powerup from available ones
         const chosenPowerUp = availablePowerUps[Math.floor(Math.random() * availablePowerUps.length)];
-        console.log(`🎯 Random spawn: ${chosenPowerUp.name}`);
         this.spawnPowerUp(chosenPowerUp);
     }
 
     guaranteedSpawnPowerUp() {
         // Legacy method - redirect to new guaranteed spawn logic
-        console.log(`� Legacy guaranteedSpawnPowerUp() called - redirecting to spawnGuaranteedPowerUp()`);
+        called - redirecting to spawnGuaranteedPowerUp()`);
         this.spawnGuaranteedPowerUp();
     }
 
     trySpawnPowerUp() {
         if (this.unlockedPowerUps.size === 0) {
-            console.log('❌ No unlocked powerups available for spawning');
             return;
         }
-        
-        console.log(`🎲 Rolling individual powerup spawn chances...`);
         
         // Get available powerups that can spawn
         const availablePowerUps = Array.from(this.unlockedPowerUps)
             .map(id => this.powerUpDefinitions[id])
             .filter(def => {
                 const spawns = Math.random() < def.rarity;
-                console.log(`   ${def.name}: ${(def.rarity * 100).toFixed(1)}% chance - ${spawns ? '✅ SUCCESS' : '❌ failed'}`);
+                .toFixed(1)}% chance - ${spawns ? '✅ SUCCESS' : '❌ failed'}`);
                 return spawns;
             });
         
         if (availablePowerUps.length === 0) {
-            console.log('❌ No powerups passed their individual spawn chances');
             return;
         }
         
         // Pick random powerup from available ones
         const chosenPowerUp = availablePowerUps[Math.floor(Math.random() * availablePowerUps.length)];
-        console.log(`🎯 Spawning: ${chosenPowerUp.name}`);
         this.spawnPowerUp(chosenPowerUp);
     }
 
     spawnPowerUp(definition) {
-        console.log(`🚀 spawnPowerUp called with definition:`, definition);
-          // CRITICAL: Enforce 50m minimum distance rule for ALL spawns
+        // CRITICAL: Enforce 50m minimum distance rule for ALL spawns
         const currentDistance = this.game.player ? this.game.player.x : 0;
         const currentMeter = Math.floor(currentDistance / 10);
         
         if (currentMeter < 50) {
-            console.log(`🚫 spawnPowerUp BLOCKED: Only ${currentMeter}m traveled, need 50m minimum`);
-            console.log(`💡 ${50 - currentMeter}m remaining until powerups are available`);
-            console.log(`🔍 This powerup spawn was attempted by: ${definition.name}`);
             return;
         }
         
         // Check if player exists and has valid position
         if (!this.game.player) {
-            console.warn('🚫 Cannot spawn powerup: no player object');
             return;
         }
         
         if (typeof this.game.player.x !== 'number') {
-            console.warn('🚫 Cannot spawn powerup: player.x is not a number:', this.game.player.x);
             return;
         }
         
         if (isNaN(this.game.player.x)) {
-            console.warn('🚫 Cannot spawn powerup: player.x is NaN');
             return;
         }
         
-        console.log(`✅ Player validation passed: x=${this.game.player.x}`);
-          // Calculate spawn position based on finding actual ground level
+        // Calculate spawn position based on finding actual ground level
         const spawnX = this.game.player.x + 800; // Spawn much further ahead of player
-        console.log(`🎯 Calculating spawn position: spawnX=${spawnX}`);
-        
         const spawnY = this.findGroundLevel(spawnX);
-        console.log(`🎯 Ground level found: spawnY=${spawnY}`);
-        
-        console.log(`🔍 Spawn position debug: spawnX=${spawnX}, spawnY=${spawnY} (found ground level)`);
+        `);
         
         // Validate spawn position
         if (isNaN(spawnY)) {
-            console.warn('🚫 Cannot spawn powerup: spawnY is NaN');
             return;
         }
         
         if (spawnY < 0) {
-            console.warn('🚫 Cannot spawn powerup: spawnY is negative:', spawnY);
             return;
-        }        console.log(`✅ Spawn position validation passed`);
-        
-        const powerUp = {
+        }        const powerUp = {
             id: definition.id,
             x: spawnX,
             y: spawnY - 40, // Spawn above the ground surface
@@ -464,11 +411,9 @@ export class PowerUpSystem {
             animationTime: 0
         };
         
-        console.log(`🎨 Created powerup object:`, powerUp);
-          this.spawnedPowerUps.push(powerUp);
-        console.log(`✨ Spawned powerup: ${definition.name} at position (${spawnX}, ${powerUp.y})`);
-        console.log(`📊 Total powerups on screen: ${this.spawnedPowerUps.length}`);
-        console.log(`📋 All spawned powerups:`, this.spawnedPowerUps.map(p => `${p.definition.name}@(${p.x},${p.y})`));
+        this.spawnedPowerUps.push(powerUp);
+        `);
+        `));
     }
       /**
      * Find the ground level at a specific world X position
@@ -477,13 +422,10 @@ export class PowerUpSystem {
      */
     findGroundLevel(worldX) {
         if (!this.game.world) {
-            console.warn('🚫 findGroundLevel: No world available');
             return this.game.canvas.height * 0.6;
         }
         
         const tileX = Math.floor(worldX / GAME_CONFIG.TILE_SIZE);
-        console.log(`🔍 findGroundLevel: worldX=${worldX}, tileX=${tileX}`);
-        
         // Search from bottom up to find the first solid tile
         for (let tileY = GAME_CONFIG.CHUNK_HEIGHT - 1; tileY >= 0; tileY--) {
             const tile = this.game.world.getTileAt(tileX, tileY);
@@ -499,7 +441,6 @@ export class PowerUpSystem {
             
             if (isSolidTile) {
                 const groundY = tileY * GAME_CONFIG.TILE_SIZE;
-                console.log(`✅ findGroundLevel: Found solid tile ${tile} at tileY=${tileY}, groundY=${groundY}`);
                 return groundY;
             }
         }
@@ -523,7 +464,6 @@ export class PowerUpSystem {
                     
                     if (isSolidTile) {
                         const groundY = tileY * GAME_CONFIG.TILE_SIZE;
-                        console.log(`✅ findGroundLevel: Found nearby solid tile ${tile} at offset ${offsetX}, groundY=${groundY}`);
                         return groundY;
                     }
                 }
@@ -532,7 +472,6 @@ export class PowerUpSystem {
         
         // Fallback: return a reasonable ground level based on typical ground height
         const fallbackY = 10 * GAME_CONFIG.TILE_SIZE; // Ground level 10 (typical spawn level)
-        console.warn(`⚠️ findGroundLevel: No ground found anywhere, using fallback=${fallbackY}`);
         return fallbackY;
     }
 
@@ -554,8 +493,6 @@ export class PowerUpSystem {
     }
 
     collectPowerUp(powerUp) {
-        console.log(`🔥 Collected powerup: ${powerUp.definition.name}`);
-        
         // Update spawn tracking - reset the "last actual spawn distance" to current position
         const currentDistance = this.game.player ? this.game.player.x : 0;
         const currentMeter = Math.floor(currentDistance / 10);
@@ -563,8 +500,6 @@ export class PowerUpSystem {
         
         // Clear the last spawned powerup tracking to reset variety system
         this.lastSpawnedPowerUpId = null;
-        
-        console.log(`📍 Spawn tracking reset - next powerup guaranteed within ${this.guaranteedSpawnInterval}m`);
         
         // Play sound effect
         if (this.game.audioSystem) {
@@ -617,8 +552,7 @@ export class PowerUpSystem {
                 break;
                 
             default:
-                console.warn(`Unknown powerup effect: ${effectType}`);
-        }
+                }
     }
 
     activateQuantumDash() {
@@ -660,8 +594,7 @@ export class PowerUpSystem {
             }
         }, dashDuration);
         
-        console.log('⚡ Quantum Dash activated - teleported forward with invulnerability and cool animation!');
-    }    activateFirewallShield(definition) {
+        }    activateFirewallShield(definition) {
         // Add shield that absorbs one hit and lasts 30 seconds
         this.activePowerUps.set('firewallShield', {
             duration: definition.duration || 30000, // 30 seconds
@@ -669,8 +602,7 @@ export class PowerUpSystem {
             startTime: Date.now()
         });
         
-        console.log('🛡️ Firewall Shield activated - 1 hit protection for 30s!');
-    }
+        }
 
     activateCoinMagnetizer(definition) {
         // Activate coin magnetizing effect
@@ -685,14 +617,12 @@ export class PowerUpSystem {
             pulseOffset: 0
         });
         
-        console.log('🧲 Coin Magnetizer activated - attracting coins!');
-        console.log('🔍 Magnetizer data:', this.activePowerUps.get('coinMagnetizer'));
+        );
     }
 
     deactivatePowerUp(effectType) {
         this.activePowerUps.delete(effectType);
-        console.log(`⏰ Powerup expired: ${effectType}`);
-    }
+        }
 
     createQuantumDashEffect() {
         // Legacy method - keeping for compatibility
@@ -807,7 +737,6 @@ export class PowerUpSystem {
             // Prevent multiple damage calls within same frame/short time window
             const now = Date.now();
             if (shield.lastDamageTime && (now - shield.lastDamageTime) < 100) {
-                console.log('🔄 Shield blocked duplicate damage call');
                 return { absorbed: true, grantInvulnerability: false }; // Still block damage during cooldown, but don't grant more i-frames
             }
             
@@ -815,11 +744,9 @@ export class PowerUpSystem {
             shield.charges--;
             
             if (shield.charges <= 0) {
-                console.log('🛡️ Shield depleted after blocking damage');
                 this.deactivatePowerUp('firewallShield');
             } else {
-                console.log('🛡️ Shield absorbed damage, charges remaining:', shield.charges);
-            }
+                }
             
             return { absorbed: true, grantInvulnerability: true }; // Damage was absorbed, grant invulnerability frames
         }
@@ -964,7 +891,6 @@ export class PowerUpSystem {
             // Only log occasionally, not every frame
             if (!this.lastPowerupCountLog) this.lastPowerupCountLog = 0;
             if (Date.now() - this.lastPowerupCountLog > 10000) { // Reduced to every 10 seconds
-                console.log(`🎯 Powerups on screen: ${this.spawnedPowerUps.length}`);
                 this.lastPowerupCountLog = Date.now();
             }
         }
@@ -1452,8 +1378,6 @@ export class PowerUpSystem {
         const currentMeter = Math.floor(currentDistance / 10);
         
         if (currentMeter < 50) {
-            console.log(`🚫 spawnTestPowerup blocked: Only ${currentMeter}m traveled, need 50m minimum`);
-            console.log(`💡 ${50 - currentMeter}m remaining until powerups are available`);
             return;
         }
         
@@ -1475,10 +1399,9 @@ export class PowerUpSystem {
         };
         
         this.spawnedPowerUps.push(powerUp);
-        console.log(`🚨 DEBUG: Test powerup spawned at (${spawnX}, ${spawnY})`);
-        console.log(`🚨 DEBUG: Player position: (${this.game.player.x}, ${this.game.player.y})`);
-        console.log(`🚨 DEBUG: Total powerups: ${this.spawnedPowerUps.length}`);
-    }
+        `);
+        `);
+        }
     
     renderFloatingCollectibles(ctx, camera) {
         if (!this.floatingCollectibles || this.floatingCollectibles.length === 0) return;
@@ -1501,8 +1424,6 @@ export class PowerUpSystem {
      * Clears all active powerups and resets spawn tracking
      */
     reset() {
-        console.log('🔄 Resetting PowerUpSystem for new game...');
-        
         // Clear all active powerup effects
         this.activePowerUps.clear();
         
@@ -1522,6 +1443,5 @@ export class PowerUpSystem {
         // Clear floating collectibles (for magnetizer effect)
         this.floatingCollectibles = [];
         
-        console.log('✅ PowerUpSystem reset complete - all active effects cleared');
-    }
+        }
 }

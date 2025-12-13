@@ -11,8 +11,6 @@ export class GameGraphics {
      * Apply graphics quality settings to game systems
      */
     applyGraphicsQuality() {
-        console.log('🎨 Applying graphics quality:', this.game.graphicsQuality);
-        
         // Apply settings based on quality level
         switch (this.game.graphicsQuality) {
             case 'low':
@@ -82,10 +80,8 @@ export class GameGraphics {
         if (['low', 'medium', 'high'].includes(quality)) {
             this.game.graphicsQuality = quality;
             this.applyGraphicsQuality();
-            console.log('🎨 Graphics quality set to:', quality);
-        } else {
-            console.warn('⚠️ Invalid graphics quality:', quality);
-        }
+            } else {
+            }
     }
 
     /**
@@ -100,8 +96,6 @@ export class GameGraphics {
      */
     toggleParticles() {
         this.game.showParticles = !this.game.showParticles;
-        console.log(`✨ Particles ${this.game.showParticles ? 'enabled' : 'disabled'}`);
-        
         // Apply to world if available
         if (this.game.world) {
             this.game.world.particlesEnabled = this.game.showParticles;
@@ -113,8 +107,6 @@ export class GameGraphics {
      */
     toggleBackgroundParticles() {
         this.game.backgroundParticles = !this.game.backgroundParticles;
-        console.log(`🌟 Background particles ${this.game.backgroundParticles ? 'enabled' : 'disabled'}`);
-        
         // Apply to world if available
         if (this.game.world) {
             this.game.world.backgroundParticles = this.game.backgroundParticles;
@@ -126,8 +118,6 @@ export class GameGraphics {
      */
     toggleScreenShake() {
         this.game.screenShake = !this.game.screenShake;
-        console.log(`📳 Screen shake ${this.game.screenShake ? 'enabled' : 'disabled'}`);
-        
         // Reset current shake if disabled
         if (!this.game.screenShake) {
             this.game.currentShake = { x: 0, y: 0, intensity: 0, duration: 0 };
@@ -139,8 +129,7 @@ export class GameGraphics {
      */
     setShakeIntensity(intensity) {
         this.game.shakeIntensity = Math.max(0, Math.min(2, intensity)); // Clamp between 0 and 2
-        console.log('📳 Screen shake intensity set to:', this.game.shakeIntensity);
-    }
+        }
 
     /**
      * Get render statistics
@@ -197,8 +186,7 @@ export class GameGraphics {
                 break;
         }
         
-        console.log('⚡ Optimization level set to:', level);
-    }
+        }
 
     /**
      * Auto-adjust graphics based on performance
@@ -257,15 +245,12 @@ export class GameGraphics {
         
         if (themes[theme]) {
             this.game.colorTheme = themes[theme];
-            console.log('🎨 Color theme applied:', theme);
-            
             // Apply to existing systems
             if (this.game.renderer) {
                 this.game.renderer.updateColorTheme(this.game.colorTheme);
             }
         } else {
-            console.warn('⚠️ Unknown color theme:', theme);
-        }
+            }
     }
 
     /**
@@ -286,8 +271,7 @@ export class GameGraphics {
         // Update context scaling
         this.game.ctx.scale(scale, scale);
         
-        console.log('🖥️ Resolution scale set to:', scale);
-    }
+        }
 
     /**
      * Enable/disable anti-aliasing
@@ -302,8 +286,7 @@ export class GameGraphics {
             this.game.ctx.msImageSmoothingEnabled = enabled;
         }
         
-        console.log(`🎨 Anti-aliasing ${enabled ? 'enabled' : 'disabled'}`);
-    }
+        }
 
     /**
      * Set texture filtering quality
@@ -329,10 +312,8 @@ export class GameGraphics {
                 }
             }
             
-            console.log('🎨 Texture filtering set to:', quality);
-        } else {
-            console.warn('⚠️ Invalid texture filtering quality:', quality);
-        }
+            } else {
+            }
     }
 
     /**
@@ -358,8 +339,6 @@ export class GameGraphics {
      * Benchmark graphics performance
      */
     async benchmarkPerformance() {
-        console.log('🏃 Starting graphics performance benchmark...');
-        
         const startTime = performance.now();
         const iterations = 1000;
         
@@ -404,7 +383,6 @@ export class GameGraphics {
             overallScore: Math.round((iterations / drawTime) * (1000 / particleTime))
         };
         
-        console.log('📊 Benchmark results:', results);
         return results;
     }
 }

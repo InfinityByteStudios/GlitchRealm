@@ -20,56 +20,41 @@ class AudioManager {
         this.currentTrack = null; // 'intro', 'game', or null
         this.isTransitioning = false;
         
-        console.log('🎵 AudioManager initialized');
-        console.log('📁 Intro Audio: ' + this.introAudio.src);
-        console.log('📁 Game Audio: ' + this.gameAudio.src);
-    }
+        }
 
     // Test autoplay capability and show prompt if needed
     async testAutoplayAndPrompt() {
-        console.log('🎵 Testing audio autoplay capability...');
-        
         try {
             await this.introAudio.play();
-            console.log('✅ Audio autoplay successful');
             this.audioEnabled = true;
             this.currentTrack = 'intro';
             return { success: true, requiresPrompt: false };
         } catch (error) {
-            console.log('🔇 Audio autoplay blocked:', error);
             return { success: false, requiresPrompt: true };
         }
     }
 
     // Enable audio after user interaction
     async enableAudioAfterInteraction() {
-        console.log('🎵 Enabling audio after user interaction...');
-        
         try {
             await this.introAudio.play();
-            console.log('✅ Intro audio started after user interaction');
             this.audioEnabled = true;
             this.currentTrack = 'intro';
             return true;
         } catch (error) {
-            console.log('❌ Intro audio still failed after user interaction:', error);
             return false;
         }
     }
 
     // Continue without audio
     disableAudio() {
-        console.log('🔇 Audio disabled by user choice');
         this.audioEnabled = false;
         this.currentTrack = null;
     }
 
     // Fade out intro music
     async fadeOutIntroMusic() {
-        console.log('🔇 Starting intro music fade-out...');
-        
         if (!this.introAudio || this.introAudio.paused) {
-            console.log('🔇 Intro music not playing, no fade-out needed');
             return Promise.resolve();
         }
 
@@ -84,7 +69,6 @@ class AudioManager {
                     this.introAudio.volume = 0.8; // Reset volume for next time
                     clearInterval(fadeOutInterval);
                     this.currentTrack = null;
-                    console.log('🔇 Intro music fade-out complete');
                     resolve();
                 }
             }, 50);
@@ -93,10 +77,7 @@ class AudioManager {
 
     // Start game music with fade-in
     async startGameMusicWithFadeIn() {
-        console.log('🎵 Starting game music with fade-in...');
-        
         if (!this.audioEnabled) {
-            console.log('🔇 Audio disabled, skipping game music');
             return Promise.resolve();
         }
         
@@ -105,7 +86,6 @@ class AudioManager {
         
         try {
             await this.gameAudio.play();
-            console.log('🎵 Game music started, beginning fade-in...');
             this.currentTrack = 'game';
             
             return new Promise((resolve) => {
@@ -116,28 +96,22 @@ class AudioManager {
                         // Fade-in complete
                         this.gameAudio.volume = 0.6; // Ensure exact target volume
                         clearInterval(fadeInInterval);
-                        console.log('🎵 Game music fade-in complete');
                         resolve();
                     }
                 }, 50);
             });
         } catch (error) {
-            console.log('🔇 Game music failed to start during fade-in:', error);
             throw error;
         }
     }
 
     // Enhanced crossfade method for smooth transitions
     async crossfadeAudio() {
-        console.log('🎵 Starting enhanced crossfade transition...');
-        
         if (!this.audioEnabled) {
-            console.log('🔇 Audio disabled, skipping crossfade');
             return Promise.resolve();
         }
 
         if (!this.introAudio || this.introAudio.paused) {
-            console.log('🎵 No intro music playing, starting game music directly');
             return this.startGameMusicWithFadeIn();
         }
 
@@ -148,8 +122,6 @@ class AudioManager {
         
         try {
             await this.gameAudio.play();
-            console.log('🎵 Game music started silently, beginning enhanced crossfade...');
-            
             return new Promise((resolve) => {
                 const crossfadeInterval = setInterval(() => {
                     let introComplete = false;
@@ -164,7 +136,6 @@ class AudioManager {
                             this.introAudio.pause();
                             this.introAudio.currentTime = 0;
                             this.introAudio.volume = 0.8; // Reset volume for next time
-                            console.log('🔇 Intro music crossfade complete');
                             introComplete = true;
                         }
                     }
@@ -176,7 +147,6 @@ class AudioManager {
                         // Game music fully faded in
                         if (!gameComplete) {
                             this.gameAudio.volume = 0.6; // Ensure exact target volume
-                            console.log('🎵 Game music crossfade complete');
                             gameComplete = true;
                         }
                     }
@@ -186,13 +156,11 @@ class AudioManager {
                         clearInterval(crossfadeInterval);
                         this.currentTrack = 'game';
                         this.isTransitioning = false;
-                        console.log('🎵 Enhanced crossfade transition complete');
                         resolve();
                     }
                 }, 40); // Slightly faster interval for smoother transition
             });
         } catch (error) {
-            console.log('🔇 Game audio failed to start during crossfade:', error);
             this.isTransitioning = false;
             // Fallback: just fade out intro music
             return this.fadeOutIntroMusic();
@@ -201,8 +169,6 @@ class AudioManager {
 
     // Stop all audio
     stopAllAudio() {
-        console.log('🔇 Stopping all audio...');
-        
         if (this.introAudio) {
             this.introAudio.pause();
             this.introAudio.currentTime = 0;
@@ -219,8 +185,6 @@ class AudioManager {
 
     // Reset audio to initial state
     reset() {
-        console.log('🔄 Resetting audio manager...');
-        
         this.stopAllAudio();
         
         // Reset volumes to defaults
@@ -241,26 +205,20 @@ class AudioManager {
     pauseCurrentAudio() {
         if (this.currentTrack === 'intro' && !this.introAudio.paused) {
             this.introAudio.pause();
-            console.log('⏸️ Paused intro audio');
-        } else if (this.currentTrack === 'game' && !this.gameAudio.paused) {
+            } else if (this.currentTrack === 'game' && !this.gameAudio.paused) {
             this.gameAudio.pause();
-            console.log('⏸️ Paused game audio');
-        }
+            }
     }
 
     // Resume current audio
     resumeCurrentAudio() {
         if (this.currentTrack === 'intro' && this.introAudio.paused) {
             this.introAudio.play().catch(error => {
-                console.log('❌ Failed to resume intro audio:', error);
-            });
-            console.log('▶️ Resumed intro audio');
-        } else if (this.currentTrack === 'game' && this.gameAudio.paused) {
+                });
+            } else if (this.currentTrack === 'game' && this.gameAudio.paused) {
             this.gameAudio.play().catch(error => {
-                console.log('❌ Failed to resume game audio:', error);
-            });
-            console.log('▶️ Resumed game audio');
-        }
+                });
+            }
     }
 
     // Get current audio status
@@ -282,10 +240,10 @@ class AudioManager {
         
         if (track === 'intro' && this.introAudio) {
             this.introAudio.volume = volume;
-            console.log(`🔊 Intro volume set to ${Math.round(volume * 100)}%`);
+            }%`);
         } else if (track === 'game' && this.gameAudio) {
             this.gameAudio.volume = volume;
-            console.log(`🔊 Game volume set to ${Math.round(volume * 100)}%`);
+            }%`);
         }
     }
 
@@ -299,6 +257,6 @@ class AudioManager {
         this.setVolume('intro', introBaseVolume * volume);
         this.setVolume('game', gameBaseVolume * volume);
         
-        console.log(`🔊 Master volume set to ${Math.round(volume * 100)}%`);
+        }%`);
     }
 }
