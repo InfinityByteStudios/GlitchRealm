@@ -21,9 +21,11 @@
 
   async function init(){
     try{
-      const [{ initializeApp }, authMod] = await Promise.all([
+      const FIRESTORE_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+      const [{ initializeApp }, authMod, firestoreMod] = await Promise.all([
         import(APP_URL),
-        import(AUTH_URL)
+        import(AUTH_URL),
+        import(FIRESTORE_URL)
       ]);
       const app = initializeApp(config);
       const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = authMod;
@@ -37,8 +39,26 @@
         console.warn('[Firebase Core] Failed to set persistence:', e);
       }
       
+      // Initialize Firestore
+      const db = firestoreMod.getFirestore(app);
+      
       window.firebaseApp = app;
       window.firebaseAuth = auth;
+      window.firebaseFirestore = db;
+      window.firestoreCollection = firestoreMod.collection;
+      window.firestoreQuery = firestoreMod.query;
+      window.firestoreDoc = firestoreMod.doc;
+      window.firestoreGetDoc = firestoreMod.getDoc;
+      window.firestoreGetDocs = firestoreMod.getDocs;
+      window.firestoreAddDoc = firestoreMod.addDoc;
+      window.firestoreSetDoc = firestoreMod.setDoc;
+      window.firestoreUpdateDoc = firestoreMod.updateDoc;
+      window.firestoreDeleteDoc = firestoreMod.deleteDoc;
+      window.firestoreWhere = firestoreMod.where;
+      window.firestoreOrderBy = firestoreMod.orderBy;
+      window.firestoreLimit = firestoreMod.limit;
+      window.firestoreOnSnapshot = firestoreMod.onSnapshot;
+      window.firestoreServerTimestamp = firestoreMod.serverTimestamp;
       
       // Set up early auth state listener to ensure state is available ASAP
       onAuthStateChanged(auth, (user) => {

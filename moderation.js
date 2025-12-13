@@ -352,6 +352,8 @@
               createdAt: vmod.serverTimestamp()
             });
             
+            console.log('Writer notification created for user:', wvid);
+            
             alert('✓ Writer verified successfully!');
           } else if (reject) {
             const reason = prompt('Rejection reason (optional):');
@@ -532,6 +534,8 @@
                   read: false,
                   createdAt: serverTimestamp()
                 });
+                
+                console.log('Notification created for user:', uid);
               } else if (deny) {
                 await updateDoc(doc(db, 'verification_requests', uid), {
                   status: 'denied',
@@ -540,7 +544,8 @@
                 });
               }
             } catch(e) {
-              const msg = (e && e.code === 'permission-denied') ? 'Permission denied. Ensure this account has admin/dev rights.' : 'Failed to update verification request.';
+              console.error('Verification approval error:', e);
+              const msg = (e && e.code === 'permission-denied') ? 'Permission denied. Ensure this account has admin/dev rights.' : 'Failed to update verification request: ' + (e.message || e);
               alert(msg);
             }
           })();
@@ -630,9 +635,57 @@
     console.log('[Moderation] DOMContentLoaded fired');
     console.log('[Moderation] window.firebaseAuth:', window.firebaseAuth);
     
-    if (auth) {
-      console.log('[Moderation] Setting up auth state listener');
-      auth.onAuthStateChanged((u) => {
+    // Wait for Firebase to be ready and auth state to be restored
+    const waitForAuth = () => {
+      return new Promise((resolve) => {
+        if (auth && auth.currentUser) {
+          console.log('[Moderation] Auth already ready with user:', auth.currentUser.uid);
+          resolve(auth);
+          return;
+        }
+        
+        if (auth) {
+          console.log('[Moderation] Auth exists, waiting for state restoration...');
+          const unsubscribe = auth.onAuthStateChanged((u) => {
+            console.log('[Moderation] Auth state restored:', u ? `User ${u.uid}` : 'No user');
+            unsubscribe();
+            resolve(auth);
+          });
+        } else {
+          console.warn('[Moderation] Auth not available, retrying in 500ms...');
+          setTimeout(() => {
+            if (window.firebaseAuth) {
+              const retryAuth = window.firebaseAuth;
+              if (retryAuth.currentUser) {
+                console.log('[Moderation] Auth ready on retry with user:', retryAuth.currentUser.uid);
+                resolve(retryAuth);
+              } else {
+                const unsubscribe = retryAuth.onAuthStateChanged((u) => {
+                  console.log('[Moderation] Auth state restored on retry:', u ? `User ${u.uid}` : 'No user');
+                  unsubscribe();
+                  resolve(retryAuth);
+                });
+              }
+            } else {
+              console.error('[Moderation] Auth still not available after retry');
+              resolve(null);
+            }
+          }, 500);
+        }
+      });
+    };
+    
+    // Wait for auth then check access
+    accessEl.textContent = 'Loading authentication...';
+    waitForAuth().then((authInstance) => {
+      if (!authInstance) {
+        accessEl.textContent = 'Auth initialization failed.';
+        renderEmpty('');
+        return;
+      }
+      
+      // Now set up the actual auth state listener
+      authInstance.onAuthStateChanged((u) => {
         console.log('[Moderation] Auth state changed:', u ? `User ${u.uid}` : 'No user');
         if (!u) {
           accessEl.textContent = 'Please sign in to access moderation.';
@@ -642,31 +695,7 @@
         accessEl.textContent = 'Validating access…';
         ensureReportsListener();
       });
-    } else {
-      console.warn('[Moderation] Auth not available at DOMContentLoaded');
-      accessEl.textContent = 'Auth not available. Waiting...';
-      renderEmpty('');
-      
-      // Retry auth setup
-      setTimeout(() => {
-        if (window.firebaseAuth) {
-          console.log('[Moderation] Auth now available, setting up listener');
-          const authRetry = window.firebaseAuth;
-          authRetry.onAuthStateChanged((u) => {
-            console.log('[Moderation] Auth state changed (retry):', u ? `User ${u.uid}` : 'No user');
-            if (!u) {
-              accessEl.textContent = 'Please sign in to access moderation.';
-              renderEmpty('');
-              return;
-            }
-            accessEl.textContent = 'Validating access…';
-            ensureReportsListener();
-          });
-        } else {
-          accessEl.textContent = 'Auth not available.';
-        }
-      }, 500);
-    }
+    });
   });
 })();
 

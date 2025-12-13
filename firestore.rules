@@ -891,8 +891,13 @@ service cloud.firestore {
                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']) &&
                        request.resource.data.read is bool;
       
-      // Only Cloud Functions can create notifications
-      allow create: if false;
+      // Developers can create notifications (for moderation actions)
+      // Cloud Functions can also create notifications
+      allow create: if isDeveloper() || 
+                       request.resource.data.userId is string &&
+                       request.resource.data.title is string &&
+                       request.resource.data.message is string &&
+                       request.resource.data.read is bool;
       
       // Users can delete their own notifications
       allow delete: if request.auth != null && 
