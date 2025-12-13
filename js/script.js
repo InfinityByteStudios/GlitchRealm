@@ -5193,6 +5193,7 @@ async function showNotificationsPopup() {
     list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">Loading notifications...</p>';
     
     try {
+        console.log('[Notifications Popup] Loading for user:', user.uid);
         const { collection, query, where, orderBy, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         
         const notificationsRef = collection(db, 'notifications');
@@ -5202,10 +5203,15 @@ async function showNotificationsPopup() {
             orderBy('createdAt', 'desc')
         );
         
+        console.log('[Notifications Popup] Querying Firestore...');
         const snapshot = await getDocs(q);
+        console.log('[Notifications Popup] Found', snapshot.size, 'notifications');
+        
         const notifications = [];
         snapshot.forEach(doc => {
-            notifications.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            console.log('[Notifications Popup] Notification:', doc.id, data);
+            notifications.push({ id: doc.id, ...data });
         });
         
         list.innerHTML = '';
@@ -5280,8 +5286,9 @@ async function showNotificationsPopup() {
             });
         }
     } catch (error) {
-        console.error('Error loading notifications:', error);
-        list.innerHTML = '<p style="text-align: center; color: rgba(255,100,100,0.8); padding: 30px;">Error loading notifications. Please try again later.</p>';
+        console.error('[Notifications Popup] Error loading notifications:', error);
+        console.error('[Notifications Popup] Error details:', error.message, error.code);
+        list.innerHTML = `<p style="text-align: center; color: rgba(255,100,100,0.8); padding: 30px;">Error loading notifications: ${error.message || 'Unknown error'}<br><small>Check console for details</small></p>`;
     }
 }
 
