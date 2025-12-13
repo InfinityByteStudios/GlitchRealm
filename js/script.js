@@ -5431,6 +5431,19 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeMobileNavigation();
 });
 
+// Global click delegation fallback for notification bells (header or floating)
+document.addEventListener('click', (e) => {
+    const bell = e.target && e.target.closest && e.target.closest('#notification-bell, #notification-bell-floating');
+    if (!bell) return;
+    console.log('[Notifications] Delegated click captured:', bell.id || 'unknown');
+    try { e.preventDefault(); } catch {}
+    if (e.shiftKey && typeof window.createTestNotification === 'function') {
+        window.createTestNotification();
+    } else if (typeof window.handleNotificationClick === 'function') {
+        window.handleNotificationClick();
+    }
+});
+
 // Mobile Menu Toggle Functionality
 function initializeMobileNavigation() {
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
