@@ -2689,16 +2689,17 @@ async function initializeAuth() {
         }
 
         async function startGlobalNotificationsListener() {
+            console.log('🚀🚀🚀 STARTING NOTIFICATIONS LISTENER 🚀🚀🚀');
             const db = await ensureFirestore();
             const auth = window.firebaseAuth;
             
             if (!auth || !auth.currentUser) {
-                console.log('[Notifications] No user logged in, skipping listener');
+                console.log('❌ No user logged in, skipping listener');
                 return;
             }
             
             const userId = auth.currentUser.uid;
-            console.log('[Notifications] Starting listener for user:', userId);
+            console.log('✅ User ID:', userId);
             
             // Clean up any existing listener
             detachNotificationsListener();
@@ -2712,7 +2713,9 @@ async function initializeAuth() {
             );
             notificationsUnsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
                 const count = snapshot.size || 0;
-                console.log('[Notifications] Unread count:', count);
+                console.log('🔔🔔🔔 LISTENER FIRED 🔔🔔🔔');
+                console.log('Unread notifications count:', count);
+                console.log('Snapshot docs:', snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
                 updateNotificationCount(count);
             }, (error) => {
                 console.warn('Global notifications snapshot error:', error);
@@ -5293,26 +5296,38 @@ async function showNotificationsPopup() {
 }
 
 function updateNotificationCount(count) {
+    console.log('🔔🔔🔔 UPDATE NOTIFICATION COUNT 🔔🔔🔔');
+    console.log('Count:', count);
+    console.log('Badge enabled:', GR_SETTINGS.notificationsBadgeEnabled);
+    
     // Update notification count in dropdown menu
     const notificationCountElement = document.getElementById('notification-count');
+    console.log('Dropdown element found:', !!notificationCountElement);
     if (notificationCountElement) {
-    if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+        if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
             notificationCountElement.textContent = count > 99 ? '99+' : count.toString();
             notificationCountElement.style.display = 'flex';
+            console.log('✅ Dropdown badge SHOWN with count:', count);
         } else {
             notificationCountElement.style.display = 'none';
+            console.log('❌ Dropdown badge HIDDEN');
         }
     }
     
     // Update notification count badge on profile trigger
     const notificationCountBadge = document.getElementById('notification-count-badge');
+    console.log('Profile badge element found:', !!notificationCountBadge);
     if (notificationCountBadge) {
-    if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+        if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
             notificationCountBadge.textContent = count > 99 ? '99+' : count.toString();
             notificationCountBadge.style.display = 'flex';
+            console.log('✅ Profile badge SHOWN with count:', count);
         } else {
             notificationCountBadge.style.display = 'none';
+            console.log('❌ Profile badge HIDDEN');
         }
+    } else {
+        console.log('⚠️ Profile badge element NOT FOUND IN DOM');
     }
 }
 
