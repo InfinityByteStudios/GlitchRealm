@@ -2036,6 +2036,7 @@ async function initializeAuth() {
     // Auth state observer with profile monitoring
     onAuthStateChanged(auth, (user) => {
         const notificationBell = document.getElementById('notification-bell');
+        const notificationBellFloating = document.getElementById('notification-bell-floating');
         const moderationMenuBtn = document.getElementById('moderation-menu-btn');
         
         if (user) {
@@ -2045,6 +2046,7 @@ async function initializeAuth() {
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
             if (notificationBell) notificationBell.style.display = 'flex';
+            if (notificationBellFloating) notificationBellFloating.style.display = 'inline-flex';
             // Toggle Moderation menu visibility for dev UIDs only
             try {
                 const DEV_UIDS = new Set([
@@ -2102,6 +2104,7 @@ async function initializeAuth() {
             if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
             if (notificationBell) notificationBell.style.display = 'none';
+            if (notificationBellFloating) notificationBellFloating.style.display = 'none';
             if (moderationMenuBtn) moderationMenuBtn.remove();
             
             // Clear auth state for SSO
@@ -4238,6 +4241,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add a visual indicator that header was loaded
                 console.log('Header loaded successfully!');
 
+                // Wire notification bells immediately after header is injected
+                try {
+                    const bells = [
+                        document.getElementById('notification-bell'),
+                        document.getElementById('notification-bell-floating')
+                    ].filter(Boolean);
+                    bells.forEach((bell) => {
+                        if (bell.dataset && bell.dataset.listenerAttached === '1') return;
+                        bell.addEventListener('click', (e) => {
+                            console.log('[Notifications] Header bell click captured:', bell.id || 'unknown');
+                            try { e.preventDefault(); } catch {}
+                            if (e.shiftKey && typeof window.createTestNotification === 'function') {
+                                window.createTestNotification();
+                            } else if (typeof window.handleNotificationClick === 'function') {
+                                window.handleNotificationClick();
+                            }
+                        });
+                        if (bell.dataset) bell.dataset.listenerAttached = '1';
+                    });
+                } catch (e) {
+                    console.warn('Failed to wire notification bells immediately after header load:', e);
+                }
+
         // After header injection, try to show the Terms Updated popup once per version
                 try {
                     const overlay = document.getElementById('terms-update-popup');
@@ -4318,6 +4344,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 window.startGlobalNotificationsListener().catch((err) => {
                                     console.warn('[Notifications] Listener start after header load failed:', err);
                                 });
+                                // Make sure floating bell is visible when user already authenticated
+                                const floatingBell = document.getElementById('notification-bell-floating');
+                                if (floatingBell) floatingBell.style.display = 'inline-flex';
                             }
                         } catch (notifErr) {
                             console.warn('[Notifications] Post-header listener check failed:', notifErr);
@@ -5099,9 +5128,13 @@ window.fixProfileFunctions = function() {
     }
     
     // Notification Bell Functionality
-    const notificationBell = document.getElementById('notification-bell');
-    if (notificationBell) {
-        notificationBell.addEventListener('click', (e) => {
+    const notificationBells = [
+        document.getElementById('notification-bell'),
+        document.getElementById('notification-bell-floating')
+    ].filter(Boolean);
+
+    notificationBells.forEach((bell) => {
+        bell.addEventListener('click', (e) => {
             e.preventDefault();
             if (e.shiftKey && typeof window.createTestNotification === 'function') {
                 // Hidden dev shortcut: Shift+Click to create a test notification
@@ -5110,18 +5143,22 @@ window.fixProfileFunctions = function() {
                 handleNotificationClick();
             }
         });
-    }
+    });
 };
 
 // Notification Bell Functions
 function handleNotificationClick() {
-    console.log('Notification bell clicked');
+    console.log('Notification bell clicked -> opening popup');
     // Clear notification count
     updateNotificationCount(0);
     
     // Show notifications popup
     showNotificationsPopup();
 }
+
+// Expose for header-injected click wiring
+window.handleNotificationClick = handleNotificationClick;
+window.showNotificationsPopup = showNotificationsPopup;
 
 async function showNotificationsPopup() {
     const auth = window.firebaseAuth;
@@ -5342,6 +5379,22 @@ function updateNotificationCount(count) {
         }
     } else {
         console.log('⚠️ Profile badge element NOT FOUND IN DOM');
+    }
+
+    // Update floating bell badge (left of modal)
+    const floatingBadge = document.getElementById('notification-badge-floating');
+    const floatingBell = document.getElementById('notification-bell-floating');
+    console.log('Floating bell element found:', !!floatingBell, 'Floating badge found:', !!floatingBadge);
+    if (floatingBadge) {
+        if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+            floatingBadge.textContent = count > 99 ? '99+' : count.toString();
+            floatingBadge.style.display = 'flex';
+            if (floatingBell) floatingBell.style.display = 'inline-flex';
+            console.log('✅ Floating badge SHOWN with count:', count);
+        } else {
+            floatingBadge.style.display = 'none';
+            console.log('❌ Floating badge HIDDEN');
+        }
     }
 }
 

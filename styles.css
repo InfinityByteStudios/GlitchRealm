@@ -497,6 +497,60 @@ html {
     position: relative;
 }
 
+/* Floating bell left of user profile */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Ensure floating bell stays visible on small screens */
+.notification-bell-floating {
+    min-width: 48px;
+    min-height: 48px;
+}
+
+.notification-bell-floating {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 255, 249, 0.3);
+    background: rgba(0, 255, 249, 0.08);
+    color: var(--primary-cyan);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 24px rgba(0, 255, 249, 0.18);
+    backdrop-filter: blur(6px);
+}
+
+.notification-bell-floating:hover {
+    background: rgba(0, 255, 249, 0.16);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 255, 249, 0.25);
+}
+
+.notification-badge-floating {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff0080;
+    color: #ffffff;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    box-shadow: 0 0 15px rgba(255, 0, 128, 0.7);
+    animation: badgePulse 1.5s infinite, badgeGlow 2s infinite alternate;
+}
+
 .profile-action-btn.notification-bell .notification-count {
     position: absolute;
     top: 8px;
