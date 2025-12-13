@@ -4311,6 +4311,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                             initializeAuthElements();
                         }
+                        // Ensure notifications listener starts if user is already authenticated when header loads
+                        try {
+                            const existingUser = window.firebaseAuth.currentUser;
+                            if (existingUser && typeof window.startGlobalNotificationsListener === 'function') {
+                                window.startGlobalNotificationsListener().catch((err) => {
+                                    console.warn('[Notifications] Listener start after header load failed:', err);
+                                });
+                            }
+                        } catch (notifErr) {
+                            console.warn('[Notifications] Post-header listener check failed:', notifErr);
+                        }
                         // Also wire Moderation menu based on current auth state (dev UIDs only)
                         try {
                             const user = window.firebaseAuth.currentUser;
