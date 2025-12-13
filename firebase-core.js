@@ -9,6 +9,7 @@
   }
   const APP_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   const AUTH_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  const FIRESTORE_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
   const config = {
     apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
     authDomain: "shared-sign-in.firebaseapp.com",
@@ -21,13 +22,16 @@
 
   async function init(){
     try{
-      const [{ initializeApp }, authMod] = await Promise.all([
+      const [{ initializeApp }, authMod, firestoreMod] = await Promise.all([
         import(APP_URL),
-        import(AUTH_URL)
+        import(AUTH_URL),
+        import(FIRESTORE_URL)
       ]);
       const app = initializeApp(config);
       const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = authMod;
+      const { getFirestore, collection, query, doc } = firestoreMod;
       const auth = getAuth(app);
+      const db = getFirestore(app);
       
       // Set persistence to LOCAL to maintain auth state across tabs and refreshes
       try { 
@@ -39,6 +43,10 @@
       
       window.firebaseApp = app;
       window.firebaseAuth = auth;
+      window.firebaseFirestore = db;
+      window.firestoreCollection = collection;
+      window.firestoreQuery = query;
+      window.firestoreDoc = doc;
       
       // Set up early auth state listener to ensure state is available ASAP
       onAuthStateChanged(auth, (user) => {
@@ -75,7 +83,12 @@
         }));
       });
       
-      console.log('[Firebase Core] Initialization complete');
+      console.log('[Firebase Core] Initialization complete (Auth + Firestore)');
+      
+      // Dispatch ready event for scripts waiting on Firebase
+      window.dispatchEvent(new CustomEvent('firebaseReady', {
+        detail: { auth, db }
+      }));
       
     } catch(e){ 
       console.warn('[Firebase Core] Init failed:', e); 
