@@ -2081,6 +2081,16 @@ async function initializeAuth() {
                 setupProfilePictureMonitoring(auth);
             }
 
+            // Start notifications listener for this user
+            (async () => {
+                try {
+                    await startGlobalNotificationsListener();
+                    console.log('[Notifications] Listener started for user:', user.uid);
+                } catch (e) {
+                    console.warn('[Notifications] Failed to start listener:', e);
+                }
+            })();
+
             // Notifications now use a global feed; listener starts on page load.
             // Optional: auto-open portal on sign-in
             if (GR_SETTINGS.portalAutoOpenOnSignIn && !/user-portal\.html$/i.test(location.pathname)) {
@@ -2104,6 +2114,13 @@ async function initializeAuth() {
                 clearInterval(window.profileMonitorInterval);
                 window.profileMonitorInterval = null;
             }
+
+            // Stop notifications listener when signed out
+            if (window.detachNotificationsListener) {
+                window.detachNotificationsListener();
+                console.log('[Notifications] Listener detached on sign out');
+            }
+            updateNotificationCount(0);
 
             // Global notifications remain active regardless of auth state.
         }
@@ -2673,18 +2690,29 @@ async function initializeAuth() {
 
         async function startGlobalNotificationsListener() {
             const db = await ensureFirestore();
+            const auth = window.firebaseAuth;
+            
+            if (!auth || !auth.currentUser) {
+                console.log('[Notifications] No user logged in, skipping listener');
+                return;
+            }
+            
+            const userId = auth.currentUser.uid;
+            console.log('[Notifications] Starting listener for user:', userId);
+            
             // Clean up any existing listener
             detachNotificationsListener();
 
-            // Global notifications collection: /notifications
+            // Query notifications for current user that are unread
             const notificationsRef = window.firestoreCollection(db, 'notifications');
-            // Optionally filter unread only; if you want total, remove where clause
             const q = window.firestoreQuery(
                 notificationsRef,
+                window.firestoreWhere('userId', '==', userId),
                 window.firestoreWhere('read', '==', false)
             );
             notificationsUnsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
                 const count = snapshot.size || 0;
+                console.log('[Notifications] Unread count:', count);
                 updateNotificationCount(count);
             }, (error) => {
                 console.warn('Global notifications snapshot error:', error);
