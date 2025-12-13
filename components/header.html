@@ -71,7 +71,7 @@
                                 <span id="user-provider" class="user-provider"></span>
                             </div>
                         </div>
-                        <button id="notification-bell-floating" class="notification-bell-floating" title="Notifications">
+                        <button id="notification-bell-floating" class="notification-bell-floating" title="Notifications" type="button" onclick="(function(e){try{if(e&&e.shiftKey&&window.createTestNotification){window.createTestNotification();return;}if(window.handleNotificationClick){window.handleNotificationClick();}else{console.log('[Notifications] handleNotificationClick missing');}}catch(err){console.error('[Notifications] inline bell click error:',err);}})(event);">
                             <svg class="icon-svg bell-icon" viewBox="0 0 24 24">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
