@@ -2724,6 +2724,9 @@ async function initializeAuth() {
 
         // Expose detach for use in auth sign-out branch
         window.detachNotificationsListener = detachNotificationsListener;
+        
+        // Expose listener starter globally
+        window.startGlobalNotificationsListener = startGlobalNotificationsListener;
 
         // Create a test notification for the current user
         async function createTestNotification() {
@@ -5353,15 +5356,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
     
-    // Start global notifications listener (shared for all users)
-    (async () => {
-        try {
-            await startGlobalNotificationsListener();
-            console.log('Global notifications listener active');
-        } catch (e) {
-            console.warn('Failed to start global notifications listener:', e);
-        }
-    })();
+    // Notifications listener is started automatically in auth state handler
+    // No need to call it here - it will be called when user signs in
     
     // You can call updateNotificationCount here with actual notification data
     // For demo purposes, uncomment the line below to show a notification count:
