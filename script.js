@@ -5071,37 +5071,6 @@ window.fixProfileFunctions = function() {
 // Notification Bell Functions
 function handleNotificationClick() {
     console.log('Notification bell clicked');
-    
-    // Check Firebase initialization first
-    if (!window.firebaseAuth || !window.firebaseFirestore) {
-        console.warn('Firebase not yet initialized, waiting...');
-        // Show loading message
-        const tempMessage = document.createElement('div');
-        tempMessage.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(0,255,249,0.1); border: 1px solid var(--primary-cyan); color: var(--primary-cyan); padding: 12px 20px; border-radius: 8px; z-index: 100000; font-family: Rajdhani, sans-serif;';
-        tempMessage.textContent = 'Loading notifications...';
-        document.body.appendChild(tempMessage);
-        
-        // Wait for Firebase to initialize (with timeout)
-        let attempts = 0;
-        const checkInterval = setInterval(() => {
-            attempts++;
-            if (window.firebaseAuth && window.firebaseFirestore) {
-                clearInterval(checkInterval);
-                document.body.removeChild(tempMessage);
-                updateNotificationCount(0);
-                showNotificationsPopup();
-            } else if (attempts > 20) { // 10 seconds timeout
-                clearInterval(checkInterval);
-                tempMessage.textContent = 'Firebase failed to load. Please refresh the page.';
-                tempMessage.style.background = 'rgba(255,0,0,0.1)';
-                tempMessage.style.borderColor = '#ff0000';
-                tempMessage.style.color = '#ff4444';
-                setTimeout(() => document.body.removeChild(tempMessage), 3000);
-            }
-        }, 500);
-        return;
-    }
-    
     // Clear notification count
     updateNotificationCount(0);
     
@@ -5114,7 +5083,7 @@ async function showNotificationsPopup() {
     const db = window.firebaseFirestore;
     
     if (!auth || !db) {
-        console.error('Firebase not initialized in showNotificationsPopup');
+        console.error('Firebase not initialized');
         return;
     }
     

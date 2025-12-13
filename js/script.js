@@ -5098,21 +5098,42 @@ async function showNotificationsPopup() {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'notifications-popup-modal';
-        modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100000; align-items: center; justify-content: center;';
+        modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100000; align-items: center; justify-content: center; animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);';
         modal.innerHTML = `
-            <div style="background: linear-gradient(135deg, rgba(10,10,30,0.98), rgba(20,10,30,0.98)); border: 2px solid var(--primary-cyan); border-radius: 16px; max-width: 600px; width: 90%; max-height: 80vh; overflow: hidden; box-shadow: 0 0 40px rgba(0,255,249,0.3); position: relative;">
-                <div style="padding: 25px 30px; border-bottom: 1px solid rgba(0,255,249,0.2); display: flex; align-items: center; justify-content: space-between;">
-                    <h2 style="color: var(--primary-cyan); margin: 0; font-size: 1.8rem; display: flex; align-items: center; gap: 12px;">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            <div style="background: rgba(10, 10, 20, 0.95); border: 2px solid var(--primary-cyan); border-radius: 20px; max-width: 650px; width: 92%; max-height: 85vh; overflow: hidden; box-shadow: 0 0 60px rgba(0,255,249,0.4), 0 20px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); position: relative; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+                <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent); animation: scanline 3s infinite;"></div>
+                <div style="padding: 32px 36px 28px; border-bottom: 1px solid rgba(0,255,249,0.25); display: flex; align-items: center; justify-content: space-between; position: relative;">
+                    <h2 style="color: var(--primary-cyan); margin: 0; font-size: 2.2rem; font-weight: 800; display: flex; align-items: center; gap: 14px; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(0,255,249,0.4);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="filter: drop-shadow(0 0 8px rgba(0,255,249,0.6));">
+                            <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7A7,7 0 0,1 20,14V16A1,1 0 0,0 21,17H22V19H2V17H3A1,1 0 0,0 4,16V14A7,7 0 0,1 11,7V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M9,21A3,3 0 0,0 12,24A3,3 0 0,0 15,21H9Z"/>
                         </svg>
                         Notifications
                     </h2>
-                    <button id="close-notifications-popup" style="background: none; border: none; color: rgba(255,255,255,0.7); font-size: 2rem; cursor: pointer; line-height: 1; padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.3s ease;">&times;</button>
+                    <button id="close-notifications-popup" style="background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 300;">&times;</button>
                 </div>
-                <div id="notifications-popup-list" style="padding: 20px 30px; overflow-y: auto; max-height: calc(80vh - 100px);"></div>
+                <div id="notifications-popup-list" style="padding: 24px 36px 32px; overflow-y: auto; max-height: calc(85vh - 130px);"></div>
             </div>
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(30px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes scanline {
+                    0%, 100% { transform: translateX(-100%); }
+                    50% { transform: translateX(100%); }
+                }
+                #close-notifications-popup:hover {
+                    background: rgba(255,0,128,0.15) !important;
+                    border-color: var(--primary-magenta) !important;
+                    color: var(--primary-magenta) !important;
+                    transform: scale(1.05);
+                    box-shadow: 0 0 20px rgba(255,0,128,0.3);
+                }
+            </style>
         `;
         document.body.appendChild(modal);
         
@@ -5162,37 +5183,48 @@ async function showNotificationsPopup() {
         list.innerHTML = '';
         
         if (notifications.length === 0) {
-            list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">No notifications yet</p>';
+            list.innerHTML = '<div style="text-align: center; padding: 60px 30px;"><svg viewBox="0 0 24 24" width="64" height="64" style="fill: rgba(0,255,249,0.2); margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(0,255,249,0.15));"><path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7A7,7 0 0,1 20,14V16A1,1 0 0,0 21,17H22V19H2V17H3A1,1 0 0,0 4,16V14A7,7 0 0,1 11,7V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M9,21A3,3 0 0,0 12,24A3,3 0 0,0 15,21H9Z"/></svg><p style="color: rgba(255,255,255,0.4); font-size: 1.1rem; font-weight: 600; margin: 0; letter-spacing: 0.5px;">No notifications yet</p><p style="color: rgba(255,255,255,0.25); font-size: 0.9rem; margin: 12px 0 0; font-weight: 400;">You\'re all caught up!</p></div>';
         } else {
             notifications.forEach(notif => {
                 const item = document.createElement('div');
                 item.style.cssText = `
-                    background: ${notif.read ? 'rgba(0,255,249,0.05)' : 'rgba(0,255,249,0.12)'};
-                    border: 1px solid ${notif.read ? 'rgba(0,255,249,0.2)' : 'var(--primary-cyan)'};
-                    border-radius: 10px;
-                    padding: 18px;
-                    margin-bottom: 15px;
+                    background: ${notif.read ? 'rgba(255,255,255,0.02)' : 'rgba(0,255,249,0.08)'};
+                    border: 1.5px solid ${notif.read ? 'rgba(0,255,249,0.15)' : 'rgba(0,255,249,0.4)'};
+                    border-radius: 14px;
+                    padding: 22px 24px;
+                    margin-bottom: 16px;
                     cursor: ${notif.read ? 'default' : 'pointer'};
-                    transition: all 0.3s ease;
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    ${notif.read ? '' : 'box-shadow: 0 4px 20px rgba(0,255,249,0.15);'}
                 `;
                 
                 const time = notif.createdAt?.toDate ? notif.createdAt.toDate().toLocaleString() : 'Just now';
+                const unreadDot = notif.read ? '' : '<div style="position: absolute; top: 22px; right: 24px; width: 10px; height: 10px; background: var(--primary-cyan); border-radius: 50%; box-shadow: 0 0 12px var(--primary-cyan), 0 0 20px rgba(0,255,249,0.4);"></div>';
                 
                 item.innerHTML = `
-                    <div style="color: var(--primary-cyan); font-size: 1.1rem; font-weight: 600; margin-bottom: 8px;">${notif.title || 'Notification'}</div>
-                    <div style="color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px;">${notif.message || ''}</div>
-                    <div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">${time}</div>
+                    ${unreadDot}
+                    <div style="color: ${notif.read ? 'rgba(255,255,255,0.9)' : 'var(--primary-cyan)'}; font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.2px; ${notif.read ? '' : 'text-shadow: 0 0 10px rgba(0,255,249,0.3);'}">${notif.title || 'Notification'}</div>
+                    <div style="color: rgba(255,255,255,0.8); font-size: 1rem; line-height: 1.7; margin-bottom: 12px; font-weight: 400;">${notif.message || ''}</div>
+                    <div style="color: rgba(255,255,255,0.4); font-size: 0.88rem; font-weight: 600; letter-spacing: 0.3px;">${time}</div>
                 `;
                 
                 // Mark as read when clicked
                 if (!notif.read) {
                     item.onmouseenter = () => {
-                        item.style.background = 'rgba(0,255,249,0.15)';
-                        item.style.borderColor = 'rgba(0,255,249,0.6)';
+                        item.style.background = 'rgba(0,255,249,0.14)';
+                        item.style.borderColor = 'var(--primary-cyan)';
+                        item.style.transform = 'translateX(4px)';
+                        item.style.boxShadow = '0 8px 32px rgba(0,255,249,0.25), -4px 0 0 var(--primary-cyan)';
                     };
                     item.onmouseleave = () => {
-                        item.style.background = 'rgba(0,255,249,0.12)';
-                        item.style.borderColor = 'var(--primary-cyan)';
+                        item.style.background = 'rgba(0,255,249,0.08)';
+                        item.style.borderColor = 'rgba(0,255,249,0.4)';
+                        item.style.transform = 'translateX(0)';
+                        item.style.boxShadow = '0 4px 20px rgba(0,255,249,0.15)';
                     };
                     
                     item.onclick = async () => {

@@ -9,7 +9,6 @@
   }
   const APP_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   const AUTH_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-  const FIRESTORE_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
   const config = {
     apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
     authDomain: "shared-sign-in.firebaseapp.com",
@@ -22,16 +21,13 @@
 
   async function init(){
     try{
-      const [{ initializeApp }, authMod, firestoreMod] = await Promise.all([
+      const [{ initializeApp }, authMod] = await Promise.all([
         import(APP_URL),
-        import(AUTH_URL),
-        import(FIRESTORE_URL)
+        import(AUTH_URL)
       ]);
       const app = initializeApp(config);
       const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = authMod;
-      const { getFirestore, collection, query, doc } = firestoreMod;
       const auth = getAuth(app);
-      const db = getFirestore(app);
       
       // Set persistence to LOCAL to maintain auth state across tabs and refreshes
       try { 
@@ -43,10 +39,6 @@
       
       window.firebaseApp = app;
       window.firebaseAuth = auth;
-      window.firebaseFirestore = db;
-      window.firestoreCollection = collection;
-      window.firestoreQuery = query;
-      window.firestoreDoc = doc;
       
       // Set up early auth state listener to ensure state is available ASAP
       onAuthStateChanged(auth, (user) => {
@@ -83,12 +75,24 @@
         }));
       });
       
-      console.log('[Firebase Core] Initialization complete (Auth + Firestore)');
+      console.log('[Firebase Core] Initialization complete');
       
-      // Dispatch ready event for scripts waiting on Firebase
-      window.dispatchEvent(new CustomEvent('firebaseReady', {
-        detail: { auth, db }
-      }));
+      // Initialize Gravatar integration (async, non-blocking)
+      import('./gravatar-integration.js')
+        .then((gravatarModule) => {
+          // Expose Gravatar functions globally for testing/debugging
+          window.GravatarAPI = gravatarModule;
+          window.testGravatarEnrichment = gravatarModule.testGravatarEnrichment;
+          window.getGravatarProfile = gravatarModule.getGravatarProfile;
+          window.getGravatarAvatarUrl = gravatarModule.getGravatarAvatarUrl;
+          
+          // Initialize the integration
+          gravatarModule.initGravatarIntegration();
+          console.log('[Firebase Core] Gravatar API exposed globally - try window.testGravatarEnrichment()');
+        })
+        .catch(err => {
+          console.warn('[Firebase Core] Gravatar integration failed to load:', err);
+        });
       
     } catch(e){ 
       console.warn('[Firebase Core] Init failed:', e); 
