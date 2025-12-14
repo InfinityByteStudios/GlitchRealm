@@ -80,44 +80,6 @@ async function loadSupabaseAvatarIfAvailable(userId) {
             } catch {}
         };
     }
-    if (typeof window.grShowLegalNoticeNow !== 'function') {
-        window.grShowLegalNoticeNow = function() {
-            const overlay = document.getElementById('terms-popup');
-            if (!overlay) { console.warn('Legal Notice overlay not found on this page'); return; }
-            overlay.style.display = 'flex';
-            const accept = document.getElementById('accept-terms');
-            const decline = document.getElementById('decline-terms');
-            const finalize = (didAccept) => {
-                try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
-                overlay.style.display = 'none';
-                if (!didAccept) {
-                    try { alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.'); } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                }
-            };
-            accept && accept.addEventListener('click', () => finalize(true), { once: true });
-            decline && decline.addEventListener('click', () => finalize(false), { once: true });
-        };
-    }
-
-    // Terms updated helpers (guarded to avoid overwriting later definitions)
-    if (typeof window.grResetTermsUpdateSeen !== 'function') {
-        window.grResetTermsUpdateSeen = function() {
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + getTermsUpdateVersion()); } catch {}
-        };
-    }
-    if (typeof window.grShowTermsUpdateNow !== 'function') {
-        window.grShowTermsUpdateNow = function() {
-            const overlay = document.getElementById('terms-update-popup');
-            if (!overlay) { console.warn('Terms Update overlay not found on this page'); return; }
-            // Lock background scroll while visible
-            overlay.dataset.prevOverflow = document.body.style.overflow || '';
-            document.body.style.overflow = 'hidden';
-            overlay.style.display = 'flex';
-            const dismiss = document.getElementById('dismiss-terms-update');
             const accept = document.getElementById('accept-terms-update');
             const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
             const seenKey = 'gr.terms.updated.seen.v' + getTermsUpdateVersion();
@@ -1183,81 +1145,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem(lastKey, String(now)); } catch {}
             }
         }
-
-        // Expose helpers to manually reset or show the Terms Updated popup
-        window.grResetTermsUpdateSeen = function() {
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
-        };
-        window.grShowTermsUpdateNow = function() {
-            const overlay = document.getElementById('terms-update-popup');
-            if (!overlay) { console.warn('Terms Update overlay not found'); return; }
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
-            // Lock background scroll while visible
-            overlay.dataset.prevOverflow = document.body.style.overflow || '';
-            document.body.style.overflow = 'hidden';
-            overlay.style.display = 'flex';
-            const dismiss = document.getElementById('dismiss-terms-update');
-            const accept = document.getElementById('accept-terms-update');
-            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-            const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
-            const closeOnly = () => { 
-                overlay.style.display = 'none';
-                document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                delete overlay.dataset.prevOverflow;
-            };
-            const acknowledge = () => {
-                try { localStorage.setItem(seenKey, '1'); } catch {}
-                closeOnly();
-            };
-            if (dismiss) {
-                const onDismiss2 = (e) => {
-                    try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                    try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
-                    try {
-                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                    } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                };
-                dismiss.addEventListener('click', onDismiss2, { once: true });
-                dismiss.addEventListener('pointerdown', onDismiss2, { once: true });
-                dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss2(e); }, { once: true });
-            }
-            accept && accept.addEventListener('click', () => acknowledge(), { once: true });
-            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOnly(); }, { once: true });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOnly(); }, { once: true });
-        };
-
-        // Helpers for the original Legal Notice popup
-        window.grResetLegalNotice = function() {
-            try { localStorage.removeItem('gr.legal.accepted'); localStorage.removeItem('gr.legal.declined'); } catch {}
-        };
-        window.grShowLegalNoticeNow = function() {
-            const overlay = document.getElementById('terms-popup');
-            if (!overlay) { console.warn('Legal Notice overlay not found'); return; }
-            overlay.style.display = 'flex';
-            const accept = document.getElementById('accept-terms');
-            const decline = document.getElementById('decline-terms');
-            const finalize = (didAccept) => {
-                try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
-                overlay.style.display = 'none';
-                if (!didAccept) {
-                    try {
-                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                    } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                }
-            };
-            // Re-bind with once:true to avoid duplicates
-            accept && accept.addEventListener('click', () => finalize(true), { once: true });
-            decline && decline.addEventListener('click', () => finalize(false), { once: true });
-        };
     } catch (e) {
         // Non-fatal: scheduler shouldn’t break the page
         console.warn('Popup scheduler error:', e);
@@ -2036,7 +1923,6 @@ async function initializeAuth() {
     // Auth state observer with profile monitoring
     onAuthStateChanged(auth, (user) => {
         const notificationBell = document.getElementById('notification-bell');
-        const notificationBellFloating = document.getElementById('notification-bell-floating');
         const moderationMenuBtn = document.getElementById('moderation-menu-btn');
         
         if (user) {
@@ -2046,7 +1932,6 @@ async function initializeAuth() {
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
             if (notificationBell) notificationBell.style.display = 'flex';
-            if (notificationBellFloating) notificationBellFloating.style.display = 'inline-flex';
             // Toggle Moderation menu visibility for dev UIDs only
             try {
                 const DEV_UIDS = new Set([
@@ -2707,19 +2592,18 @@ async function initializeAuth() {
             // Clean up any existing listener
             detachNotificationsListener();
 
-            // Query notifications for current user that are unread
+            // Query notifications for current user (count unread locally to include docs missing the read flag)
             const notificationsRef = window.firestoreCollection(db, 'notifications');
             const q = window.firestoreQuery(
                 notificationsRef,
-                window.firestoreWhere('userId', '==', userId),
-                window.firestoreWhere('read', '==', false)
+                window.firestoreWhere('userId', '==', userId)
             );
             notificationsUnsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
-                const count = snapshot.size || 0;
+                const unreadCount = snapshot.docs.filter(doc => doc.data()?.read !== true).length;
                 console.log('🔔🔔🔔 LISTENER FIRED 🔔🔔🔔');
-                console.log('Unread notifications count:', count);
+                console.log('Unread notifications count:', unreadCount);
                 console.log('Snapshot docs:', snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-                updateNotificationCount(count);
+                updateNotificationCount(unreadCount);
             }, (error) => {
                 console.warn('Global notifications snapshot error:', error);
             });
@@ -4244,8 +4128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Wire notification bells immediately after header is injected
                 try {
                     const bells = [
-                        document.getElementById('notification-bell'),
-                        document.getElementById('notification-bell-floating')
+                        document.getElementById('notification-bell')
                     ].filter(Boolean);
                     bells.forEach((bell) => {
                         if (bell.dataset && bell.dataset.listenerAttached === '1') return;
@@ -4344,9 +4227,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 window.startGlobalNotificationsListener().catch((err) => {
                                     console.warn('[Notifications] Listener start after header load failed:', err);
                                 });
-                                // Make sure floating bell is visible when user already authenticated
-                                const floatingBell = document.getElementById('notification-bell-floating');
-                                if (floatingBell) floatingBell.style.display = 'inline-flex';
                             }
                         } catch (notifErr) {
                             console.warn('[Notifications] Post-header listener check failed:', notifErr);
@@ -5129,8 +5009,7 @@ window.fixProfileFunctions = function() {
     
     // Notification Bell Functionality
     const notificationBells = [
-        document.getElementById('notification-bell'),
-        document.getElementById('notification-bell-floating')
+        document.getElementById('notification-bell')
     ].filter(Boolean);
 
     notificationBells.forEach((bell) => {
@@ -5350,12 +5229,16 @@ function updateNotificationCount(count) {
     console.log('🔔🔔🔔 UPDATE NOTIFICATION COUNT 🔔🔔🔔');
     console.log('Count:', count);
     console.log('Badge enabled:', GR_SETTINGS.notificationsBadgeEnabled);
+
+    const badgeEnabled = GR_SETTINGS.notificationsBadgeEnabled !== false;
     
     // Update notification count in dropdown menu
     const notificationCountElement = document.getElementById('notification-count');
+    const notificationCountInline = document.getElementById('notification-count-inline');
+    const notificationCountTrigger = document.getElementById('notification-count-trigger');
     console.log('Dropdown element found:', !!notificationCountElement);
     if (notificationCountElement) {
-        if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+        if ((count > 0) || badgeEnabled) {
             notificationCountElement.textContent = count > 99 ? '99+' : count.toString();
             notificationCountElement.style.display = 'flex';
             console.log('✅ Dropdown badge SHOWN with count:', count);
@@ -5364,12 +5247,31 @@ function updateNotificationCount(count) {
             console.log('❌ Dropdown badge HIDDEN');
         }
     }
+    if (notificationCountInline) {
+        const inlineText = count > 99 ? '99+' : Math.max(count, 0).toString();
+        notificationCountInline.textContent = inlineText;
+        if ((count > 0) || badgeEnabled) {
+            notificationCountInline.style.display = 'inline-flex';
+        } else {
+            notificationCountInline.style.display = 'none';
+        }
+    }
+
+    if (notificationCountTrigger) {
+        const triggerText = count > 99 ? '99+' : Math.max(count, 0).toString();
+        notificationCountTrigger.textContent = triggerText;
+        if ((count > 0) || badgeEnabled) {
+            notificationCountTrigger.style.display = 'inline-flex';
+        } else {
+            notificationCountTrigger.style.display = 'none';
+        }
+    }
     
     // Update notification count badge on profile trigger
     const notificationCountBadge = document.getElementById('notification-count-badge');
     console.log('Profile badge element found:', !!notificationCountBadge);
     if (notificationCountBadge) {
-        if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+        if ((count > 0) || badgeEnabled) {
             notificationCountBadge.textContent = count > 99 ? '99+' : count.toString();
             notificationCountBadge.style.display = 'flex';
             console.log('✅ Profile badge SHOWN with count:', count);
@@ -5381,21 +5283,6 @@ function updateNotificationCount(count) {
         console.log('⚠️ Profile badge element NOT FOUND IN DOM');
     }
 
-    // Update floating bell badge (left of modal)
-    const floatingBadge = document.getElementById('notification-badge-floating');
-    const floatingBell = document.getElementById('notification-bell-floating');
-    console.log('Floating bell element found:', !!floatingBell, 'Floating badge found:', !!floatingBadge);
-    if (floatingBadge) {
-        if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
-            floatingBadge.textContent = count > 99 ? '99+' : count.toString();
-            floatingBadge.style.display = 'flex';
-            if (floatingBell) floatingBell.style.display = 'inline-flex';
-            console.log('✅ Floating badge SHOWN with count:', count);
-        } else {
-            floatingBadge.style.display = 'none';
-            console.log('❌ Floating badge HIDDEN');
-        }
-    }
 }
 
 // Example function to simulate adding notifications (for testing)
@@ -5409,6 +5296,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Debug: Check if notification bell exists
     const notificationBell = document.getElementById('notification-bell');
     console.log('Notification bell found:', !!notificationBell);
+
+    // Ensure inline badge exists visually even before counts arrive
+    const inlineBadge = document.getElementById('notification-count-inline');
+    if (inlineBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+        inlineBadge.textContent = '0';
+        inlineBadge.style.display = 'inline-flex';
+    }
+
+    // Ensure trigger badge exists visually on collapsed trigger
+    const triggerBadge = document.getElementById('notification-count-trigger');
+    if (triggerBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+        triggerBadge.textContent = '0';
+        triggerBadge.style.display = 'inline-flex';
+    }
     
     // For testing purposes only, you can simulate a notification count.
     // This is disabled by default to avoid overriding real Firestore counts.
@@ -5433,7 +5334,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Global click delegation fallback for notification bells (header or floating)
 document.addEventListener('click', (e) => {
-    const bell = e.target && e.target.closest && e.target.closest('#notification-bell, #notification-bell-floating');
+    const bell = e.target && e.target.closest && e.target.closest('#notification-bell');
     if (!bell) return;
     console.log('[Notifications] Delegated click captured:', bell.id || 'unknown');
     try { e.preventDefault(); } catch {}

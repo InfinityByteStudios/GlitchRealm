@@ -280,8 +280,7 @@
     function initModalFocusTrap() {
         const modals = [
             { selector: '#signin-modal', closeBtn: '#close-modal' },
-            { selector: '#crop-modal', closeBtn: '#crop-modal-close' },
-            { selector: '#terms-update-popup', acceptBtn: '#accept-terms-update' }
+            { selector: '#crop-modal', closeBtn: '#crop-modal-close' }
         ];
 
         modals.forEach(({ selector, closeBtn, acceptBtn }) => {

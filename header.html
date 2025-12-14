@@ -50,13 +50,6 @@
             })();
             </script>
             <div id="user-profile" class="user-profile" style="display: none;" role="navigation" aria-label="User account menu">
-                <button id="notification-bell-floating" class="notification-bell-floating" title="Notifications" type="button" onclick="(function(e){try{if(e&&e.shiftKey&&window.createTestNotification){window.createTestNotification();return;}if(window.handleNotificationClick){window.handleNotificationClick();}else{console.log('[Notifications] handleNotificationClick missing');}}catch(err){console.error('[Notifications] inline bell click error:',err);}})(event);">
-                    <svg class="icon-svg bell-icon" viewBox="0 0 24 24">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <span id="notification-badge-floating" class="notification-badge-floating" style="display: none;">0</span>
-                </button>
                 <div class="profile-dropdown">
                     <button class="profile-trigger">
                         <div class="user-avatar-container">
@@ -71,6 +64,7 @@
                             </div>
                         </div>
                         <span id="user-name" class="user-name"></span>
+                        <span id="notification-count-trigger" class="notification-count-trigger" style="display: none;">0</span>
                         <span class="dropdown-arrow">▼</span>
                     </button>
                     <div class="profile-menu">
@@ -108,6 +102,7 @@
                                 </span>
                                 Notifications
                                 <span id="notification-count" class="notification-count" style="display: none;">0</span>
+                                <span id="notification-count-inline" class="notification-count-inline" aria-live="polite" style="display: none;">0</span>
                             </button>
                             <button id="refresh-profile-btn" class="profile-action-btn refresh-profile">
                                 <span class="action-icon">
@@ -157,30 +152,7 @@
     </div>
 <!-- Hidden file input for profile picture upload -->
 <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;">
-</nav><!-- Terms Updated Popup (site-wide) - moved outside nav so it can cover the full viewport -->
-<div id="terms-update-popup" class="terms-popup-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="terms-update-title">
-    <div class="terms-popup" role="document">
-        <div class="terms-popup-header">
-            <h3 id="terms-update-title" class="terms-popup-title">
-                <span class="glitch-small" data-text="TERMS UPDATED">TERMS UPDATED</span>
-            </h3>
-        </div>
-        <div class="terms-popup-content">
-            <p>
-                We have updated our 
-                <a href="/terms-of-service.html" class="popup-inline-link">Terms of Service</a>
-                and 
-                <a href="/privacy-policy.html" class="popup-inline-link">Privacy Policy</a>.
-                Please review the changes.
-            </p>
-        </div>
-        <div class="terms-popup-actions">
-            <button id="accept-terms-update" class="btn btn-primary" type="button">Accept</button>
-            <a id="dismiss-terms-update" href="about:blank" class="btn btn-secondary" role="button">Dismiss</a>
-        </div>
-    </div>
-    <span class="sr-only">Press Escape to dismiss</span>
-</div>
+</nav>
 
 <!-- Profile Picture Crop Modal -->
 <div id="crop-modal" class="crop-modal" style="display: none;">

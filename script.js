@@ -70,73 +70,6 @@ async function loadSupabaseAvatarIfAvailable(userId) {
     function getTermsUpdateVersion() {
         return (typeof window.GR_TERMS_UPDATE_VERSION !== 'undefined' && window.GR_TERMS_UPDATE_VERSION) ? window.GR_TERMS_UPDATE_VERSION : '2025-09-05';
     }
-
-    // Legal notice helpers
-    if (typeof window.grResetLegalNotice !== 'function') {
-        window.grResetLegalNotice = function() {
-            try {
-                localStorage.removeItem('gr.legal.accepted');
-                localStorage.removeItem('gr.legal.declined');
-            } catch {}
-        };
-    }
-    if (typeof window.grShowLegalNoticeNow !== 'function') {
-        window.grShowLegalNoticeNow = function() {
-            const overlay = document.getElementById('terms-popup');
-            if (!overlay) { console.warn('Legal Notice overlay not found on this page'); return; }
-            overlay.style.display = 'flex';
-            const accept = document.getElementById('accept-terms');
-            const decline = document.getElementById('decline-terms');
-            const finalize = (didAccept) => {
-                try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
-                overlay.style.display = 'none';
-                if (!didAccept) {
-                    try { alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.'); } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                }
-            };
-            accept && accept.addEventListener('click', () => finalize(true), { once: true });
-            decline && decline.addEventListener('click', () => finalize(false), { once: true });
-        };
-    }
-
-    // Terms updated helpers (guarded to avoid overwriting later definitions)
-    if (typeof window.grResetTermsUpdateSeen !== 'function') {
-        window.grResetTermsUpdateSeen = function() {
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + getTermsUpdateVersion()); } catch {}
-        };
-    }
-    if (typeof window.grShowTermsUpdateNow !== 'function') {
-        window.grShowTermsUpdateNow = function() {
-            const overlay = document.getElementById('terms-update-popup');
-            if (!overlay) { console.warn('Terms Update overlay not found on this page'); return; }
-            // Lock background scroll while visible
-            overlay.dataset.prevOverflow = document.body.style.overflow || '';
-            document.body.style.overflow = 'hidden';
-            overlay.style.display = 'flex';
-            const dismiss = document.getElementById('dismiss-terms-update');
-            const accept = document.getElementById('accept-terms-update');
-            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-            const seenKey = 'gr.terms.updated.seen.v' + getTermsUpdateVersion();
-            const finalize = () => {
-                try { localStorage.setItem(seenKey, '1'); } catch {}
-                overlay.style.display = 'none';
-                document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                delete overlay.dataset.prevOverflow;
-            };
-            // Dismiss just closes (the decline-equivalent behavior is handled elsewhere when scheduled)
-            dismiss && dismiss.addEventListener('click', (e) => { try { e.preventDefault(); } catch {}; finalize(); }, { once: true });
-            // Accept acknowledges and closes
-            accept && accept.addEventListener('click', finalize, { once: true });
-            // Inline links count as seen
-            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
-        };
-    }
 })();
 
 // Auth message display function - must be available early
@@ -1183,81 +1116,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem(lastKey, String(now)); } catch {}
             }
         }
-
-        // Expose helpers to manually reset or show the Terms Updated popup
-        window.grResetTermsUpdateSeen = function() {
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
-        };
-        window.grShowTermsUpdateNow = function() {
-            const overlay = document.getElementById('terms-update-popup');
-            if (!overlay) { console.warn('Terms Update overlay not found'); return; }
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
-            // Lock background scroll while visible
-            overlay.dataset.prevOverflow = document.body.style.overflow || '';
-            document.body.style.overflow = 'hidden';
-            overlay.style.display = 'flex';
-            const dismiss = document.getElementById('dismiss-terms-update');
-            const accept = document.getElementById('accept-terms-update');
-            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-            const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
-            const closeOnly = () => { 
-                overlay.style.display = 'none';
-                document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                delete overlay.dataset.prevOverflow;
-            };
-            const acknowledge = () => {
-                try { localStorage.setItem(seenKey, '1'); } catch {}
-                closeOnly();
-            };
-            if (dismiss) {
-                const onDismiss2 = (e) => {
-                    try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                    try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
-                    try {
-                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                    } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                };
-                dismiss.addEventListener('click', onDismiss2, { once: true });
-                dismiss.addEventListener('pointerdown', onDismiss2, { once: true });
-                dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss2(e); }, { once: true });
-            }
-            accept && accept.addEventListener('click', () => acknowledge(), { once: true });
-            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOnly(); }, { once: true });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOnly(); }, { once: true });
-        };
-
-        // Helpers for the original Legal Notice popup
-        window.grResetLegalNotice = function() {
-            try { localStorage.removeItem('gr.legal.accepted'); localStorage.removeItem('gr.legal.declined'); } catch {}
-        };
-        window.grShowLegalNoticeNow = function() {
-            const overlay = document.getElementById('terms-popup');
-            if (!overlay) { console.warn('Legal Notice overlay not found'); return; }
-            overlay.style.display = 'flex';
-            const accept = document.getElementById('accept-terms');
-            const decline = document.getElementById('decline-terms');
-            const finalize = (didAccept) => {
-                try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
-                overlay.style.display = 'none';
-                if (!didAccept) {
-                    try {
-                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                    } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                }
-            };
-            // Re-bind with once:true to avoid duplicates
-            accept && accept.addEventListener('click', () => finalize(true), { once: true });
-            decline && decline.addEventListener('click', () => finalize(false), { once: true });
-        };
     } catch (e) {
         // Non-fatal: scheduler shouldn’t break the page
         console.warn('Popup scheduler error:', e);
@@ -2081,7 +1939,17 @@ async function initializeAuth() {
                 setupProfilePictureMonitoring(auth);
             }
 
-            // Notifications now use a global feed; listener starts on page load.
+            // Start notifications listener for this user
+            (async () => {
+                try {
+                    await startGlobalNotificationsListener();
+                    console.log('[Notifications] Listener started for user:', user.uid);
+                } catch (e) {
+                    console.warn('[Notifications] Failed to start listener:', e);
+                }
+            })();
+
+            // Notifications use a global feed; listener now starts after sign-in.
             // Optional: auto-open portal on sign-in
             if (GR_SETTINGS.portalAutoOpenOnSignIn && !/user-portal\.html$/i.test(location.pathname)) {
                 setTimeout(() => { window.location.href = 'user-portal.html'; }, 300);
@@ -2105,7 +1973,11 @@ async function initializeAuth() {
                 window.profileMonitorInterval = null;
             }
 
-            // Global notifications remain active regardless of auth state.
+            // Stop notifications listener when signed out
+            if (window.detachNotificationsListener) {
+                window.detachNotificationsListener();
+            }
+            updateNotificationCount(0);
         }
     });
 
@@ -2673,19 +2545,27 @@ async function initializeAuth() {
 
         async function startGlobalNotificationsListener() {
             const db = await ensureFirestore();
-            // Clean up any existing listener
+            const auth = window.firebaseAuth;
+            const user = auth?.currentUser;
+
+            // Always clean up before reattaching
             detachNotificationsListener();
 
-            // Global notifications collection: /notifications
+            // No user means no listener and zero badge
+            if (!user) {
+                updateNotificationCount(0);
+                return;
+            }
+
             const notificationsRef = window.firestoreCollection(db, 'notifications');
-            // Optionally filter unread only; if you want total, remove where clause
             const q = window.firestoreQuery(
                 notificationsRef,
-                window.firestoreWhere('read', '==', false)
+                window.firestoreWhere('userId', '==', user.uid)
             );
+
             notificationsUnsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
-                const count = snapshot.size || 0;
-                updateNotificationCount(count);
+                const unreadCount = snapshot.docs.filter(doc => doc.data()?.read !== true).length;
+                updateNotificationCount(unreadCount);
             }, (error) => {
                 console.warn('Global notifications snapshot error:', error);
             });
@@ -2693,6 +2573,7 @@ async function initializeAuth() {
 
         // Expose detach for use in auth sign-out branch
         window.detachNotificationsListener = detachNotificationsListener;
+        window.startGlobalNotificationsListener = startGlobalNotificationsListener;
 
         // Create a test notification for the current user
         async function createTestNotification() {
@@ -4203,55 +4084,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add a visual indicator that header was loaded
                 console.log('Header loaded successfully!');
-
-        // After header injection, try to show the Terms Updated popup once per version
-                try {
-                    const overlay = document.getElementById('terms-update-popup');
-                    if (overlay) {
-            const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
-            const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
-                        const seen = localStorage.getItem(seenKey) === '1';
-                        if (!seen) {
-                            overlay.style.display = 'flex';
-                            const dismiss = document.getElementById('dismiss-terms-update');
-                            const accept = document.getElementById('accept-terms-update');
-                            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-                            const finalize = () => {
-                                try { localStorage.setItem(seenKey, '1'); } catch {}
-                                overlay.style.display = 'none';
-                                // In case any scroll lock was set elsewhere, restore it safely
-                                try {
-                                    if (overlay.dataset && 'prevOverflow' in overlay.dataset) {
-                                        document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                                        delete overlay.dataset.prevOverflow;
-                                    }
-                                } catch {}
-                            };
-                            if (dismiss) {
-                                const onDismiss = (e) => {
-                                    try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                                    try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
-                                    try {
-                                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                                    } catch {}
-                                    try { window.close(); } catch {}
-                                    setTimeout(() => {
-                                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                                    }, 50);
-                                };
-                                dismiss.addEventListener('click', onDismiss, { once: true });
-                                dismiss.addEventListener('pointerdown', onDismiss, { once: true });
-                                dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
-                            }
-                            // Accept should acknowledge and close
-                            accept && accept.addEventListener('click', finalize, { once: true });
-                            // Inline links also acknowledge once clicked
-                            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-                            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
-                            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
-                        }
-                    }
-                } catch (e) { /* non-fatal */ }
                 
                 // Update active nav link based on current page
                 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
@@ -5226,21 +5058,35 @@ async function showNotificationsPopup() {
 }
 
 function updateNotificationCount(count) {
+    const badgeEnabled = GR_SETTINGS.notificationsBadgeEnabled !== false;
+
     // Update notification count in dropdown menu
     const notificationCountElement = document.getElementById('notification-count');
+    const notificationCountInline = document.getElementById('notification-count-inline');
+    const notificationCountTrigger = document.getElementById('notification-count-trigger');
     if (notificationCountElement) {
-    if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+        if ((count > 0) || badgeEnabled) {
             notificationCountElement.textContent = count > 99 ? '99+' : count.toString();
             notificationCountElement.style.display = 'flex';
         } else {
             notificationCountElement.style.display = 'none';
         }
     }
+    if (notificationCountInline) {
+        const inlineText = count > 99 ? '99+' : Math.max(count, 0).toString();
+        notificationCountInline.textContent = inlineText;
+        notificationCountInline.style.display = ((count > 0) || badgeEnabled) ? 'inline-flex' : 'none';
+    }
+    if (notificationCountTrigger) {
+        const triggerText = count > 99 ? '99+' : Math.max(count, 0).toString();
+        notificationCountTrigger.textContent = triggerText;
+        notificationCountTrigger.style.display = ((count > 0) || badgeEnabled) ? 'inline-flex' : 'none';
+    }
     
     // Update notification count badge on profile trigger
     const notificationCountBadge = document.getElementById('notification-count-badge');
     if (notificationCountBadge) {
-    if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+        if ((count > 0) || badgeEnabled) {
             notificationCountBadge.textContent = count > 99 ? '99+' : count.toString();
             notificationCountBadge.style.display = 'flex';
         } else {
@@ -5260,6 +5106,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Debug: Check if notification bell exists
     const notificationBell = document.getElementById('notification-bell');
     console.log('Notification bell found:', !!notificationBell);
+
+    // Ensure inline badge exists visually even before counts arrive
+    const inlineBadge = document.getElementById('notification-count-inline');
+    if (inlineBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+        inlineBadge.textContent = '0';
+        inlineBadge.style.display = 'inline-flex';
+    }
+
+    // Ensure trigger badge exists visually on collapsed trigger
+    const triggerBadge = document.getElementById('notification-count-trigger');
+    if (triggerBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+        triggerBadge.textContent = '0';
+        triggerBadge.style.display = 'inline-flex';
+    }
     
     // For testing purposes only, you can simulate a notification count.
     // This is disabled by default to avoid overriding real Firestore counts.
@@ -5270,20 +5130,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Test notification count set to 1');
         }, 1000);
     }
-    
-    // Start global notifications listener (shared for all users)
-    (async () => {
-        try {
-            await startGlobalNotificationsListener();
-            console.log('Global notifications listener active');
-        } catch (e) {
-            console.warn('Failed to start global notifications listener:', e);
-        }
-    })();
-    
-    // You can call updateNotificationCount here with actual notification data
-    // For demo purposes, uncomment the line below to show a notification count:
-    // updateNotificationCount(3);
     
     // Initialize Mobile Navigation
     initializeMobileNavigation();

@@ -35,9 +35,6 @@
     <!-- Preload LCP image (lazy load actual src) -->
     <link rel="preload" as="image" href="assets/game logos/ByteSurge.webp" type="image/webp">
     
-    <!-- Google CMP + Consent Mode v2 -->
-    <script src="cmp-consent.js" defer></script>
-    
     <!-- Fonts - Async Load -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
@@ -497,22 +494,6 @@
     <div id="auth-loading" class="auth-loading" style="display: none;">
         <div class="loading-spinner"></div>
         <span>Connecting...</span>
-    </div>    <!-- Terms Agreement Popup -->
-    <div id="terms-popup" class="terms-popup-overlay" style="display: none;">
-        <div class="terms-popup">
-            <div class="terms-popup-header">
-                <h3 class="terms-popup-title">
-                    <span class="glitch-small" data-text="LEGAL NOTICE">LEGAL NOTICE</span>
-                </h3>
-            </div>
-            <div class="terms-popup-content">
-                <p>By using this site, you agree to our <a href="terms-of-service.html" target="_blank" style="color: var(--primary-cyan);">Terms of Service</a> and <a href="privacy-policy.html" target="_blank" style="color: var(--primary-cyan);">Privacy Policy</a>.</p>
-            </div>
-            <div class="terms-popup-actions">
-                <button id="accept-terms" class="btn btn-primary">I Agree</button>
-                <button id="decline-terms" class="btn btn-secondary">Decline</button>
-            </div>
-        </div>
     </div>
 
     <!-- Hidden file input for profile picture upload -->
