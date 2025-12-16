@@ -1571,14 +1571,13 @@ async function initializeAuth() {
             console.log('[AppCheck] Not initialized (modules unavailable or not needed).');
         }
 
-        const { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const { signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
     
     // Expose deleteUser to global scope for account deletion
     window.deleteUser = deleteUser;
     
     const auth = window.firebaseAuth;
     try { auth.languageCode = navigator.language || 'en'; } catch {}
-    const forceRedirect = !!window.GR_AUTH_FORCE_REDIRECT;
     const googleProvider = new GoogleAuthProvider();
     const githubProvider = new GithubAuthProvider();
     try { githubProvider.setCustomParameters({ allow_signup: 'true' }); } catch {}
@@ -1665,82 +1664,35 @@ async function initializeAuth() {
 
     // Authentication methods (Firebase-dependent)
     googleSignIn?.addEventListener('click', async () => {
-        let finalized = false;
         try {
             showAuthLoading(googleSignIn, 'CONNECTING...');
-            if (forceRedirect) {
-                console.warn('Forcing Google sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
-                await signInWithRedirect(auth, googleProvider);
-                return;
-            }
-            await signInWithPopup(auth, googleProvider);
-            finalized = true;
-            if (signInModal) signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('Neural sync successful!', 'success');
+            await signInWithRedirect(auth, googleProvider);
+            return;
         } catch (error) {
-            console.error('Google sign-in error:', error);
-            const code = String(error?.code || error?.message || '');
-            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
-            if (shouldRedirect) {
-                try {
-                    console.warn('Falling back to redirect for Google sign-in...');
-                    await signInWithRedirect(auth, googleProvider);
-                    return; // Will navigate and complete via getRedirectResult()
-                } catch (redirectErr) {
-                    console.error('Google redirect sign-in failed:', redirectErr);
-                }
-            }
+            console.error('Google sign-in redirect error:', error);
             showAuthMessage('Connection failed. Please try again.', 'error');
         } finally {
-            if (!finalized) {
-                // Reset to proper default text based on active tab
-                const activeTab = document.querySelector('.auth-tab.active');
-                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-                const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
-                hideAuthLoading(googleSignIn, defaultText);
-            }
+            const activeTab = document.querySelector('.auth-tab.active');
+            const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
+            const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
+            hideAuthLoading(googleSignIn, defaultText);
         }
     });
 
-    // GitHub sign-in (with redirect fallback for popup/internal errors)
+    // GitHub sign-in (redirect-only to avoid popup blocking)
     githubSignIn?.addEventListener('click', async () => {
-        let finalized = false;
         try {
             showAuthLoading(githubSignIn, 'CONNECTING...');
-            if (forceRedirect) {
-                console.warn('Forcing GitHub sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
-                await signInWithRedirect(auth, githubProvider);
-                return;
-            }
-            await signInWithPopup(auth, githubProvider);
-            finalized = true;
-            if (signInModal) signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('GitHub sync successful!', 'success');
+            await signInWithRedirect(auth, githubProvider);
+            return;
         } catch (error) {
-            console.error('GitHub sign-in error:', error);
-            const code = String(error?.code || error?.message || '');
-            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
-            if (shouldRedirect) {
-                try {
-                    console.warn('Falling back to redirect for GitHub sign-in...');
-                    // Keep loading state; navigation should occur
-                    await signInWithRedirect(auth, githubProvider);
-                    return; // Will navigate away; getRedirectResult will complete later
-                } catch (redirectErr) {
-                    console.error('GitHub redirect sign-in failed:', redirectErr);
-                }
-            }
+            console.error('GitHub sign-in redirect error:', error);
             showAuthMessage('GitHub connection failed. Please try again.', 'error');
         } finally {
-            // Reset to proper default text based on active tab unless we’ve navigated/finished
-            if (!finalized) {
-                const activeTab = document.querySelector('.auth-tab.active');
-                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-                const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
-                hideAuthLoading(githubSignIn, defaultText);
-            }
+            const activeTab = document.querySelector('.auth-tab.active');
+            const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
+            const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
+            hideAuthLoading(githubSignIn, defaultText);
         }
     });
 
