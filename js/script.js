@@ -4930,19 +4930,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const notificationBell = document.getElementById('notification-bell');
     console.log('Notification bell found:', !!notificationBell);
 
-    // Ensure inline badge exists visually even before counts arrive
-    const inlineBadge = document.getElementById('notification-count-inline');
-    if (inlineBadge && GR_SETTINGS.notificationsBadgeEnabled) {
-        inlineBadge.textContent = '0';
-        inlineBadge.style.display = 'inline-flex';
-    }
+    // Badges hidden by default - only shown when actual notifications exist
+    // const inlineBadge = document.getElementById('notification-count-inline');
+    // if (inlineBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+    //     inlineBadge.textContent = '0';
+    //     inlineBadge.style.display = 'inline-flex';
+    // }
 
-    // Ensure trigger badge exists visually on collapsed trigger
-    const triggerBadge = document.getElementById('notification-count-trigger');
-    if (triggerBadge && GR_SETTINGS.notificationsBadgeEnabled) {
-        triggerBadge.textContent = '0';
-        triggerBadge.style.display = 'inline-flex';
-    }
+    // Trigger badge hidden by default - only shown when actual notifications exist
+    // const triggerBadge = document.getElementById('notification-count-trigger');
+    // if (triggerBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+    //     triggerBadge.textContent = '0';
+    //     triggerBadge.style.display = 'inline-flex';
+    // }
     
     // For testing purposes only, you can simulate a notification count.
     // This is disabled by default to avoid overriding real Firestore counts.

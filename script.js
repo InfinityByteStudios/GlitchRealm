@@ -4746,7 +4746,7 @@ function updateNotificationCount(count) {
     const notificationCountInline = document.getElementById('notification-count-inline');
     const notificationCountTrigger = document.getElementById('notification-count-trigger');
     if (notificationCountElement) {
-        if ((count > 0) || badgeEnabled) {
+        if (count > 0) {
             notificationCountElement.textContent = count > 99 ? '99+' : count.toString();
             notificationCountElement.style.display = 'flex';
         } else {
@@ -4756,12 +4756,12 @@ function updateNotificationCount(count) {
     if (notificationCountInline) {
         const inlineText = count > 99 ? '99+' : Math.max(count, 0).toString();
         notificationCountInline.textContent = inlineText;
-        notificationCountInline.style.display = ((count > 0) || badgeEnabled) ? 'inline-flex' : 'none';
+        notificationCountInline.style.display = (count > 0) ? 'inline-flex' : 'none';
     }
     if (notificationCountTrigger) {
         const triggerText = count > 99 ? '99+' : Math.max(count, 0).toString();
         notificationCountTrigger.textContent = triggerText;
-        notificationCountTrigger.style.display = ((count > 0) || badgeEnabled) ? 'inline-flex' : 'none';
+        notificationCountTrigger.style.display = (count > 0) ? 'inline-flex' : 'none';
     }
     
     // Update notification count badge on profile trigger
@@ -4788,19 +4788,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const notificationBell = document.getElementById('notification-bell');
     console.log('Notification bell found:', !!notificationBell);
 
-    // Ensure inline badge exists visually even before counts arrive
-    const inlineBadge = document.getElementById('notification-count-inline');
-    if (inlineBadge && GR_SETTINGS.notificationsBadgeEnabled) {
-        inlineBadge.textContent = '0';
-        inlineBadge.style.display = 'inline-flex';
-    }
+    // Badges hidden by default - only shown when actual notifications exist
+    // const inlineBadge = document.getElementById('notification-count-inline');
+    // if (inlineBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+    //     inlineBadge.textContent = '0';
+    //     inlineBadge.style.display = 'inline-flex';
+    // }
 
-    // Ensure trigger badge exists visually on collapsed trigger
-    const triggerBadge = document.getElementById('notification-count-trigger');
-    if (triggerBadge && GR_SETTINGS.notificationsBadgeEnabled) {
-        triggerBadge.textContent = '0';
-        triggerBadge.style.display = 'inline-flex';
-    }
+    // Trigger badge hidden by default - only shown when actual notifications exist
+    // const triggerBadge = document.getElementById('notification-count-trigger');
+    // if (triggerBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+    //     triggerBadge.textContent = '0';
+    //     triggerBadge.style.display = 'inline-flex';
+    // }
     
     // For testing purposes only, you can simulate a notification count.
     // This is disabled by default to avoid overriding real Firestore counts.
