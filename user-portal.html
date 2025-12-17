@@ -490,32 +490,19 @@
         }
         
         .portal-sections {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
+            display: block;
+            max-width: 900px;
+            margin: 0 auto;
             position: relative;
             z-index: 1;
-        }
-        
-        @media (min-width: 768px) {
-            .portal-sections {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 28px;
-            }
-        }
-        
-        @media (min-width: 1200px) {
-            .portal-sections {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 32px;
-            }
         }
         
         .portal-section {
             background: rgba(10, 10, 20, 0.7);
             border: 1px solid rgba(0, 255, 249, 0.2);
             border-radius: 16px;
-            padding: 36px;
+            padding: 40px;
+            margin-bottom: 32px;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             backdrop-filter: blur(20px);
@@ -1020,6 +1007,25 @@
                 </button>
             </div>
             <p class="portal-subtitle">Manage your account, update email & password, track playtime stats, and submit creator verification requests.</p>
+            
+            <!-- Tab Navigation -->
+            <div class="tab-navigation" style="display: flex; justify-content: center; gap: 8px; margin: 32px 0 40px 0; flex-wrap: wrap; border-bottom: 2px solid rgba(0,255,249,0.2); padding-bottom: 0;">
+                <button class="tab-btn active" data-tab="profile" style="background: transparent; border: none; border-bottom: 3px solid #00fff9; padding: 12px 24px; color: #00fff9; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Profile
+                </button>
+                <button class="tab-btn" data-tab="security" style="background: transparent; border: none; border-bottom: 3px solid transparent; padding: 12px 24px; color: rgba(255,255,255,0.6); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Security
+                </button>
+                <button class="tab-btn" data-tab="stats" style="background: transparent; border: none; border-bottom: 3px solid transparent; padding: 12px 24px; color: rgba(255,255,255,0.6); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Stats & Games
+                </button>
+                <button class="tab-btn" data-tab="verification" style="background: transparent; border: none; border-bottom: 3px solid transparent; padding: 12px 24px; color: rgba(255,255,255,0.6); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Verification
+                </button>
+                <button class="tab-btn" data-tab="danger" style="background: transparent; border: none; border-bottom: 3px solid transparent; padding: 12px 24px; color: rgba(255,255,255,0.6); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Account
+                </button>
+            </div>
         </div>
         
         <!-- Notifications Modal -->
@@ -1046,6 +1052,8 @@
         </div>
         
         <div id="portal-content" class="portal-sections" style="display: none;">
+            <!-- Profile Tab Content -->
+            <div class="tab-content" id="profile-tab" style="display: block;">
             <!-- Profile Picture Section -->
             <div class="portal-section">
                 <h2 class="section-title">
@@ -1083,7 +1091,11 @@
                     </p>
                 </div>
             </div>
+            </div>
+            <!-- End Profile Tab -->
 
+            <!-- Security Tab Content -->
+            <div class="tab-content" id="security-tab" style="display: none;">
             <!-- Password Management -->
             <div class="portal-section">
                 <h2 class="section-title">
@@ -1121,7 +1133,6 @@
                     <div id="reset-error">Error sending reset email.</div>
                 </div>
             </div>
-            
 
             <!-- Community Games section moved to bottom -->
             <div class="portal-section">
@@ -1150,6 +1161,11 @@
                     <div id="email-error">Error updating email. Please try again.</div>
                 </div>
             </div>
+            </div>
+            <!-- End Security Tab -->
+
+            <!-- Stats & Games Tab Content -->
+            <div class="tab-content" id="stats-tab" style="display: none;">
             
             <div class="portal-section">
                 <h2 class="section-title">
@@ -1174,7 +1190,11 @@
             </div>
 
             <!-- Support form removed: direct support now lives exclusively on support.html -->
+            </div>
+            <!-- End Stats & Games Tab -->
 
+            <!-- Verification Tab Content -->
+            <div class="tab-content" id="verification-tab" style="display: none;">
             <!-- Verification Section (moved to bottom) -->
             <div class="portal-section" id="verification-section">
                 <h2 class="section-title">
@@ -1228,6 +1248,30 @@
                     <button id="verif-submit" type="button" class="btn-portal">Submit Verification</button>
                 </form>
             </div>
+            </div>
+            <!-- End Verification Tab -->
+
+            <!-- Danger Zone / Account Tab Content -->
+            <div class="tab-content" id="danger-tab" style="display: none;">
+                <div class="portal-section" style="border-color: rgba(255,0,128,0.3);">
+                    <h2 class="section-title" style="color: #ff0080;">
+                        <svg viewBox="0 0 24 24" style="fill: #ff0080;">
+                            <path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
+                        </svg>
+                        Danger Zone
+                    </h2>
+                    <p class="form-help" style="color: rgba(255,0,128,0.8); font-weight: 600;">⚠️ These actions cannot be undone. Proceed with caution.</p>
+                    <div style="margin-top: 24px;">
+                        <button id="sign-out-all-btn" class="btn-portal" style="background: rgba(255,184,0,0.1); border-color: rgba(255,184,0,0.3); color: #ffb800; width: 100%; margin-bottom: 16px;">
+                            Sign Out
+                        </button>
+                        <button id="delete-account-btn" class="btn-portal" style="background: rgba(255,0,128,0.1); border-color: rgba(255,0,128,0.3); color: #ff0080; width: 100%;">
+                            Delete Account Permanently
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- End Danger Tab -->
 
             
         </div>
@@ -1237,6 +1281,56 @@
     
     <script src="script.js" defer></script>
     <script>
+        // Tab Switching Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // Remove active class from all buttons
+                    tabBtns.forEach(b => {
+                        b.classList.remove('active');
+                        b.style.borderBottomColor = 'transparent';
+                        b.style.color = 'rgba(255,255,255,0.6)';
+                    });
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    this.style.borderBottomColor = '#00fff9';
+                    this.style.color = '#00fff9';
+                    
+                    // Hide all tab contents
+                    tabContents.forEach(content => {
+                        content.style.display = 'none';
+                    });
+                    
+                    // Show target tab content
+                    const targetContent = document.getElementById(targetTab + '-tab');
+                    if (targetContent) {
+                        targetContent.style.display = 'block';
+                    }
+                });
+                
+                // Hover effects
+                btn.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.color = 'rgba(255,255,255,0.9)';
+                        this.style.borderBottomColor = 'rgba(0,255,249,0.4)';
+                    }
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.color = 'rgba(255,255,255,0.6)';
+                        this.style.borderBottomColor = 'transparent';
+                    }
+                });
+            });
+        });
+        
         // Notifications System
         async function loadNotifications(userId) {
             try {
