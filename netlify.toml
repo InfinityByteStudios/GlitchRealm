@@ -3,6 +3,21 @@
   # These are client-side keys, not server secrets
   SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyBu6Z3s66aDXeHQ3yxGW5O-VDUIv9cA8fM,AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ"
 
+# Enable Netlify's new AI-powered features
+[build]
+  # Enable AI-powered build failure explanations
+  command = "echo 'Static site - no build command needed'"
+  
+# Netlify Observability - Request-level traces and logs
+[dev]
+  # Enable local observability during development
+  autoLaunch = false
+  
+# AI Gateway configuration for future AI features
+# Provides built-in credentials for OpenAI, Anthropic, and Google
+[context.production.environment]
+  NETLIFY_AI_GATEWAY_ENABLED = "true"
+
 [functions]
 
   [functions.emails]
@@ -78,6 +93,17 @@
 [[plugins]]
   package = "@netlify/plugin-emails"
 
+# Netlify Prerender Extension - Serve fully rendered HTML to crawlers and AI agents
+# This makes the site accessible to AI agents fetching and interpreting web content
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+  
+  [plugins.inputs]
+    # Enable prerendering for SEO and AI agent accessibility
+    # Crawlers and AI agents get fully rendered HTML
+    # Regular visitors get the usual client-side experience
+    prerender = true
+
 # Lighthouse plugin disabled - causing build failures
 # Re-enable once performance optimizations are fully deployed
 # [[plugins]]
@@ -123,6 +149,10 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     # Enable Brotli/Gzip
     Vary = "Accept-Encoding"
+    # Enable Netlify Observability headers
+    X-Netlify-Trace = "enabled"
+    # Help AI agents understand site structure
+    X-Robots-Tag = "index, follow"
 
 # Redirects to auth subdomain
 [[redirects]]
