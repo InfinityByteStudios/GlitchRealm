@@ -90,17 +90,6 @@
 [[plugins]]
   package = "@netlify/plugin-emails"
 
-# Netlify Prerender Extension - Serve fully rendered HTML to crawlers and AI agents
-# This makes the site accessible to AI agents fetching and interpreting web content
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-  
-  [plugins.inputs]
-    # Enable prerendering for SEO and AI agent accessibility
-    # Crawlers and AI agents get fully rendered HTML
-    # Regular visitors get the usual client-side experience
-    prerender = true
-
 # Lighthouse plugin disabled - causing build failures
 # Re-enable once performance optimizations are fully deployed
 # [[plugins]]
