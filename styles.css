@@ -4920,3 +4920,287 @@ body {
 .status-open { color: var(--primary-cyan); border-color: rgba(0,255,249,0.5); background: rgba(0,255,249,0.08); }
 .status-pending { color: var(--warning); border-color: rgba(255,184,0,0.6); background: rgba(255,184,0,0.08); }
 .status-closed { color: var(--danger); border-color: rgba(255,7,58,0.6); background: rgba(255,7,58,0.08); }
+
+/* ===================================
+   GLITCH SETTINGS MODAL & SPEEDS
+   =================================== */
+
+/* Modal Overlay */
+.glitch-settings-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.98);
+    backdrop-filter: blur(12px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Modal Container */
+.glitch-settings-modal {
+    background: linear-gradient(135deg, #0a1629 0%, #041018 100%);
+    border: 3px solid var(--primary-cyan);
+    border-radius: 20px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.9), 0 0 60px rgba(0, 255, 249, 0.5);
+    animation: modalSlideUp 0.3s ease-out;
+}
+
+/* Modal Header */
+.glitch-settings-header {
+    padding: 32px 32px 24px 32px;
+    border-bottom: 2px solid rgba(0, 255, 249, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.glitch-settings-header h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    color: var(--primary-cyan);
+    margin: 0;
+    text-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+}
+
+.glitch-close-btn {
+    background: none;
+    border: 2px solid var(--primary-cyan);
+    color: var(--primary-cyan);
+    font-size: 40px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.glitch-close-btn:hover {
+    color: var(--primary-magenta);
+    border-color: var(--primary-magenta);
+    background: rgba(255, 0, 128, 0.1);
+    transform: rotate(90deg);
+}
+
+/* Modal Body */
+.glitch-settings-body {
+    padding: 32px;
+}
+
+/* Preview Section */
+.glitch-preview-section {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(0, 255, 249, 0.3);
+    border-radius: 16px;
+    padding: 50px;
+    text-align: center;
+    margin-bottom: 32px;
+    box-shadow: inset 0 0 30px rgba(0, 255, 249, 0.1);
+}
+
+.glitch-preview-section h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 30px 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+.glitch-preview-text {
+    font-size: 3.5rem;
+    font-weight: 900;
+    font-family: 'Orbitron', monospace;
+}
+
+/* Options Section */
+.glitch-options-section h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    color: var(--primary-cyan);
+    margin: 0 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Radio Group */
+.glitch-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.glitch-radio-label {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(0, 255, 249, 0.3);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.glitch-radio-label:hover {
+    background: rgba(0, 255, 249, 0.1);
+    border-color: rgba(0, 255, 249, 0.6);
+    transform: translateX(5px);
+}
+
+.glitch-radio-label input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.glitch-radio-custom {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--primary-cyan);
+    border-radius: 50%;
+    margin-right: 16px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.glitch-radio-label input[type="radio"]:checked ~ .glitch-radio-custom {
+    background: var(--primary-cyan);
+    box-shadow: 0 0 20px rgba(0, 255, 249, 0.8);
+}
+
+.glitch-radio-label input[type="radio"]:checked ~ .glitch-radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: var(--dark-bg);
+    border-radius: 50%;
+}
+
+.glitch-radio-text {
+    font-size: 1.2rem;
+    color: white;
+    font-weight: 600;
+}
+
+/* Save Button */
+.glitch-save-btn {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-magenta) 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-family: 'Orbitron', monospace;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 20px rgba(0, 255, 249, 0.3);
+}
+
+.glitch-save-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0, 255, 249, 0.6), 0 0 50px rgba(255, 0, 128, 0.4);
+}
+
+/* Glitch Speed Variants */
+.glitch-stopped::before,
+.glitch-stopped::after {
+    animation: none !important;
+}
+
+.glitch-slow::before {
+    animation: glitch-1 2s infinite linear alternate-reverse !important;
+}
+
+.glitch-slow::after {
+    animation: glitch-2 2s infinite linear alternate-reverse !important;
+}
+
+.glitch-fast::before {
+    animation: glitch-1 0.5s infinite linear alternate-reverse !important;
+}
+
+.glitch-fast::after {
+    animation: glitch-2 0.5s infinite linear alternate-reverse !important;
+}
+
+/* Glitch Large variants */
+.glitch-large.glitch-stopped::before,
+.glitch-large.glitch-stopped::after {
+    animation: none !important;
+}
+
+.glitch-large.glitch-slow::before {
+    animation: glitch-1 3s infinite linear alternate-reverse !important;
+}
+
+.glitch-large.glitch-slow::after {
+    animation: glitch-2 3s infinite linear alternate-reverse !important;
+}
+
+.glitch-large.glitch-fast::before {
+    animation: glitch-1 0.8s infinite linear alternate-reverse !important;
+}
+
+.glitch-large.glitch-fast::after {
+    animation: glitch-2 0.8s infinite linear alternate-reverse !important;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .glitch-settings-header {
+        padding: 24px;
+    }
+    
+    .glitch-settings-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .glitch-close-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 32px;
+    }
+    
+    .glitch-settings-body {
+        padding: 24px;
+    }
+    
+    .glitch-preview-section {
+        padding: 30px;
+    }
+    
+    .glitch-preview-text {
+        font-size: 2rem;
+    }
+    
+    .glitch-radio-label {
+        padding: 16px;
+    }
+    
+    .glitch-radio-text {
+        font-size: 1rem;
+    }
+}

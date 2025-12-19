@@ -612,9 +612,49 @@
         }
     </script>
     
+    <!-- Glitch Effect Settings Modal -->
+    <div id="glitchSettingsModal" class="glitch-settings-overlay">
+        <div class="glitch-settings-modal">
+            <div class="glitch-settings-header">
+                <h2>⚡ Glitch Effect Settings</h2>
+                <button class="glitch-close-btn" onclick="closeGlitchSettings()">&times;</button>
+            </div>
+            <div class="glitch-settings-body">
+                <div class="glitch-preview-section">
+                    <h3>Preview</h3>
+                    <div class="glitch-preview-text">
+                        <span class="glitch glitch-preview" data-text="GlitchRealm">GlitchRealm</span>
+                    </div>
+                </div>
+                <div class="glitch-options-section">
+                    <h3>Animation Speed</h3>
+                    <div class="glitch-radio-group">
+                        <label class="glitch-radio-label">
+                            <input type="radio" name="glitchSpeed" value="stopped" />
+                            <span class="glitch-radio-custom"></span>
+                            <span class="glitch-radio-text">Stopped (No Animation)</span>
+                        </label>
+                        <label class="glitch-radio-label">
+                            <input type="radio" name="glitchSpeed" value="slow" />
+                            <span class="glitch-radio-custom"></span>
+                            <span class="glitch-radio-text">Slow</span>
+                        </label>
+                        <label class="glitch-radio-label">
+                            <input type="radio" name="glitchSpeed" value="fast" checked />
+                            <span class="glitch-radio-custom"></span>
+                            <span class="glitch-radio-text">Fast (Default)</span>
+                        </label>
+                    </div>
+                </div>
+                <button class="glitch-save-btn" onclick="saveGlitchSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Deferred: Non-critical scripts -->
     <script src="image-loader.js" defer></script>
     <script src="script.js" defer></script>
+    <script src="glitch-settings.js" defer></script>
     <script type="module" src="header-avatar-integration.js"></script>
     
     <!-- Lazy: Game launcher (only load on interaction) -->
