@@ -42,6 +42,9 @@
   <link rel="stylesheet" href="newsletter-embed.css">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  
+  <!-- HubSpot Tracking Script -->
+  <script type="text/javascript" id="hs-script-loader" async defer src="//js-na3.hs-scripts.com/342840215.js"></script>
   <style>
     body { --news-accent:#00fff9; }
     .news-hero { padding:70px 0 30px; text-align:center; }
@@ -169,9 +172,9 @@
         <aside class="news-sidebar">
           <section class="news-subscribe">
             <h3>Newsletter</h3>
-            <p style="margin:0 0 12px; font-size:.75rem; opacity:.75; line-height:1.5;">Coming soon!</p>
-            <button disabled style="width:100%; background:rgba(0,255,249,0.2); border:1px solid rgba(0,255,249,0.3); border-radius:8px; padding:12px 16px; font-size:.8rem; font-weight:600; letter-spacing:.6px; color:#00fff9; cursor:not-allowed; text-transform:uppercase; opacity:0.6;">🚧 Under Construction</button>
-            <p style="margin:10px 0 0; font-size:.65rem; opacity:.65; line-height:1.4;"><a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9;">Privacy Policy</a></p>
+            <p style="margin:0 0 12px; font-size:.75rem; opacity:.75; line-height:1.5;">Subscribe for gaming updates!</p>
+            <button id="openNewsletterModal" style="width:100%; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:12px 16px; font-size:.8rem; font-weight:600; letter-spacing:.6px; color:#02141c; cursor:pointer; text-transform:uppercase; font-family:'Orbitron',sans-serif; transition:all 0.3s ease;">Subscribe Now</button>
+            <p style="margin:10px 0 0; font-size:.65rem; opacity:.65; line-height:1.4;"><a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9; text-decoration:none;">Privacy Policy</a></p>
           </section>
           <!-- Inline Netlify sidebar form (hidden by default) -->
           <form name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="news-subscribe-inline" style="display:none; margin-top:12px;">
@@ -217,9 +220,9 @@
       <!-- Newsletter Form -->
       <div style="text-align:center;">
         <h2 style="font-family:Orbitron; color:#00fff9; margin:0 0 10px; font-size:1.8rem; letter-spacing:1px;">Newsletter</h2>
-        <p style="color:#b8d4d8; margin:0 0 25px; font-size:0.95rem; line-height:1.5;">Signup for news and special offers!</p>
+        <p style="color:#b8d4d8; margin:0 0 25px; font-size:0.95rem; line-height:1.5;">Subscribe for the latest cyberpunk gaming news and updates!</p>
         
-        <form id="modalNewsletterForm" name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/" style="margin-bottom:20px;">
+        <form method="post" action="https://forms.hubspot.com/uploads/form/v2/342840215/ec2af8eb-5722-4a56-a920-21e324453537" id="modalNewsletterForm" style="margin-bottom:20px;">
           <input type="hidden" name="form-name" value="newsletter">
           <input type="hidden" name="source" value="news_modal">
           <p style="display:none; margin:0"><label>Don’t fill this out if you're human: <input name="bot-field"></label></p>
@@ -229,33 +232,70 @@
           </div>
 
           <div style="margin-bottom:20px; text-align:left; padding:15px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.15); border-radius:8px;">
-            <p style="margin:0 0 10px; color:#b8d4d8; font-size:0.85rem; font-weight:600;">Marketing Permissions</p>
             <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; color:#b8d4d8; font-size:0.8rem; line-height:1.4;">
-              <input type="checkbox" name="gdpr[]" value="Email" style="margin-top:2px; accent-color:#00fff9;">
-              <span>I agree to receive promotional emails about new products, updates, and special offers.</span>
+              <input type="checkbox" name="newsletter" required aria-required="true" style="margin-top:2px; accent-color:#00fff9;">
+              <span>I agree to receive the GlitchRealm newsletter and accept the <a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9; text-decoration:none;" target="_blank">Privacy Policy</a></span>
             </label>
           </div>
 
-          <button type="submit" style="width:100%; padding:14px 20px; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; color:#02141c; font-size:0.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; font-family:Rajdhani; transition:transform 0.2s, box-shadow 0.2s;">Subscribe Now</button>
-
-          <input type="hidden" name="ml-submit" value="1">
-          <input type="hidden" name="anticsrf" value="true">
+          <button type="submit" style="width:100%; padding:14px 20px; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; color:#02141c; font-size:0.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; font-family:Orbitron; transition:transform 0.2s, box-shadow 0.2s;">Subscribe Now</button>
         </form>
         
-        <p style="color:#7a9599; font-size:0.75rem; line-height:1.5; margin:0;">By subscribing, you acknowledge that your information will be processed in accordance with our <a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9; text-decoration:none;">Privacy Policy</a>. You can unsubscribe at any time.</p>
+        <p style="color:#7a9599; font-size:0.75rem; line-height:1.5; margin:0;">You can unsubscribe at any time. See our <a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9; text-decoration:none;" target="_blank">Privacy Policy</a>.</p>
       </div>
     </div>
   </div>
 
+  <!-- HubSpot Form Embed Script -->
+  <script src="https://js-na3.hsforms.net/forms/embed/342840215.js" defer></script>
+
   <style>
-    #modalNewsletterForm input[type="email"]:focus {
-      outline:none;
-      border-color:#00fff9;
-      box-shadow:0 0 8px rgba(0,255,249,0.3);
+    /* Style HubSpot form to match theme */
+    .hs-form-frame iframe,
+    .hs-form-frame form {
+      width: 100% !important;
     }
-    #modalNewsletterForm button[type="submit"]:hover {
-      transform:translateY(-2px);
-      box-shadow:0 4px 15px rgba(0,255,249,0.5);
+    .hs-form-frame input[type="email"],
+    .hs-form-frame input[type="text"] {
+      background: #08131b !important;
+      border: 1px solid #12313d !important;
+      border-radius: 8px !important;
+      color: #d7e5e8 !important;
+      padding: 14px 16px !important;
+      font-family: Rajdhani, sans-serif !important;
+      font-size: 0.95rem !important;
+    }
+    .hs-form-frame input:focus {
+      border-color: #00fff9 !important;
+      box-shadow: 0 0 8px rgba(0,255,249,0.3) !important;
+      outline: none !important;
+    }
+    .hs-form-frame button[type="submit"],
+    .hs-form-frame input[type="submit"] {
+      background: linear-gradient(90deg,#00fff9,#008cff) !important;
+      border: none !important;
+      border-radius: 8px !important;
+      padding: 14px 20px !important;
+      color: #02141c !important;
+      font-size: 0.9rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 1px !important;
+      text-transform: uppercase !important;
+      cursor: pointer !important;
+      font-family: Orbitron, sans-serif !important;
+      width: 100% !important;
+      transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+    .hs-form-frame button[type="submit"]:hover,
+    .hs-form-frame input[type="submit"]:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 15px rgba(0,255,249,0.5) !important;
+    }
+    .hs-form-frame button[type="submit"]:disabled,
+    .hs-form-frame input[type="submit"]:disabled {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
     }
   </style>
 
@@ -280,6 +320,36 @@
       if (e.target === modal) {
         modal.style.display = 'none';
         document.body.style.overflow = '';
+      }
+    });
+
+    // HubSpot form consent checkbox handler
+    window.addEventListener('message', function(event) {
+      if (event.data.type === 'hsFormCallback' && event.data.eventName === 'onFormReady') {
+        setTimeout(() => {
+          const form = document.querySelector('.hs-form-frame form') || document.querySelector('#hsForm_ec2af8eb-5722-4a56-a920-21e324453537');
+          if (form) {
+            const submitBtn = form.querySelector('input[type="submit"]') || form.querySelector('button[type="submit"]');
+            const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+            
+            if (submitBtn && checkboxes.length > 0) {
+              // Disable submit button by default
+              submitBtn.disabled = true;
+              submitBtn.style.opacity = '0.5';
+              submitBtn.style.cursor = 'not-allowed';
+              
+              // Enable/disable based on checkbox state
+              checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                  const allChecked = Array.from(checkboxes).every(cb => !cb.required || cb.checked);
+                  submitBtn.disabled = !allChecked;
+                  submitBtn.style.opacity = allChecked ? '1' : '0.5';
+                  submitBtn.style.cursor = allChecked ? 'pointer' : 'not-allowed';
+                });
+              });
+            }
+          }
+        }, 500);
       }
     });
   </script>

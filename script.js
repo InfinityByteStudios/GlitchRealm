@@ -70,73 +70,6 @@ async function loadSupabaseAvatarIfAvailable(userId) {
     function getTermsUpdateVersion() {
         return (typeof window.GR_TERMS_UPDATE_VERSION !== 'undefined' && window.GR_TERMS_UPDATE_VERSION) ? window.GR_TERMS_UPDATE_VERSION : '2025-09-05';
     }
-
-    // Legal notice helpers
-    if (typeof window.grResetLegalNotice !== 'function') {
-        window.grResetLegalNotice = function() {
-            try {
-                localStorage.removeItem('gr.legal.accepted');
-                localStorage.removeItem('gr.legal.declined');
-            } catch {}
-        };
-    }
-    if (typeof window.grShowLegalNoticeNow !== 'function') {
-        window.grShowLegalNoticeNow = function() {
-            const overlay = document.getElementById('terms-popup');
-            if (!overlay) { console.warn('Legal Notice overlay not found on this page'); return; }
-            overlay.style.display = 'flex';
-            const accept = document.getElementById('accept-terms');
-            const decline = document.getElementById('decline-terms');
-            const finalize = (didAccept) => {
-                try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
-                overlay.style.display = 'none';
-                if (!didAccept) {
-                    try { alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.'); } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                }
-            };
-            accept && accept.addEventListener('click', () => finalize(true), { once: true });
-            decline && decline.addEventListener('click', () => finalize(false), { once: true });
-        };
-    }
-
-    // Terms updated helpers (guarded to avoid overwriting later definitions)
-    if (typeof window.grResetTermsUpdateSeen !== 'function') {
-        window.grResetTermsUpdateSeen = function() {
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + getTermsUpdateVersion()); } catch {}
-        };
-    }
-    if (typeof window.grShowTermsUpdateNow !== 'function') {
-        window.grShowTermsUpdateNow = function() {
-            const overlay = document.getElementById('terms-update-popup');
-            if (!overlay) { console.warn('Terms Update overlay not found on this page'); return; }
-            // Lock background scroll while visible
-            overlay.dataset.prevOverflow = document.body.style.overflow || '';
-            document.body.style.overflow = 'hidden';
-            overlay.style.display = 'flex';
-            const dismiss = document.getElementById('dismiss-terms-update');
-            const accept = document.getElementById('accept-terms-update');
-            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-            const seenKey = 'gr.terms.updated.seen.v' + getTermsUpdateVersion();
-            const finalize = () => {
-                try { localStorage.setItem(seenKey, '1'); } catch {}
-                overlay.style.display = 'none';
-                document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                delete overlay.dataset.prevOverflow;
-            };
-            // Dismiss just closes (the decline-equivalent behavior is handled elsewhere when scheduled)
-            dismiss && dismiss.addEventListener('click', (e) => { try { e.preventDefault(); } catch {}; finalize(); }, { once: true });
-            // Accept acknowledges and closes
-            accept && accept.addEventListener('click', finalize, { once: true });
-            // Inline links count as seen
-            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
-        };
-    }
 })();
 
 // Auth message display function - must be available early
@@ -467,6 +400,46 @@ function resetAuthButtonsText() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // Set up sign-in button with localhost support
+    const setupSignInButton = function() {
+        const signInBtn = document.getElementById('sign-in-btn');
+        if (signInBtn && !signInBtn.dataset.listenerAttached) {
+            console.log('[Auth] Setting up sign-in button handler');
+            
+            signInBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('[Auth] Sign-in button clicked');
+                
+                // Detect localhost vs production
+                const isDev = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1' || 
+                             window.location.hostname.startsWith('192.168.');
+                
+                // Store current URL as return destination
+                const returnUrl = window.location.href;
+                sessionStorage.setItem('gr.returnTo', returnUrl);
+                
+                // Redirect to auth (local folder or subdomain)
+                if (isDev) {
+                    const authUrl = `/auth/?return=${encodeURIComponent(returnUrl)}`;
+                    console.log('[Auth] Redirecting to local auth:', authUrl);
+                    window.location.href = authUrl;
+                } else {
+                    const authUrl = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
+                    console.log('[Auth] Redirecting to production auth:', authUrl);
+                    window.location.href = authUrl;
+                }
+            });
+            
+            signInBtn.dataset.listenerAttached = 'true';
+            console.log('[Auth] Sign-in button handler attached');
+        }
+    };
+    
+    // Set up immediately and after a delay for dynamically loaded headers
+    setupSignInButton();
+    setTimeout(setupSignInButton, 1000);
     
     // IMMEDIATELY restore UI from cached auth state if available
     try {
@@ -1091,30 +1064,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return true;
                 }
             },
-            {
-                id: 'community-intro',
-                canShow: () => {
-                    const seen = localStorage.getItem('gr.community.intro.v1') === '1';
-                    const el = document.getElementById('community-intro');
-                    return !!el && !seen;
-                },
-                show: () => {
-                    const el = document.getElementById('community-intro');
-                    if (!el) return false;
-                    el.style.display = 'flex';
-                    const close = document.getElementById('community-intro-close');
-                    const dismiss = document.getElementById('community-intro-dismiss');
-                    const open = document.getElementById('community-intro-open');
-                    const hide = () => { el.style.display = 'none'; };
-                    const setSeen = () => { try { localStorage.setItem('gr.community.intro.v1', '1'); } catch {} };
-                    close && close.addEventListener('click', () => { hide(); setSeen(); }, { once: true });
-                    dismiss && dismiss.addEventListener('click', () => { hide(); setSeen(); }, { once: true });
-                    open && open.addEventListener('click', () => { setSeen(); }, { once: true });
-                    el.addEventListener('click', (e) => { if (e.target === el) { hide(); setSeen(); } }, { once: true });
-                    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { hide(); setSeen(); } }, { once: true });
-                    return true;
-                }
-            }
             // Add more providers here safely without changing functionality
         ];
 
@@ -1143,81 +1092,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem(lastKey, String(now)); } catch {}
             }
         }
-
-        // Expose helpers to manually reset or show the Terms Updated popup
-        window.grResetTermsUpdateSeen = function() {
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
-        };
-        window.grShowTermsUpdateNow = function() {
-            const overlay = document.getElementById('terms-update-popup');
-            if (!overlay) { console.warn('Terms Update overlay not found'); return; }
-            try { localStorage.removeItem('gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION); } catch {}
-            // Lock background scroll while visible
-            overlay.dataset.prevOverflow = document.body.style.overflow || '';
-            document.body.style.overflow = 'hidden';
-            overlay.style.display = 'flex';
-            const dismiss = document.getElementById('dismiss-terms-update');
-            const accept = document.getElementById('accept-terms-update');
-            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-            const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
-            const closeOnly = () => { 
-                overlay.style.display = 'none';
-                document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                delete overlay.dataset.prevOverflow;
-            };
-            const acknowledge = () => {
-                try { localStorage.setItem(seenKey, '1'); } catch {}
-                closeOnly();
-            };
-            if (dismiss) {
-                const onDismiss2 = (e) => {
-                    try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                    try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
-                    try {
-                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                    } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                };
-                dismiss.addEventListener('click', onDismiss2, { once: true });
-                dismiss.addEventListener('pointerdown', onDismiss2, { once: true });
-                dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss2(e); }, { once: true });
-            }
-            accept && accept.addEventListener('click', () => acknowledge(), { once: true });
-            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOnly(); }, { once: true });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOnly(); }, { once: true });
-        };
-
-        // Helpers for the original Legal Notice popup
-        window.grResetLegalNotice = function() {
-            try { localStorage.removeItem('gr.legal.accepted'); localStorage.removeItem('gr.legal.declined'); } catch {}
-        };
-        window.grShowLegalNoticeNow = function() {
-            const overlay = document.getElementById('terms-popup');
-            if (!overlay) { console.warn('Legal Notice overlay not found'); return; }
-            overlay.style.display = 'flex';
-            const accept = document.getElementById('accept-terms');
-            const decline = document.getElementById('decline-terms');
-            const finalize = (didAccept) => {
-                try { localStorage.setItem('gr.legal.' + (didAccept ? 'accepted' : 'declined'), '1'); } catch {}
-                overlay.style.display = 'none';
-                if (!didAccept) {
-                    try {
-                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                    } catch {}
-                    try { window.close(); } catch {}
-                    setTimeout(() => {
-                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                    }, 50);
-                }
-            };
-            // Re-bind with once:true to avoid duplicates
-            accept && accept.addEventListener('click', () => finalize(true), { once: true });
-            decline && decline.addEventListener('click', () => finalize(false), { once: true });
-        };
     } catch (e) {
         // Non-fatal: scheduler shouldn’t break the page
         console.warn('Popup scheduler error:', e);
@@ -1697,14 +1571,13 @@ async function initializeAuth() {
             console.log('[AppCheck] Not initialized (modules unavailable or not needed).');
         }
 
-        const { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const { signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
     
     // Expose deleteUser to global scope for account deletion
     window.deleteUser = deleteUser;
     
     const auth = window.firebaseAuth;
     try { auth.languageCode = navigator.language || 'en'; } catch {}
-    const forceRedirect = !!window.GR_AUTH_FORCE_REDIRECT;
     const googleProvider = new GoogleAuthProvider();
     const githubProvider = new GithubAuthProvider();
     try { githubProvider.setCustomParameters({ allow_signup: 'true' }); } catch {}
@@ -1791,82 +1664,35 @@ async function initializeAuth() {
 
     // Authentication methods (Firebase-dependent)
     googleSignIn?.addEventListener('click', async () => {
-        let finalized = false;
         try {
             showAuthLoading(googleSignIn, 'CONNECTING...');
-            if (forceRedirect) {
-                console.warn('Forcing Google sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
-                await signInWithRedirect(auth, googleProvider);
-                return;
-            }
-            await signInWithPopup(auth, googleProvider);
-            finalized = true;
-            if (signInModal) signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('Neural sync successful!', 'success');
+            await signInWithRedirect(auth, googleProvider);
+            return;
         } catch (error) {
-            console.error('Google sign-in error:', error);
-            const code = String(error?.code || error?.message || '');
-            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
-            if (shouldRedirect) {
-                try {
-                    console.warn('Falling back to redirect for Google sign-in...');
-                    await signInWithRedirect(auth, googleProvider);
-                    return; // Will navigate and complete via getRedirectResult()
-                } catch (redirectErr) {
-                    console.error('Google redirect sign-in failed:', redirectErr);
-                }
-            }
+            console.error('Google sign-in redirect error:', error);
             showAuthMessage('Connection failed. Please try again.', 'error');
         } finally {
-            if (!finalized) {
-                // Reset to proper default text based on active tab
-                const activeTab = document.querySelector('.auth-tab.active');
-                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-                const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
-                hideAuthLoading(googleSignIn, defaultText);
-            }
+            const activeTab = document.querySelector('.auth-tab.active');
+            const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
+            const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
+            hideAuthLoading(googleSignIn, defaultText);
         }
     });
 
-    // GitHub sign-in (with redirect fallback for popup/internal errors)
+    // GitHub sign-in (redirect-only to avoid popup blocking)
     githubSignIn?.addEventListener('click', async () => {
-        let finalized = false;
         try {
             showAuthLoading(githubSignIn, 'CONNECTING...');
-            if (forceRedirect) {
-                console.warn('Forcing GitHub sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
-                await signInWithRedirect(auth, githubProvider);
-                return;
-            }
-            await signInWithPopup(auth, githubProvider);
-            finalized = true;
-            if (signInModal) signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('GitHub sync successful!', 'success');
+            await signInWithRedirect(auth, githubProvider);
+            return;
         } catch (error) {
-            console.error('GitHub sign-in error:', error);
-            const code = String(error?.code || error?.message || '');
-            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
-            if (shouldRedirect) {
-                try {
-                    console.warn('Falling back to redirect for GitHub sign-in...');
-                    // Keep loading state; navigation should occur
-                    await signInWithRedirect(auth, githubProvider);
-                    return; // Will navigate away; getRedirectResult will complete later
-                } catch (redirectErr) {
-                    console.error('GitHub redirect sign-in failed:', redirectErr);
-                }
-            }
+            console.error('GitHub sign-in redirect error:', error);
             showAuthMessage('GitHub connection failed. Please try again.', 'error');
         } finally {
-            // Reset to proper default text based on active tab unless we’ve navigated/finished
-            if (!finalized) {
-                const activeTab = document.querySelector('.auth-tab.active');
-                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-                const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
-                hideAuthLoading(githubSignIn, defaultText);
-            }
+            const activeTab = document.querySelector('.auth-tab.active');
+            const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
+            const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
+            hideAuthLoading(githubSignIn, defaultText);
         }
     });
 
@@ -2037,7 +1863,17 @@ async function initializeAuth() {
                 setupProfilePictureMonitoring(auth);
             }
 
-            // Notifications now use a global feed; listener starts on page load.
+            // Start notifications listener for this user
+            (async () => {
+                try {
+                    await startGlobalNotificationsListener();
+                    console.log('[Notifications] Listener started for user:', user.uid);
+                } catch (e) {
+                    console.warn('[Notifications] Failed to start listener:', e);
+                }
+            })();
+
+            // Notifications use a global feed; listener now starts after sign-in.
             // Optional: auto-open portal on sign-in
             if (GR_SETTINGS.portalAutoOpenOnSignIn && !/user-portal\.html$/i.test(location.pathname)) {
                 setTimeout(() => { window.location.href = 'user-portal.html'; }, 300);
@@ -2061,7 +1897,11 @@ async function initializeAuth() {
                 window.profileMonitorInterval = null;
             }
 
-            // Global notifications remain active regardless of auth state.
+            // Stop notifications listener when signed out
+            if (window.detachNotificationsListener) {
+                window.detachNotificationsListener();
+            }
+            updateNotificationCount(0);
         }
     });
 
@@ -2629,19 +2469,26 @@ async function initializeAuth() {
 
         async function startGlobalNotificationsListener() {
             const db = await ensureFirestore();
-            // Clean up any existing listener
+            const auth = window.firebaseAuth;
+            const user = auth?.currentUser;
+
+            // Clean up any existing listener before reattaching
             detachNotificationsListener();
 
-            // Global notifications collection: /notifications
+            if (!user) {
+                updateNotificationCount(0);
+                return;
+            }
+
             const notificationsRef = window.firestoreCollection(db, 'notifications');
-            // Optionally filter unread only; if you want total, remove where clause
             const q = window.firestoreQuery(
                 notificationsRef,
-                window.firestoreWhere('read', '==', false)
+                window.firestoreWhere('userId', '==', user.uid)
             );
+
             notificationsUnsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
-                const count = snapshot.size || 0;
-                updateNotificationCount(count);
+                const unreadCount = snapshot.docs.filter(doc => doc.data()?.read !== true).length;
+                updateNotificationCount(unreadCount);
             }, (error) => {
                 console.warn('Global notifications snapshot error:', error);
             });
@@ -2649,6 +2496,7 @@ async function initializeAuth() {
 
         // Expose detach for use in auth sign-out branch
         window.detachNotificationsListener = detachNotificationsListener;
+        window.startGlobalNotificationsListener = startGlobalNotificationsListener;
 
         // Create a test notification for the current user
         async function createTestNotification() {
@@ -3247,37 +3095,7 @@ if (/\/support\.html$/i.test(location.pathname)) {
 
 // One-time coachmark bubble above chat button
 function maybeShowChatCoachmark() {
-    try { if (localStorage.getItem('gr.chatCoachmark.dismissed') === '1') return; } catch {}
-    const onHome = /(^|\/)(index\.html)?$/i.test(location.pathname) || location.pathname === '/';
-    const onPortal = /(^|\/)user-portal\.html$/i.test(location.pathname);
-    if (!(onHome || onPortal)) return; // show only on home or user portal
-
-    // Ensure launcher is present (widget button)
-    const attempt = () => {
-        const launcher = document.querySelector('.doai-styled-fab.chatbot-fab');
-        if (!launcher) return false;
-        if (document.querySelector('.chatbot-coachmark')) return true;
-        const bubble = document.createElement('div');
-        bubble.className = 'chatbot-coachmark';
-        bubble.innerHTML = `
-            <button class="coach-close" aria-label="Close">×</button>
-            <div>Hello! How can I help you today?</div>
-            <div class="coach-action">Open chat</div>
-        `;
-        document.body.appendChild(bubble);
-        const dismiss = () => { try { localStorage.setItem('gr.chatCoachmark.dismissed', '1'); } catch {}; bubble.remove(); };
-        bubble.querySelector('.coach-close')?.addEventListener('click', dismiss);
-        bubble.querySelector('.coach-action')?.addEventListener('click', () => {
-            // Simulate click on launcher
-            try { launcher.click(); } catch {}
-            dismiss();
-        });
-        // Auto-dismiss on chat open attempt via our event channel
-        window.addEventListener('doai:open', dismiss, { once: true });
-        return true;
-    };
-    let tries = 0;
-    const timer = setInterval(() => { tries++; if (attempt() || tries > 40) clearInterval(timer); }, 250);
+    // Disabled
 }
 
 // Trigger coachmark after minimal delay
@@ -4159,55 +3977,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add a visual indicator that header was loaded
                 console.log('Header loaded successfully!');
-
-        // After header injection, try to show the Terms Updated popup once per version
-                try {
-                    const overlay = document.getElementById('terms-update-popup');
-                    if (overlay) {
-            const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
-            const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
-                        const seen = localStorage.getItem(seenKey) === '1';
-                        if (!seen) {
-                            overlay.style.display = 'flex';
-                            const dismiss = document.getElementById('dismiss-terms-update');
-                            const accept = document.getElementById('accept-terms-update');
-                            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-                            const finalize = () => {
-                                try { localStorage.setItem(seenKey, '1'); } catch {}
-                                overlay.style.display = 'none';
-                                // In case any scroll lock was set elsewhere, restore it safely
-                                try {
-                                    if (overlay.dataset && 'prevOverflow' in overlay.dataset) {
-                                        document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                                        delete overlay.dataset.prevOverflow;
-                                    }
-                                } catch {}
-                            };
-                            if (dismiss) {
-                                const onDismiss = (e) => {
-                                    try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                                    try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
-                                    try {
-                                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                                    } catch {}
-                                    try { window.close(); } catch {}
-                                    setTimeout(() => {
-                                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                                    }, 50);
-                                };
-                                dismiss.addEventListener('click', onDismiss, { once: true });
-                                dismiss.addEventListener('pointerdown', onDismiss, { once: true });
-                                dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
-                            }
-                            // Accept should acknowledge and close
-                            accept && accept.addEventListener('click', finalize, { once: true });
-                            // Inline links also acknowledge once clicked
-                            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-                            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
-                            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
-                        }
-                    }
-                } catch (e) { /* non-fatal */ }
                 
                 // Update active nav link based on current page
                 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
@@ -4633,277 +4402,12 @@ function forceInitializeDropdowns() {
 
 // One-time intro popup for GlitchRealm Portal
 function maybeShowPortalIntro() {
-    try {
-        if (localStorage.getItem('gr.portalIntro.dismissed') === '1') return;
-    } catch (e) {
-        // Ignore storage errors; continue to show once per session
-    }
-
-    // Don't show on the Portal page or portal subdomain
-    const onPortal = /(^|\/)user-portal\.html$/i.test(location.pathname) || location.hostname.toLowerCase().startsWith('portal.');
-    if (onPortal) return;
-
-    // Avoid duplicate if already injected
-    if (document.getElementById('portal-intro-modal')) return;
-
-    const overlay = document.createElement('div');
-    overlay.id = 'portal-intro-modal';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-labelledby', 'portal-intro-title');
-    overlay.style.position = 'fixed';
-    overlay.style.inset = '0';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.style.background = 'rgba(0,0,0,0.55)';
-    overlay.style.zIndex = '10000';
-
-    const card = document.createElement('div');
-    card.style.width = 'min(540px, 92vw)';
-    card.style.background = '#0b0e14';
-    card.style.border = '1px solid #263043';
-    card.style.borderRadius = '12px';
-    card.style.boxShadow = '0 12px 32px rgba(0,0,0,0.4)';
-    card.style.color = '#e6edf3';
-    card.style.padding = '20px 20px 16px';
-
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.gap = '12px';
-    header.style.alignItems = 'center';
-
-    const icon = document.createElement('img');
-    icon.src = 'assets/Favicon and Icons/favicon.ico';
-    icon.alt = '';
-    icon.width = 28;
-    icon.height = 28;
-    icon.style.borderRadius = '6px';
-
-    const title = document.createElement('h2');
-    title.id = 'portal-intro-title';
-    title.textContent = 'Introducing GlitchRealm Portal';
-    title.style.margin = '0';
-    title.style.fontSize = '1.35rem';
-
-    header.appendChild(icon);
-    header.appendChild(title);
-
-    const body = document.createElement('div');
-    body.style.marginTop = '10px';
-    body.style.lineHeight = '1.6';
-    body.innerHTML = `
-        Manage your account, track playtime across GlitchRealm games, and get support — all in one place.<br/>
-        Access it anytime from your profile menu (top-right) under <strong>User Portal</strong>,
-        or from <strong>More → User Portal</strong> in the top navigation.
-    `;
-
-    const actions = document.createElement('div');
-    actions.style.display = 'flex';
-    actions.style.justifyContent = 'flex-end';
-    actions.style.gap = '10px';
-    actions.style.marginTop = '16px';
-
-    const dismissBtn = document.createElement('button');
-    dismissBtn.type = 'button';
-    dismissBtn.textContent = 'Got it';
-    dismissBtn.style.padding = '10px 14px';
-    dismissBtn.style.borderRadius = '8px';
-    dismissBtn.style.background = 'transparent';
-    dismissBtn.style.border = '1px solid #3b475e';
-    dismissBtn.style.color = '#e6edf3';
-
-    const openBtn = document.createElement('a');
-    openBtn.href = 'user-portal.html';
-    openBtn.textContent = 'Open Portal';
-    openBtn.style.padding = '10px 14px';
-    openBtn.style.borderRadius = '8px';
-    openBtn.style.background = '#2d72d2';
-    openBtn.style.border = '1px solid #2d72d2';
-    openBtn.style.color = '#ffffff';
-    openBtn.style.textDecoration = 'none';
-
-    actions.appendChild(dismissBtn);
-    actions.appendChild(openBtn);
-
-    card.appendChild(header);
-    card.appendChild(body);
-    card.appendChild(actions);
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-    const dismiss = () => {
-        try { localStorage.setItem('gr.portalIntro.dismissed', '1'); } catch (e) {}
-        overlay.remove();
-    };
-
-    dismissBtn.addEventListener('click', dismiss);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismiss(); }, { once: true });
-
-    // Focus for accessibility
-    setTimeout(() => dismissBtn.focus(), 0);
+    // Disabled
 }
 
 // One-time intro popup for GlitchRealm Bot (appears on Home or User Portal)
 function maybeShowBotIntro() {
-    // Respect prior dismissal
-    try { if (localStorage.getItem('gr.botIntro.dismissed') === '1') return; } catch {}
-
-    // Show only on Home or User Portal
-    const onHome = /(^|\/)((index\.html)?$)/i.test(location.pathname) || location.pathname === '/';
-    const onPortal = /(^|\/)user-portal\.html$/i.test(location.pathname);
-    if (!(onHome || onPortal)) return;
-
-    // If another intro modal is visible, skip to avoid stacking
-    if (document.getElementById('portal-intro-modal')) return;
-    if (document.getElementById('bot-intro-modal')) return;
-
-    // Build overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'bot-intro-modal';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-labelledby', 'bot-intro-title');
-    overlay.style.position = 'fixed';
-    overlay.style.inset = '0';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.style.background = 'rgba(0,0,0,0.55)';
-    overlay.style.zIndex = '10000';
-
-    const card = document.createElement('div');
-    card.style.width = 'min(560px, 92vw)';
-    card.style.background = '#0b0e14';
-    card.style.border = '1px solid #263043';
-    card.style.borderRadius = '12px';
-    card.style.boxShadow = '0 12px 32px rgba(0,0,0,0.4)';
-    card.style.color = '#e6edf3';
-    card.style.padding = '20px 20px 16px';
-
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.gap = '12px';
-    header.style.alignItems = 'center';
-
-    const icon = document.createElement('img');
-    icon.src = 'assets/Favicon and Icons/favicon.ico';
-    icon.alt = '';
-    icon.width = 28;
-    icon.height = 28;
-    icon.style.borderRadius = '6px';
-
-    const title = document.createElement('h2');
-    title.id = 'bot-intro-title';
-    title.textContent = 'Introducing GlitchRealm Bot';
-    title.style.margin = '0';
-    title.style.fontSize = '1.35rem';
-
-    header.appendChild(icon);
-    header.appendChild(title);
-
-    const body = document.createElement('div');
-    body.style.marginTop = '10px';
-    body.style.lineHeight = '1.6';
-    body.innerHTML = `
-        <div style="margin-bottom: 4px; opacity: 0.9;">Our biggest milestone yet — a smart assistant built into GlitchRealm.</div>
-        <div>Ask about our games, get playtime tips, account help, roadmap info, and troubleshooting — 24/7.</div>
-        <ul style="margin: 10px 0 0 18px; line-height: 1.6;">
-            <li>Instant answers about CodeRunner, ByteSurge, Byte Wars, and more</li>
-            <li>Account and portal guidance without leaving the page</li>
-            <li>Updates, changelogs, and “what’s new” at your fingertips</li>
-        </ul>
-        <div style="margin-top:10px; opacity:0.85;">Open it anytime from the chat button in the bottom-right.</div>
-    `;
-
-    const actions = document.createElement('div');
-    actions.style.display = 'flex';
-    actions.style.justifyContent = 'flex-end';
-    actions.style.gap = '10px';
-    actions.style.marginTop = '16px';
-
-    const laterBtn = document.createElement('button');
-    laterBtn.type = 'button';
-    laterBtn.textContent = 'Maybe later';
-    laterBtn.style.padding = '10px 14px';
-    laterBtn.style.borderRadius = '8px';
-    laterBtn.style.background = 'transparent';
-    laterBtn.style.border = '1px solid #3b475e';
-    laterBtn.style.color = '#e6edf3';
-
-    const openBtn = document.createElement('button');
-    openBtn.type = 'button';
-    openBtn.textContent = 'Open Chat';
-    openBtn.style.padding = '10px 14px';
-    openBtn.style.borderRadius = '8px';
-    openBtn.style.background = '#2d72d2';
-    openBtn.style.border = '1px solid #2d72d2';
-    openBtn.style.color = '#ffffff';
-
-    actions.appendChild(laterBtn);
-    actions.appendChild(openBtn);
-
-    card.appendChild(header);
-    card.appendChild(body);
-    card.appendChild(actions);
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-    const dismiss = () => {
-        try {
-            localStorage.setItem('gr.botIntro.dismissed', '1');
-            // Also avoid showing the coachmark after intro
-            localStorage.setItem('gr.chatCoachmark.dismissed', '1');
-        } catch {}
-        try { overlay.remove(); } catch {}
-    };
-
-    // Minimal open helper (namespaces + launcher click + event broadcast)
-    function openChatbotNow() {
-        try {
-            const g = window;
-            const namespaces = [g.DOAIChatbot, g.DoAIChatbot, g.doAIChatbot, g.doaiChatbot, g.DOAI, g.DoAI, g.doAI, g.doai].filter(Boolean);
-            const methods = ['open','toggle','show','start','expand','openChat','openWidget','openChatbot'];
-            for (const ns of namespaces) {
-                if (!ns) continue;
-                for (const m of methods) {
-                    if (typeof ns[m] === 'function') { ns[m](); return true; }
-                }
-                if (ns.widget) {
-                    for (const m of methods) { if (typeof ns.widget[m] === 'function') { ns.widget[m](); return true; } }
-                }
-            }
-        } catch {}
-        try { window.dispatchEvent(new CustomEvent('doai:open')); } catch {}
-        try { window.dispatchEvent(new Event('doai-open')); } catch {}
-        try { window.postMessage({ type: 'doai:open' }, '*'); } catch {}
-        // Try clicking the launcher
-        try {
-            const selectors = ['[data-doai-launcher]','[class*="doai"][class*="launch"]','.doai-launcher','.doai-widget-launcher','.doai-chatbot-launcher','.doai-floating-button','button[aria-label*="chat" i]','button[title*="chat" i]'];
-            for (const sel of selectors) {
-                const el = document.querySelector(sel);
-                if (el) { el.click(); return true; }
-            }
-        } catch {}
-        return false;
-    }
-
-    laterBtn.addEventListener('click', dismiss);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismiss(); }, { once: true });
-    openBtn.addEventListener('click', () => {
-        dismiss();
-        // Give the widget a brief moment if still loading, then try to open
-        setTimeout(() => {
-            if (!openChatbotNow()) {
-                setTimeout(() => openChatbotNow(), 600);
-            }
-        }, 150);
-    });
-
-    // Focus for accessibility
-    setTimeout(() => openBtn.focus(), 0);
+    // Disabled
 }
 
 // Test profile functions
@@ -5030,31 +4534,187 @@ function handleNotificationClick() {
     // Clear notification count
     updateNotificationCount(0);
     
-    // Here you can add logic to:
-    // - Open a notifications dropdown/modal
-    // - Navigate to notifications page
-    // - Mark notifications as read
+    // Show notifications popup
+    showNotificationsPopup();
+}
+
+async function showNotificationsPopup() {
+    const auth = window.firebaseAuth;
+    const db = window.firebaseFirestore;
     
-    // For now, just show an alert as placeholder
-    alert('Notifications feature coming soon!');
+    if (!auth || !db) {
+        console.error('Firebase not initialized');
+        return;
+    }
+    
+    const user = auth.currentUser;
+    if (!user) {
+        alert('Please sign in to view notifications');
+        return;
+    }
+    
+    // Create modal HTML if it doesn't exist
+    let modal = document.getElementById('notifications-popup-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'notifications-popup-modal';
+        modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100000; align-items: center; justify-content: center;';
+        modal.innerHTML = `
+            <div style="background: linear-gradient(135deg, rgba(10,10,30,0.98), rgba(20,10,30,0.98)); border: 2px solid var(--primary-cyan); border-radius: 16px; max-width: 600px; width: 90%; max-height: 80vh; overflow: hidden; box-shadow: 0 0 40px rgba(0,255,249,0.3); position: relative;">
+                <div style="padding: 25px 30px; border-bottom: 1px solid rgba(0,255,249,0.2); display: flex; align-items: center; justify-content: space-between;">
+                    <h2 style="color: var(--primary-cyan); margin: 0; font-size: 1.8rem; display: flex; align-items: center; gap: 12px;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        Notifications
+                    </h2>
+                    <button id="close-notifications-popup" style="background: none; border: none; color: rgba(255,255,255,0.7); font-size: 2rem; cursor: pointer; line-height: 1; padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.3s ease;">&times;</button>
+                </div>
+                <div id="notifications-popup-list" style="padding: 20px 30px; overflow-y: auto; max-height: calc(80vh - 100px);"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Close button handler
+        document.getElementById('close-notifications-popup').onclick = () => {
+            modal.style.display = 'none';
+        };
+        
+        // Close on outside click
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Show modal
+    modal.style.display = 'flex';
+    
+    // Load notifications
+    const list = document.getElementById('notifications-popup-list');
+    list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">Loading notifications...</p>';
+    
+    try {
+        const { collection, query, where, orderBy, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        
+        const notificationsRef = collection(db, 'notifications');
+        const q = query(
+            notificationsRef,
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc')
+        );
+        
+        const snapshot = await getDocs(q);
+        const notifications = [];
+        snapshot.forEach(doc => {
+            notifications.push({ id: doc.id, ...doc.data() });
+        });
+        
+        list.innerHTML = '';
+        
+        if (notifications.length === 0) {
+            list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">No notifications yet</p>';
+        } else {
+            notifications.forEach(notif => {
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    background: ${notif.read ? 'rgba(0,255,249,0.05)' : 'rgba(0,255,249,0.12)'};
+                    border: 1px solid ${notif.read ? 'rgba(0,255,249,0.2)' : 'var(--primary-cyan)'};
+                    border-radius: 10px;
+                    padding: 18px;
+                    margin-bottom: 15px;
+                    cursor: ${notif.read ? 'default' : 'pointer'};
+                    transition: all 0.3s ease;
+                `;
+                
+                const time = notif.createdAt?.toDate ? notif.createdAt.toDate().toLocaleString() : 'Just now';
+                
+                item.innerHTML = `
+                    <div style="color: var(--primary-cyan); font-size: 1.1rem; font-weight: 600; margin-bottom: 8px;">${notif.title || 'Notification'}</div>
+                    <div style="color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px;">${notif.message || ''}</div>
+                    <div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">${time}</div>
+                `;
+                
+                // Mark as read when clicked
+                if (!notif.read) {
+                    item.onmouseenter = () => {
+                        item.style.background = 'rgba(0,255,249,0.15)';
+                        item.style.borderColor = 'rgba(0,255,249,0.6)';
+                    };
+                    item.onmouseleave = () => {
+                        item.style.background = 'rgba(0,255,249,0.12)';
+                        item.style.borderColor = 'var(--primary-cyan)';
+                    };
+                    
+                    item.onclick = async () => {
+                        try {
+                            await updateDoc(doc(db, 'notifications', notif.id), { read: true });
+                            item.style.background = 'rgba(0,255,249,0.05)';
+                            item.style.borderColor = 'rgba(0,255,249,0.2)';
+                            item.style.cursor = 'default';
+                            item.onmouseenter = null;
+                            item.onmouseleave = null;
+                            item.onclick = null;
+                            
+                            // Update badge count
+                            const currentCount = parseInt(document.getElementById('notification-count')?.textContent || '0');
+                            if (currentCount > 0) {
+                                updateNotificationCount(currentCount - 1);
+                            }
+                        } catch (error) {
+                            console.error('Error marking notification as read:', error);
+                        }
+                    };
+                }
+                
+                list.appendChild(item);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+        list.innerHTML = '<p style="text-align: center; color: rgba(255,100,100,0.8); padding: 30px;">Error loading notifications. Please try again later.</p>';
+    }
 }
 
 function updateNotificationCount(count) {
+    const badgeEnabled = GR_SETTINGS.notificationsBadgeEnabled !== false;
+
     // Update notification count in dropdown menu
     const notificationCountElement = document.getElementById('notification-count');
+    const notificationCountInline = document.getElementById('notification-count-inline');
+    const notificationCountTrigger = document.getElementById('notification-count-trigger');
     if (notificationCountElement) {
-    if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+        if (count > 0) {
             notificationCountElement.textContent = count > 99 ? '99+' : count.toString();
             notificationCountElement.style.display = 'flex';
         } else {
             notificationCountElement.style.display = 'none';
         }
     }
+    if (notificationCountInline) {
+        const inlineText = count > 99 ? '99+' : Math.max(count, 0).toString();
+        notificationCountInline.textContent = inlineText;
+        notificationCountInline.style.display = (count > 0) ? 'inline-flex' : 'none';
+    }
+    if (notificationCountTrigger) {
+        const triggerText = count > 99 ? '99+' : Math.max(count, 0).toString();
+        notificationCountTrigger.textContent = triggerText;
+        notificationCountTrigger.style.display = (count > 0) ? 'inline-flex' : 'none';
+    }
     
     // Update notification count badge on profile trigger
     const notificationCountBadge = document.getElementById('notification-count-badge');
     if (notificationCountBadge) {
-    if (count > 0 && GR_SETTINGS.notificationsBadgeEnabled) {
+        if ((count > 0) || badgeEnabled) {
             notificationCountBadge.textContent = count > 99 ? '99+' : count.toString();
             notificationCountBadge.style.display = 'flex';
         } else {
@@ -5074,6 +4734,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Debug: Check if notification bell exists
     const notificationBell = document.getElementById('notification-bell');
     console.log('Notification bell found:', !!notificationBell);
+
+    // Badges hidden by default - only shown when actual notifications exist
+    // const inlineBadge = document.getElementById('notification-count-inline');
+    // if (inlineBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+    //     inlineBadge.textContent = '0';
+    //     inlineBadge.style.display = 'inline-flex';
+    // }
+
+    // Trigger badge hidden by default - only shown when actual notifications exist
+    // const triggerBadge = document.getElementById('notification-count-trigger');
+    // if (triggerBadge && GR_SETTINGS.notificationsBadgeEnabled) {
+    //     triggerBadge.textContent = '0';
+    //     triggerBadge.style.display = 'inline-flex';
+    // }
     
     // For testing purposes only, you can simulate a notification count.
     // This is disabled by default to avoid overriding real Firestore counts.
@@ -5084,20 +4758,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Test notification count set to 1');
         }, 1000);
     }
-    
-    // Start global notifications listener (shared for all users)
-    (async () => {
-        try {
-            await startGlobalNotificationsListener();
-            console.log('Global notifications listener active');
-        } catch (e) {
-            console.warn('Failed to start global notifications listener:', e);
-        }
-    })();
-    
-    // You can call updateNotificationCount here with actual notification data
-    // For demo purposes, uncomment the line below to show a notification count:
-    // updateNotificationCount(3);
     
     // Initialize Mobile Navigation
     initializeMobileNavigation();

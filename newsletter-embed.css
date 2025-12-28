@@ -141,3 +141,134 @@
     padding: 12px 14px !important;
   }
 }
+
+/* ========================================= */
+/* HubSpot Newsletter Form Styling */
+/* ========================================= */
+
+.newsletter-section {
+    background: linear-gradient(135deg, rgba(0, 255, 249, 0.05) 0%, rgba(0, 140, 255, 0.05) 100%);
+    padding: 60px 20px;
+    margin-top: 80px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 255, 249, 0.2);
+}
+
+.newsletter-section h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    background: linear-gradient(90deg, #00fff9, #008cff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 10px;
+}
+
+.newsletter-section p {
+    color: #cfe5e8;
+    font-size: 1rem;
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.newsletter-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    gap: 15px;
+}
+
+.newsletter-form input[type="email"] {
+    padding: 12px 16px;
+    background: rgba(8, 19, 27, 0.8);
+    border: 2px solid rgba(0, 255, 249, 0.3);
+    border-radius: 4px;
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.newsletter-form input[type="email"]:focus {
+    outline: none;
+    border-color: var(--primary-cyan, #00fff9);
+    box-shadow: 0 0 10px rgba(0, 255, 249, 0.3);
+}
+
+.newsletter-form input[type="email"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-align: left;
+    color: #cfe5e8;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.consent-label input[type="checkbox"] {
+    margin-top: 3px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: #00fff9;
+}
+
+.consent-label a {
+    color: var(--primary-cyan, #00fff9);
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+}
+
+.consent-label a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.newsletter-form .neural-button {
+    padding: 12px 32px;
+    background: linear-gradient(90deg, #00fff9, #008cff);
+    border: none;
+    border-radius: 4px;
+    color: #0a0a0a;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.newsletter-form .neural-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 249, 0.4);
+}
+
+.newsletter-form .neural-button:active {
+    transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .newsletter-section {
+        padding: 40px 20px;
+        margin-top: 60px;
+    }
+    
+    .newsletter-section h2 {
+        font-size: 1.5rem;
+    }
+    
+    .newsletter-form {
+        max-width: 100%;
+    }
+}
