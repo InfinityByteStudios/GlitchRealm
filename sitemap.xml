@@ -24,6 +24,32 @@
     <loc>https://glitchrealm.ca/privacy-policy.html</loc>
     <priority>0.40</priority>
     <changefreq>yearly</changefreq>
+    <lastmod>2025-12-27</lastmod>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/legal.html</loc>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/donation-policy.html</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/code-of-conduct.html</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/legal-information.html</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/brand-protection.html</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
   </url>
   <url>
     <loc>https://glitchrealm.ca/contact.html</loc>

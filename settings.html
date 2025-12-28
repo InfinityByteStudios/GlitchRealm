@@ -3,12 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - GlitchRealm</title>
-    
-    <!-- Preconnect -->
-    <link rel="preconnect" href="https://www.gstatic.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Settings - GlitchRealm Games</title>
     
     <!-- Favicons -->
     <link rel="icon" href="/favicon.ico" sizes="any">
@@ -19,555 +14,443 @@
     <link rel="stylesheet" href="styles.css">
     
     <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     
-    <!-- Firebase Core -->
-    <script type="module" src="firebase-core.js"></script>
-    
     <style>
+        .settings-page {
+            min-height: 100vh;
+            background: var(--dark-bg);
+            padding-top: 100px;
+            padding-bottom: 60px;
+        }
+        
         .settings-container {
-            max-width: 900px;
-            margin: 100px auto 60px;
-            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
         
-        .settings-header {
+        .settings-hero {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(0, 255, 249, 0.05), rgba(255, 0, 128, 0.05));
+            border-radius: 20px;
+            border: 2px solid rgba(0, 255, 249, 0.2);
         }
         
-        .settings-header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
+        .settings-hero h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
             color: var(--primary-cyan);
-            text-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
-            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px rgba(0, 255, 249, 0.6);
+            margin-bottom: 15px;
         }
         
-        .settings-header p {
-            color: var(--gray-400);
-            font-size: 1.1rem;
+        .settings-hero p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
         }
         
-        .settings-section {
-            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(10, 10, 10, 0.9) 100%);
-            border: 1px solid rgba(0, 255, 249, 0.3);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        .settings-grid {
+            display: grid;
+            gap: 30px;
+            margin-bottom: 40px;
         }
         
-        .settings-section h2 {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1.5rem;
-            color: var(--white);
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid rgba(0, 255, 249, 0.2);
+        .setting-card {
+            background: linear-gradient(135deg, #0a1629 0%, #041018 100%);
+            border: 2px solid rgba(0, 255, 249, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s;
         }
         
-        .setting-item {
+        .setting-card:hover {
+            border-color: rgba(0, 255, 249, 0.6);
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .setting-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 1.25rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 15px;
+            margin-bottom: 20px;
         }
         
-        .setting-item:last-child {
-            border-bottom: none;
+        .setting-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
         }
         
-        .setting-info {
-            flex: 1;
-        }
-        
-        .setting-info h3 {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--white);
-            margin-bottom: 0.25rem;
-        }
-        
-        .setting-info p {
-            font-size: 0.9rem;
-            color: var(--gray-400);
+        .setting-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: var(--primary-cyan);
             margin: 0;
         }
         
-        .setting-control {
-            margin-left: 2rem;
+        .setting-description {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 25px;
+            line-height: 1.6;
         }
         
-        /* Toggle Switch */
+        .setting-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .setting-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(0, 255, 249, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .setting-option:hover {
+            background: rgba(0, 255, 249, 0.05);
+            border-color: rgba(0, 255, 249, 0.4);
+        }
+        
+        .setting-option-info {
+            flex: 1;
+        }
+        
+        .setting-option-label {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        .setting-option-desc {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .setting-button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .setting-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 249, 0.4);
+        }
+        
         .toggle-switch {
             position: relative;
-            width: 56px;
-            height: 28px;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
             cursor: pointer;
+            transition: all 0.3s;
         }
         
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .toggle-slider {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 28px;
-            transition: all 0.3s ease;
-        }
-        
-        .toggle-slider::before {
-            content: "";
-            position: absolute;
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background: var(--gray-400);
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-        
-        .toggle-switch input:checked + .toggle-slider {
-            background: rgba(0, 255, 249, 0.2);
-            border-color: var(--primary-cyan);
-        }
-        
-        .toggle-switch input:checked + .toggle-slider::before {
-            transform: translateX(28px);
+        .toggle-switch.active {
             background: var(--primary-cyan);
-            box-shadow: 0 0 10px rgba(0, 255, 249, 0.5);
+            box-shadow: 0 0 15px rgba(0, 255, 249, 0.6);
         }
         
-        /* Select Dropdown */
-        .settings-select {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 255, 249, 0.3);
-            border-radius: 6px;
-            padding: 8px 16px;
-            color: var(--white);
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            min-width: 150px;
-            transition: all 0.3s ease;
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s;
         }
         
-        .settings-select:hover {
-            border-color: var(--primary-cyan);
-            box-shadow: 0 0 10px rgba(0, 255, 249, 0.2);
+        .toggle-switch.active::after {
+            left: 33px;
         }
         
-        .settings-select:focus {
-            outline: none;
-            border-color: var(--primary-cyan);
-            box-shadow: 0 0 15px rgba(0, 255, 249, 0.3);
-        }
-        
-        /* Button */
-        .settings-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: rgba(0, 255, 249, 0.1);
-            border: 1px solid var(--primary-cyan);
-            border-radius: 6px;
-            color: var(--primary-cyan);
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .settings-btn:hover {
-            background: rgba(0, 255, 249, 0.2);
-            box-shadow: 0 0 15px rgba(0, 255, 249, 0.3);
-        }
-        
-        .settings-btn.danger {
+        .reset-section {
+            text-align: center;
+            padding: 40px;
             background: rgba(255, 7, 58, 0.1);
-            border-color: var(--danger);
+            border: 2px solid rgba(255, 7, 58, 0.3);
+            border-radius: 16px;
+        }
+        
+        .reset-section h2 {
+            font-family: 'Orbitron', monospace;
             color: var(--danger);
+            margin-bottom: 15px;
         }
         
-        .settings-btn.danger:hover {
-            background: rgba(255, 7, 58, 0.2);
-            box-shadow: 0 0 15px rgba(255, 7, 58, 0.3);
+        .reset-section p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 20px;
         }
         
-        /* Save Indicator */
-        .save-indicator {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: linear-gradient(135deg, rgba(0, 255, 249, 0.9) 0%, rgba(0, 255, 65, 0.9) 100%);
-            color: #0a0a0a;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 600;
-            font-size: 1rem;
-            box-shadow: 0 4px 20px rgba(0, 255, 249, 0.4);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
-            pointer-events: none;
-            z-index: 1000;
+        .reset-button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--danger), #c7053a);
+            border: 2px solid var(--danger);
+            border-radius: 10px;
+            color: white;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
         }
         
-        .save-indicator.show {
-            opacity: 1;
-            transform: translateY(0);
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 7, 58, 0.5);
         }
         
         @media (max-width: 768px) {
-            .settings-container {
-                margin-top: 80px;
-                padding: 1rem;
-            }
-            
-            .settings-header h1 {
+            .settings-hero h1 {
                 font-size: 2rem;
             }
             
-            .settings-section {
-                padding: 1.5rem;
+            .setting-card {
+                padding: 20px;
             }
             
-            .setting-item {
+            .setting-option {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 1rem;
-            }
-            
-            .setting-control {
-                margin-left: 0;
-                width: 100%;
-            }
-            
-            .settings-select {
-                width: 100%;
+                gap: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="background-animation" aria-hidden="true"></div>
+    <!-- Header -->
+    <div id="header-container"></div>
+    <script>
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-container').innerHTML = data;
+            });
+    </script>
     
-    <div id="header-placeholder"></div>
-    
-    <main class="settings-container">
-        <div class="settings-header">
-            <h1 class="glitch" data-text="Settings">Settings</h1>
-            <p>Customize your GlitchRealm experience</p>
+    <main class="settings-page">
+        <div class="settings-container">
+            <!-- Hero Section -->
+            <div class="settings-hero">
+                <h1>⚙️ Settings</h1>
+                <p>Customize your GlitchRealm experience</p>
+            </div>
+            
+            <!-- Settings Grid -->
+            <div class="settings-grid">
+                <!-- Glitch Effect Settings -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-icon">⚡</div>
+                        <h2 class="setting-title">Glitch Effect</h2>
+                    </div>
+                    <p class="setting-description">Control the glitch text animation speed throughout the site. Choose your preferred animation style for the cyberpunk text effects.</p>
+                    <div class="setting-options">
+                        <div class="setting-option" onclick="setGlitchSpeed('stopped')" id="glitch-stopped">
+                            <div class="setting-option-info">
+                                <div class="setting-option-label">Stopped (No Animation)</div>
+                                <div class="setting-option-desc">Static text with no glitch effect</div>
+                            </div>
+                            <div class="toggle-switch" id="toggle-stopped"></div>
+                        </div>
+                        <div class="setting-option" onclick="setGlitchSpeed('slow')" id="glitch-slow">
+                            <div class="setting-option-info">
+                                <div class="setting-option-label">Slow Animation</div>
+                                <div class="setting-option-desc">Subtle glitch effect (2-3 seconds)</div>
+                            </div>
+                            <div class="toggle-switch" id="toggle-slow"></div>
+                        </div>
+                        <div class="setting-option" onclick="setGlitchSpeed('fast')" id="glitch-fast">
+                            <div class="setting-option-info">
+                                <div class="setting-option-label">Fast Animation (Default)</div>
+                                <div class="setting-option-desc">Dynamic glitch effect (0.5 seconds)</div>
+                            </div>
+                            <div class="toggle-switch active" id="toggle-fast"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Theme Settings (Future) -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-icon">🎨</div>
+                        <h2 class="setting-title">Appearance</h2>
+                    </div>
+                    <p class="setting-description">Customize the look and feel of GlitchRealm. Theme options coming soon!</p>
+                    <div class="setting-options">
+                        <div class="setting-option" style="opacity: 0.5; cursor: not-allowed;">
+                            <div class="setting-option-info">
+                                <div class="setting-option-label">Dark Mode (Current)</div>
+                                <div class="setting-option-desc">Cyberpunk dark theme</div>
+                            </div>
+                            <div class="toggle-switch active"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Accessibility Settings -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-icon">♿</div>
+                        <h2 class="setting-title">Accessibility</h2>
+                    </div>
+                    <p class="setting-description">Adjust settings to improve your experience. More options coming soon!</p>
+                    <div class="setting-options">
+                        <div class="setting-option" style="opacity: 0.5; cursor: not-allowed;">
+                            <div class="setting-option-info">
+                                <div class="setting-option-label">Reduced Motion</div>
+                                <div class="setting-option-desc">Minimize animations site-wide</div>
+                            </div>
+                            <div class="toggle-switch"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reset Section -->
+            <div class="reset-section">
+                <h2>⚠️ Reset All Settings</h2>
+                <p>This will restore all settings to their default values.</p>
+                <button class="reset-button" onclick="resetAllSettings()">Reset to Defaults</button>
+            </div>
         </div>
-        
-        <!-- Appearance Settings -->
-        <section class="settings-section">
-            <h2>Appearance</h2>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Reduced Motion</h3>
-                    <p>Disable animations and motion effects for better accessibility</p>
-                </div>
-                <div class="setting-control">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="reducedMotion">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>High Contrast</h3>
-                    <p>Increase contrast for better readability</p>
-                </div>
-                <div class="setting-control">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="highContrast">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Gameplay Settings -->
-        <section class="settings-section">
-            <h2>Gameplay</h2>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Playtime Tracking</h3>
-                    <p>Track your playtime across all games</p>
-                </div>
-                <div class="setting-control">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="playtimeTracking" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Auto-Save Progress</h3>
-                    <p>Automatically save your game progress</p>
-                </div>
-                <div class="setting-control">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="autoSave" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Performance Mode</h3>
-                    <p>Optimize game performance on lower-end devices</p>
-                </div>
-                <div class="setting-control">
-                    <select class="settings-select" id="performanceMode">
-                        <option value="auto">Auto</option>
-                        <option value="high">High Quality</option>
-                        <option value="balanced">Balanced</option>
-                        <option value="performance">Performance</option>
-                    </select>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Privacy Settings -->
-        <section class="settings-section">
-            <h2>Privacy & Data</h2>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Analytics</h3>
-                    <p>Help improve GlitchRealm by sharing anonymous usage data</p>
-                </div>
-                <div class="setting-control">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="analytics" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Cookie Preferences</h3>
-                    <p>Manage your cookie and consent settings</p>
-                </div>
-                <div class="setting-control">
-                    <button class="settings-btn" onclick="window.openConsentManager && window.openConsentManager()">
-                        Manage Cookies
-                    </button>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Clear Cache</h3>
-                    <p>Clear cached data to free up space (may slow down loading)</p>
-                </div>
-                <div class="setting-control">
-                    <button class="settings-btn" id="clearCache">
-                        Clear Cache
-                    </button>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Account Settings -->
-        <section class="settings-section">
-            <h2>Account</h2>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Export Data</h3>
-                    <p>Download a copy of your account data and game progress</p>
-                </div>
-                <div class="setting-control">
-                    <button class="settings-btn" id="exportData">
-                        Export Data
-                    </button>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h3>Delete Account</h3>
-                    <p>Permanently delete your account and all associated data</p>
-                </div>
-                <div class="setting-control">
-                    <button class="settings-btn danger" id="deleteAccount">
-                        Delete Account
-                    </button>
-                </div>
-            </div>
-        </section>
     </main>
     
-    <div id="footer-placeholder"></div>
-    
-    <div class="save-indicator" id="saveIndicator">Settings saved!</div>
-    
-    <script src="script.js" defer></script>
-    <script type="module" src="header-avatar-integration.js"></script>
-    
+    <!-- Footer -->
+    <div id="footer-container"></div>
     <script>
-        // Settings Manager
-        (function() {
-            const SETTINGS_KEY = 'glitchRealm_settings';
-            
-            // Default settings
-            const defaultSettings = {
-                reducedMotion: false,
-                highContrast: false,
-                playtimeTracking: true,
-                autoSave: true,
-                performanceMode: 'auto',
-                analytics: true
-            };
-            
-            // Load settings
-            function loadSettings() {
-                try {
-                    const saved = localStorage.getItem(SETTINGS_KEY);
-                    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
-                } catch (e) {
-                    console.error('Failed to load settings:', e);
-                    return defaultSettings;
-                }
-            }
-            
-            // Save settings
-            function saveSettings(settings) {
-                try {
-                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                    showSaveIndicator();
-                    applySettings(settings);
-                } catch (e) {
-                    console.error('Failed to save settings:', e);
-                }
-            }
-            
-            // Show save indicator
-            function showSaveIndicator() {
-                const indicator = document.getElementById('saveIndicator');
-                indicator.classList.add('show');
-                setTimeout(() => indicator.classList.remove('show'), 2000);
-            }
-            
-            // Apply settings to page
-            function applySettings(settings) {
-                // Reduced motion
-                if (settings.reducedMotion) {
-                    document.body.classList.add('reduced-motion');
-                } else {
-                    document.body.classList.remove('reduced-motion');
-                }
-                
-                // High contrast
-                if (settings.highContrast) {
-                    document.body.classList.add('high-contrast');
-                } else {
-                    document.body.classList.remove('high-contrast');
-                }
-                
-                // Performance mode
-                document.body.setAttribute('data-performance', settings.performanceMode);
-            }
-            
-            // Initialize settings
-            document.addEventListener('DOMContentLoaded', function() {
-                const settings = loadSettings();
-                
-                // Set checkbox values
-                document.getElementById('reducedMotion').checked = settings.reducedMotion;
-                document.getElementById('highContrast').checked = settings.highContrast;
-                document.getElementById('playtimeTracking').checked = settings.playtimeTracking;
-                document.getElementById('autoSave').checked = settings.autoSave;
-                document.getElementById('analytics').checked = settings.analytics;
-                document.getElementById('performanceMode').value = settings.performanceMode;
-                
-                // Apply current settings
-                applySettings(settings);
-                
-                // Add event listeners
-                document.querySelectorAll('.toggle-switch input, .settings-select').forEach(input => {
-                    input.addEventListener('change', function() {
-                        const settings = loadSettings();
-                        settings[this.id] = this.type === 'checkbox' ? this.checked : this.value;
-                        saveSettings(settings);
-                    });
-                });
-                
-                // Clear cache button
-                document.getElementById('clearCache').addEventListener('click', async function() {
-                    if (confirm('Are you sure you want to clear the cache? This may slow down loading times temporarily.')) {
-                        try {
-                            if ('caches' in window) {
-                                const cacheNames = await caches.keys();
-                                await Promise.all(cacheNames.map(name => caches.delete(name)));
-                            }
-                            alert('Cache cleared successfully!');
-                        } catch (e) {
-                            alert('Failed to clear cache. Please try again.');
-                        }
-                    }
-                });
-                
-                // Export data button
-                document.getElementById('exportData').addEventListener('click', async function() {
-                    try {
-                        const data = {
-                            settings: loadSettings(),
-                            exportDate: new Date().toISOString(),
-                            // Add more data as needed
-                        };
-                        
-                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `glitchrealm-data-${Date.now()}.json`;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                    } catch (e) {
-                        alert('Failed to export data. Please try again.');
-                    }
-                });
-                
-                // Delete account button
-                document.getElementById('deleteAccount').addEventListener('click', function() {
-                    // Show the delete account modal
-                    const modal = document.getElementById('delete-account-modal');
-                    if (modal) {
-                        modal.style.display = 'flex';
-                    } else {
-                        window.location.href = 'delete-account.html';
-                    }
-                });
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
             });
-        })();
     </script>
+    
+    <!-- Settings JavaScript -->
+    <script src="glitch-settings.js"></script>
+    <script>
+        // Set glitch speed from settings page
+        function setGlitchSpeed(speed) {
+            localStorage.setItem('glitchSpeed', speed);
+            
+            // Update toggles
+            document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                toggle.classList.remove('active');
+            });
+            document.getElementById('toggle-' + speed).classList.add('active');
+            
+            // Apply to all glitch elements
+            const glitchElements = document.querySelectorAll('.glitch, .glitch-large');
+            glitchElements.forEach(element => {
+                element.classList.remove('glitch-stopped', 'glitch-slow', 'glitch-fast');
+                if (speed === 'stopped') {
+                    element.classList.add('glitch-stopped');
+                } else if (speed === 'slow') {
+                    element.classList.add('glitch-slow');
+                } else {
+                    element.classList.add('glitch-fast');
+                }
+            });
+            
+            // Show success message
+            showNotification('Glitch effect updated to ' + speed + '!');
+        }
+        
+        // Reset all settings
+        function resetAllSettings() {
+            if (confirm('Are you sure you want to reset all settings to default?')) {
+                localStorage.removeItem('glitchSpeed');
+                localStorage.removeItem('hasSeenGlitchSettings');
+                setGlitchSpeed('fast');
+                showNotification('All settings reset to default!');
+            }
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-family: 'Orbitron', monospace;
+                font-weight: 700;
+                z-index: 10000;
+                box-shadow: 0 4px 20px rgba(0, 255, 249, 0.4);
+                animation: slideIn 0.3s ease-out;
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // Load saved settings
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedSpeed = localStorage.getItem('glitchSpeed') || 'fast';
+            setGlitchSpeed(savedSpeed);
+        });
+    </script>
+    
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
 </body>
 </html>
