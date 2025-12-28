@@ -21,111 +21,181 @@
     <style>
         .settings-page {
             min-height: 100vh;
-            background: var(--dark-bg);
+            background: linear-gradient(135deg, #0a0e1a 0%, #04080f 100%);
             padding-top: 100px;
             padding-bottom: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .settings-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 249, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 128, 0.03) 0%, transparent 50%);
+            pointer-events: none;
         }
         
         .settings-container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+            position: relative;
+            z-index: 1;
         }
         
         .settings-hero {
             text-align: center;
-            margin-bottom: 50px;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, rgba(0, 255, 249, 0.05), rgba(255, 0, 128, 0.05));
+            margin-bottom: 60px;
+            padding: 60px 30px;
+            background: linear-gradient(135deg, rgba(0, 255, 249, 0.08), rgba(255, 0, 128, 0.08));
             border-radius: 20px;
-            border: 2px solid rgba(0, 255, 249, 0.2);
+            border: 2px solid rgba(0, 255, 249, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .settings-hero::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-magenta), var(--primary-cyan));
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+        
+        .settings-hero:hover::before {
+            opacity: 0.2;
         }
         
         .settings-hero h1 {
             font-family: 'Orbitron', monospace;
-            font-size: 3rem;
-            color: var(--primary-cyan);
-            text-shadow: 0 0 30px rgba(0, 255, 249, 0.6);
-            margin-bottom: 15px;
+            font-size: 3.5rem;
+            background: linear-gradient(90deg, #00fff9, #ff0080);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            font-weight: 900;
         }
         
         .settings-hero p {
             color: rgba(255, 255, 255, 0.7);
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            font-family: 'Rajdhani', sans-serif;
         }
         
         .settings-grid {
             display: grid;
-            gap: 30px;
-            margin-bottom: 40px;
+            gap: 35px;
+            margin-bottom: 50px;
         }
         
         .setting-card {
-            background: linear-gradient(135deg, #0a1629 0%, #041018 100%);
-            border: 2px solid rgba(0, 255, 249, 0.3);
-            border-radius: 16px;
-            padding: 30px;
-            transition: all 0.3s;
+            background: rgba(10, 22, 41, 0.6);
+            border: 2px solid rgba(0, 255, 249, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .setting-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 249, 0.1), transparent);
+            transition: left 0.5s;
         }
         
         .setting-card:hover {
             border-color: rgba(0, 255, 249, 0.6);
-            box-shadow: 0 0 30px rgba(0, 255, 249, 0.2);
-            transform: translateY(-2px);
+            box-shadow: 
+                0 0 40px rgba(0, 255, 249, 0.2),
+                inset 0 0 40px rgba(0, 255, 249, 0.05);
+            transform: translateY(-4px);
+        }
+        
+        .setting-card:hover::before {
+            left: 100%;
         }
         
         .setting-header {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 249, 0.1);
         }
         
         .setting-icon {
-            width: 48px;
-            height: 48px;
+            width: 56px;
+            height: 56px;
             background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
-            border-radius: 12px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 28px;
+            box-shadow: 0 4px 20px rgba(0, 255, 249, 0.3);
+            flex-shrink: 0;
         }
         
         .setting-title {
             font-family: 'Orbitron', monospace;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: var(--primary-cyan);
             margin: 0;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 255, 249, 0.3);
         }
         
         .setting-description {
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 25px;
-            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.65);
+            margin-bottom: 30px;
+            line-height: 1.7;
+            font-size: 1.05rem;
+            font-family: 'Rajdhani', sans-serif;
         }
         
         .setting-options {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 18px;
         }
         
         .setting-option {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(0, 255, 249, 0.2);
-            border-radius: 10px;
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 249, 0.15);
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .setting-option:hover {
-            background: rgba(0, 255, 249, 0.05);
+            background: rgba(0, 255, 249, 0.08);
             border-color: rgba(0, 255, 249, 0.4);
+            transform: translateX(4px);
         }
         
         .setting-option-info {
@@ -133,48 +203,35 @@
         }
         
         .setting-option-label {
-            font-weight: 600;
+            font-weight: 700;
             color: white;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            font-size: 1.1rem;
+            font-family: 'Rajdhani', sans-serif;
         }
         
         .setting-option-desc {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .setting-button {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: 700;
-            font-family: 'Orbitron', monospace;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .setting-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 255, 249, 0.4);
+            font-family: 'Rajdhani', sans-serif;
         }
         
         .toggle-switch {
             position: relative;
-            width: 60px;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
+            width: 64px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
         }
         
         .toggle-switch.active {
-            background: var(--primary-cyan);
-            box-shadow: 0 0 15px rgba(0, 255, 249, 0.6);
+            background: linear-gradient(135deg, var(--primary-cyan), #008cff);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+            border-color: var(--primary-cyan);
         }
         
         .toggle-switch::after {
@@ -184,65 +241,109 @@
             height: 24px;
             background: white;
             border-radius: 50%;
-            top: 3px;
-            left: 3px;
-            transition: all 0.3s;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
         
         .toggle-switch.active::after {
-            left: 33px;
+            left: 34px;
         }
         
         .reset-section {
             text-align: center;
-            padding: 40px;
-            background: rgba(255, 7, 58, 0.1);
-            border: 2px solid rgba(255, 7, 58, 0.3);
-            border-radius: 16px;
+            padding: 50px 40px;
+            background: linear-gradient(135deg, rgba(255, 7, 58, 0.12), rgba(199, 5, 58, 0.08));
+            border: 2px solid rgba(255, 7, 58, 0.4);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .reset-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 7, 58, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.6; }
         }
         
         .reset-section h2 {
             font-family: 'Orbitron', monospace;
-            color: var(--danger);
-            margin-bottom: 15px;
+            color: #ff073a;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 20px rgba(255, 7, 58, 0.5);
         }
         
         .reset-section p {
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            font-family: 'Rajdhani', sans-serif;
+            position: relative;
+            z-index: 1;
         }
         
         .reset-button {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, var(--danger), #c7053a);
-            border: 2px solid var(--danger);
-            border-radius: 10px;
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #ff073a, #c7053a);
+            border: 2px solid #ff073a;
+            border-radius: 12px;
             color: white;
             font-weight: 700;
             font-family: 'Orbitron', monospace;
             cursor: pointer;
             transition: all 0.3s;
             text-transform: uppercase;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
         }
         
         .reset-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 7, 58, 0.5);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 7, 58, 0.5);
+            background: linear-gradient(135deg, #ff1a4a, #d7055a);
         }
         
         @media (max-width: 768px) {
             .settings-hero h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
+            }
+            
+            .settings-hero p {
+                font-size: 1.1rem;
             }
             
             .setting-card {
-                padding: 20px;
+                padding: 25px;
+            }
+            
+            .setting-title {
+                font-size: 1.5rem;
             }
             
             .setting-option {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 15px;
+            }
+            
+            .toggle-switch {
+                align-self: flex-end;
             }
         }
     </style>
