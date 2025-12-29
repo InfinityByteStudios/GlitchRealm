@@ -1,17 +1,17 @@
-// MailerLite Newsletter Form Handler
+// SendFox Newsletter Form Handler (via Netlify serverless function)
 // Handles form submission and shows success messages
 
 document.addEventListener('DOMContentLoaded', function() {
   // Handle newsletter form submission
-  const newsletterForms = document.querySelectorAll('form[action*="mailerlite.com"]');
+  const newsletterForms = document.querySelectorAll('form[data-newsletter-form]');
   
   newsletterForms.forEach(form => {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       
-      const emailInput = this.querySelector('input[name="fields[email]"]');
+      const emailInput = this.querySelector('input[type="email"]');
       const submitButton = this.querySelector('button[type="submit"]');
-      const email = emailInput.value;
+      const email = emailInput?.value;
       
       if (!email) return;
       
@@ -20,28 +20,33 @@ document.addEventListener('DOMContentLoaded', function() {
       submitButton.textContent = 'Subscribing...';
       submitButton.disabled = true;
       
-      // Create FormData
-      const formData = new FormData(this);
-      
-      // Submit to MailerLite
-      fetch(this.action, {
+      // Submit to SendFox via serverless function
+      fetch('/.netlify/functions/subscribe-newsletter', {
         method: 'POST',
-        body: formData,
-        mode: 'no-cors' // MailerLite uses JSONP, so we can't read the response
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email })
       })
-      .then(() => {
-        // Since we can't read the response with no-cors, we assume success
-        showSuccessMessage(this);
-        this.reset();
-        submitButton.textContent = '✓ Subscribed!';
-        setTimeout(() => {
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showSuccessMessage(this, data.message);
+          this.reset();
+          submitButton.textContent = '✓ Subscribed!';
+          setTimeout(() => {
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+          }, 3000);
+        } else {
+          showErrorMessage(this, data.error || 'Something went wrong');
           submitButton.textContent = originalText;
           submitButton.disabled = false;
-        }, 3000);
+        }
       })
       .catch(error => {
         console.error('Subscription error:', error);
-        showErrorMessage(this);
+        showErrorMessage(this, 'Unable to connect. Please try again.');
         submitButton.textContent = originalText;
         submitButton.disabled = false;
       });
@@ -49,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-function showSuccessMessage(form) {
+function showSuccessMessage(form, customMessage) {
   // Create success message
   const message = document.createElement('div');
   message.className = 'newsletter-success-message';
@@ -65,7 +70,7 @@ function showSuccessMessage(form) {
       text-align: center;
       animation: slideIn 0.3s ease-out;
     ">
-      ✓ Success! Check your email to confirm your subscription.
+      ✓ ${customMessage || 'Success! Check your email to confirm your subscription.'}
     </div>
   `;
   
@@ -87,7 +92,7 @@ function showSuccessMessage(form) {
   }, 5000);
 }
 
-function showErrorMessage(form) {
+function showErrorMessage(form, customMessage) {
   // Create error message
   const message = document.createElement('div');
   message.className = 'newsletter-error-message';
@@ -103,7 +108,7 @@ function showErrorMessage(form) {
       text-align: center;
       animation: slideIn 0.3s ease-out;
     ">
-      ⚠ Something went wrong. Please try again.
+      ⚠ ${customMessage || 'Something went wrong. Please try again.'}
     </div>
   `;
   
