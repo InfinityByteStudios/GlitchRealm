@@ -23,8 +23,10 @@ function getReturnUrl() {
   if (returnParam) {
     try {
       const url = new URL(returnParam);
-      // Only allow glitchrealm.ca domains for security
-      if (url.hostname.endsWith('glitchrealm.ca') || url.hostname === 'glitchrealm.ca') {
+      // Allow glitchrealm.ca domains OR localhost for development
+      const isProduction = url.hostname.endsWith('glitchrealm.ca') || url.hostname === 'glitchrealm.ca';
+      const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname.startsWith('192.168.');
+      if (isProduction || isLocalhost) {
         return returnParam;
       }
     } catch (e) {
@@ -36,13 +38,25 @@ function getReturnUrl() {
   if (document.referrer) {
     try {
       const referrerUrl = new URL(document.referrer);
-      // Only allow glitchrealm.ca domains
-      if (referrerUrl.hostname.endsWith('glitchrealm.ca') || referrerUrl.hostname === 'glitchrealm.ca') {
+      // Allow glitchrealm.ca domains OR localhost for development
+      const isProduction = referrerUrl.hostname.endsWith('glitchrealm.ca') || referrerUrl.hostname === 'glitchrealm.ca';
+      const isLocalhost = referrerUrl.hostname === 'localhost' || referrerUrl.hostname === '127.0.0.1' || referrerUrl.hostname.startsWith('192.168.');
+      if (isProduction || isLocalhost) {
         return document.referrer;
       }
     } catch (e) {
       console.warn('Invalid referrer URL:', document.referrer);
     }
+  }
+  
+  // Default based on current environment
+  const currentHostname = window.location.hostname;
+  const isDev = currentHostname === 'localhost' || currentHostname === '127.0.0.1' || currentHostname.startsWith('192.168.');
+  
+  if (isDev) {
+    // For localhost, try to determine the port from referrer or use default
+    const port = window.location.port || '5500'; // Default to Live Server port
+    return `http://${currentHostname}:${port}/`;
   }
   
   // Default to main site
