@@ -5,341 +5,202 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - GlitchRealm Games</title>
     
-    <!-- Favicons -->
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
     
-    <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
-    
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     
+    <script src="auth-redirect-handler.js"></script>
+    <script type="module" src="firebase-core.js"></script>
+    
     <style>
-        .settings-page {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0a0e1a 0%, #04080f 100%);
-            padding-top: 100px;
-            padding-bottom: 60px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .settings-page::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(0, 255, 249, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(255, 0, 128, 0.03) 0%, transparent 50%);
-            pointer-events: none;
-        }
-        
         .settings-container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 0 20px;
-            position: relative;
-            z-index: 1;
+            padding: 2rem 1.5rem;
         }
         
-        .settings-hero {
+        .settings-intro {
             text-align: center;
-            margin-bottom: 60px;
-            padding: 60px 30px;
-            background: linear-gradient(135deg, rgba(0, 255, 249, 0.08), rgba(255, 0, 128, 0.08));
-            border-radius: 20px;
-            border: 2px solid rgba(0, 255, 249, 0.3);
-            position: relative;
-            overflow: hidden;
+            margin-bottom: 3rem;
         }
         
-        .settings-hero::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-magenta), var(--primary-cyan));
-            border-radius: 20px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: -1;
-        }
-        
-        .settings-hero:hover::before {
-            opacity: 0.2;
-        }
-        
-        .settings-hero h1 {
-            font-family: 'Orbitron', monospace;
-            font-size: 3.5rem;
-            background: linear-gradient(90deg, #00fff9, #ff0080);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 20px;
-            font-weight: 900;
-        }
-        
-        .settings-hero p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.3rem;
-            font-family: 'Rajdhani', sans-serif;
+        .settings-intro p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 700px;
+            margin: 0 auto;
         }
         
         .settings-grid {
             display: grid;
-            gap: 35px;
-            margin-bottom: 50px;
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
         
-        .setting-card {
-            background: rgba(10, 22, 41, 0.6);
+        .settings-card {
+            background: rgba(0, 255, 249, 0.05);
             border: 2px solid rgba(0, 255, 249, 0.2);
-            border-radius: 20px;
-            padding: 40px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
         }
         
-        .setting-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 249, 0.1), transparent);
-            transition: left 0.5s;
+        .settings-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 255, 249, 0.2);
+            border-color: rgba(0, 255, 249, 0.3);
         }
         
-        .setting-card:hover {
-            border-color: rgba(0, 255, 249, 0.6);
-            box-shadow: 
-                0 0 40px rgba(0, 255, 249, 0.2),
-                inset 0 0 40px rgba(0, 255, 249, 0.05);
-            transform: translateY(-4px);
-        }
-        
-        .setting-card:hover::before {
-            left: 100%;
-        }
-        
-        .setting-header {
+        .settings-card__header {
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(0, 255, 249, 0.1);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 249, 0.2);
         }
         
-        .setting-icon {
+        .settings-card__icon {
             width: 56px;
             height: 56px;
-            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
-            border-radius: 14px;
+            background: rgba(0, 255, 249, 0.1);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 28px;
-            box-shadow: 0 4px 20px rgba(0, 255, 249, 0.3);
-            flex-shrink: 0;
         }
         
-        .setting-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 1.8rem;
+        .settings-card__title {
+            font-size: 1.4rem;
+            font-weight: 600;
             color: var(--primary-cyan);
             margin: 0;
-            font-weight: 700;
-            text-shadow: 0 0 20px rgba(0, 255, 249, 0.3);
         }
         
-        .setting-description {
-            color: rgba(255, 255, 255, 0.65);
-            margin-bottom: 30px;
-            line-height: 1.7;
-            font-size: 1.05rem;
-            font-family: 'Rajdhani', sans-serif;
-        }
-        
-        .setting-options {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
+        .settings-card__description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 1.5rem;
         }
         
         .setting-option {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 20px 24px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(0, 255, 249, 0.15);
-            border-radius: 12px;
+            padding: 1.25rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(0, 255, 249, 0.1);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
         }
         
-        .setting-option:hover {
+        .setting-option:last-child {
+            margin-bottom: 0;
+        }
+        
+        .setting-option:hover:not(.disabled) {
+            transform: translateX(4px);
+            border-color: rgba(0, 255, 249, 0.3);
+        }
+        
+        .setting-option.active {
             background: rgba(0, 255, 249, 0.08);
             border-color: rgba(0, 255, 249, 0.4);
-            transform: translateX(4px);
         }
         
-        .setting-option-info {
+        .setting-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .setting-option__content {
             flex: 1;
         }
         
-        .setting-option-label {
-            font-weight: 700;
+        .setting-option__title {
+            font-weight: 600;
             color: white;
-            margin-bottom: 6px;
-            font-size: 1.1rem;
-            font-family: 'Rajdhani', sans-serif;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
         }
         
-        .setting-option-desc {
-            font-size: 0.95rem;
+        .setting-option__subtitle {
+            font-size: 0.85rem;
             color: rgba(255, 255, 255, 0.5);
-            font-family: 'Rajdhani', sans-serif;
         }
         
         .toggle-switch {
             position: relative;
-            width: 64px;
-            height: 32px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            width: 56px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
             flex-shrink: 0;
+            transition: all 0.3s ease;
         }
         
         .toggle-switch.active {
             background: linear-gradient(135deg, var(--primary-cyan), #008cff);
-            box-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+            box-shadow: 0 0 15px rgba(0, 255, 249, 0.4);
             border-color: var(--primary-cyan);
         }
         
         .toggle-switch::after {
             content: '';
             position: absolute;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             background: white;
             border-radius: 50%;
             top: 2px;
             left: 2px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
         
         .toggle-switch.active::after {
-            left: 34px;
+            left: 30px;
         }
         
         .reset-section {
+            background: rgba(255, 7, 58, 0.08);
+            border: 2px solid rgba(255, 7, 58, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
             text-align: center;
-            padding: 50px 40px;
-            background: linear-gradient(135deg, rgba(255, 7, 58, 0.12), rgba(199, 5, 58, 0.08));
-            border: 2px solid rgba(255, 7, 58, 0.4);
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .reset-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 7, 58, 0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.1); opacity: 0.6; }
         }
         
         .reset-section h2 {
-            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
             color: #ff073a;
-            margin-bottom: 20px;
-            font-size: 2rem;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 0 20px rgba(255, 7, 58, 0.5);
+            margin-bottom: 1rem;
+            font-family: 'Orbitron', monospace;
         }
         
         .reset-section p {
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-            font-family: 'Rajdhani', sans-serif;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .reset-button {
-            padding: 14px 40px;
-            background: linear-gradient(135deg, #ff073a, #c7053a);
-            border: 2px solid #ff073a;
-            border-radius: 12px;
-            color: white;
-            font-weight: 700;
-            font-family: 'Orbitron', monospace;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
             font-size: 1rem;
-            letter-spacing: 1px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .reset-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 7, 58, 0.5);
-            background: linear-gradient(135deg, #ff1a4a, #d7055a);
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 1.5rem;
         }
         
         @media (max-width: 768px) {
-            .settings-hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .settings-hero p {
-                font-size: 1.1rem;
-            }
-            
-            .setting-card {
-                padding: 25px;
-            }
-            
-            .setting-title {
-                font-size: 1.5rem;
-            }
-            
             .setting-option {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 15px;
+                gap: 1rem;
             }
             
             .toggle-switch {
@@ -349,128 +210,150 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div id="header-container"></div>
-    <script>
-        fetch('header.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('header-container').innerHTML = data;
-            });
-    </script>
+    <div class="background-animation"></div>
     
-    <main class="settings-page">
-        <div class="settings-container">
-            <!-- Hero Section -->
-            <div class="settings-hero">
-                <h1>⚙️ Settings</h1>
-                <p>Customize your GlitchRealm experience</p>
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Settings">Settings</span>
+                </h1>
+                <p class="page-subtitle">Customize Your GlitchRealm Experience</p>
             </div>
-            
-            <!-- Settings Grid -->
+        </section>
+
+        <div class="settings-container">
+            <div class="settings-intro">
+                <p>Configure your preferences and customize how you interact with GlitchRealm. Choose your preferred settings to enhance your gaming experience.</p>
+            </div>
+
             <div class="settings-grid">
                 <!-- Glitch Effect Settings -->
-                <div class="setting-card">
-                    <div class="setting-header">
-                        <div class="setting-icon">⚡</div>
-                        <h2 class="setting-title">Glitch Effect</h2>
+                <div class="settings-card">
+                    <div class="settings-card__header">
+                        <div class="settings-card__icon">⚡</div>
+                        <h3 class="settings-card__title">Glitch Effect</h3>
                     </div>
-                    <p class="setting-description">Control the glitch text animation speed throughout the site. Choose your preferred animation style for the cyberpunk text effects.</p>
-                    <div class="setting-options">
-                        <div class="setting-option" onclick="setGlitchSpeed('stopped')" id="glitch-stopped">
-                            <div class="setting-option-info">
-                                <div class="setting-option-label">Stopped (No Animation)</div>
-                                <div class="setting-option-desc">Static text with no glitch effect</div>
-                            </div>
-                            <div class="toggle-switch" id="toggle-stopped"></div>
+                    <p class="settings-card__description">Control the glitch text animation speed throughout the site. Choose your preferred animation style for the cyberpunk text effects.</p>
+                    
+                    <div class="setting-option" data-speed="stopped" onclick="setGlitchSpeed('stopped')">
+                        <div class="setting-option__content">
+                            <div class="setting-option__title">Stopped (No Animation)</div>
+                            <div class="setting-option__subtitle">Static text with no glitch effect</div>
                         </div>
-                        <div class="setting-option" onclick="setGlitchSpeed('slow')" id="glitch-slow">
-                            <div class="setting-option-info">
-                                <div class="setting-option-label">Slow Animation</div>
-                                <div class="setting-option-desc">Subtle glitch effect (2-3 seconds)</div>
-                            </div>
-                            <div class="toggle-switch" id="toggle-slow"></div>
-                        </div>
-                        <div class="setting-option" onclick="setGlitchSpeed('fast')" id="glitch-fast">
-                            <div class="setting-option-info">
-                                <div class="setting-option-label">Fast Animation (Default)</div>
-                                <div class="setting-option-desc">Dynamic glitch effect (0.5 seconds)</div>
-                            </div>
-                            <div class="toggle-switch active" id="toggle-fast"></div>
-                        </div>
+                        <div class="toggle-switch" id="toggle-stopped"></div>
                     </div>
-                </div>
-                
-                <!-- Theme Settings (Future) -->
-                <div class="setting-card">
-                    <div class="setting-header">
-                        <div class="setting-icon">🎨</div>
-                        <h2 class="setting-title">Appearance</h2>
-                    </div>
-                    <p class="setting-description">Customize the look and feel of GlitchRealm. Theme options coming soon!</p>
-                    <div class="setting-options">
-                        <div class="setting-option" style="opacity: 0.5; cursor: not-allowed;">
-                            <div class="setting-option-info">
-                                <div class="setting-option-label">Dark Mode (Current)</div>
-                                <div class="setting-option-desc">Cyberpunk dark theme</div>
-                            </div>
-                            <div class="toggle-switch active"></div>
+                    
+                    <div class="setting-option" data-speed="slow" onclick="setGlitchSpeed('slow')">
+                        <div class="setting-option__content">
+                            <div class="setting-option__title">Slow Animation</div>
+                            <div class="setting-option__subtitle">Subtle glitch effect (2-3 seconds)</div>
                         </div>
+                        <div class="toggle-switch" id="toggle-slow"></div>
+                    </div>
+                    
+                    <div class="setting-option active" data-speed="fast" onclick="setGlitchSpeed('fast')">
+                        <div class="setting-option__content">
+                            <div class="setting-option__title">Fast Animation (Default)</div>
+                            <div class="setting-option__subtitle">Dynamic glitch effect (0.5 seconds)</div>
+                        </div>
+                        <div class="toggle-switch active" id="toggle-fast"></div>
                     </div>
                 </div>
-                
-                <!-- Accessibility Settings -->
-                <div class="setting-card">
-                    <div class="setting-header">
-                        <div class="setting-icon">♿</div>
-                        <h2 class="setting-title">Accessibility</h2>
+
+                <!-- Game Display Settings -->
+                <div class="settings-card">
+                    <div class="settings-card__header">
+                        <div class="settings-card__icon">🎮</div>
+                        <h3 class="settings-card__title">Game Display</h3>
                     </div>
-                    <p class="setting-description">Adjust settings to improve your experience. More options coming soon!</p>
-                    <div class="setting-options">
-                        <div class="setting-option" style="opacity: 0.5; cursor: not-allowed;">
-                            <div class="setting-option-info">
-                                <div class="setting-option-label">Reduced Motion</div>
-                                <div class="setting-option-desc">Minimize animations site-wide</div>
-                            </div>
-                            <div class="toggle-switch"></div>
+                    <p class="settings-card__description">Control how games are displayed and launched on the platform.</p>
+                    
+                    <div class="setting-option" onclick="toggleAutoplay()">
+                        <div class="setting-option__content">
+                            <div class="setting-option__title">Show Game Previews</div>
+                            <div class="setting-option__subtitle">Display animated previews on game cards</div>
                         </div>
+                        <div class="toggle-switch active" id="toggle-previews"></div>
+                    </div>
+                    
+                    <div class="setting-option" onclick="toggleCompactView()">
+                        <div class="setting-option__content">
+                            <div class="setting-option__title">Compact View</div>
+                            <div class="setting-option__subtitle">Show more games per row</div>
+                        </div>
+                        <div class="toggle-switch" id="toggle-compact"></div>
+                    </div>
+                </div>
+
+                <!-- Performance Settings -->
+                <div class="settings-card">
+                    <div class="settings-card__header">
+                        <div class="settings-card__icon">⚙️</div>
+                        <h3 class="settings-card__title">Performance</h3>
+                    </div>
+                    <p class="settings-card__description">Optimize GlitchRealm's performance based on your device capabilities.</p>
+                    
+                    <div class="setting-option" onclick="toggleBackgroundAnimations()">
+                        <div class="setting-option__content">
+                            <div class="setting-option__title">Background Animations</div>
+                            <div class="setting-option__subtitle">Enable cyberpunk background effects</div>
+                        </div>
+                        <div class="toggle-switch active" id="toggle-bg-animations"></div>
+                    </div>
+                    
+                    <div class="setting-option" onclick="toggleParticles()">
+                        <div class="setting-option__content">
+                            <div class="setting-option__title">Particle Effects</div>
+                            <div class="setting-option__subtitle">Show floating particles and effects</div>
+                        </div>
+                        <div class="toggle-switch active" id="toggle-particles"></div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Reset Section -->
             <div class="reset-section">
                 <h2>⚠️ Reset All Settings</h2>
                 <p>This will restore all settings to their default values.</p>
-                <button class="reset-button" onclick="resetAllSettings()">Reset to Defaults</button>
+                <button class="neural-button" onclick="resetAllSettings()" style="background: linear-gradient(135deg, #ff073a, #c7053a); border-color: #ff073a;">Reset to Defaults</button>
             </div>
         </div>
     </main>
-    
-    <!-- Footer -->
-    <div id="footer-container"></div>
-    <script>
-        fetch('footer.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('footer-container').innerHTML = data;
-            });
-    </script>
-    
-    <!-- Settings JavaScript -->
+
+    <div id="footer-placeholder"></div>
+
+    <script src="script.js" defer></script>
     <script src="glitch-settings.js"></script>
     <script>
-        // Set glitch speed from settings page
+        console.log('Settings page JavaScript loaded');
+        
+        // Set glitch speed
         function setGlitchSpeed(speed) {
-            localStorage.setItem('glitchSpeed', speed);
+            console.log('setGlitchSpeed called with:', speed);
+            // Save to localStorage
+            try {
+                localStorage.setItem('glitchSpeed', speed);
+                console.log('Saved glitch speed to localStorage:', speed);
+            } catch (e) {
+                console.error('Failed to save glitch speed:', e);
+            }
             
-            // Update toggles
-            document.querySelectorAll('.toggle-switch').forEach(toggle => {
-                toggle.classList.remove('active');
-            });
+            // Update toggles in glitch section only
+            document.getElementById('toggle-stopped').classList.remove('active');
+            document.getElementById('toggle-slow').classList.remove('active');
+            document.getElementById('toggle-fast').classList.remove('active');
             document.getElementById('toggle-' + speed).classList.add('active');
             
-            // Apply to all glitch elements
+            // Update option styles in glitch section only
+            document.querySelector('[data-speed="stopped"]').classList.remove('active');
+            document.querySelector('[data-speed="slow"]').classList.remove('active');
+            document.querySelector('[data-speed="fast"]').classList.remove('active');
+            document.querySelector(`[data-speed="${speed}"]`).classList.add('active');
+            
+            // Apply to all glitch elements immediately
             const glitchElements = document.querySelectorAll('.glitch, .glitch-large');
             glitchElements.forEach(element => {
                 element.classList.remove('glitch-stopped', 'glitch-slow', 'glitch-fast');
@@ -483,8 +366,71 @@
                 }
             });
             
-            // Show success message
-            showNotification('Glitch effect updated to ' + speed + '!');
+            showNotification('Glitch effect saved: ' + speed + '!');
+        }
+        
+        // Game Display Settings
+        function toggleAutoplay() {
+            const toggle = document.getElementById('toggle-previews');
+            const isEnabled = toggle.classList.contains('active');
+            
+            if (isEnabled) {
+                toggle.classList.remove('active');
+                localStorage.setItem('showPreviews', 'false');
+                showNotification('Game previews disabled');
+            } else {
+                toggle.classList.add('active');
+                localStorage.setItem('showPreviews', 'true');
+                showNotification('Game previews enabled');
+            }
+        }
+        
+        function toggleCompactView() {
+            const toggle = document.getElementById('toggle-compact');
+            const isEnabled = toggle.classList.contains('active');
+            
+            if (isEnabled) {
+                toggle.classList.remove('active');
+                localStorage.setItem('compactView', 'false');
+                showNotification('Compact view disabled');
+            } else {
+                toggle.classList.add('active');
+                localStorage.setItem('compactView', 'true');
+                showNotification('Compact view enabled');
+            }
+        }
+        
+        // Performance Settings
+        function toggleBackgroundAnimations() {
+            const toggle = document.getElementById('toggle-bg-animations');
+            const isEnabled = toggle.classList.contains('active');
+            
+            if (isEnabled) {
+                toggle.classList.remove('active');
+                localStorage.setItem('bgAnimations', 'false');
+                document.querySelector('.background-animation')?.classList.add('disabled');
+                showNotification('Background animations disabled');
+            } else {
+                toggle.classList.add('active');
+                localStorage.setItem('bgAnimations', 'true');
+                document.querySelector('.background-animation')?.classList.remove('disabled');
+                showNotification('Background animations enabled');
+            }
+        }
+        
+        function toggleParticles() {
+            const toggle = document.getElementById('toggle-particles');
+            const isEnabled = toggle.classList.contains('active');
+            
+            if (isEnabled) {
+                toggle.classList.remove('active');
+                localStorage.setItem('particles', 'false');
+                showNotification('Particle effects disabled');
+            } else {
+                toggle.classList.add('active');
+                localStorage.setItem('particles', 'true');
+                showNotification('Particle effects enabled');
+            }
         }
         
         // Reset all settings
@@ -513,45 +459,65 @@
                 font-weight: 700;
                 z-index: 10000;
                 box-shadow: 0 4px 20px rgba(0, 255, 249, 0.4);
-                animation: slideIn 0.3s ease-out;
+                animation: slideInRight 0.3s ease-out;
             `;
             document.body.appendChild(notification);
             
             setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease-out';
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
         
-        // Load saved settings
-        document.addEventListener('DOMContentLoaded', function() {
+        // Load saved settings (without notifications)
+        function loadSavedSettings() {
+            console.log('loadSavedSettings called');
+            // Load glitch speed without showing notification
             const savedSpeed = localStorage.getItem('glitchSpeed') || 'fast';
-            setGlitchSpeed(savedSpeed);
-        });
-    </script>
-    
-    <style>
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
+            console.log('Loading glitch speed from localStorage:', savedSpeed);
+            
+            // Update toggles in glitch section only
+            document.getElementById('toggle-stopped').classList.remove('active');
+            document.getElementById('toggle-slow').classList.remove('active');
+            document.getElementById('toggle-fast').classList.remove('active');
+            document.getElementById('toggle-' + savedSpeed).classList.add('active');
+            
+            // Update option styles in glitch section only
+            document.querySelector('[data-speed="stopped"]').classList.remove('active');
+            document.querySelector('[data-speed="slow"]').classList.remove('active');
+            document.querySelector('[data-speed="fast"]').classList.remove('active');
+            document.querySelector(`[data-speed="${savedSpeed}"]`).classList.add('active');
+            
+            // Load game display settings
+            const showPreviews = localStorage.getItem('showPreviews') !== 'false';
+            if (!showPreviews) {
+                document.getElementById('toggle-previews').classList.remove('active');
             }
-            to {
-                transform: translateX(0);
-                opacity: 1;
+            
+            const compactView = localStorage.getItem('compactView') === 'true';
+            if (compactView) {
+                document.getElementById('toggle-compact').classList.add('active');
+            }
+            
+            // Load performance settings
+            const bgAnimations = localStorage.getItem('bgAnimations') !== 'false';
+            if (!bgAnimations) {
+                document.getElementById('toggle-bg-animations').classList.remove('active');
+                document.querySelector('.background-animation')?.classList.add('disabled');
+            }
+            
+            const particles = localStorage.getItem('particles') !== 'false';
+            if (!particles) {
+                document.getElementById('toggle-particles').classList.remove('active');
             }
         }
         
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-    </style>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedSettings();
+            
+            // Debug: Log saved value to console
+            console.log('Loaded glitch speed from localStorage:', localStorage.getItem('glitchSpeed'));
+        });
+    </script>
 </body>
 </html>

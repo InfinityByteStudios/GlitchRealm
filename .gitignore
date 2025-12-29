@@ -1,1 +1,8 @@
 node_modules
+# Environment variables (contains API tokens)
+.env
+.env.local
+.env.*.local
+
+# Netlify
+.netlify
