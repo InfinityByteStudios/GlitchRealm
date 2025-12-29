@@ -43,8 +43,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
   
-  <!-- HubSpot Tracking Script -->
-  <script type="text/javascript" id="hs-script-loader" async defer src="//js-na3.hs-scripts.com/342840215.js"></script>
+  <!-- HubSpot Tracking Script - REMOVED (switched to SendFox via serverless function) -->
   <style>
     body { --news-accent:#00fff9; }
     .news-hero { padding:70px 0 30px; text-align:center; }
@@ -246,11 +245,11 @@
     </div>
   </div>
 
-  <!-- HubSpot Form Embed Script -->
-  <script src="https://js-na3.hsforms.net/forms/embed/342840215.js" defer></script>
+  <!-- SendFox Newsletter Handler (via serverless function) -->
+  <script src="../newsletter-handler.js"></script>
 
   <style>
-    /* Style HubSpot form to match theme */
+    /* Style newsletter form to match theme */
     .hs-form-frame iframe,
     .hs-form-frame form {
       width: 100% !important;
@@ -323,32 +322,8 @@
       }
     });
 
-    // HubSpot form consent checkbox handler
-    window.addEventListener('message', function(event) {
-      if (event.data.type === 'hsFormCallback' && event.data.eventName === 'onFormReady') {
-        setTimeout(() => {
-          const form = document.querySelector('.hs-form-frame form') || document.querySelector('#hsForm_ec2af8eb-5722-4a56-a920-21e324453537');
-          if (form) {
-            const submitBtn = form.querySelector('input[type="submit"]') || form.querySelector('button[type="submit"]');
-            const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-            
-            if (submitBtn && checkboxes.length > 0) {
-              // Disable submit button by default
-              submitBtn.disabled = true;
-              submitBtn.style.opacity = '0.5';
-              submitBtn.style.cursor = 'not-allowed';
-              
-              // Enable/disable based on checkbox state
-              checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                  const allChecked = Array.from(checkboxes).every(cb => !cb.required || cb.checked);
-                  submitBtn.disabled = !allChecked;
-                  submitBtn.style.opacity = allChecked ? '1' : '0.5';
-                  submitBtn.style.cursor = allChecked ? 'pointer' : 'not-allowed';
-                });
-              });
-            }
-          }
+    // Newsletter form consent checkbox handler (no longer needed with SendFox)
+    // Removed HubSpot-specific code
         }, 500);
       }
     });
