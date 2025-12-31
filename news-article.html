@@ -251,88 +251,20 @@
       <div class="newsletter-cta">
         <h3>Stay Updated</h3>
         <p style="margin:0 0 15px; opacity:.8;">Get the latest news and updates delivered to your inbox!</p>
-        <a href="/newsletter.html" style="background:linear-gradient(135deg, rgba(0,255,249,0.1) 0%, rgba(255,0,128,0.1) 100%); border:1px solid rgba(0,255,249,0.5); border-radius:8px; padding:14px 24px; font-size:.8rem; font-weight:600; letter-spacing:.7px; color:#00fff9; cursor:pointer; text-transform:uppercase; width:100%; max-width:300px; margin:0 auto; display:block; text-align:center; text-decoration:none; transition:all 0.3s ease;" onmouseover="this.style.borderColor='#00fff9'; this.style.boxShadow='0 0 20px rgba(0,255,249,0.3)';" onmouseout="this.style.borderColor='rgba(0,255,249,0.5)'; this.style.boxShadow='none';">📧 Subscribe to Newsletter</a>
+        <a href="https://sendfox.com/glitchrealm" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg, rgba(0,255,249,0.1) 0%, rgba(255,0,128,0.1) 100%); border:1px solid rgba(0,255,249,0.5); border-radius:8px; padding:14px 24px; font-size:.8rem; font-weight:600; letter-spacing:.7px; color:#00fff9; cursor:pointer; text-transform:uppercase; width:100%; max-width:300px; margin:0 auto; display:block; text-align:center; text-decoration:none; transition:all 0.3s ease;" onmouseover="this.style.borderColor='#00fff9'; this.style.boxShadow='0 0 20px rgba(0,255,249,0.3)';" onmouseout="this.style.borderColor='rgba(0,255,249,0.5)'; this.style.boxShadow='none';">📧 Subscribe to Newsletter</a>
         <p style="margin:15px 0 0; font-size:.7rem; opacity:.7; text-align:center;">Read our <a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9;">Privacy Policy</a></p>
       </div>
     </div>
   </main>
 
-  <!-- Newsletter Modal -->
-  <div id="newsletterModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center;">
-    <div style="position:relative; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; background:#0a0e1a; border:2px solid #00fff9; border-radius:12px; box-shadow:0 0 40px rgba(0,255,249,0.3); padding:30px 25px;">
-      <button id="closeNewsletterModal" style="position:absolute; top:15px; right:15px; background:none; border:none; color:#00fff9; font-size:28px; cursor:pointer; z-index:1; line-height:1; padding:0; width:30px; height:30px; font-weight:300;">&times;</button>
-      
-      <!-- Newsletter Form -->
-      <div style="text-align:center;">
-        <h2 style="font-family:Orbitron; color:#00fff9; margin:0 0 10px; font-size:1.8rem; letter-spacing:1px;">Newsletter</h2>
-        <p style="color:#b8d4d8; margin:0 0 25px; font-size:0.95rem; line-height:1.5;">Signup for news and special offers!</p>
-        
-        <form id="modalNewsletterForm" action="https://assets.mailerlite.com/jsonp/1836682/forms/167354636185896415/subscribe" method="post" target="_blank" style="margin-bottom:20px;">
-          <div style="margin-bottom:15px;">
-            <input type="email" name="fields[email]" placeholder="Enter your email address" required autocomplete="email" style="width:100%; padding:14px 16px; background:#08131b; border:1px solid #12313d; border-radius:8px; color:#d7e5e8; font-size:0.95rem; font-family:Rajdhani; box-sizing:border-box; transition:border-color 0.3s;">
-          </div>
-          
-          <div style="margin-bottom:20px; text-align:left; padding:15px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.15); border-radius:8px;">
-            <p style="margin:0 0 10px; color:#b8d4d8; font-size:0.85rem; font-weight:600;">Marketing Permissions</p>
-            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; color:#b8d4d8; font-size:0.8rem; line-height:1.4;">
-              <input type="checkbox" name="gdpr[]" value="Email" style="margin-top:2px; accent-color:#00fff9;">
-              <span>I agree to receive promotional emails about new products, updates, and special offers.</span>
-            </label>
-          </div>
-          
-          <button type="submit" style="width:100%; padding:14px 20px; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; color:#02141c; font-size:0.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; font-family:Rajdhani; transition:transform 0.2s, box-shadow 0.2s;">Subscribe Now</button>
-          
-          <input type="hidden" name="ml-submit" value="1">
-          <input type="hidden" name="anticsrf" value="true">
-        </form>
-        
-        <p style="color:#7a9599; font-size:0.75rem; line-height:1.5; margin:0;">By subscribing, you acknowledge that your information will be processed in accordance with our <a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9; text-decoration:none;">Privacy Policy</a>. You can unsubscribe at any time.</p>
-      </div>
-    </div>
-  </div>
 
-  <style>
-    #modalNewsletterForm input[type="email"]:focus {
-      outline:none;
-      border-color:#00fff9;
-      box-shadow:0 0 8px rgba(0,255,249,0.3);
-    }
-    #modalNewsletterForm button[type="submit"]:hover {
-      transform:translateY(-2px);
-      box-shadow:0 4px 15px rgba(0,255,249,0.5);
-    }
-  </style>
-
-  <script>
-    // Newsletter Modal Controls
-    const modal = document.getElementById('newsletterModal');
-    const openBtn = document.getElementById('openNewsletterModal');
-    const closeBtn = document.getElementById('closeNewsletterModal');
-    
-    openBtn.addEventListener('click', () => {
-      modal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    });
-    
-    closeBtn.addEventListener('click', () => {
-      modal.style.display = 'none';
-      document.body.style.overflow = '';
-    });
-    
-    // Close on backdrop click
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-      }
-    });
-  </script>
+  <!-- Newsletter is handled via SendFox (no modal) -->
 
   <footer class="footer">
     <div class="container">
         <div class="footer-bottom">
             <p style="margin-bottom: 10px; font-size: 0.9em; color: rgba(255,255,255,0.7);">By using this site, you agree to our <a href="/terms-of-service.html" style="color: var(--primary-cyan); text-decoration: none;">Terms of Service</a> and <a href="/privacy-policy.html" style="color: var(--primary-cyan); text-decoration: none;">Privacy Policy</a>.</p>
-            <p>&copy; 2025 GlitchRealm Games. All rights reserved. | <a href="/donate.html" style="color: var(--primary-cyan); text-decoration: none;">Donate</a> | <a href="/settings.html" style="color: var(--primary-cyan); text-decoration: none;">Settings</a> | <a href="/legal.html" style="color: var(--primary-cyan); text-decoration: none;">Legal</a> | <a href="/credits.html" style="color: var(--primary-cyan); text-decoration: none;">Credits</a> | <a href="#" onclick="window.openConsentManager && window.openConsentManager(); return false;" style="color: var(--primary-cyan); text-decoration: none;">Manage consent</a></p>
+            <p>&copy; 2026 GlitchRealm Games. All rights reserved. | <a href="/donate.html" style="color: var(--primary-cyan); text-decoration: none;">Donate</a> | <a href="/settings.html" style="color: var(--primary-cyan); text-decoration: none;">Settings</a> | <a href="/legal.html" style="color: var(--primary-cyan); text-decoration: none;">Legal</a> | <a href="/credits.html" style="color: var(--primary-cyan); text-decoration: none;">Credits</a> | <a href="#" onclick="window.openConsentManager && window.openConsentManager(); return false;" style="color: var(--primary-cyan); text-decoration: none;">Manage consent</a></p>
         </div>
         <div class="netlify-branding">
             <span>Powered by</span>
@@ -345,7 +277,7 @@
   </footer>
   
   <script type="module" src="article.js"></script>
-  <script src="newsletter-handler.js"></script>
+  
   <script src="../script.js" defer></script>
 </body>
 </html>

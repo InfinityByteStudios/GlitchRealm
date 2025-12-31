@@ -70,7 +70,7 @@ function showSuccessMessage(form, customMessage) {
       text-align: center;
       animation: slideIn 0.3s ease-out;
     ">
-      ✓ ${customMessage || 'Success! Check your email to confirm your subscription.'}
+      ✓ ${customMessage || "You may receive a verification email from Jopin. It's optional — no action is required unless you want to confirm your subscription."}
     </div>
   `;
   
