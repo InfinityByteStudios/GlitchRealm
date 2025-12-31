@@ -91,6 +91,7 @@ const emptyPlaceholderEl = document.getElementById('empty-placeholder');
 const createFirstBtn = document.getElementById('create-first-article');
 const publishArticleBtn = document.getElementById('publish-article-btn');
 const getVerifiedBtn = document.getElementById('get-verified-btn');
+const spinnerEl = document.getElementById('news-spinner');
 
 // Filter buttons
 const filterButtons = Array.from(document.querySelectorAll('.news-actions button'));
@@ -273,15 +274,31 @@ getVerifiedBtn?.addEventListener('click', () => {
   try {
     await initializeFirebase();
     checkEditorAccess(); // Run in parallel
+    // show spinner while loading
+    if (spinnerEl) {
+      spinnerEl.style.display = 'block';
+    }
+    if (articleListEl) articleListEl.style.display = 'none';
+    if (emptyPlaceholderEl) emptyPlaceholderEl.style.display = 'none';
     await loadArticles();
     renderArticles();
     renderLatest();
     renderTags();
     if (!articlesCache.length) {
-      emptyPlaceholderEl.style.display = 'block';
+      // keep spinner visible when there are no articles and hide the footer
+      if (spinnerEl) spinnerEl.style.display = 'block';
+      document.getElementById('site-footer')?.style.setProperty('display','none');
+      if (articleListEl) articleListEl.innerHTML = '';
+      if (emptyPlaceholderEl) emptyPlaceholderEl.style.display = 'none';
+      return;
     }
+    // we have articles — hide spinner and show list/footer
+    if (spinnerEl) spinnerEl.style.display = 'none';
+    if (articleListEl) articleListEl.style.display = '';
+    document.getElementById('site-footer')?.style.removeProperty('display');
   } catch (err) {
     console.error('Error loading news articles:', err);
+    if (spinnerEl) spinnerEl.style.display = 'none';
     articleListEl.innerHTML = '<div class="empty-state"><h2>Error Loading Articles</h2><p>Try again later.</p></div>';
   }
 })();
