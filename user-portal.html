@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Portal - GlitchRealm Games</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-message.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Enhanced auth redirect handler -->
+    <script src="auth-redirect-handler.js"></script>
+    <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+    <script type="module" src="firebase-core.js"></script>
+    <!-- Supabase Avatar Integration -->
+    <script type="module" src="portal-avatar-integration.js"></script>
+    <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, updateEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.appspot.com",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+        
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
+        const firestore = window.firebaseFirestore || getFirestore(app);
+        
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firebaseFirestore = firestore;
+        window.updateEmail = updateEmail;
+        window.reauthenticateWithCredential = reauthenticateWithCredential;
+        window.EmailAuthProvider = EmailAuthProvider;
+    window.updatePassword = updatePassword;
+    window.sendPasswordResetEmail = sendPasswordResetEmail;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.firestoreDoc = doc;
+        window.firestoreGetDoc = getDoc;
+        window.firestoreSetDoc = setDoc;
+        window.firestoreCollection = collection;
+        window.firestoreQuery = query;
+        window.firestoreWhere = where;
+        window.firestoreGetDocs = getDocs;
+
+        // Initialize user portal after Firebase is ready
+        setTimeout(() => {
+            if (typeof initializeUserPortal === 'function') {
+                initializeUserPortal();
+            }
+        }, 1000);
+    </script>
+    <style>
+        /* Force proper styling for profile dropdown - SAME AS HOME PAGE */
+        .user-profile {
+            position: relative !important;
+        }
+
+        .profile-dropdown {
+            position: relative !important;
+        }
+
+        .profile-trigger {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            background: rgba(0, 255, 249, 0.1) !important;
+            border: 1px solid var(--primary-cyan) !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 0.75rem !important;
+            color: var(--white) !important;
+            font-family: 'Rajdhani', sans-serif !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .profile-trigger:hover {
+            background: rgba(0, 255, 249, 0.2) !important;
+            box-shadow: 0 0 15px rgba(0, 255, 249, 0.3) !important;
+        }
+
+        .user-avatar {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            border: 2px solid var(--primary-cyan) !important;
+            object-fit: cover !important;
+        }
+
+        /* Avatar upload overlay styles */
+        .user-avatar-container {
+            position: relative !important;
+            display: inline-block !important;
+        }
+
+        .avatar-upload-overlay {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.4) !important;
+            backdrop-filter: blur(4px) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            opacity: 0 !important;
+            transition: opacity 0.3s ease !important;
+            cursor: pointer !important;
+            z-index: 10 !important;
+        }
+
+        .user-avatar-container:hover .avatar-upload-overlay {
+            opacity: 0 !important;
+        }
+
+        /* Only show upload overlay when dropdown is open */
+        .profile-dropdown.active .user-avatar-container:hover .avatar-upload-overlay {
+            opacity: 1 !important;
+        }
+
+        .upload-icon {
+            font-size: 14px !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            text-shadow: 0 0 10px rgba(0, 255, 249, 0.5) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .upload-icon svg {
+            width: 16px !important;
+            height: 16px !important;
+            fill: currentColor !important;
+        }
+
+        .user-avatar-large-container {
+            position: relative !important;
+            display: inline-block !important;
+        }
+
+        .avatar-upload-overlay-large {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: blur(6px) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            opacity: 0 !important;
+            transition: opacity 0.3s ease !important;
+            cursor: pointer !important;
+            z-index: 10 !important;
+        }
+
+        .user-avatar-large-container:hover .avatar-upload-overlay-large {
+            opacity: 0 !important;
+        }
+
+        /* Only show large upload overlay when dropdown is open */
+        .profile-dropdown.active .user-avatar-large-container:hover .avatar-upload-overlay-large {
+            opacity: 1 !important;
+        }
+
+        .upload-icon-large {
+            font-size: 24px !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            text-shadow: 0 0 15px rgba(0, 255, 249, 0.7) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .upload-icon-large svg {
+            width: 28px !important;
+            height: 28px !important;
+            fill: currentColor !important;
+        }
+
+        .user-name {
+            font-size: 0.9rem !important;
+            max-width: 120px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+
+        .dropdown-arrow {
+            font-size: 0.8rem !important;
+            color: var(--primary-cyan) !important;
+            transition: transform 0.3s ease !important;
+        }
+
+        .profile-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg) !important;
+        }
+
+        .profile-menu {
+            position: absolute !important;
+            top: 100% !important;
+            right: 0 !important;
+            background: linear-gradient(135deg, #0a1629 0%, #041018 100%) !important;
+            border: 2px solid var(--primary-cyan) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 249, 0.3) !important;
+            min-width: 280px !important;
+            max-height: 400px !important;
+            overflow-y: auto !important;
+            z-index: 10000 !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transform: translateY(-10px) scale(0.95) !important;
+            transition: all 0.3s ease !important;
+            margin-top: 0.5rem !important;
+        }
+
+        .profile-dropdown.open .profile-menu {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) scale(1) !important;
+        }
+
+        .profile-info {
+            padding: 1.5rem !important;
+            border-bottom: 1px solid rgba(0, 255, 249, 0.2) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 1rem !important;
+        }
+
+        .user-avatar-large {
+            width: 60px !important;
+            height: 60px !important;
+            border-radius: 50% !important;
+            border: 3px solid var(--primary-cyan) !important;
+            object-fit: cover !important;
+        }
+
+        .profile-details {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.25rem !important;
+        }
+
+        .user-display-name {
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            color: var(--white) !important;
+        }
+
+        .user-email {
+            font-size: 0.85rem !important;
+            color: var(--primary-cyan) !important;
+            opacity: 0.8 !important;
+        }
+
+        .user-provider {
+            font-size: 0.75rem !important;
+            color: var(--primary-magenta) !important;
+            text-transform: uppercase !important;
+            font-weight: 600 !important;
+        }
+
+        .profile-actions {
+            padding: 1rem !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+
+        .profile-action-btn {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            padding: 0.75rem 1rem !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(0, 255, 249, 0.3) !important;
+            border-radius: 8px !important;
+            color: var(--white) !important;
+            font-family: 'Rajdhani', sans-serif !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            width: 100% !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+            overflow: visible !important;
+        }
+
+        .profile-action-btn:hover {
+            background: rgba(0, 255, 249, 0.1) !important;
+            border-color: var(--primary-cyan) !important;
+            box-shadow: 0 0 10px rgba(0, 255, 249, 0.2) !important;
+        }
+
+        /* Ensure sign out button text is visible */
+        .profile-action-btn.sign-out {
+            color: var(--white) !important;
+        }
+
+        /* More specific rule for sign out button text */
+        #sign-out-btn,
+        #sign-out-btn *:not(.action-icon):not(.icon-svg):not(path) {
+            color: var(--white) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .profile-action-btn.delete-account {
+            border-color: rgba(255, 0, 128, 0.5) !important;
+            color: var(--primary-magenta) !important;
+        }
+
+        .profile-action-btn.delete-account:hover {
+            background: rgba(255, 0, 128, 0.1) !important;
+            border-color: var(--primary-magenta) !important;
+            box-shadow: 0 0 10px rgba(255, 0, 128, 0.2) !important;
+        }
+
+        .action-icon {
+            font-size: 1.2rem !important;
+        }
+        
+        /* Ensure auth modal appears correctly */
+        .auth-overlay {
+            z-index: 20000 !important;
+        }
+        
+        .auth-panel {
+            z-index: 20001 !important;
+        }
+        
+        /* User Portal specific styles */
+        .portal-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 140px 40px 100px 40px;
+            position: relative;
+        }
+        
+        .portal-container::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 400px;
+            background: radial-gradient(ellipse at top, rgba(0, 255, 249, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .portal-header {
+            text-align: center;
+            margin-bottom: 80px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .portal-title {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            text-transform: none;
+            position: relative;
+            line-height: 1.1;
+        }
+        
+        .portal-title:after {
+            content: "";
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+        }
+        
+        .beta-badge {
+            display: inline-block;
+            background: rgba(0, 255, 249, 0.1);
+            color: var(--primary-cyan);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            margin-left: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            vertical-align: middle;
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 255, 249, 0.2);
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        #notifications-bell:hover {
+            background: rgba(0,255,249,0.15);
+            box-shadow: 0 4px 20px rgba(0,255,249,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .notification-item {
+            background: rgba(0,255,249,0.05);
+            border: 1px solid rgba(0,255,249,0.2);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .notification-item:hover {
+            background: rgba(0,255,249,0.1);
+            border-color: rgba(0,255,249,0.5);
+            transform: translateX(4px);
+        }
+        
+        .notification-item.unread {
+            background: rgba(0,255,249,0.12);
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.15);
+        }
+        
+        .notification-title {
+            color: var(--primary-cyan);
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .notification-message {
+            color: rgba(255,255,255,0.85);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .notification-time {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+        }
+        
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 5px rgba(255, 0, 128, 0.3);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(255, 0, 128, 0.6);
+            }
+        }
+        
+        .portal-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.15rem;
+            color: rgba(255, 255, 255, 0.65);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
+            font-weight: 400;
+        }
+        
+        .portal-sections {
+            display: block;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .portal-section {
+            background: rgba(10, 10, 20, 0.7);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 32px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            overflow: hidden;
+        }
+        
+        .portal-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .portal-section:hover::before {
+            opacity: 1;
+        }
+        
+        .portal-section::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 249, 0.1) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+            pointer-events: none;
+        }
+        
+        .portal-section:hover::after {
+            width: 600px;
+            height: 600px;
+        }
+        
+        .portal-section:hover {
+            border-color: rgba(0, 255, 249, 0.5);
+            background: rgba(10, 10, 20, 0.85);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 255, 249, 0.15);
+        }
+        
+        .section-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 28px;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            position: relative;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 255, 249, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1;
+        }
+        
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--primary-cyan);
+            box-shadow: 0 0 10px var(--primary-cyan);
+        }
+        
+        .section-title svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--primary-cyan);
+            filter: drop-shadow(0 0 8px rgba(0, 255, 249, 0.7)) drop-shadow(0 0 16px rgba(0, 255, 249, 0.3));
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+        
+        .portal-section:hover .section-title svg {
+            filter: drop-shadow(0 0 12px rgba(0, 255, 249, 0.9)) drop-shadow(0 0 24px rgba(0, 255, 249, 0.5));
+            transform: scale(1.05);
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.95);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1.5px solid rgba(0, 255, 249, 0.25);
+            border-radius: 10px;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-cyan);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(0, 255, 249, 0.1), 0 8px 20px rgba(0, 255, 249, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .form-control:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(0, 0, 0, 0.25);
+        }
+        
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            color: var(--text-lighter);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        .btn-portal {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, rgba(0, 255, 249, 0.9), rgba(0, 200, 200, 0.9));
+            border: none;
+            border-radius: 10px;
+            color: #000000;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 255, 249, 0.3);
+            z-index: 1;
+        }
+        
+        .btn-portal::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s ease, height 0.5s ease;
+        }
+        
+        .btn-portal:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-portal:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 249, 1), rgba(0, 220, 220, 1));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 255, 249, 0.5), 0 0 40px rgba(0, 255, 249, 0.3);
+        }
+        
+        .btn-portal:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(0, 255, 249, 0.4);
+        }
+        
+        .btn-portal:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            background: rgba(0, 255, 249, 0.3);
+        }
+        
+        .playtime-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .playtime-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 249, 0.15);
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .playtime-item::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--primary-cyan);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .playtime-item:hover::before {
+            opacity: 1;
+        }
+        
+        .playtime-item:hover {
+            background: rgba(0, 0, 0, 0.45);
+            border-color: rgba(0, 255, 249, 0.4);
+            transform: translateX(4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .playtime-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        
+        .game-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid rgba(0, 255, 249, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .playtime-item:hover .game-icon {
+            border-color: rgba(0, 255, 249, 0.6);
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 255, 249, 0.2);
+        }
+        
+        .game-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #ffffff;
+            letter-spacing: -0.2px;
+        }
+        
+        .game-time {
+            font-family: 'Rajdhani', sans-serif;
+            background: rgba(0, 255, 249, 0.15);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: var(--primary-cyan);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 255, 249, 0.1);
+        }
+        
+        .total-playtime {
+            margin-top: 28px;
+            padding: 24px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-family: 'Rajdhani', sans-serif;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .total-playtime::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+        }
+        
+        .total-hours {
+            color: var(--primary-cyan);
+            font-weight: 900;
+            font-size: 2.2rem;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 20px rgba(0, 255, 249, 0.4);
+            display: block;
+            margin-top: 8px;
+        }
+        
+        .playtime-note {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(138, 43, 226, 0.08);
+            border: 1px solid rgba(138, 43, 226, 0.25);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.75);
+            font-family: 'Rajdhani', sans-serif;
+            line-height: 1.6;
+            backdrop-filter: blur(10px);
+        }
+        
+        .playtime-note svg {
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
+            margin-right: 6px;
+            fill: var(--accent-purple);
+            opacity: 0.8;
+        }
+        
+        .auth-required {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        
+        .auth-required-icon {
+            font-size: 4rem;
+            margin-bottom: 24px;
+            display: block;
+            color: var(--primary-cyan);
+            filter: drop-shadow(0 0 20px rgba(0, 255, 249, 0.5));
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(0, 255, 249, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-cyan);
+            width: 56px;
+            height: 56px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.3);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .email-messages {
+            width: 100%;
+            word-wrap: break-word;
+            margin-top: 16px;
+            display: block;
+        }
+        
+        #email-success,
+        #email-error {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 10px;
+            display: none;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            letter-spacing: 0.2px;
+        }
+        
+        #email-success {
+            background: rgba(0, 255, 65, 0.12);
+            border: 1.5px solid var(--success);
+            color: var(--success);
+            box-shadow: 0 4px 16px rgba(0, 255, 65, 0.15);
+        }
+        
+        #email-error {
+            background: rgba(255, 0, 0, 0.12);
+            border: 1.5px solid #ff0000;
+            color: #ff4444;
+            box-shadow: 0 4px 16px rgba(255, 0, 0, 0.15);
+        }
+
+        /* Password management messages */
+        .pwd-messages,
+        .reset-messages {
+            width: 100%;
+            word-wrap: break-word;
+            margin-top: 16px;
+            display: block;
+        }
+        #password-success, #password-error, #reset-success, #reset-error {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 10px;
+            display: none;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            letter-spacing: 0.2px;
+        }
+        #password-success { 
+            background: rgba(0, 255, 65, 0.12); 
+            border: 1.5px solid var(--success); 
+            color: var(--success);
+            box-shadow: 0 4px 16px rgba(0, 255, 65, 0.15);
+        }
+        #password-error { 
+            background: rgba(255, 0, 0, 0.12); 
+            border: 1.5px solid #ff0000; 
+            color: #ff4444;
+            box-shadow: 0 4px 16px rgba(255, 0, 0, 0.15);
+        }
+        #reset-success { 
+            background: rgba(0, 255, 249, 0.12); 
+            border: 1.5px solid var(--primary-cyan); 
+            color: var(--primary-cyan);
+            box-shadow: 0 4px 16px rgba(0, 255, 249, 0.15);
+        }
+        #reset-error { 
+            background: rgba(255, 0, 0, 0.12); 
+            border: 1.5px solid #ff0000; 
+            color: #ff4444;
+            box-shadow: 0 4px 16px rgba(255, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+    
+    <!-- UI Update Notice -->
+    <div style="background: linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,0,128,0.15)); border: 1px solid rgba(255,184,0,0.4); border-radius: 12px; padding: 16px 24px; margin: 100px auto 20px auto; max-width: 1200px; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffb800" stroke-width="2" style="flex-shrink: 0;">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div>
+                <strong style="color: #ffb800; font-size: 1.1rem;">UI Update In Progress</strong>
+                <p style="color: rgba(255,255,255,0.85); margin: 4px 0 0 0; font-size: 0.95rem;">We're currently updating the user interface. Some features may be buggy or temporarily unavailable.</p>
+            </div>
+        </div>
+    </div>
+    
+    <main class="portal-container">
+        <div class="portal-header">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                <h1 class="portal-title" id="portal-title">User Portal</h1>
+                <button id="notifications-bell" style="position: relative; background: rgba(0,255,249,0.1); border: 1px solid rgba(0,255,249,0.3); border-radius: 50%; width: 50px; height: 50px; cursor: pointer; transition: all 0.3s ease; display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: auto;">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span id="notification-badge" style="position: absolute; top: -5px; right: -5px; background: #ff0080; color: white; border-radius: 50%; width: 22px; height: 22px; display: none; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; animation: pulse-badge 2s infinite;"></span>
+                </button>
+            </div>
+            <div id="portal-user-id" class="portal-uid" style="display:none; margin-top:-6px; margin-bottom:10px; font-size:0.9rem; color: var(--text-lighter); display:flex; justify-content:center; align-items:center; gap:8px;">
+                <span id="uid-text"></span>
+                <button id="copy-uid-btn" style="background:rgba(0,255,249,0.1); border:1px solid rgba(0,255,249,0.3); border-radius:6px; padding:4px 8px; color:#00fff9; cursor:pointer; font-size:0.8rem; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:4px;" title="Copy UID">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span id="copy-btn-text">Copy</span>
+                </button>
+            </div>
+            <p class="portal-subtitle">Manage your account, update email & password, track playtime stats, and submit creator verification requests.</p>
+            
+            <!-- Tab Navigation -->
+            <div class="tab-navigation" style="display: flex; justify-content: center; gap: 8px; margin: 32px 0 40px 0; flex-wrap: wrap; border-bottom: 2px solid rgba(0,255,249,0.2); padding-bottom: 0;">
+                <button class="tab-btn active" data-tab="profile" style="background: transparent; border: none; border-bottom: 3px solid #00fff9; padding: 12px 24px; color: #00fff9; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Profile
+                </button>
+                <button class="tab-btn" data-tab="security" style="background: transparent; border: none; border-bottom: 3px solid transparent; padding: 12px 24px; color: rgba(255,255,255,0.6); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Security
+                </button>
+                <button class="tab-btn" data-tab="stats" style="background: transparent; border: none; border-bottom: 3px solid transparent; padding: 12px 24px; color: rgba(255,255,255,0.6); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Stats & Games
+                </button>
+                <button class="tab-btn" data-tab="verification" style="background: transparent; border: none; border-bottom: 3px solid transparent; padding: 12px 24px; color: rgba(255,255,255,0.6); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Verification
+                </button>
+                <button class="tab-btn" data-tab="danger" style="background: transparent; border: none; border-bottom: 3px solid transparent; padding: 12px 24px; color: rgba(255,255,255,0.6); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                    Account
+                </button>
+            </div>
+        </div>
+        
+        <!-- Notifications Modal -->
+        <div id="notifications-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+            <div style="background: rgba(10,10,30,0.95); border: 2px solid var(--primary-cyan); border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 30px; position: relative;">
+                <button id="close-notifications" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
+                <h2 style="color: var(--primary-cyan); margin-bottom: 20px; font-size: 1.8rem;">🔔 Notifications</h2>
+                <div id="notifications-list"></div>
+            </div>
+        </div>
+        
+        <div id="loading-container" style="text-align: center; padding: 50px 0;">
+            <div class="loading-spinner"></div>
+            <p style="margin-top: 20px;">Loading your data...</p>
+        </div>
+        
+        <div id="auth-required" class="auth-required" style="display: none;">
+            <svg class="auth-required-icon" viewBox="0 0 24 24" width="60" height="60">
+                <path fill="var(--primary-cyan)" d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.1 14.8,9.5V11C15.4,11 16,11.6 16,12.3V15.8C16,16.4 15.4,17 14.7,17H9.2C8.6,17 8,16.4 8,15.7V12.2C8,11.6 8.6,11 9.2,11V9.5C9.2,8.1 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V11H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z" />
+            </svg>
+            <h2>Sign In Required</h2>
+            <p>Please sign in to access your user portal and game statistics.</p>
+            <button class="btn-portal" onclick="(function(){try{sessionStorage.setItem('gr.returnTo', window.location.href);}catch(e){};window.location.href=`Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}`;})()">Sign In Now</button>
+        </div>
+        
+        <div id="portal-content" class="portal-sections" style="display: none;">
+            <!-- Profile Tab Content -->
+            <div class="tab-content" id="profile-tab" style="display: block;">
+            <!-- Profile Picture Section -->
+            <div class="portal-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,8.39C13.57,9.4 15.42,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20C9.27,20 6.9,18.53 5.5,16.36C6.77,15.5 8.54,15 10.5,15C11.35,15 12.16,15.11 12.92,15.32C13.65,15.11 14.43,15 15.25,15C17.21,15 18.98,15.5 20.25,16.36C20.62,15.46 20.87,14.47 20.96,13.42C19.78,12.92 18.43,12.62 17,12.62C14.84,12.62 12.88,13.29 11.31,14.39L11.75,15.66C11.94,16.25 11.61,16.89 11,17.08C10.39,17.27 9.76,16.94 9.56,16.33L9,14.74L8.44,16.33C8.24,16.94 7.61,17.27 7,17.08C6.39,16.89 6.06,16.25 6.25,15.66L6.69,14.39C5.12,13.29 3.16,12.62 1,12.62C0.57,12.62 0.15,12.66 -0.26,12.73C-0.09,11.85 0.13,11 0.5,10.23C1.44,10.74 2.53,11.04 3.67,11.04C5.42,11.04 6.96,10.5 8.08,9.61C7.39,9.04 6.5,8.65 5.5,8.65C4.24,8.65 3.13,9.29 2.42,10.23C2.15,9.61 2,8.92 2,8.19C2,7.46 2.15,6.77 2.42,6.15C3.13,7.09 4.24,7.73 5.5,7.73C6.77,7.73 7.88,7.09 8.58,6.15C8.86,5.77 9.09,5.34 9.25,4.88C10.03,5.61 11.01,6.12 12.08,6.34C12.05,6.56 12.03,6.78 12.03,7C12.03,8.86 13.5,10.39 15.31,10.39C16.38,10.39 17.32,9.87 17.92,9.08C18.61,9.29 19.33,9.42 20.08,9.42C20.62,9.42 21.14,9.36 21.64,9.25C21.87,10.1 22,11 22,11.92C22,12.64 21.9,13.33 21.73,14C20.96,13.37 20.04,12.92 19,12.66C18.22,11.85 17.12,11.35 15.92,11.35C14.15,11.35 12.65,12.5 12.15,14.11L11.31,14.39Z" />
+                    </svg>
+                    Profile Picture
+                    <span id="beta-tag" style="display: inline-block; background: linear-gradient(135deg, #ff6b6b, #ee5a6f); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px; margin-left: 10px; vertical-align: middle; box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3); cursor: pointer; transition: all 0.3s ease;" title="Click for beta information">BETA</span>
+                </h2>
+                <div style="text-align: center; padding: 20px 0;">
+                    <div class="user-avatar-large-container" style="display: inline-block; position: relative;">
+                        <img id="portal-avatar-display" class="user-avatar-large" src="assets/icons/anonymous.png" alt="Profile Avatar">
+                        <div class="avatar-upload-overlay-large">
+                            <div class="upload-icon-large">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                                    <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <p class="form-help" style="max-width: 500px; margin: 0 auto 15px;">
+                            Click your avatar above to upload a custom profile picture. Hover to see the upload icon.
+                        </p>
+                        <p class="form-help" style="max-width: 500px; margin: 0 auto; font-size: 0.85rem; opacity: 0.7;">
+                            Supported formats: JPEG, PNG | Max size: 5MB
+                        </p>
+                    </div>
+                </div>
+                <!-- Revert button will be added here by JavaScript when custom avatar exists -->
+                <!-- Info text for revert button -->
+                <div id="revert-info-text" style="text-align: center; margin-top: 10px;">
+                    <p class="form-help" style="max-width: 500px; margin: 0 auto; font-size: 0.85rem; opacity: 0.7;">
+                        If you signed in with Google or GitHub, you can revert to use their profile picture.
+                    </p>
+                </div>
+            </div>
+            </div>
+            <!-- End Profile Tab -->
+
+            <!-- Security Tab Content -->
+            <div class="tab-content" id="security-tab" style="display: none;">
+            <!-- Password Management -->
+            <div class="portal-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12,17A2,2 0 0,1 10,15V12A2,2 0 0,1 12,10A2,2 0 0,1 14,12V15A2,2 0 0,1 12,17M17,8H7V6A5,5 0 0,1 17,6V8M12,2A8,8 0 0,0 4,10V20H20V10A8,8 0 0,0 12,2Z" />
+                    </svg>
+                    Password Management
+                </h2>
+                <div class="form-group">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" id="current-password-pwd" class="form-control" placeholder="Enter current password">
+                    <p class="form-help">Required to confirm password change</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <input type="password" id="new-password" class="form-control" placeholder="At least 6 characters">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm New Password</label>
+                    <input type="password" id="confirm-new-password" class="form-control" placeholder="Repeat new password">
+                </div>
+                <button id="change-password-btn" class="btn-portal">Change Password</button>
+                <div class="pwd-messages">
+                    <div id="password-success">Password updated successfully.</div>
+                    <div id="password-error">Error updating password. Please try again.</div>
+                </div>
+                <hr style="margin:20px 0; border-color: rgba(0,255,249,0.2);">
+                <div class="form-group">
+                    <label class="form-label">Send Password Reset Email</label>
+                    <p class="form-help">We’ll send a password reset link to your account email.</p>
+                    <button id="send-reset-email-btn" class="btn-portal" type="button">Send Reset Email</button>
+                </div>
+                <div class="reset-messages">
+                    <div id="reset-success">Reset email sent. Check your inbox.</div>
+                    <div id="reset-error">Error sending reset email.</div>
+                </div>
+            </div>
+
+            <!-- Community Games section moved to bottom -->
+            <div class="portal-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
+                    </svg>
+                    Email Management <span class="beta-badge">BETA</span>
+                </h2>
+                <div class="form-group">
+                    <label class="form-label">Current Email</label>
+                    <input type="text" id="current-email" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Email</label>
+                    <input type="email" id="new-email" class="form-control" placeholder="Enter new email address">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" id="current-password" class="form-control" placeholder="Verify with your password">
+                    <p class="form-help">Required to confirm email change</p>
+                </div>
+                <button id="update-email-btn" class="btn-portal">Update Email</button>
+                <div class="email-messages">
+                    <div id="email-success">Email updated successfully!</div>
+                    <div id="email-error">Error updating email. Please try again.</div>
+                </div>
+            </div>
+            </div>
+            <!-- End Security Tab -->
+
+            <!-- Stats & Games Tab Content -->
+            <div class="tab-content" id="stats-tab" style="display: none;">
+            
+            <div class="portal-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M13,17.5C13,19.98 10.98,22 8.5,22C6.02,22 4,19.98 4,17.5C4,15.02 6.02,13 8.5,13C10.98,13 13,15.02 13,17.5M20,16.5C20,19.58 16.58,22 12.5,22C8.42,22 5,19.58 5,16.5C5,13.42 8.42,11 12.5,11C16.58,11 20,13.42 20,16.5M20,5V9H12V5H20M20,4H12C11.45,4 11,4.45 11,5V9C11,9.55 11.45,10 12,10H20C20.55,10 21,9.55 21,9V5C21,4.45 20.55,4 20,4M14.5,2.5C14.5,3.33 13.83,4 13,4C12.17,4 11.5,3.33 11.5,2.5C11.5,1.67 12.17,1 13,1C13.83,1 14.5,1.67 14.5,2.5M5.5,4.5C5.5,6.05 4.05,7.5 2.5,7.5C0.95,7.5 -0.5,6.05 -0.5,4.5C-0.5,2.95 0.95,1.5 2.5,1.5C4.05,1.5 5.5,2.95 5.5,4.5Z" />
+                    </svg>
+                    Game Playtime
+                    <span class="beta-tag" style="background: linear-gradient(135deg, #ff0080 0%, #ff4d4d 100%); color: white; cursor: default; margin-left: 10px;">NOT WORKING</span>
+                </h2>
+                <div class="playtime-notice" style="background: rgba(255, 0, 128, 0.1); border: 1px solid #ff0080; border-radius: 8px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                    <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; fill: #ff0080; margin: 0 auto 15px;">
+                        <path d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z" />
+                    </svg>
+                    <h3 style="color: #ff0080; margin: 0 0 10px 0; font-size: 1.2em;">Playtime Tracking Temporarily Unavailable</h3>
+                    <p style="color: rgba(255, 255, 255, 0.7); margin: 0; line-height: 1.6;">
+                        Game playtime tracking is currently not working due to system maintenance. This feature will be restored in a future update.
+                    </p>
+                </div>
+                <!-- Disabled playtime display
+                <div id="playtime-loading" style="text-align: center; padding: 20px;">
+                    <div class="loading-spinner"></div>
+                </div>
+                <ul id="playtime-list" class="playtime-list" style="display: none;"></ul>
+                <div class="total-playtime">
+                    Total: <span id="total-hours" class="total-hours">0</span>
+                </div>
+                <div class="playtime-note">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                    </svg>
+                    Playtime is only tracked when playing games on GlitchRealm. External website builds do not contribute to this total.
+                </div>
+                -->
+            </div>
+
+            <!-- Support form removed: direct support now lives exclusively on support.html -->
+            </div>
+            <!-- End Stats & Games Tab -->
+
+            <!-- Verification Tab Content -->
+            <div class="tab-content" id="verification-tab" style="display: none;">
+            <!-- Verification Section (moved to bottom) -->
+            <div class="portal-section" id="verification-section">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.1 14.8,9.5V11C15.4,11 16,11.6 16,12.3V15.8C16,16.4 15.4,17 14.7,17H9.2C8.6,17 8,16.4 8,15.7V12.2C8,11.6 8.6,11 9.2,11V9.5C9.2,8.1 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V11H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z" />
+                    </svg>
+                    Creator Verification
+                </h2>
+                <p id="verif-status" class="form-help" style="margin-top:-6px; opacity:0.9;">Not verified. Submit a request below.</p>
+                <form id="verif-form" class="neural-form">
+                    <div class="form-group">
+                        <label class="form-label" for="verif-username">Username <span style="color: var(--primary-cyan);">*</span></label>
+                        <input type="text" id="verif-username" class="form-control" maxlength="50" placeholder="Your username (shown as 'Made by [username]')" required />
+                        <div class="form-help">This username will appear when you publish games or articles (e.g., "Made by YourUsername")</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="verif-name">Display Name</label>
+                        <input type="text" id="verif-name" class="form-control" maxlength="100" placeholder="Your creator or studio name" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Verification Type <span style="color: var(--primary-cyan);">*</span></label>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="verif-type-games" value="games" style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>Games - Ability to submit and publish games</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="verif-type-news" value="news" style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>News - Ability to write and publish articles</span>
+                            </label>
+                        </div>
+                        <div class="form-help">Select at least one verification type</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="verif-bio">Bio</label>
+                        <textarea id="verif-bio" class="form-control" rows="4" maxlength="1000" placeholder="Tell us about your work, games, and experience"></textarea>
+                        <div class="form-help">Max 1000 characters</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Links (optional, up to 5)</label>
+                        <input type="url" id="verif-link-1" class="form-control" placeholder="Portfolio, itch.io, Steam, GitHub, etc." />
+                        <div style="height:10px"></div>
+                        <input type="url" id="verif-link-2" class="form-control" placeholder="Additional link" />
+                        <div style="height:10px"></div>
+                        <input type="url" id="verif-link-3" class="form-control" placeholder="Additional link" />
+                        <div style="height:10px"></div>
+                        <input type="url" id="verif-link-4" class="form-control" placeholder="Additional link" />
+                        <div style="height:10px"></div>
+                        <input type="url" id="verif-link-5" class="form-control" placeholder="Additional link" />
+                    </div>
+                    <button id="verif-submit" type="button" class="btn-portal">Submit Verification</button>
+                </form>
+            </div>
+            </div>
+            <!-- End Verification Tab -->
+
+            <!-- Danger Zone / Account Tab Content -->
+            <div class="tab-content" id="danger-tab" style="display: none;">
+                <div class="portal-section" style="border-color: rgba(255,0,128,0.3);">
+                    <h2 class="section-title" style="color: #ff0080;">
+                        <svg viewBox="0 0 24 24" style="fill: #ff0080;">
+                            <path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
+                        </svg>
+                        Danger Zone
+                    </h2>
+                    <p class="form-help" style="color: rgba(255,0,128,0.8); font-weight: 600;">⚠️ These actions cannot be undone. Proceed with caution.</p>
+                    <div style="margin-top: 24px;">
+                        <button id="sign-out-all-btn" class="btn-portal" style="background: rgba(255,184,0,0.1); border-color: rgba(255,184,0,0.3); color: #ffb800; width: 100%; margin-bottom: 16px;">
+                            Sign Out
+                        </button>
+                        <button id="delete-account-btn" class="btn-portal" style="background: rgba(255,0,128,0.1); border-color: rgba(255,0,128,0.3); color: #ff0080; width: 100%;">
+                            Delete Account Permanently
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- End Danger Tab -->
+
+            
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+    
+    <script src="script.js" defer></script>
+    <script>
+        // Tab Switching Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // Remove active class from all buttons
+                    tabBtns.forEach(b => {
+                        b.classList.remove('active');
+                        b.style.borderBottomColor = 'transparent';
+                        b.style.color = 'rgba(255,255,255,0.6)';
+                    });
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    this.style.borderBottomColor = '#00fff9';
+                    this.style.color = '#00fff9';
+                    
+                    // Hide all tab contents
+                    tabContents.forEach(content => {
+                        content.style.display = 'none';
+                    });
+                    
+                    // Show target tab content
+                    const targetContent = document.getElementById(targetTab + '-tab');
+                    if (targetContent) {
+                        targetContent.style.display = 'block';
+                    }
+                });
+                
+                // Hover effects
+                btn.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.color = 'rgba(255,255,255,0.9)';
+                        this.style.borderBottomColor = 'rgba(0,255,249,0.4)';
+                    }
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.color = 'rgba(255,255,255,0.6)';
+                        this.style.borderBottomColor = 'transparent';
+                    }
+                });
+            });
+        });
+        
+        // Notifications System
+        async function loadNotifications(userId) {
+            try {
+                const db = window.firebaseFirestore;
+                if (!db) return;
+                
+                const { collection, query, where, orderBy, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                
+                // Query notifications for this user
+                const notificationsRef = collection(db, 'notifications');
+                const q = query(
+                    notificationsRef,
+                    where('userId', '==', userId),
+                    orderBy('createdAt', 'desc')
+                );
+                
+                const snapshot = await getDocs(q);
+                const notifications = [];
+                snapshot.forEach(doc => {
+                    notifications.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log(`[Notifications] Loaded ${notifications.length} notifications`);
+                
+                // Count unread
+                const unreadCount = notifications.filter(n => !n.read).length;
+                
+                // Show/hide bell and badge
+                const bell = document.getElementById('notifications-bell');
+                const badge = document.getElementById('notification-badge');
+                
+                if (notifications.length > 0) {
+                    bell.style.display = 'block';
+                    
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+                
+                // Set up bell click handler
+                bell.onclick = () => showNotificationsModal(notifications, userId);
+                
+            } catch (error) {
+                console.error('[Notifications] Error loading:', error);
+            }
+        }
+        
+        function showNotificationsModal(notifications, userId) {
+            const modal = document.getElementById('notifications-modal');
+            const list = document.getElementById('notifications-list');
+            
+            // Clear previous content
+            list.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No notifications yet</p>';
+            } else {
+                notifications.forEach(notif => {
+                    const item = document.createElement('div');
+                    item.className = 'notification-item' + (notif.read ? '' : ' unread');
+                    
+                    const time = notif.createdAt?.toDate ? notif.createdAt.toDate().toLocaleString() : 'Just now';
+                    
+                    item.innerHTML = `
+                        <div class="notification-title">${notif.title || 'Notification'}</div>
+                        <div class="notification-message">${notif.message || ''}</div>
+                        <div class="notification-time">${time}</div>
+                    `;
+                    
+                    // Mark as read when clicked
+                    if (!notif.read) {
+                        item.onclick = async () => {
+                            try {
+                                const db = window.firebaseFirestore;
+                                const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                                await updateDoc(doc(db, 'notifications', notif.id), { read: true });
+                                item.classList.remove('unread');
+                                
+                                // Update badge
+                                const badge = document.getElementById('notification-badge');
+                                const currentCount = parseInt(badge.textContent) || 0;
+                                if (currentCount > 1) {
+                                    badge.textContent = currentCount - 1;
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                            } catch (error) {
+                                console.error('[Notifications] Error marking as read:', error);
+                            }
+                        };
+                    }
+                    
+                    list.appendChild(item);
+                });
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        // Close modal handlers
+        document.getElementById('close-notifications')?.addEventListener('click', () => {
+            document.getElementById('notifications-modal').style.display = 'none';
+        });
+        
+        document.getElementById('notifications-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'notifications-modal') {
+                document.getElementById('notifications-modal').style.display = 'none';
+            }
+        });
+        
+        // User Portal Functionality
+        function initializeUserPortal() {
+            console.log('Initializing user portal...');
+            
+            // Update header text for portal-specific branding
+            updatePortalHeader();
+            
+            const loadingContainer = document.getElementById('loading-container');
+            const authRequired = document.getElementById('auth-required');
+            const portalContent = document.getElementById('portal-content');
+            
+            // Check authentication state
+            window.onAuthStateChanged(window.firebaseAuth, (user) => {
+                loadingContainer.style.display = 'none';
+                
+                if (user) {
+                                        console.log('User is signed in, showing portal content');
+                    // Personalize page title
+                    try {
+                        const titleEl = document.getElementById('portal-title');
+                        const uidEl = document.getElementById('portal-user-id');
+                        const uidTextEl = document.getElementById('uid-text');
+                        if (titleEl) {
+                            const name = (user.displayName && user.displayName.trim()) || (user.email ? user.email.split('@')[0] : '') || 'Player';
+                                                        // Reset content then append badge conditionally
+                                                        titleEl.textContent = `Welcome, ${name}`;
+                                                        // Show UID below title in smaller text
+                                                        if (uidEl && uidTextEl) { 
+                                                            uidTextEl.textContent = `User ID: ${user.uid}`;
+                                                            uidEl.style.display = 'flex';
+                                                            
+                                                            // Add copy functionality
+                                                            const copyBtn = document.getElementById('copy-uid-btn');
+                                                            const copyBtnText = document.getElementById('copy-btn-text');
+                                                            if (copyBtn) {
+                                                                copyBtn.onclick = async () => {
+                                                                    try {
+                                                                        await navigator.clipboard.writeText(user.uid);
+                                                                        copyBtnText.textContent = 'Copied!';
+                                                                        copyBtn.style.background = 'rgba(0,255,65,0.1)';
+                                                                        copyBtn.style.borderColor = 'rgba(0,255,65,0.3)';
+                                                                        copyBtn.style.color = '#00ff41';
+                                                                        setTimeout(() => {
+                                                                            copyBtnText.textContent = 'Copy';
+                                                                            copyBtn.style.background = 'rgba(0,255,249,0.1)';
+                                                                            copyBtn.style.borderColor = 'rgba(0,255,249,0.3)';
+                                                                            copyBtn.style.color = '#00fff9';
+                                                                        }, 2000);
+                                                                    } catch (err) {
+                                                                        console.error('Failed to copy:', err);
+                                                                        copyBtnText.textContent = 'Failed';
+                                                                        setTimeout(() => { copyBtnText.textContent = 'Copy'; }, 2000);
+                                                                    }
+                                                                };
+                                                            }
+                                                        }
+                                                        // Attach verified badge if applicable
+                                                        (async () => {
+                                                            try {
+                                                                const ok = await isUserVerified(user.uid);
+                                                                // Remove existing badge if present
+                                                                const existing = titleEl.querySelector('.verified-badge');
+                                                                if (existing) existing.remove();
+                                                                if (ok) {
+                                                                    const badge = document.createElement('span');
+                                                                    badge.className = 'verified-badge';
+                                                                    badge.title = 'Verified creator';
+                                                                    badge.setAttribute('aria-label','Verified');
+                                                                    badge.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;';
+                                                                    badge.classList.add('portal-verified-badge');
+                                                                    badge.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ffc3" d="M12 2l2.9 2.1 3.5-.3 1.1 3.3 3 1.8-1.2 3.3 1.2 3.3-3 1.8-1.1 3.3-3.5-.3L12 22l-2.9-2.1-3.5.3-1.1-3.3-3-1.8L2.7 12 1.5 8.7l3-1.8 1.1-3.3 3.5.3L12 2zm-1.2 13.6l6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6z"/></svg>';
+                                                                    titleEl.appendChild(badge);
+                                                                }
+                                                            } catch(e) {}
+                                                        })();
+                        }
+                    } catch(e) {}
+                    portalContent.style.display = 'grid';
+                    loadUserData(user);
+                    loadNotifications(user.uid);
+                } else {
+                    console.log('User is not signed in, showing auth required');
+                    // Reset title when signed out
+                                        try {
+                                                const titleEl = document.getElementById('portal-title');
+                                                const uidEl = document.getElementById('portal-user-id');
+                                                const uidTextEl = document.getElementById('uid-text');
+                                                if (titleEl) {
+                                                    titleEl.textContent = 'User Portal';
+                                                    const existing = titleEl.querySelector('.verified-badge');
+                                                    if (existing) existing.remove();
+                                                }
+                                                if (uidEl) { uidEl.style.display = 'none'; }
+                                                if (uidTextEl) { uidTextEl.textContent = ''; }
+                                        } catch(e) {}
+                    authRequired.style.display = 'block';
+                }
+            });
+            
+            // Set up event listeners
+            const updateEmailBtn = document.getElementById('update-email-btn');
+            if (updateEmailBtn) {
+                updateEmailBtn.addEventListener('click', updateUserEmail);
+            }
+
+            // Password management wiring
+            const changePwdBtn = document.getElementById('change-password-btn');
+            const sendResetBtn = document.getElementById('send-reset-email-btn');
+            if (changePwdBtn) changePwdBtn.addEventListener('click', changeUserPassword);
+            if (sendResetBtn) sendResetBtn.addEventListener('click', sendResetEmailForUser);
+        }
+        
+        // Beta tag click handler
+        function initializeBetaTag() {
+            const betaTag = document.getElementById('beta-tag');
+            if (betaTag) {
+                betaTag.addEventListener('click', () => {
+                    const message = `
+🧪 BETA FEATURE: Custom Avatar Upload
+
+This feature is currently in beta testing. Here's what you should know:
+
+⚠️ Known Issues:
+• Some upload errors may occur during database synchronization
+• Avatar updates might take a few seconds to display
+• First-time uploads may require page refresh
+
+✅ What's Working:
+• Upload custom profile pictures (JPEG, PNG)
+• Revert to Google/GitHub provider avatars
+• Avatar display across the site
+
+📊 We're actively monitoring:
+• Upload success rates
+• Database performance
+• User experience feedback
+
+If you encounter any issues, please:
+1. Try refreshing the page
+2. Clear your browser cache
+3. Contact support if problems persist
+
+Thank you for being an early tester! 🚀
+                    `.trim();
+                    
+                    alert(message);
+                });
+                
+                // Add hover effect
+                betaTag.addEventListener('mouseenter', () => {
+                    betaTag.style.transform = 'scale(1.05)';
+                    betaTag.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.5)';
+                });
+                
+                betaTag.addEventListener('mouseleave', () => {
+                    betaTag.style.transform = 'scale(1)';
+                    betaTag.style.boxShadow = '0 2px 8px rgba(255, 107, 107, 0.3)';
+                });
+            }
+        }
+        
+        // Update header text for portal-specific branding
+        function updatePortalHeader() {
+            // Wait for header to load, then update text
+            const updateHeaderText = () => {
+                // Update the logo "Games" text to "Portal"
+                const gamesText = document.querySelector('.games-text');
+                if (gamesText) {
+                    gamesText.textContent = 'Portal';
+                }
+                
+                // Keep "Our Projects" unchanged in the dropdown
+                // (removed the GlitchRealm Projects modification)
+            };
+            
+            // Try immediately
+            updateHeaderText();
+            
+            // Also try after a short delay to ensure header is loaded
+            setTimeout(updateHeaderText, 500);
+            
+            // And try again after the header placeholder is likely loaded
+            setTimeout(updateHeaderText, 1500);
+        }
+        
+        // Load user data including email and playtime
+        async function loadUserData(user) {
+            // Set current email
+            const currentEmailInput = document.getElementById('current-email');
+            if (currentEmailInput) {
+                currentEmailInput.value = user.email;
+            }
+            
+            // Load playtime data
+            await loadPlaytimeData(user.uid);
+
+            // Load verification status and wire forms
+            try { await setupVerificationUI(user); } catch(e) { console.warn('verification UI', e); }
+            // Community Games removed
+        }
+        
+        // Update user email
+        async function updateUserEmail() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newEmail = document.getElementById('new-email').value;
+            const successMessage = document.getElementById('email-success');
+            const errorMessage = document.getElementById('email-error');
+            
+            // Hide previous messages
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            if (!newEmail) {
+                errorMessage.textContent = 'Please enter a new email address.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            if (!currentPassword) {
+                errorMessage.textContent = 'Please enter your current password.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const user = window.firebaseAuth.currentUser;
+                
+                // Debug logging to see user info
+                console.log('Current user:', user);
+                console.log('User email:', user.email);
+                console.log('User providers:', user.providerData);
+                
+                // Check if user has an email
+                if (!user.email) {
+                    errorMessage.textContent = 'Email update is not available for anonymous accounts. Please sign in with an email account first.';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Re-authenticate the user
+                const credential = window.EmailAuthProvider.credential(user.email, currentPassword);
+                await window.reauthenticateWithCredential(user, credential);
+                
+                // Update email
+                await window.updateEmail(user, newEmail);
+                
+                // Success
+                document.getElementById('current-email').value = newEmail;
+                document.getElementById('new-email').value = '';
+                document.getElementById('current-password').value = '';
+                successMessage.style.display = 'block';
+                console.log('Email updated successfully');
+            } catch (error) {
+                console.error('Error updating email:', error);
+                
+                // Handle specific errors
+                switch (error.code) {
+                    case 'auth/wrong-password':
+                        errorMessage.textContent = 'Incorrect password. Please try again.';
+                        break;
+                    case 'auth/email-already-in-use':
+                        errorMessage.textContent = 'This email is already in use by another account.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage.textContent = 'Please enter a valid email address.';
+                        break;
+                    default:
+                        errorMessage.textContent = 'Error updating email: ' + error.message;
+                }
+                
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Change password for signed-in user
+        async function changeUserPassword() {
+            const cur = document.getElementById('current-password-pwd');
+            const np = document.getElementById('new-password');
+            const cp = document.getElementById('confirm-new-password');
+            const ok = document.getElementById('password-success');
+            const err = document.getElementById('password-error');
+            ok.style.display = 'none'; err.style.display = 'none';
+
+            const currentPassword = cur.value.trim();
+            const newPassword = np.value.trim();
+            const confirmPassword = cp.value.trim();
+
+            if (!newPassword || newPassword.length < 6) {
+                err.textContent = 'New password must be at least 6 characters.';
+                err.style.display = 'block';
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                err.textContent = 'New password and confirmation do not match.';
+                err.style.display = 'block';
+                return;
+            }
+
+            try {
+                const user = window.firebaseAuth.currentUser;
+                if (!user || !user.email) throw new Error('Not signed in.');
+
+                // Re-authenticate with current password (required by Firebase)
+                if (!currentPassword) {
+                    err.textContent = 'Please enter your current password.';
+                    err.style.display = 'block';
+                    return;
+                }
+                const credential = window.EmailAuthProvider.credential(user.email, currentPassword);
+                await window.reauthenticateWithCredential(user, credential);
+
+                // Update password
+                await window.updatePassword(user, newPassword);
+
+                // Clear inputs and show success
+                cur.value = np.value = cp.value = '';
+                ok.style.display = 'block';
+                showAuthMessage('Password updated', 'success');
+            } catch (e) {
+                console.error('change password', e);
+                const code = e && e.code;
+                let msg = 'Error updating password.';
+                if (code === 'auth/wrong-password') msg = 'Incorrect current password.';
+                else if (code === 'auth/weak-password') msg = 'New password is too weak.';
+                else if (code === 'auth/requires-recent-login') msg = 'Please sign in again and retry.';
+                else if (code === 'auth/user-mismatch' || code === 'auth/user-not-found') msg = 'Account issue. Sign out/in and retry.';
+                err.textContent = msg;
+                err.style.display = 'block';
+                showAuthMessage(msg, 'error');
+            }
+        }
+
+        // Send password reset email; works when signed in or via current-email field
+        async function sendResetEmailForUser() {
+            const ok = document.getElementById('reset-success');
+            const err = document.getElementById('reset-error');
+            const btn = document.getElementById('send-reset-email-btn');
+            ok.style.display = 'none'; err.style.display = 'none';
+            try {
+                // Derive target email: prefer signed-in user's email; fallback to current-email field if present
+                const user = window.firebaseAuth && window.firebaseAuth.currentUser;
+                let email = (user && user.email) ? user.email : '';
+                if (!email) {
+                    const field = document.getElementById('current-email');
+                    if (field && field.value && /.+@.+\..+/.test(field.value)) {
+                        email = field.value.trim();
+                    }
+                }
+
+                if (!email) {
+                    // If we can't determine an email, route to the dedicated Forgot Password page
+                    showAuthMessage('Please use the Forgot Password page to request a reset.', 'info');
+                    setTimeout(() => { window.location.href = 'forgot-password.html'; }, 250);
+                    return;
+                }
+
+                // Prevent rapid double-clicks
+                if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+                await window.sendPasswordResetEmail(window.firebaseAuth, email);
+                ok.style.display = 'block';
+                showAuthMessage('Reset email sent', 'success');
+            } catch (e) {
+                console.error('send reset email', e);
+                const code = e && e.code;
+                let msg = 'Error sending reset email.';
+                if (code === 'auth/invalid-email') msg = 'Invalid email address.';
+                else if (code === 'auth/user-not-found') msg = 'No account found for this email.';
+                else if (code === 'auth/missing-email') msg = 'Missing email. Use Forgot Password to continue.';
+                err.textContent = msg;
+                err.style.display = 'block';
+                showAuthMessage(msg, 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Send Reset Email'; }
+            }
+        }
+        
+        // Load playtime data from Firestore
+        async function loadPlaytimeData(userId) {
+            const playtimeList = document.getElementById('playtime-list');
+            const playtimeLoading = document.getElementById('playtime-loading');
+            const totalHoursElement = document.getElementById('total-hours');
+            
+            try {
+                // Query the playtime collection for this user
+                const db = window.firebaseFirestore;
+                
+                // Get both the global document and game-specific subcollection
+                const globalRef = window.firestoreDoc(db, 'playtime', userId);
+                const globalDoc = await window.firestoreGetDoc(globalRef);
+                
+                // Also get the games subcollection
+                const gamesCollRef = window.firestoreCollection(db, 'playtime', userId, 'games');
+                const gamesSnapshot = await window.firestoreGetDocs(gamesCollRef);
+                
+                // Process the playtime data
+                let totalHours = 0;
+                const gameMap = new Map(); // Use a Map to avoid duplicates
+                
+                // First, process the global document if it exists
+                if (globalDoc.exists()) {
+                    const globalData = globalDoc.data();
+                    
+                    // Check if the document has games object
+                    if (globalData.games) {
+                        // Process each game in the games object
+                        Object.values(globalData.games).forEach(game => {
+                            // Skip if no gameId
+                            if (!game.gameId) return;
+                            
+                            // Calculate hours from totalMinutes if available
+                            if (game.totalMinutes) {
+                                game.hours = game.totalMinutes / 60;
+                            } else {
+                                game.hours = 0;
+                            }
+                            
+                            // Add to map using gameId as key to avoid duplicates
+                            gameMap.set(game.gameId, game);
+                        });
+                    }
+                }
+                
+                // Then, process each game-specific document
+                gamesSnapshot.forEach((doc) => {
+                    const gameData = doc.data();
+                    
+                    // Skip if no gameId
+                    if (!gameData.gameId) return;
+                    
+                    // Calculate hours from totalMinutes if available
+                    if (gameData.totalMinutes) {
+                        gameData.hours = gameData.totalMinutes / 60;
+                    } else {
+                        gameData.hours = 0;
+                    }
+                    
+                    // Add to map using gameId as key to avoid duplicates
+                    // This will override global data with game-specific data
+                    gameMap.set(gameData.gameId, gameData);
+                });
+                
+                // Convert map values to array and calculate total hours
+                const playtimeData = Array.from(gameMap.values());
+                totalHours = playtimeData.reduce((sum, game) => sum + (game.hours || 0), 0);
+                
+                // Make sure all games are included in the list, even if they haven't been played yet
+                const allGames = [
+                    { gameId: 'coderunner', gameName: 'CodeRunner', hours: 0, iconUrl: 'assets/game logos/coderunner logo.png' },
+                    { gameId: 'bytesurge', gameName: 'ByteSurge', hours: 0, iconUrl: 'assets/game logos/bytesurge.png' },
+                    { gameId: 'bytewars', gameName: 'NeuroCore: Byte Wars', hours: 0, iconUrl: 'assets/game logos/neurocore byte wars logo.png' }
+                ];
+                
+                // Merge playtime data with all games list
+                const mergedData = allGames.map(defaultGame => {
+                    // If we have playtime data for this game, use it, otherwise use the default
+                    const gameData = gameMap.get(defaultGame.gameId);
+                    return gameData ? { ...defaultGame, ...gameData } : defaultGame;
+                });
+                
+                // Render the merged data
+                renderPlaytimeList(mergedData);
+                
+                // Update total hours
+                const totalHoursDisplay = formatPlaytime(totalHours);
+                totalHoursElement.textContent = totalHoursDisplay;
+                
+                // Update the total hours label to match the units
+                const totalPlaytimeLabel = document.querySelector('.total-playtime');
+                if (totalPlaytimeLabel) {
+                    if (totalHours < 0.0167) { // Less than a minute
+                        totalPlaytimeLabel.innerHTML = `Total: <span id="total-hours" class="total-hours">${totalHoursDisplay}</span>`;
+                    } else if (totalHours < 1) { // Less than an hour
+                        totalPlaytimeLabel.innerHTML = `Total: <span id="total-hours" class="total-hours">${totalHoursDisplay}</span>`;
+                    } else {
+                        totalPlaytimeLabel.innerHTML = `Total: <span id="total-hours" class="total-hours">${totalHoursDisplay}</span>`;
+                    }
+                }
+                
+                // Hide loading spinner
+                playtimeLoading.style.display = 'none';
+                playtimeList.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading playtime data:', error);
+                playtimeLoading.innerHTML = '<p>Error loading playtime data. Please try again later.</p>';
+            }
+        }
+        
+        // Helper function to format playtime based on duration
+        function formatPlaytime(hours) {
+            if (hours < 0.001) { // Very small values (less than ~3.5 seconds)
+                return '0 seconds';
+            } else if (hours < 0.0167) { // Less than a minute (0.0167 hours = 1 minute)
+                const seconds = Math.round(hours * 3600);
+                return seconds === 1 ? '1 second' : `${seconds} seconds`;
+            } else if (hours < 1) { // Less than an hour
+                const minutes = Math.round(hours * 60);
+                return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+            } else {
+                const hourValue = Math.round(hours * 10) / 10; // Round to 1 decimal
+                return hourValue === 1 ? '1 hour' : `${hourValue.toFixed(1)} hours`;
+            }
+        }
+        
+        // Render playtime list
+        function renderPlaytimeList(playtimeData) {
+            const playtimeList = document.getElementById('playtime-list');
+            playtimeList.innerHTML = '';
+            
+            // Sort games by playtime (descending)
+            playtimeData.sort((a, b) => b.hours - a.hours);
+            
+            playtimeData.forEach((game) => {
+                // Commenting out this code to show all games even with 0 hours
+                // if (game.hours === 0) {
+                //     return;
+                // }
+                
+                const listItem = document.createElement('li');
+                listItem.className = 'playtime-item';
+                
+                // Game icon and name
+                const gameInfo = document.createElement('div');
+                gameInfo.className = 'game-info';
+                
+                const gameIcon = document.createElement('img');
+                gameIcon.className = 'game-icon';
+                
+                // Determine the correct image URL based on gameId
+                let imageUrl;
+                if (game.iconUrl) {
+                    imageUrl = game.iconUrl;
+                } else {
+                    // Fallback logic based on gameId
+                    switch(game.gameId) {
+                        case 'coderunner':
+                            imageUrl = 'assets/game logos/coderunner logo.png';
+                            break;
+                        case 'bytesurge':
+                            imageUrl = 'assets/game logos/bytesurge.png';
+                            break;
+                        case 'bytewars': // Updated ID to match what's in the GamePlaytimeTracker
+                            imageUrl = 'assets/game logos/neurocore byte wars logo.png';
+                            break;
+                        default:
+                            imageUrl = 'assets/Favicon and Icons/favicon.ico';
+                    }
+                }
+                
+                gameIcon.src = imageUrl;
+                gameIcon.alt = game.gameName;
+                
+                const gameName = document.createElement('div');
+                gameName.className = 'game-name';
+                gameName.textContent = game.gameName;
+                
+                gameInfo.appendChild(gameIcon);
+                gameInfo.appendChild(gameName);
+                
+                // Playtime display
+                const gameTime = document.createElement('div');
+                gameTime.className = 'game-time';
+                
+                // Format playtime based on duration
+                let displayTime = typeof game.hours === 'number' ? 
+                    formatPlaytime(game.hours) : '0 seconds';
+                
+                gameTime.textContent = displayTime;
+                
+                listItem.appendChild(gameInfo);
+                listItem.appendChild(gameTime);
+                
+                playtimeList.appendChild(listItem);
+            });
+        }
+        
+        // Call initialization when document is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize beta tag click handler
+            initializeBetaTag();
+            // initializeUserPortal will be called by the Firebase timeout
+        });
+
+        async function isUserVerified(uid) {
+            try {
+                const db = window.firebaseFirestore;
+                const ref = window.firestoreDoc(db, 'verified_users', uid);
+                const snap = await window.firestoreGetDoc(ref);
+                return snap.exists() && snap.data().verified === true;
+            } catch(e) { return false; }
+        }
+
+        async function setupVerificationUI(user){
+            const statusEl = document.getElementById('verif-status');
+            const form = document.getElementById('verif-form');
+            const usernameEl = document.getElementById('verif-username');
+            const nameEl = document.getElementById('verif-name');
+            const bioEl = document.getElementById('verif-bio');
+            const linkEls = [1,2,3,4,5].map(i => document.getElementById('verif-link-'+i));
+            const typeGamesEl = document.getElementById('verif-type-games');
+            const typeNewsEl = document.getElementById('verif-type-news');
+            const btn = document.getElementById('verif-submit');
+            const db = window.firebaseFirestore;
+            const reqRef = window.firestoreDoc(db, 'verification_requests', user.uid);
+            const reqSnap = await window.firestoreGetDoc(reqRef);
+            const verified = await isUserVerified(user.uid);
+            let existing = reqSnap.exists();
+            let existingStatus = existing ? (reqSnap.data().status || 'pending') : 'draft';
+            if (verified) {
+                statusEl.textContent = 'You are verified. Thank you for being a trusted creator.';
+                form.style.display = 'none';
+                return;
+            }
+            if (existing) {
+                const d = reqSnap.data();
+                usernameEl.value = d.username || '';
+                nameEl.value = d.displayName || user.displayName || '';
+                bioEl.value = d.bio || '';
+                const links = Array.isArray(d.links) ? d.links : [];
+                links.forEach((v,i) => { if (linkEls[i]) linkEls[i].value = v; });
+                const types = Array.isArray(d.verificationTypes) ? d.verificationTypes : [];
+                if (types.includes('games')) typeGamesEl.checked = true;
+                if (types.includes('news')) typeNewsEl.checked = true;
+                statusEl.textContent = 'Status: ' + (d.status || 'pending');
+            } else {
+                statusEl.textContent = 'Not verified. Submit a request below.';
+                nameEl.value = user.displayName || user.email?.split('@')[0] || '';
+            }
+            btn.addEventListener('click', async () => {
+                try {
+                    const username = (usernameEl.value||'').trim().slice(0,50);
+                    if (!username) { alert('Username is required.'); return; }
+                    const displayName = (nameEl.value||'').trim().slice(0,100);
+                    const bio = (bioEl.value||'').trim().slice(0,1000);
+                    const links = linkEls.map(i => (i?.value||'').trim()).filter(Boolean).slice(0,5);
+                    const verificationTypes = [];
+                    if (typeGamesEl.checked) verificationTypes.push('games');
+                    if (typeNewsEl.checked) verificationTypes.push('news');
+                    if (verificationTypes.length === 0) {
+                        alert('Please select at least one verification type (Games or News).');
+                        return;
+                    }
+                    // If request already decided, block user-side to avoid rule failures
+                    if (existing && (existingStatus === 'approved' || existingStatus === 'denied')) {
+                        showAuthMessage('Your verification request has already been decided (' + existingStatus + '). Please contact support for changes.', 'error');
+                        return;
+                    }
+
+                    if (!existing) {
+                        // Create new request (must include createdAt & uid)
+                        const createPayload = {
+                            uid: user.uid,
+                            username,
+                            displayName,
+                            bio,
+                            links,
+                            verificationTypes,
+                            status: 'pending',
+                            createdAt: new Date()
+                        };
+                        await window.firestoreSetDoc(reqRef, createPayload);
+                        statusEl.textContent = 'Status: pending (submitted)';
+                        existing = true;
+                        existingStatus = 'pending';
+                    } else {
+                        // Update allowed user fields only (no uid/createdAt)
+                        const updatePayload = {
+                            username,
+                            displayName,
+                            bio,
+                            links,
+                            verificationTypes,
+                            status: 'pending'
+                        };
+                        await window.firestoreSetDoc(reqRef, updatePayload, { merge: true });
+                        statusEl.textContent = 'Status: pending (updated)';
+                        existingStatus = 'pending';
+                    }
+                    showAuthMessage('Verification submitted', 'success');
+                } catch(e) {
+                    console.error('submit verification', e);
+                    showAuthMessage('Failed to submit verification', 'error');
+                }
+            });
+        }
+
+    // Community Games removed
+    </script>
+    
+    <!-- Auth Overlay Modal -->
+    <!-- Sign In Modal is now provided by header.html -->
+</body>
+<script>(function(){const c={src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};function i(){if(document.getElementById('bmc-widget-script'))return;const s=document.createElement('script');s.id='bmc-widget-script';s.src=c.src;s.dataset.name='BMC-Widget';s.setAttribute('data-cfasync','false');s.setAttribute('data-id',c.id);s.setAttribute('data-description',c.desc);s.setAttribute('data-message',c.msg);s.setAttribute('data-color',c.color);s.setAttribute('data-position',c.pos);s.setAttribute('data-x_margin',c.x);s.setAttribute('data-y_margin',c.y);document.body.appendChild(s);}if(window.requestIdleCallback)requestIdleCallback(i,{timeout:2500});else window.addEventListener('load',()=>setTimeout(i,600));['pointerdown','keydown','scroll'].forEach(e=>window.addEventListener(e,i,{once:true,passive:true}));})();</script>
+</html>
+
