@@ -79,9 +79,38 @@ async function cacheFirst(request, cacheName = RUNTIME_CACHE) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
-  const response = await fetch(request);
-  if (response && response.status === 200) cache.put(request, response.clone());
-  return response;
+  try {
+    const response = await fetch(request);
+    // Accept opaque responses (cross-origin no-cors) as cacheable as well
+    const ok = (response && response.status === 200) || (response && response.type === 'opaque');
+    if (ok) {
+      try { cache.put(request, response.clone()); } catch (e) { /* ignore put errors for opaque */ }
+    }
+    return response;
+  } catch (e) {
+    // Network failed: fall back to cached asset if available
+    if (cached) return cached;
+    // If this was an image (e.g., favicon) try several known fallbacks (handles news subdomain)
+    if (request.destination === 'image') {
+      const FALLBACK_IMAGES = [
+        '/assets/Favicon and Icons/favicon.ico',
+        '/news/assets/Favicon and Icons/favicon.ico',
+        '/favicon.ico',
+        '/assets/Favicon and Icons/favicon.svg'
+      ];
+      for (const path of FALLBACK_IMAGES) {
+        try {
+          const f = await caches.match(path);
+          if (f) return f;
+        } catch (e2) { /* ignore */ }
+      }
+      // Final fallback: return a minimal inline SVG favicon so the page doesn't error
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#00fff9"/></svg>';
+      return new Response(svg, { headers: { 'Content-Type': 'image/svg+xml' } });
+    }
+    // As a last resort, rethrow so caller can handle or browser gets the network error
+    throw e;
+  }
 }
 
 async function networkFirst(request, cacheName = RUNTIME_CACHE, timeout = 3000) {

@@ -129,6 +129,18 @@
         transform: scale(1);
       }
     }
+    /* Spinner for empty / loading state */
+    .news-spinner {
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      border:8px solid rgba(255,255,255,0.06);
+      border-top-color:var(--news-accent);
+      margin:18px auto 28px;
+      animation:spin 1s linear infinite;
+      box-shadow:0 6px 18px rgba(0,255,249,0.08);
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
   </style>
   <script type="module" src="../firebase-core.js"></script>
 </head>
@@ -200,7 +212,10 @@
           </section>
         </aside>
         <div>
-          <div id="article-list" class="article-list"></div>
+          <div style="position:relative;">
+            <div id="news-spinner" class="news-spinner" style="display:none;" aria-hidden="true"></div>
+            <div id="article-list" class="article-list"></div>
+          </div>
           <div id="empty-placeholder" class="empty-state" style="display:none;">
             <h2>No Articles Yet</h2>
             <p>When news is published (updates, patch notes, dev logs, or events) it will appear here. Authorized staff can publish the first article now.</p>
@@ -298,7 +313,7 @@
     }
   </style>
 
-  <footer class="footer">
+  <footer id="site-footer" class="footer">
     <div class="container">
         <div class="footer-bottom">
             <p style="margin-bottom: 10px; font-size: 0.9em; color: rgba(255,255,255,0.7);">By using this site, you agree to our <a href="../terms-of-service.html" style="color: var(--primary-cyan); text-decoration: none;">Terms of Service</a> and <a href="../privacy-policy.html" style="color: var(--primary-cyan); text-decoration: none;">Privacy Policy</a>.</p>
