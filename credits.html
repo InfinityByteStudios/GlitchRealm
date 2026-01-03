@@ -1,428 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>    <meta charset="UTF-8">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Credits - GlitchRealm Games</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png" />
-    <link rel="stylesheet" href="styles.css">
+    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
-    </noscript>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="auth-redirect-handler.js"></script>
+    <script type="module" src="firebase-core.js"></script>
+    
     <style>
-        /* Force proper styling for profile dropdown */
-        .user-profile {
-            position: relative !important;
+        .credits-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
         }
-
-        .profile-dropdown {
-            position: relative !important;
+        
+        .credits-intro {
+            text-align: center;
+            margin-bottom: 3rem;
         }
-
-        .profile-trigger {
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.5rem !important;
-            background: rgba(0, 255, 249, 0.1) !important;
-            border: 1px solid var(--primary-cyan) !important;
-            border-radius: 8px !important;
-            padding: 0.5rem 0.75rem !important;
-            color: var(--white) !important;
-            font-family: 'Rajdhani', sans-serif !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
+        
+        .credits-intro p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 700px;
+            margin: 1rem auto 0;
         }
-
-        .profile-trigger:hover {
-            background: rgba(0, 255, 249, 0.2) !important;
-            box-shadow: 0 0 15px rgba(0, 255, 249, 0.3) !important;
+        
+        .fullscreen-credits-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 255, 249, 0.1);
+            border: 2px solid var(--primary-cyan);
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            color: var(--primary-cyan);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-bottom: 1rem;
         }
-
-        .user-avatar {
-            width: 32px !important;
-            height: 32px !important;
-            border-radius: 50% !important;
-            border: 2px solid var(--primary-cyan) !important;
-            object-fit: cover !important;
+        
+        .fullscreen-credits-btn:hover {
+            background: rgba(0, 255, 249, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.4);
+            transform: translateY(-2px);
         }
-
-        /* Avatar upload overlay styles */
-        .user-avatar-container {
-            position: relative !important;
-            display: inline-block !important;
+        
+        .fullscreen-credits-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0a 0%, #0a1629 50%, #041018 100%);
+            z-index: 10000;
+            display: none;
+            overflow: hidden;
         }
-
-        .avatar-upload-overlay {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: rgba(0, 0, 0, 0.4) !important;
-            backdrop-filter: blur(4px) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            opacity: 0 !important;
-            transition: opacity 0.3s ease !important;
-            cursor: pointer !important;
-            z-index: 10 !important;
+        
+        .fullscreen-credits-overlay.active {
+            display: block;
         }
-
-        .user-avatar-container:hover .avatar-upload-overlay {
-            opacity: 0 !important;
+        
+        .credits-scroll-container {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            animation: creditsScroll 60s linear forwards;
         }
-
-        /* Only show upload overlay when dropdown is open */
-        .profile-dropdown.open .user-avatar-container:hover .avatar-upload-overlay {
-            opacity: 1 !important;
-        }
-
-        .upload-icon {
-            font-size: 14px !important;
-            color: rgba(255, 255, 255, 0.9) !important;
-            text-shadow: 0 0 10px rgba(0, 255, 249, 0.5) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
-        .profile-action-btn.delete-account {
-            border-color: rgba(255, 0, 128, 0.5) !important;
-            color: var(--primary-magenta) !important;
-        }
-
-        .profile-action-btn.delete-account:hover {
-            background: rgba(255, 0, 128, 0.1) !important;
-            border-color: var(--primary-magenta) !important;
-            box-shadow: 0 0 10px rgba(255, 0, 128, 0.2) !important;
-        }
-
-        .action-icon {
-            font-size: 1.2rem !important;
-        }
-
-        .user-name {
-            font-size: 0.9rem !important;
-            max-width: 120px !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-        }
-
-        .dropdown-arrow {
-            font-size: 0.8rem !important;
-            color: var(--primary-cyan) !important;
-            transition: transform 0.3s ease !important;
-        }
-
-        .profile-dropdown.open .dropdown-arrow {
-            transform: rotate(180deg) !important;
-        }
-
-        .profile-menu {
-            position: absolute !important;
-            top: 100% !important;
-            right: 0 !important;
-            background: linear-gradient(135deg, #0a1629 0%, #041018 100%) !important;
-            border: 2px solid var(--primary-cyan) !important;
-            border-radius: 12px !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 249, 0.3) !important;
-            min-width: 280px !important;
-            max-height: 400px !important;
-            overflow-y: auto !important;
-            z-index: 10000 !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-            transform: translateY(-10px) scale(0.95) !important;
-            transition: all 0.3s ease !important;
-            margin-top: 0.5rem !important;
-        }
-
-        .profile-dropdown.open .profile-menu {
-            opacity: 1 !important;
-            visibility: visible !important;
-            transform: translateY(0) scale(1) !important;
-        }
-
-        .profile-info {
-            padding: 1.5rem !important;
-            border-bottom: 1px solid rgba(0, 255, 249, 0.2) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 1rem !important;
-        }
-
-        .user-avatar-large {
-            width: 60px !important;
-            height: 60px !important;
-            border-radius: 50% !important;
-            border: 3px solid var(--primary-cyan) !important;
-            object-fit: cover !important;
-        }
-
-        .profile-details {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 0.25rem !important;
-        }
-
-        .user-display-name {
-            display: block !important;
-            font-size: 1rem !important;
-            font-weight: 600 !important;
-            color: var(--white) !important;
-            margin-bottom: 0.25rem !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-        }
-
-        .user-email {
-            display: block !important;
-            font-size: 0.85rem !important;
-            color: var(--text-secondary) !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-            margin-bottom: 0.25rem !important;
-        }
-
-        .user-provider {
-            display: block !important;
-            font-size: 0.75rem !important;
-            color: var(--primary-cyan) !important;
-            font-weight: 500 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-        }
-
-        .profile-actions {
-            padding: 1rem !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 0.5rem !important;
-        }
-
-        .profile-action-btn {
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.75rem !important;
-            padding: 0.75rem 1rem !important;
-            background: rgba(0, 0, 0, 0.3) !important;
-            border: 1px solid rgba(0, 255, 249, 0.3) !important;
-            border-radius: 8px !important;
-            color: var(--white) !important;
-            font-family: 'Rajdhani', sans-serif !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            width: 100% !important;
-            text-align: left !important;
-            white-space: nowrap !important;
-            overflow: visible !important;
-        }
-
-        .profile-action-btn:hover {
-            background: rgba(0, 255, 249, 0.1) !important;
-            border-color: var(--primary-cyan) !important;
-            box-shadow: 0 0 10px rgba(0, 255, 249, 0.2) !important;
-        }
-
-        /* Ensure sign out button text is visible */
-        .profile-action-btn.sign-out {
-            color: var(--white) !important;
-        }
-
-        /* More specific rule for sign out button text */
-        #sign-out-btn,
-        #sign-out-btn *:not(.action-icon):not(.icon-svg):not(path) {
-            color: var(--white) !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-
-        .profile-action-btn.delete-account {
-            border-color: rgba(255, 0, 128, 0.5) !important;
-            color: var(--primary-magenta) !important;
-        }
-
-        .profile-action-btn.delete-account:hover {
-            background: rgba(255, 0, 128, 0.1) !important;
-            border-color: var(--primary-magenta) !important;
-            box-shadow: 0 0 10px rgba(255, 0, 128, 0.2) !important;
-        }
-
-        .action-icon {
-            font-size: 1.2rem !important;
-        }
-
-        /* Specific styling for profile icons only */
-        .profile-menu .icon-svg,
-        .action-icon .icon-svg {
-            width: 16px !important;
-            height: 16px !important;
-            fill: currentColor !important;
-        }
-
-        /* Auth tab icons should use proper sizing */
-        .auth-tab .icon-svg {
-            width: 18px !important;
-            height: 18px !important;
-            fill: currentColor !important;
-        }
-
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .profile-menu {
-                right: -1rem !important;
-                left: -1rem !important;
-                min-width: auto !important;
-                width: calc(100vw - 2rem) !important;
-                max-width: 320px !important;
+        
+        @keyframes creditsScroll {
+            from {
+                top: 0;
             }
-            
-            .user-name {
-                max-width: 80px !important;
+            to {
+                top: -100%;
             }
         }
-
-        /* DEBUG: Force hide modal to check if content is visible */
-        .auth-overlay {
-            display: none !important;
-            visibility: hidden !important;
+        
+        .credits-scroll-container.paused {
+            animation-play-state: paused;
         }
-
-        /* Comprehensive fix for profile button visibility */
-        .profile-actions {
-            padding: 1rem !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 0.5rem !important;
+        
+        .credits-content {
+            text-align: center;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
-
-        .profile-action-btn {
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.75rem !important;
-            padding: 0.75rem 1rem !important;
-            background: rgba(0, 0, 0, 0.3) !important;
-            border: 1px solid rgba(0, 255, 249, 0.3) !important;
-            border-radius: 8px !important;
-            color: var(--white) !important;
-            font-family: 'Rajdhani', sans-serif !important;
-            font-weight: 600 !important;
-            font-size: 0.9rem !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            width: 100% !important;
-            text-align: left !important;
-            white-space: nowrap !important;
-            overflow: visible !important;
-            min-height: 44px !important;
+        
+        .credits-title {
+            font-size: 4rem;
+            font-weight: 900;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-cyan);
+            text-shadow: 
+                0 0 10px rgba(0, 255, 249, 0.8),
+                0 0 20px rgba(0, 255, 249, 0.6),
+                0 0 30px rgba(0, 255, 249, 0.4),
+                2px 2px 0px rgba(255, 0, 128, 0.5);
+            margin-bottom: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
         }
-
-        .profile-action-btn:hover {
-            background: rgba(0, 255, 249, 0.1) !important;
-            border-color: var(--primary-cyan) !important;
-            box-shadow: 0 0 10px rgba(0, 255, 249, 0.2) !important;
+        
+        .credits-group {
+            margin-bottom: 4rem;
         }
-
-        /* Specific button styling */
-        .profile-action-btn.sign-out {
-            color: var(--white) !important;
+        
+        .credits-group-title {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-cyan);
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
-
-        .profile-action-btn.delete-account {
-            border-color: rgba(255, 0, 128, 0.5) !important;
-            color: var(--primary-magenta) !important;
+        
+        .credits-role {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            font-family: 'Rajdhani', sans-serif;
         }
-
-        .profile-action-btn.delete-account:hover {
-            background: rgba(255, 0, 128, 0.1) !important;
-            border-color: var(--primary-magenta) !important;
-            box-shadow: 0 0 10px rgba(255, 0, 128, 0.2) !important;
+        
+        .credits-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2rem;
+            font-family: 'Rajdhani', sans-serif;
         }
-
-        /* Icon styling */
-        .action-icon {
-            font-size: 1.2rem !important;
-            width: 20px !important;
-            height: 20px !important;
-            flex-shrink: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+        
+        .credits-logo {
+            max-width: 200px;
+            height: auto;
+            margin: 1rem auto 1.5rem;
+            display: block;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 249, 0.3));
         }
-
-        .action-icon .icon-svg {
-            width: 100% !important;
-            height: 100% !important;
-            fill: currentColor !important;
+        
+        .credits-logo.large {
+            max-width: 300px;
         }
-
-        /* Force button text to be visible */
-        #sign-out-btn,
-        #delete-account-btn,
-        #refresh-profile-btn {
-            color: var(--white) !important;
+        
+        .credits-logo.tech {
+            max-width: 150px;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
         }
-
-        #delete-account-btn {
-            color: var(--primary-magenta) !important;
+        
+        .credits-close-btn {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 0, 128, 0.2);
+            border: 2px solid var(--primary-magenta);
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            color: var(--primary-magenta);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10001;
         }
-
-        /* Ensure all text content is visible */
-        .profile-action-btn * {
-            color: inherit !important;
-            opacity: 1 !important;
-            visibility: visible !important;
+        
+        .credits-close-btn:hover {
+            background: rgba(255, 0, 128, 0.3);
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
         }
-
-        .profile-action-btn .action-icon * {
-            color: var(--primary-cyan) !important;
+        
+        .credits-speed-control {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10001;
         }
-
-        .profile-action-btn.delete-account .action-icon * {
-            color: var(--primary-magenta) !important;
+        
+        .speed-btn {
+            background: rgba(0, 255, 249, 0.2);
+            border: 2px solid var(--primary-cyan);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--primary-cyan);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .speed-btn:hover {
+            background: rgba(0, 255, 249, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 249, 0.4);
+        }
+        
+        .speed-btn.active {
+            background: rgba(0, 255, 249, 0.4);
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.6);
+        }
+        
+        .credits-end {
+            font-size: 3rem;
+            font-weight: 900;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-cyan);
+            margin-top: 8rem;
+            margin-bottom: 8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .credit-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .credit-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .credit-item {
+            background: rgba(0, 255, 249, 0.03);
+            border-left: 3px solid var(--primary-cyan);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .credit-item:hover {
+            background: rgba(0, 255, 249, 0.06);
+            border-left-color: var(--primary-magenta);
+        }
+        
+        .credit-item p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.5rem;
+        }
+        
+        .credit-item p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .credit-item strong {
+            color: var(--primary-cyan);
+            font-weight: 600;
         }
     </style>
-    
-    <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
-    <script type="module" src="firebase-core.js"></script>
-    <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
-            authDomain: "shared-sign-in.firebaseapp.com",
-            projectId: "shared-sign-in",
-            storageBucket: "shared-sign-in.appspot.com",
-            messagingSenderId: "332039027753",
-            appId: "1:332039027753:web:aa7c6877d543bb90363038",
-            measurementId: "G-KK5XVVLMVN"
-        };
-        
-        const app = window.firebaseApp || initializeApp(firebaseConfig);
-        const auth = window.firebaseAuth || getAuth(app);
-        const analytics = getAnalytics(app);
-        
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-    </script>
 </head>
 <body>
     <div class="background-animation"></div>
@@ -430,169 +283,278 @@
     <div id="header-placeholder"></div>
 
     <main class="main">
-        <section class="privacy-hero">
+        <section class="games-hero">
             <div class="container">
-                <div class="privacy-header">
-                    <h1 class="privacy-title">
-                        <span class="glitch" data-text="Credits">Credits</span>
-                    </h1>
-                    <p class="privacy-subtitle">Acknowledgments and attributions for GlitchRealm Games</p>
-                </div>
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Credits">Credits</span>
+                </h1>
+                <p class="page-subtitle">Acknowledgments and Contributors</p>
             </div>
         </section>
 
-        <section class="privacy-content">
-            <div class="container">
-                <div class="privacy-document">
-                    <div class="privacy-section">
-                        <h2>Development Team</h2>
-                        <p><strong>InfinityByte Studios</strong> - Main development, platform management, and game development (NeuroCore: Byte Wars)</p>
-                        <p><strong>NanoShade Studios</strong> - Game development (ByteSurge, CodeRunner, Dimensional Dominion)</p>
-                        
-                    </div>
+        <div class="credits-container">
+            <div class="credits-intro">
+                <button class="fullscreen-credits-btn" onclick="showFullscreenCredits()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                    View Fullscreen Animated Credits
+                </button>
+                <p>GlitchRealm Games wouldn't exist without the talented individuals and organizations who have contributed their time, skills, and resources. Thank you to everyone who has made this platform possible.</p>
+            </div>
 
-                    <div class="privacy-section">
-                        <h2>Artists</h2>
-                        <p><strong>SpriteSpinner</strong> - Artist and creative design</p>
-                        <p><strong>PixelPunk</strong> - Artist and visual assets</p>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2>Technology & Services</h2>
-                        <p><strong>Netlify</strong> - Web hosting and deployment platform. Special thanks to Netlify for their Open Source plan, which powers GlitchRealm's infrastructure and makes this platform possible.</p>
-                        <p><strong>Firebase</strong> - Authentication and user management services</p>
-                        <p><strong>DevIcon</strong> - Platform and technology icons</p>
-                        <p><strong>Google Fonts</strong> - Typography (Orbitron, Rajdhani)</p>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2>Design & Assets</h2>
-                        <p><strong>Custom Graphics</strong> - All game logos and branding created in-house</p>
-                        <p><strong>Cyberpunk Theme</strong> - Original design inspired by cyberpunk aesthetics</p>
-                        <p><strong>Icons</strong> - Platform icons provided by DevIcon project</p>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2>Special Thanks</h2>
-                        <p>To all beta testers and community members who provided feedback</p>
-                        <p>To the open-source community for tools and resources</p>
-                        <p>To players who make the GlitchRealm universe come alive</p>
-                    </div>
-
-                    <div class="privacy-section">
-                        <h2>Legal</h2>
-                        <p>All game content, logos, and original graphics are property of their respective studios under the GlitchRealm Games umbrella.</p>
-                        <p>Third-party services and resources are used under their respective licenses.</p>
-                    </div>
+            <div class="credit-section">
+                <h2>Founder & Owner</h2>
+                <div class="credit-item">
+                    <p><strong>InfinityByte Dev</strong> - Owner and Developer of GlitchRealm Games</p>
                 </div>
             </div>
-        </section>
+
+            <div class="credit-section">
+                <h2>Development Team</h2>
+                <div class="credit-item">
+                    <p><strong>InfinityByte Dev</strong> - Platform development and architecture</p>
+                </div>
+                <div class="credit-item">
+                    <p><strong>NanoShade Studios</strong> - Game development (ByteSurge, CodeRunner, Dimensional Dominion)</p>
+                </div>
+            </div>
+
+            <div class="credit-section">
+                <h2>Artists</h2>
+                <div class="credit-item">
+                    <p><strong>SpriteSpinner</strong> - Artist and creative design</p>
+                </div>
+                <div class="credit-item">
+                    <p><strong>PixelPunk</strong> - Artist and visual assets</p>
+                </div>
+            </div>
+
+            <div class="credit-section">
+                <h2>Technology & Services</h2>
+                <div class="credit-item">
+                    <p><strong>Netlify</strong> - Web hosting and deployment platform. Special thanks to Netlify for their Open Source plan, which powers GlitchRealm's infrastructure and makes this platform possible.</p>
+                </div>
+                <div class="credit-item">
+                    <p><strong>Firebase</strong> - Authentication and user management services</p>
+                </div>
+                <div class="credit-item">
+                    <p><strong>DevIcon</strong> - Platform and technology icons</p>
+                </div>
+                <div class="credit-item">
+                    <p><strong>Google Fonts</strong> - Typography (Orbitron, Rajdhani)</p>
+                </div>
+            </div>
+
+            <div class="credit-section">
+                <h2>Design & Assets</h2>
+                <div class="credit-item">
+                    <p><strong>Custom Graphics</strong> - All game logos and branding created in-house</p>
+                </div>
+                <div class="credit-item">
+                    <p><strong>Cyberpunk Theme</strong> - Original design inspired by cyberpunk aesthetics</p>
+                </div>
+                <div class="credit-item">
+                    <p><strong>Icons</strong> - Platform icons provided by DevIcon project</p>
+                </div>
+            </div>
+
+            <div class="credit-section">
+                <h2>Special Thanks</h2>
+                <div class="credit-item">
+                    <p>To all beta testers and community members who provided feedback</p>
+                    <p>To the open-source community for tools and resources</p>
+                    <p>To players who make the GlitchRealm universe come alive</p>
+                </div>
+            </div>
+
+            <div class="credit-section">
+                <h2>Legal</h2>
+                <div class="credit-item">
+                    <p>All game content, logos, and original graphics are property of their respective studios under the GlitchRealm Games umbrella.</p>
+                    <p>Third-party services and resources are used under their respective licenses.</p>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <!-- Sign In Modal -->
-    <!-- Sign In Modal is now provided by header.html -->
-        <!-- Sign In Modal is now provided by header.html -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p style="margin-bottom: 10px; font-size: 0.9em; color: rgba(255,255,255,0.7);">By using this site, you agree to our <a href="terms-of-service.html" style="color: var(--primary-cyan); text-decoration: none;">Terms of Service</a> and <a href="privacy-policy.html" style="color: var(--primary-cyan); text-decoration: none;">Privacy Policy</a>.</p>
+                <p>&copy; 2026 GlitchRealm Games. All rights reserved. | <a href="donate.html" style="color: var(--primary-cyan); text-decoration: none;">Donate</a> | <a href="settings.html" style="color: var(--primary-cyan); text-decoration: none;">Settings</a> | <a href="legal.html" style="color: var(--primary-cyan); text-decoration: none;">Legal</a> | <a href="credits.html" style="color: var(--primary-cyan); text-decoration: none;">Credits</a> | <a href="#" onclick="window.openConsentManager && window.openConsentManager(); return false;" style="color: var(--primary-cyan); text-decoration: none;">Manage consent</a></p>
+            </div>
+            <div class="netlify-branding">
+                <span>Powered by</span>
+                <a href="https://www.netlify.com" target="_blank" rel="noopener noreferrer" class="netlify-link">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/netlify/netlify-original.svg" alt="Netlify" class="netlify-logo" loading="lazy" decoding="async" width="24" height="24">
+                    Netlify
+                </a>
+            </div>
+        </div>
+    </footer>
 
-    <div id="footer-placeholder"></div>
-
-    <div id="auth-message" class="auth-message" style="display: none;"></div>
-    <div id="auth-loading" class="auth-loading" style="display: none;">
-        <div class="loading-spinner"></div>
-        <span>Connecting...</span>
+    <!-- Fullscreen Animated Credits Overlay -->
+    <div id="fullscreen-credits" class="fullscreen-credits-overlay">
+        <button class="credits-close-btn" onclick="closeFullscreenCredits()">✕ Close</button>
+        <div class="credits-speed-control">
+            <button class="speed-btn" onclick="setCreditsSpeed(0.5)">0.5x</button>
+            <button class="speed-btn active" onclick="setCreditsSpeed(1)">1x</button>
+            <button class="speed-btn" onclick="setCreditsSpeed(1.5)">1.5x</button>
+            <button class="speed-btn" onclick="setCreditsSpeed(2)">2x</button>
+        </div>
+        <div class="credits-scroll-container" id="credits-scroll">
+            <div class="credits-content">
+                <img src="/assets/Favicon and Icons/apple-touch-icon.png" alt="GlitchRealm" class="credits-logo large">
+                <div class="credits-title">GlitchRealm Games</div>
+                
+                <div class="credits-group">
+                    <div class="credits-group-title">Founder & Owner</div>
+                    <div class="credits-name">InfinityByte Dev</div>
+                    <div class="credits-role">Owner & Developer of GlitchRealm Games</div>
+                </div>
+                
+                <div class="credits-group">
+                    <div class="credits-group-title">Development Team</div>
+                    <div class="credits-name">InfinityByte Dev</div>
+                    <div class="credits-role">Platform Development & Architecture</div>
+                    <div class="credits-name">NanoShade Studios</div>
+                    <div class="credits-role">Game Development</div>
+                    <div class="credits-role">ByteSurge • CodeRunner • Dimensional Dominion</div>
+                </div>
+                
+                <div class="credits-group">
+                    <div class="credits-group-title">Art & Design</div>
+                    <div class="credits-role">Artist & Creative Design</div>
+                    <div class="credits-name">SpriteSpinner</div>
+                    <div class="credits-role">Artist & Visual Assets</div>
+                    <div class="credits-name">PixelPunk</div>
+                </div>
+                
+                <div class="credits-group">
+                    <div class="credits-group-title">Technology Partners</div>
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/netlify/netlify-original.svg" alt="Netlify" class="credits-logo tech">
+                    <div class="credits-name">Netlify</div>
+                    <div class="credits-role">Web Hosting & Deployment Platform</div>
+                    <div class="credits-role">Special thanks for their Open Source plan</div>
+                </div>
+                
+                <div class="credits-group">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" alt="Firebase" class="credits-logo tech">
+                    <div class="credits-name">Firebase</div>
+                    <div class="credits-role">Authentication & User Management</div>
+                </div>
+                
+                <div class="credits-group">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google Fonts" class="credits-logo tech">
+                    <div class="credits-name">Google Fonts</div>
+                    <div class="credits-role">Typography</div>
+                    <div class="credits-role">Orbitron • Rajdhani</div>
+                </div>
+                
+                <div class="credits-group">
+                    <div class="credits-name">DevIcon</div>
+                    <div class="credits-role">Platform & Technology Icons</div>
+                </div>
+                
+                <div class="credits-group">
+                    <div class="credits-group-title">Design & Assets</div>
+                    <div class="credits-role">Custom Graphics & Game Logos</div>
+                    <div class="credits-name">Created In-House</div>
+                    <div class="credits-role">Cyberpunk Theme</div>
+                    <div class="credits-name">Original Design</div>
+                </div>
+                
+                <div class="credits-group">
+                    <div class="credits-group-title">Special Thanks</div>
+                    <div class="credits-name">Beta Testers</div>
+                    <div class="credits-name">Community Members</div>
+                    <div class="credits-name">Open Source Community</div>
+                    <div class="credits-name">All Our Players</div>
+                </div>
+                
+                <div class="credits-group">
+                    <div class="credits-group-title">Legal</div>
+                    <div class="credits-role">All game content, logos, and original graphics</div>
+                    <div class="credits-role">are property of their respective studios</div>
+                    <div class="credits-role">under the GlitchRealm Games umbrella</div>
+                </div>
+                
+                <div class="credits-end">Thank You For Playing</div>
+            </div>
+        </div>
     </div>
 
-    <!-- Debug script to check button content -->
     <script>
-        setTimeout(() => {
-            console.log('=== DEBUGGING PROFILE BUTTONS ===');
-            const refreshBtn = document.getElementById('refresh-profile-btn');
-            const signOutBtn = document.getElementById('sign-out-btn');
-            const deleteBtn = document.getElementById('delete-account-btn');
+        let currentSpeed = 1;
+        let autoCloseTimeout = null;
+        
+        function showFullscreenCredits() {
+            const overlay = document.getElementById('fullscreen-credits');
+            const scrollContainer = document.getElementById('credits-scroll');
             
-            console.log('Refresh button:', refreshBtn ? 'EXISTS' : 'MISSING');
-            if (refreshBtn) {
-                console.log('Refresh button text:', refreshBtn.textContent.trim());
-                console.log('Refresh button HTML:', refreshBtn.innerHTML);
-            }
+            overlay.classList.add('active');
             
-            console.log('Sign out button:', signOutBtn ? 'EXISTS' : 'MISSING');
-            if (signOutBtn) {
-                console.log('Sign out button text:', signOutBtn.textContent.trim());
-                console.log('Sign out button HTML:', signOutBtn.innerHTML);
-            }
-            
-            console.log('Delete button:', deleteBtn ? 'EXISTS' : 'MISSING');
-            if (deleteBtn) {
-                console.log('Delete button text:', deleteBtn.textContent.trim());
-                console.log('Delete button HTML:', deleteBtn.innerHTML);
-            }
-            
-            const profileActions = document.querySelector('.profile-actions');
-            if (profileActions) {
-                console.log('Profile actions children:', profileActions.children.length);
-                console.log('Profile actions HTML:', profileActions.innerHTML);
-            }
-        }, 2000);
-    </script>
-
-    <!-- Fix for missing button text -->
-    <script>
-        function fixProfileButtonText() {
+            // Reset animation
+            scrollContainer.style.animation = 'none';
             setTimeout(() => {
-                const refreshBtn = document.getElementById('refresh-profile-btn');
-                const signOutBtn = document.getElementById('sign-out-btn');
-                const deleteBtn = document.getElementById('delete-account-btn');
-                
-                if (refreshBtn && !refreshBtn.textContent.includes('Refresh Profile')) {
-                    // Find the text node or add it
-                    const existingText = refreshBtn.querySelector('span:not(.action-icon)');
-                    if (!existingText) {
-                        const textSpan = document.createElement('span');
-                        textSpan.textContent = 'Refresh Profile';
-                        refreshBtn.appendChild(textSpan);
-                    }
-                }
-                
-                if (signOutBtn && !signOutBtn.textContent.includes('Sign Out')) {
-                    const existingText = signOutBtn.querySelector('span:not(.action-icon)');
-                    if (!existingText) {
-                        const textSpan = document.createElement('span');
-                        textSpan.textContent = 'Sign Out';
-                        signOutBtn.appendChild(textSpan);
-                    }
-                }
-                
-                if (deleteBtn && !deleteBtn.textContent.includes('Delete Account')) {
-                    const existingText = deleteBtn.querySelector('span:not(.action-icon)');
-                    if (!existingText) {
-                        const textSpan = document.createElement('span');
-                        textSpan.textContent = 'Delete Account';
-                        deleteBtn.appendChild(textSpan);
-                    }
-                }
-                
-                console.log('Fixed profile button text');
-            }, 1000);
+                scrollContainer.style.animation = '';
+            }, 10);
             
-            // Run again after a longer delay to catch any late modifications
-            setTimeout(() => {
-                fixProfileButtonText();
-            }, 3000);
+            // Auto-close after animation completes
+            autoCloseTimeout = setTimeout(() => {
+                closeFullscreenCredits();
+            }, 60000);
         }
         
-        // Run when DOM is loaded
-        document.addEventListener('DOMContentLoaded', fixProfileButtonText);
+        function closeFullscreenCredits() {
+            const overlay = document.getElementById('fullscreen-credits');
+            overlay.classList.remove('active');
+            if (autoCloseTimeout) {
+                clearTimeout(autoCloseTimeout);
+            }
+        }
         
-        // Also run on window load
-        window.addEventListener('load', fixProfileButtonText);
+        function setCreditsSpeed(speed) {
+            currentSpeed = speed;
+            const scrollContainer = document.getElementById('credits-scroll');
+            const duration = 60 / speed;
+            
+            // Update active button
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update animation duration
+            scrollContainer.style.animation = `creditsScroll ${duration}s linear forwards`;
+            
+            // Update auto-close timeout
+            if (autoCloseTimeout) {
+                clearTimeout(autoCloseTimeout);
+            }
+            autoCloseTimeout = setTimeout(() => {
+                closeFullscreenCredits();
+            }, duration * 1000);
+        }
+        
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFullscreenCredits();
+            }
+        });
+        
+        // Pause/resume on click
+        document.getElementById('fullscreen-credits').addEventListener('click', (e) => {
+            if (e.target.id === 'fullscreen-credits') {
+                const scrollContainer = document.getElementById('credits-scroll');
+                scrollContainer.classList.toggle('paused');
+            }
+        });
     </script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
     <script src="script.js" defer></script>
 </body>
-<script>(function(){const c={src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};function i(){if(document.getElementById('bmc-widget-script'))return;const s=document.createElement('script');s.id='bmc-widget-script';s.src=c.src;s.dataset.name='BMC-Widget';s.setAttribute('data-cfasync','false');s.setAttribute('data-id',c.id);s.setAttribute('data-description',c.desc);s.setAttribute('data-message',c.msg);s.setAttribute('data-color',c.color);s.setAttribute('data-position',c.pos);s.setAttribute('data-x_margin',c.x);s.setAttribute('data-y_margin',c.y);document.body.appendChild(s);}if(window.requestIdleCallback)requestIdleCallback(i,{timeout:2500});else window.addEventListener('load',()=>setTimeout(i,600));['pointerdown','keydown','scroll'].forEach(e=>window.addEventListener(e,i,{once:true,passive:true}));})();</script>
 </html>
 
