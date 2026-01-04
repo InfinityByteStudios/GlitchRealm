@@ -24,7 +24,7 @@ The system consists of two main components:
 Include the local tracker in your game:
 
 ```html
-<script src="https://glitchrealm.com/playtime-local-storage.js"></script>
+<script src="https://glitchrealm.ca/playtime-local-storage.js"></script>
 <script>
 // Initialize tracker for your game
 const tracker = new LocalPlaytimeTracker('your-game-id', 'Your Game Name');
