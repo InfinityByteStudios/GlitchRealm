@@ -1191,17 +1191,88 @@
     </div>
   </div>
 
-  <!-- Chatbot widget only on this page -->
-  <script id="doai-chatbot-loader" async
-    src="https://kcur57gey4euhzpupakvb43g.agents.do-ai.run/static/chatbot/widget.js"
-    data-agent-id="bd55ebc0-7b86-11f0-b074-4e013e2ddde4"
-    data-chatbot-id="iLcsXT380jITKSw3t6GQxi14J3z3bc64"
-    data-name="GlitchRealm Bot"
-    data-primary-color="#00FFF9"
-    data-secondary-color="#E5E8ED"
-    data-button-background-color="#0A1629"
-    data-starting-message="Hello! How can I help you today?"
-  data-logo="assets/Favicon and Icons/favicon.ico"></script>
+  <!-- In-page GlitchBot (replaces external widget) -->
+  <div id="glitchbot-root">
+    <button id="glitchbot-toggle" aria-label="Open GlitchBot" class="contact-chip" style="position:relative;">🤖 GlitchBot</button>
+
+    <div id="glitchbot-panel" aria-hidden="true" style="display:none; position:fixed; right:20px; bottom:84px; width:360px; max-width:calc(100% - 40px); background:#07141a; border:1px solid rgba(0,255,249,0.12); border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.6); z-index:5000;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid rgba(0,255,249,0.04);">
+        <strong style="color:#00f5ff;">GlitchBot</strong>
+        <button id="glitchbot-close" aria-label="Close" style="background:none; border:none; color:#9fb3b9; font-size:1.1rem; cursor:pointer;">✕</button>
+      </div>
+      <div id="glitchbot-messages" style="max-height:340px; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px;">
+        <div style="font-size:.85rem; color:#c3d2d6;">Hello — ask me about accounts, games, or site features.</div>
+      </div>
+      <div style="padding:10px; border-top:1px solid rgba(0,255,249,0.03); display:flex; gap:8px;">
+        <input id="glitchbot-input" placeholder="Type a question…" style="flex:1; padding:10px 12px; border-radius:8px; border:1px solid #0f2b34; background:#041017; color:#d7e5e8;">
+        <button id="glitchbot-send" class="neural-button" style="padding:8px 12px; border-radius:8px;">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const toggle = document.getElementById('glitchbot-toggle');
+      const panel = document.getElementById('glitchbot-panel');
+      const closeBtn = document.getElementById('glitchbot-close');
+      const messagesEl = document.getElementById('glitchbot-messages');
+      const input = document.getElementById('glitchbot-input');
+      const send = document.getElementById('glitchbot-send');
+
+      function openPanel(){ panel.style.display='block'; panel.setAttribute('aria-hidden','false'); input.focus(); }
+      function closePanel(){ panel.style.display='none'; panel.setAttribute('aria-hidden','true'); }
+
+      toggle.addEventListener('click', openPanel);
+      closeBtn.addEventListener('click', closePanel);
+
+      // Keyboard shortcut: Ctrl/⌘ + /
+      window.addEventListener('keydown', (e)=>{ if(e.key==='/' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); if(panel.style.display==='none') openPanel(); else closePanel(); } });
+
+      async function sendMessage(){
+        const text = input.value.trim(); if(!text) return;
+        appendMessage('user', text); input.value='';
+        appendMessage('bot', 'Thinking…');
+
+        try{
+          const resp = await fetch('/.netlify/functions/support-proxy', {
+            method: 'POST', headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify({ model: 'qwen/qwen3-32b', messages: [{ role: 'user', content: text }] })
+          });
+
+          let data;
+          const ct = resp.headers.get && resp.headers.get('content-type');
+          if(ct && ct.indexOf('application/json')!==-1){ data = await resp.json(); }
+          else { data = await resp.text(); }
+
+          // Remove the last 'Thinking…' bot message
+          const lastBot = Array.from(messagesEl.querySelectorAll('.glb-bot')).pop();
+          if(lastBot) lastBot.remove();
+
+          if(typeof data === 'string') appendMessage('bot', data);
+          else if(data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) appendMessage('bot', data.choices[0].message.content);
+          else if(data && data.response) appendMessage('bot', data.response);
+          else appendMessage('bot', JSON.stringify(data));
+
+        }catch(err){
+          const lastBot = Array.from(messagesEl.querySelectorAll('.glb-bot')).pop(); if(lastBot) lastBot.remove();
+          appendMessage('bot', 'Sorry, an error occurred.');
+          console.error('[GlitchBot] error', err);
+        }
+      }
+
+      function appendMessage(who, text){
+        const wrap = document.createElement('div');
+        wrap.style.display='flex'; wrap.style.gap='8px';
+        if(who==='user'){ wrap.style.justifyContent='flex-end'; const b=document.createElement('div'); b.textContent=text; b.style.background='#0a2b33'; b.style.color='#d7e5e8'; b.style.padding='8px 12px'; b.style.borderRadius='10px'; b.style.maxWidth='78%'; wrap.appendChild(b); wrap.className='glb-user'; }
+        else { wrap.style.justifyContent='flex-start'; const b=document.createElement('div'); b.textContent=text; b.style.background='linear-gradient(90deg,#001a1f,#00282f)'; b.style.color='#cfeff2'; b.style.padding='8px 12px'; b.style.borderRadius='10px'; b.style.maxWidth='78%'; wrap.appendChild(b); wrap.className='glb-bot'; }
+        messagesEl.appendChild(wrap); messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      send.addEventListener('click', sendMessage);
+      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
+    })();
+  </script>
+ 
   <script>
     // System Status Loader with Real-time Updates
     (async function(){
@@ -1699,20 +1770,7 @@
       })();
     })();
   </script>
-  <script>
-    // Reusable open helper (trimmed version)
-    (function(){
-      let openFn=null;const loader=document.getElementById('doai-chatbot-loader');
-      function resolve(){const g=window;const c=[g.DOAIChatbot,g.doAIChatbot,g.DOAI,g.doAI].filter(Boolean);for(const ns of c){if(!ns)continue;for(const n of ['open','toggle','show','openChat','openWidget']){try{if(typeof ns[n]==='function')return()=>ns[n]();}catch(e){}} if(ns.widget){for(const n of ['open','toggle','show','openChat']){try{if(typeof ns.widget[n]==='function')return()=>ns.widget[n]();}catch(e){}}}}return null;}
-      function ready(){openFn=resolve();}
-      ['load','doai:ready','doai-ready'].forEach(ev=>window.addEventListener(ev,ready));
-      if(loader) loader.addEventListener('load',ready);
-      window.addEventListener('keydown',e=>{ if(e.key==='/' && (e.metaKey||e.ctrlKey)){ if(openFn) try{openFn();}catch(e){} }});
-    })();
-
-    // Buy Me a Coffee widget (static inclusion)
-    // Replaced lazy loader with direct script tag for clarity / reliability
-  </script>
+  <!-- Legacy DoAI helper removed; GlitchBot uses an in-page widget -->
   <!-- BMC widget intentionally omitted on support page (present on all other pages) -->
   <script src="script.js" defer></script>
 </body>
