@@ -79,6 +79,25 @@
     .support-form .sf-actions { display:flex; gap:12px; margin-top:4px; }
     .support-form .sf-note { font-size:.65rem; opacity:.6; margin-top:12px; }
     @media (max-width:620px){ .support-form-dialog { margin:30px 14px; padding:24px 22px 26px; } }
+    /* RSS Status Styles */
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .rss-status-item { padding:8px 0; border-bottom:1px solid rgba(0,255,249,0.08); }
+    .rss-status-item:last-child { border-bottom:none; padding-bottom:0; }
+    .rss-status-item:first-child { padding-top:0; }
+    .rss-incident-badge { display:inline-block; padding:3px 8px; border-radius:12px; font-size:.65rem; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-right:6px; }
+    .rss-incident-up { background:rgba(0,255,65,0.15); color:#00ff41; border:1px solid rgba(0,255,65,0.3); }
+    .rss-incident-down { background:rgba(255,0,128,0.15); color:#ff0080; border:1px solid rgba(255,0,128,0.3); }
+    .rss-incident-degraded { background:rgba(255,170,0,0.15); color:#ffaa00; border:1px solid rgba(255,170,0,0.3); }
+    .rss-read-more { color:#00fff9; text-decoration:none; font-size:.7rem; font-weight:600; cursor:pointer; opacity:.8; transition:opacity .2s; }
+    .rss-read-more:hover { opacity:1; text-decoration:underline; }
+    /* RSS Detail Modal */
+    .rss-detail-modal { position:fixed; inset:0; display:none; z-index:5000; }
+    .rss-detail-modal.visible { display:flex; align-items:center; justify-content:center; }
+    .rss-detail-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); }
+    .rss-detail-dialog { position:relative; width:100%; max-width:600px; margin:20px; background:#0b1822; border:1px solid rgba(0,255,249,0.3); border-radius:16px; padding:24px; box-shadow:0 10px 50px rgba(0,0,0,.6); max-height:80vh; overflow-y:auto; transform:scale(0.95); opacity:0; transition:all .25s ease; }
+    .rss-detail-modal.visible .rss-detail-dialog { transform:scale(1); opacity:1; }
+    .rss-detail-close { position:absolute; top:12px; right:12px; background:none; border:none; color:#9fb3b9; font-size:1.8rem; line-height:1; cursor:pointer; padding:4px 8px; transition:color .2s; }
+    .rss-detail-close:hover { color:#fff; }
   </style>
   <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
   <script type="module" src="firebase-core.js"></script>
@@ -92,21 +111,47 @@
         <h1>Support / Help Center</h1>
         <p style="max-width:620px;margin:14px auto 0; font-size:1rem; color:#d4dde0;">Need help with your account, games, or platform features? Choose a category below to get started.</p>
         
-        <!-- System Status -->
-        <div id="system-status" style="max-width:620px; margin:20px auto 0; padding:14px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.9),rgba(7,16,23,0.95)); border:1px solid rgba(0,255,249,0.2); border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all .25s ease;" role="button" tabindex="0" aria-label="View system status details">
+        <!-- Status Container - order changes based on staff status -->
+        <div id="status-container" style="max-width:620px; margin:20px auto 0;">
+        
+        <!-- Live RSS Status Feed -->
+        <div id="rss-status-widget" style="padding:16px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.85),rgba(7,16,23,0.9)); border:1px solid rgba(0,255,249,0.15); border-radius:12px; margin-bottom:20px;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00fff9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11a9 9 0 0 1 9 9"></path>
+              <path d="M4 4a16 16 0 0 1 16 16"></path>
+              <circle cx="5" cy="19" r="1"></circle>
+            </svg>
+            <span style="font-weight:700; font-size:.85rem; color:#00fff9; letter-spacing:.5px;">LIVE UPTIME MONITOR</span>
+          </div>
+          <div id="rss-status-content" style="font-size:.78rem; color:#b8d4d8; line-height:1.5;">
+            <div style="display:flex; align-items:center; gap:8px; opacity:.7;">
+              <div class="loading-spinner" style="width:12px; height:12px; border:2px solid rgba(0,255,249,0.2); border-top-color:#00fff9; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+              <span>Loading status updates...</span>
+            </div>
+          </div>
+          <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,255,249,0.1); font-size:.68rem; color:#7edcf0; opacity:.7;">
+            Data from <a href="https://status.glitchrealm.ca/" target="_blank" style="color:#00fff9; text-decoration:underline;">status.glitchrealm.ca</a> • Next update in <span id="rss-timer">30</span>s
+          </div>
+        </div>
+        
+        <!-- System Status (Staff Updated) -->
+        <div id="system-status" style="padding:14px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.9),rgba(7,16,23,0.95)); border:1px solid rgba(0,255,249,0.2); border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all .25s ease; margin-bottom:10px;" role="button" tabindex="0" aria-label="View system status details">
           <div id="status-indicator" style="width:10px; height:10px; border-radius:50%; background:#00ff00; box-shadow:0 0 10px #00ff00;"></div>
           <div style="flex:1;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-weight:700; font-size:.9rem; color:#fff;">System Status: <span id="status-text">All Systems Operational</span></span>
+              <span style="font-weight:700; font-size:.9rem; color:#fff;">Staff Update: <span id="status-text">All Systems Operational</span></span>
               <span style="font-size:.7rem; color:#7edcf0; opacity:.8;">Click for details →</span>
             </div>
           </div>
         </div>
 
         <!-- Status Note -->
-        <p style="max-width:620px; margin:10px auto 0; font-size:.75rem; color:#7edcf0; text-align:center; opacity:.8;">
-          <strong>Note:</strong> This status is staff-updated. For automated uptime monitoring, visit <a href="https://status.glitchrealm.ca/" target="_blank" style="color:#00fff9; text-decoration:underline;">status.glitchrealm.ca</a>
+        <p style="margin:0; font-size:.75rem; color:#7edcf0; text-align:center; opacity:.8;">
+          Staff status manually updated • Live monitoring above
         </p>
+        
+        </div><!-- End status container -->
         
         <!-- Quick Contact Support Button -->
         <div style="margin-top:24px; text-align:center;">
@@ -1102,6 +1147,16 @@
 
     </section>
   </main>
+  
+  <!-- RSS Status Detail Modal -->
+  <div id="rss-detail-modal" class="rss-detail-modal" aria-hidden="true" role="dialog" aria-labelledby="rss-detail-title">
+    <div class="rss-detail-backdrop" data-close-rss-detail></div>
+    <div class="rss-detail-dialog">
+      <button class="rss-detail-close" aria-label="Close" data-close-rss-detail>&times;</button>
+      <div id="rss-detail-content"></div>
+    </div>
+  </div>
+  
   <div id="footer-placeholder"></div>
 
   <!-- Static Netlify Support Request Form (hidden modal so Netlify can index it) -->
@@ -1303,6 +1358,33 @@
         } else if(status === 'down'){
           statusIndicator.style.background = '#ff0000';
           statusIndicator.style.boxShadow = '0 0 10px #ff0000';
+        }
+        
+        // Reorder status widgets based on staff status
+        const container = document.getElementById('status-container');
+        const staffStatus = document.getElementById('system-status');
+        const rssWidget = document.getElementById('rss-status-widget');
+        
+        if (container && staffStatus && rssWidget) {
+          // Add transition for smooth reordering
+          staffStatus.style.transition = 'all 0.4s ease';
+          rssWidget.style.transition = 'all 0.4s ease';
+          
+          // If staff status is degraded or down, move it to the top (before RSS)
+          if (status === 'degraded' || status === 'down') {
+            if (container.firstElementChild !== staffStatus) {
+              // Force reflow for animation
+              void container.offsetHeight;
+              container.insertBefore(staffStatus, rssWidget);
+            }
+          } else {
+            // If operational, move RSS to top (staff status goes after)
+            if (container.firstElementChild !== rssWidget) {
+              // Force reflow for animation
+              void container.offsetHeight;
+              container.insertBefore(rssWidget, staffStatus);
+            }
+          }
         }
         
         // Show or hide info button and description
@@ -1770,6 +1852,248 @@
       })();
     })();
   </script>
+
+  <!-- RSS Status Feed Loader -->
+  <script>
+    (function() {
+      const rssContentEl = document.getElementById('rss-status-content');
+      if (!rssContentEl) return;
+
+      async function loadRSSFeed() {
+        try {
+          // Try Atom feed first (better CORS support), then RSS with CORS proxy
+          const urls = [
+            'https://status.glitchrealm.ca/feed.atom',
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/feed.rss'),
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/feed.atom')
+          ];
+          
+          let xmlDoc = null;
+          let lastError = null;
+          
+          for (const url of urls) {
+            try {
+              const response = await fetch(url);
+              if (!response.ok) continue;
+              
+              const feedText = await response.text();
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(feedText, 'text/xml');
+              
+              // Check for parsing errors
+              const parserError = doc.querySelector('parsererror');
+              if (parserError) continue;
+              
+              xmlDoc = doc;
+              break;
+            } catch (err) {
+              lastError = err;
+              continue;
+            }
+          }
+          
+          if (!xmlDoc) {
+            throw lastError || new Error('All feed URLs failed');
+          }
+
+          // Extract items from the feed (supports both RSS and Atom)
+          let items = xmlDoc.querySelectorAll('item');
+          if (items.length === 0) {
+            // Try Atom format
+            items = xmlDoc.querySelectorAll('entry');
+          }
+          
+          if (items.length === 0) {
+            rssContentEl.innerHTML = `
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="rss-incident-badge rss-incident-up">✓ UP</span>
+                <span style="opacity:.9;">All systems operational - No recent incidents</span>
+              </div>
+            `;
+            return;
+          }
+
+          // Build HTML for recent status updates (max 3 items)
+          let html = '';
+          const maxItems = 3;
+          
+          for (let i = 0; i < Math.min(items.length, maxItems); i++) {
+            const item = items[i];
+            const title = item.querySelector('title')?.textContent || 'Status Update';
+            // Support both RSS (pubDate) and Atom (published/updated) formats
+            const pubDate = item.querySelector('pubDate')?.textContent || 
+                           item.querySelector('published')?.textContent || 
+                           item.querySelector('updated')?.textContent || '';
+            const description = item.querySelector('description')?.textContent || 
+                               item.querySelector('summary')?.textContent || 
+                               item.querySelector('content')?.textContent || '';
+            
+            // Determine status type from title/description
+            const titleLower = title.toLowerCase();
+            const descLower = description.toLowerCase();
+            let badge = '';
+            let statusText = '';
+            let detailText = '';
+            
+            // Extract status from description HTML and get the detail after it
+            const statusMatch = description.match(/<b>Status:\s*([^<]+)<\/b>/i);
+            if (statusMatch) {
+              statusText = statusMatch[1].trim();
+              // Get everything after the status tag, strip HTML, and clean up
+              const afterStatus = description.substring(description.indexOf('</b>') + 4);
+              detailText = afterStatus.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+            } else {
+              // No status tag found, use whole description
+              detailText = description.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+            }
+            
+            // Set badge based on status
+            if (statusText.toLowerCase().includes('resolved') || statusText.toLowerCase().includes('operational') || 
+                titleLower.includes('up') || titleLower.includes('operational') || descLower.includes('up')) {
+              badge = '<span class="rss-incident-badge rss-incident-up">✓ UP</span>';
+              if (!statusText) statusText = 'Operational';
+            } else if (titleLower.includes('down') || descLower.includes('down') || statusText.toLowerCase().includes('down')) {
+              badge = '<span class="rss-incident-badge rss-incident-down">✗ DOWN</span>';
+              if (!statusText) statusText = 'Service Issue';
+            } else if (titleLower.includes('degraded') || titleLower.includes('slow') || descLower.includes('degraded') || 
+                      statusText.toLowerCase().includes('degraded') || statusText.toLowerCase().includes('investigating')) {
+              badge = '<span class="rss-incident-badge rss-incident-degraded">⚠ DEGRADED</span>';
+              if (!statusText) statusText = 'Performance Issue';
+            }
+            
+            // Format date
+            let dateStr = '';
+            if (pubDate) {
+              const date = new Date(pubDate);
+              const now = new Date();
+              const diffMs = now - date;
+              const diffMins = Math.floor(diffMs / 60000);
+              const diffHours = Math.floor(diffMs / 3600000);
+              const diffDays = Math.floor(diffMs / 86400000);
+              
+              if (diffMins < 1) {
+                dateStr = 'Just now';
+              } else if (diffMins < 60) {
+                dateStr = `${diffMins}m ago`;
+              } else if (diffHours < 24) {
+                dateStr = `${diffHours}h ago`;
+              } else if (diffDays < 7) {
+                dateStr = `${diffDays}d ago`;
+              } else {
+                dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }
+            }
+            
+            const itemId = `rss-item-${i}`;
+            const showReadMore = detailText && detailText.length > 120;
+            
+            html += `
+              <div class="rss-status-item">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+                  ${badge}
+                  <span style="font-weight:600; color:#fff; font-size:.8rem;">${escapeHtml(title)}</span>
+                  ${statusText ? `<span style="font-size:.7rem; color:#7edcf0; opacity:.9;">• ${escapeHtml(statusText)}</span>` : ''}
+                </div>
+                ${detailText && detailText.length > 10 ? `<div style="font-size:.72rem; color:#b8d4d8; opacity:.85; margin-left:${badge ? '70px' : '0'}; margin-top:2px; line-height:1.4;">${escapeHtml(detailText.substring(0, 120))}${detailText.length > 120 ? '...' : ''} ${showReadMore ? `<a class="rss-read-more" data-rss-item="${itemId}">Read more →</a>` : ''}</div>` : ''}
+                ${dateStr ? `<div style="font-size:.68rem; opacity:.7; margin-left:${badge ? '70px' : '0'}; margin-top:3px;">${dateStr}</div>` : ''}
+              </div>
+            `;
+            
+            // Store full data for modal
+            window.rssStatusData = window.rssStatusData || {};
+            window.rssStatusData[itemId] = { title, statusText, badge, detailText, dateStr, pubDate };
+          }
+          
+          rssContentEl.innerHTML = html;
+
+        } catch (error) {
+          console.error('[RSS Status] Failed to load feed:', error);
+          rssContentEl.innerHTML = `
+            <div style="display:flex; align-items:center; gap:6px; opacity:.7;">
+              <span>⚠</span>
+              <span>Unable to load live status. Visit <a href="https://status.glitchrealm.ca/" target="_blank" style="color:#00fff9; text-decoration:underline;">status.glitchrealm.ca</a></span>
+            </div>
+          `;
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Load RSS feed on page load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadRSSFeed);
+      } else {
+        loadRSSFeed();
+      }
+
+      // Refresh every 30 seconds
+      let countdown = 30;
+      const timerEl = document.getElementById('rss-timer');
+      
+      setInterval(loadRSSFeed, 30 * 1000);
+      
+      // Update countdown timer every second
+      setInterval(() => {
+        countdown--;
+        if (countdown <= 0) {
+          countdown = 30;
+        }
+        if (timerEl) {
+          timerEl.textContent = countdown;
+        }
+      }, 1000);
+      
+      // Handle "Read more" clicks
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('rss-read-more')) {
+          const itemId = e.target.dataset.rssItem;
+          const data = window.rssStatusData?.[itemId];
+          if (!data) return;
+          
+          const modal = document.getElementById('rss-detail-modal');
+          const content = document.getElementById('rss-detail-content');
+          if (!modal || !content) return;
+          
+          // Build modal content
+          content.innerHTML = `
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+              ${data.badge}
+              <h3 id="rss-detail-title" style="margin:0; font-size:1.15rem; color:#00fff9; font-family:'Orbitron',monospace;">${escapeHtml(data.title)}</h3>
+            </div>
+            ${data.statusText ? `<div style="font-size:.85rem; color:#7edcf0; margin-bottom:12px; font-weight:600; letter-spacing:.5px; text-transform:uppercase;">Status: ${escapeHtml(data.statusText)}</div>` : ''}
+            <div style="font-size:.88rem; color:#d4dde0; line-height:1.6; margin-bottom:16px; white-space:pre-wrap;">${escapeHtml(data.detailText)}</div>
+            ${data.dateStr ? `<div style="font-size:.75rem; color:#7edcf0; opacity:.7; padding-top:12px; border-top:1px solid rgba(0,255,249,0.1);">Updated: ${data.dateStr}${data.pubDate ? ` (${new Date(data.pubDate).toLocaleString()})` : ''}</div>` : ''}
+          `;
+          
+          modal.classList.add('visible');
+          modal.setAttribute('aria-hidden', 'false');
+        }
+      });
+      
+      // Close modal handlers
+      const modal = document.getElementById('rss-detail-modal');
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target.hasAttribute('data-close-rss-detail') || e.target.closest('[data-close-rss-detail]')) {
+            modal.classList.remove('visible');
+            modal.setAttribute('aria-hidden', 'true');
+          }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && modal.classList.contains('visible')) {
+            modal.classList.remove('visible');
+            modal.setAttribute('aria-hidden', 'true');
+          }
+        });
+      }
+    })();
+  </script>
+  
   <!-- Legacy DoAI helper removed; GlitchBot uses an in-page widget -->
   <!-- BMC widget intentionally omitted on support page (present on all other pages) -->
   <script src="script.js" defer></script>
