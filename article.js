@@ -59,7 +59,7 @@ function updateSEOMetaTags(article) {
   updateMetaTag('name', 'keywords', keywords);
   
   // Update canonical URL
-  const articleUrl = `https://glitchrealm.ca/news/news-article.html?id=${article.id}`;
+  const articleUrl = `https://news.glitchrealm.ca/news-article.html?id=${article.id}`;
   updateLinkTag('canonical', articleUrl);
   
   // Update Open Graph tags
