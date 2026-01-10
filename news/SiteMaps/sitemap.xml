@@ -8,15 +8,23 @@
     
     <!-- News Homepage -->
     <url>
-        <loc>https://glitchrealm.ca/news/</loc>
+        <loc>https://news.glitchrealm.ca/</loc>
         <lastmod>2025-11-22</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
     
+    <!-- RSS Feed -->
+    <url>
+        <loc>https://news.glitchrealm.ca/feed</loc>
+        <lastmod>2026-01-09</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
     <!-- News Article Template -->
     <url>
-        <loc>https://glitchrealm.ca/news/news-article.html</loc>
+        <loc>https://news.glitchrealm.ca/news-article.html</loc>
         <lastmod>2025-11-22</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
@@ -24,7 +32,7 @@
     
     <!-- Publish Article Page -->
     <url>
-        <loc>https://glitchrealm.ca/news/publish.html</loc>
+        <loc>https://news.glitchrealm.ca/publish.html</loc>
         <lastmod>2025-11-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
@@ -32,7 +40,7 @@
     
     <!-- Request Verification Page -->
     <url>
-        <loc>https://glitchrealm.ca/news/request-verification.html</loc>
+        <loc>https://news.glitchrealm.ca/request-verification.html</loc>
         <lastmod>2025-11-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.5</priority>
@@ -40,7 +48,7 @@
     
     <!-- Admin Panel -->
     <url>
-        <loc>https://glitchrealm.ca/news/admin.html</loc>
+        <loc>https://news.glitchrealm.ca/admin.html</loc>
         <lastmod>2025-11-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.4</priority>
@@ -48,7 +56,7 @@
     
     <!-- Auth Bridge -->
     <url>
-        <loc>https://glitchrealm.ca/news/auth-bridge.html</loc>
+        <loc>https://news.glitchrealm.ca/auth-bridge.html</loc>
         <lastmod>2025-11-22</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
@@ -56,7 +64,7 @@
     
     <!-- 404 Error Page -->
     <url>
-        <loc>https://glitchrealm.ca/news/404.html</loc>
+        <loc>https://news.glitchrealm.ca/404.html</loc>
         <lastmod>2025-11-22</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.1</priority>

@@ -1861,8 +1861,10 @@
 
       async function loadRSSFeed() {
         try {
-          // Try Atom feed first (better CORS support), then RSS with CORS proxy
+          // Priority 1: Try main status page HTML directly (highest priority)
           const urls = [
+            'https://status.glitchrealm.ca/',
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/'),
             'https://status.glitchrealm.ca/feed.atom',
             'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/feed.rss'),
             'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/feed.atom')
@@ -1870,13 +1872,31 @@
           
           let xmlDoc = null;
           let lastError = null;
+          let isHtmlSource = false;
           
-          for (const url of urls) {
+          for (let i = 0; i < urls.length; i++) {
+            const url = urls[i];
             try {
               const response = await fetch(url);
               if (!response.ok) continue;
               
               const feedText = await response.text();
+              
+              // Check if this is the HTML status page
+              if (i < 2 && feedText.includes('<!DOCTYPE') || feedText.includes('<html')) {
+                // Parse HTML to extract status info
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = feedText;
+                
+                // Try to find status elements (this depends on the actual HTML structure)
+                // We'll create a pseudo-XML structure from it
+                isHtmlSource = true;
+                
+                // Extract any visible status information from the page
+                // For now, skip HTML and continue to feeds
+                continue;
+              }
+              
               const parser = new DOMParser();
               const doc = parser.parseFromString(feedText, 'text/xml');
               

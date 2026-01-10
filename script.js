@@ -701,7 +701,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 if (e.target.closest('.menu-item.edit')) {
                     closeAllGameMenus();
-                    if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
+                    // Redirect to submit-game.html edit page instead of opening modal
+                    window.location.href = `submit-game.html?edit=${gameId}&step=2`;
                     return;
                 }
                 if (e.target.closest('.menu-item.report')) {
@@ -727,7 +728,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 switch (action) {
                     case 'edit':
-                        if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
+                        // Redirect to submit-game.html edit page instead of opening modal
+                        window.location.href = `submit-game.html?edit=${gameId}&step=2`;
                         break;
                     case 'delete':
                         (async () => {

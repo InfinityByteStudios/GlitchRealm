@@ -6,6 +6,7 @@ const admin = require('firebase-admin');
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const { onDocumentWritten } = require('firebase-functions/v2/firestore');
 
 try {
 	admin.initializeApp({
@@ -893,5 +894,110 @@ exports.onWriterVerified = onDocumentWritten('verified_writers/{userId}', async 
 		} catch (error) {
 			console.error('[onWriterVerified] Error creating notification:', error);
 		}
+	}
+});
+
+// RSS Feed for News Articles
+exports.newsFeed = functions.https.onRequest(async (req, res) => {
+	res.set('Cache-Control', 'public, max-age=600, s-maxage=1200');
+	res.set('Content-Type', 'application/rss+xml; charset=utf-8');
+	
+	try {
+		// Query published articles (not drafts)
+		const articlesRef = db.collection('news_articles');
+		const snapshot = await articlesRef
+			.where('draft', '==', false)
+			.orderBy('publishedAt', 'desc')
+			.limit(50)
+			.get();
+		
+		const articles = [];
+		snapshot.forEach(doc => {
+			articles.push({ id: doc.id, ...doc.data() });
+		});
+		
+		// Helper to escape XML special characters
+		const escapeXml = (str) => {
+			if (!str) return '';
+			return String(str)
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&apos;');
+		};
+		
+		// Helper to format date as RFC 822
+		const formatDate = (timestamp) => {
+			if (!timestamp) return new Date().toUTCString();
+			try {
+				const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+				return date.toUTCString();
+			} catch (e) {
+				return new Date().toUTCString();
+			}
+		};
+		
+		// Build RSS XML
+		const baseUrl = 'https://news.glitchrealm.ca';
+		const buildDate = new Date().toUTCString();
+		
+		let rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>GlitchRealm News</title>
+    <link>${baseUrl}/</link>
+    <description>Latest news, updates, and articles from the GlitchRealm cyberpunk gaming platform</description>
+    <language>en-us</language>
+    <lastBuildDate>${buildDate}</lastBuildDate>
+    <atom:link href="${baseUrl}/feed" rel="self" type="application/rss+xml" />
+    <image>
+      <url>https://glitchrealm.ca/assets/Favicon%20and%20Icons/android-chrome-512x512.png</url>
+      <title>GlitchRealm News</title>
+      <link>${baseUrl}/</link>
+    </image>
+`;
+		
+		// Add items
+		articles.forEach(article => {
+			const title = escapeXml(article.title || 'Untitled');
+			const link = `${baseUrl}/news-article.html?id=${article.id}`;
+			const description = escapeXml(article.summary || '');
+			const content = escapeXml(article.content || article.summary || '');
+			const pubDate = formatDate(article.publishedAt);
+			const author = escapeXml(article.authorUsername || 'GlitchRealm Team');
+			const categories = article.categories || [];
+			const tags = article.tags || [];
+			
+			rss += `    <item>
+      <title>${title}</title>
+      <link>${link}</link>
+      <guid isPermaLink="true">${link}</guid>
+      <pubDate>${pubDate}</pubDate>
+      <author>noreply@glitchrealm.com (${author})</author>
+      <description>${description}</description>
+      <content:encoded><![CDATA[${article.content || article.summary || ''}]]></content:encoded>
+`;
+			
+			// Add categories and tags
+			[...categories, ...tags].forEach(cat => {
+				rss += `      <category>${escapeXml(cat)}</category>\n`;
+			});
+			
+			// Add cover image as enclosure if available
+			if (article.coverImageUrl) {
+				rss += `      <enclosure url="${escapeXml(article.coverImageUrl)}" type="image/jpeg" />\n`;
+			}
+			
+			rss += `    </item>\n`;
+		});
+		
+		rss += `  </channel>
+</rss>`;
+		
+		res.send(rss);
+	} catch (error) {
+		console.error('[newsFeed] Error generating RSS feed:', error);
+		res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><error>Failed to generate feed</error>');
 	}
 });

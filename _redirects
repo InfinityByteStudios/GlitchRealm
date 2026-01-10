@@ -12,3 +12,6 @@ https://developers.glitchrealm.ca/*  /developers/:splat  200
 # News section
 /news                   /news/index.html   200
 /news/                  /news/index.html   200
+/news/feed              https://us-central1-shared-sign-in.cloudfunctions.net/newsFeed   200
+/news/rss               https://us-central1-shared-sign-in.cloudfunctions.net/newsFeed   200
+/api/news-feed          https://us-central1-shared-sign-in.cloudfunctions.net/newsFeed   200
