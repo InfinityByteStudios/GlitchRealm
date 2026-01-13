@@ -1387,13 +1387,15 @@
           }
         }
         
-        // Show or hide info button and description
-        if(description && description.trim()){
-          statusDescription.textContent = description;
-          statusInfoBtn.style.display = 'inline-block';
-        } else {
-          statusInfoBtn.style.display = 'none';
-          statusDescription.style.display = 'none';
+        // Show or hide info button and description (only if elements exist)
+        if(statusDescription && statusInfoBtn) {
+          if(description && description.trim()){
+            statusDescription.textContent = description;
+            statusInfoBtn.style.display = 'inline-block';
+          } else {
+            statusInfoBtn.style.display = 'none';
+            statusDescription.style.display = 'none';
+          }
         }
       }
       
