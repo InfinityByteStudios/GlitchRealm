@@ -590,8 +590,17 @@
       async function loadSubmissions(){
         try {
           if(gsUnsub) gsUnsub();
+          
+          // Wait for Firestore to be initialized
+          let attempts = 0;
+          while (!window.firebaseFirestore && attempts < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          
           const db = window.firebaseFirestore;
-          if(!db) throw new Error('Firestore not loaded');
+          if(!db) throw new Error('Firestore not loaded after waiting');
+          
           const status = gsFilterEl?.value || 'draft';
           const qr = window.firestoreQuery(
             window.firestoreCollection(db, 'game_submissions'), 
