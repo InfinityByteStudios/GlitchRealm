@@ -586,18 +586,24 @@
         }
       });
 
-      // Game submissions via backend API
-      async function getIdToken(){ try { return await (auth?.currentUser?.getIdToken?.()); } catch { return null; } }
+      // Game submissions via direct Firestore (no Cloud Functions = free!)
       async function loadSubmissions(){
         try {
-          const token = await getIdToken();
+          if(gsUnsub) gsUnsub();
+          const db = window.firebaseFirestore;
+          if(!db) throw new Error('Firestore not loaded');
           const status = gsFilterEl?.value || 'draft';
-          const url = `${API_BASE}/submissions?limit=50&status=${encodeURIComponent(status)}`;
-          const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-          if (!res.ok) throw new Error('Failed');
-          const items = await res.json();
-          renderGameSubmissionsListFromArray(Array.isArray(items) ? items : []);
-        } catch(e) { gsListEl.innerHTML = '<div style="opacity:.8; padding:8px;">Failed to load.</div>'; }
+          const qr = window.firestoreQuery(
+            window.firestoreCollection(db, 'game_submissions'), 
+            window.firestoreWhere('status', '==', status), 
+            window.firestoreOrderBy('createdAt', 'desc'), 
+            window.firestoreLimit(50)
+          );
+          gsUnsub = window.firestoreOnSnapshot(qr, renderGameSubmissionsList);
+        } catch(e) { 
+          console.error('[Moderation] Game submissions load failed:', e);
+          gsListEl.innerHTML = '<div style="opacity:.8; padding:8px;">Failed to load. Check console.</div>'; 
+        }
       }
       await loadSubmissions();
       document.getElementById('mod-gamesub-refresh')?.addEventListener('click', loadSubmissions);
@@ -607,19 +613,22 @@
         const id = row?.getAttribute('data-gsid');
         if (!id) return;
         try {
-          const token = await getIdToken();
-          if (!token) throw new Error('No token');
+          const db = window.firebaseFirestore;
+          if(!db) throw new Error('Firestore not loaded');
+          const docRef = window.firestoreDoc(db, 'game_submissions', id);
+          
           if (e.target.closest('.gs-publish')) {
-            await fetch(`${API_BASE}/submissions/${id}/publish`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+            await window.firestoreUpdateDoc(docRef, { status: 'published', updatedAt: window.firestoreServerTimestamp() });
           } else if (e.target.closest('.gs-unpublish')) {
-            await fetch(`${API_BASE}/submissions/${id}/unpublish`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+            await window.firestoreUpdateDoc(docRef, { status: 'draft', updatedAt: window.firestoreServerTimestamp() });
           } else if (e.target.closest('.gs-delete')) {
             if (!confirm('Delete this submission?')) return;
-            await fetch(`${API_BASE}/submissions/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+            await window.firestoreDeleteDoc(docRef);
           }
-          await loadSubmissions();
+          // Reload will happen automatically via onSnapshot listener
         } catch (err) {
-          alert('Failed to update submission.');
+          console.error('[Moderation] Update failed:', err);
+          alert('Failed to update submission: ' + (err.message || 'Unknown error'));
         }
       });
     } catch (e) {

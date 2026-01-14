@@ -1294,14 +1294,27 @@
             body: JSON.stringify({ model: 'qwen/qwen3-32b', messages: [{ role: 'user', content: text }] })
           });
 
+          // Remove the last 'Thinking…' bot message
+          const lastBot = Array.from(messagesEl.querySelectorAll('.glb-bot')).pop();
+          if(lastBot) lastBot.remove();
+
+          // Handle non-200 responses
+          if(!resp.ok){
+            if(resp.status === 402){
+              appendMessage('bot', 'Sorry, the AI service is currently unavailable due to quota limits. Please try again later or contact our team directly via the contact form below.');
+            } else if(resp.status === 500){
+              appendMessage('bot', 'Server error. Please try again later.');
+            } else {
+              appendMessage('bot', `Service temporarily unavailable (Error ${resp.status}). Please try the contact form below.`);
+            }
+            console.error('[GlitchBot] HTTP', resp.status);
+            return;
+          }
+
           let data;
           const ct = resp.headers.get && resp.headers.get('content-type');
           if(ct && ct.indexOf('application/json')!==-1){ data = await resp.json(); }
           else { data = await resp.text(); }
-
-          // Remove the last 'Thinking…' bot message
-          const lastBot = Array.from(messagesEl.querySelectorAll('.glb-bot')).pop();
-          if(lastBot) lastBot.remove();
 
           if(typeof data === 'string') appendMessage('bot', data);
           else if(data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) appendMessage('bot', data.choices[0].message.content);
@@ -1310,7 +1323,7 @@
 
         }catch(err){
           const lastBot = Array.from(messagesEl.querySelectorAll('.glb-bot')).pop(); if(lastBot) lastBot.remove();
-          appendMessage('bot', 'Sorry, an error occurred.');
+          appendMessage('bot', 'Sorry, an error occurred. Please try the contact form below.');
           console.error('[GlitchBot] error', err);
         }
       }
