@@ -1291,7 +1291,7 @@
         try{
           const resp = await fetch('/.netlify/functions/support-proxy', {
             method: 'POST', headers: { 'Content-Type':'application/json' },
-            body: JSON.stringify({ model: 'qwen/qwen3-32b', messages: [{ role: 'user', content: text }] })
+            body: JSON.stringify({ model: 'openai/gpt-5.1', messages: [{ role: 'user', content: text }] })
           });
 
           // Remove the last 'Thinking…' bot message
