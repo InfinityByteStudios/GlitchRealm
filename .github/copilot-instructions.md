@@ -180,3 +180,5 @@ netlify.toml              # Deployment config
 DO NOT EVER MAKE A .MD DO NOT CREATE TEST PAGES EITHER. Make sure to USE CLI to submit firestore rules changes.
 
 NEVER EVER TOUCH THE SCHOOL FOLDER
+
+ITS GLITCHREALM.CA not .com
