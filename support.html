@@ -1273,7 +1273,7 @@
     .glb-user { justify-content:flex-end; }
     .glb-bot { justify-content:flex-start; }
     
-    .glb-bubble { max-width:85%; padding:12px 16px; border-radius:16px; font-size:0.9rem; line-height:1.5; position:relative; word-wrap:break-word; }
+    .glb-bubble { max-width:85%; padding:12px 16px; border-radius:16px; font-size:0.9rem; line-height:1.5; position:relative; word-wrap:break-word; white-space:pre-wrap; }
     .glb-user .glb-bubble { background:linear-gradient(135deg, #0a3540, #0a2b33); color:#d7e5e8; border:1px solid rgba(0,255,249,0.3); box-shadow:0 2px 8px rgba(0,255,249,0.2); border-bottom-right-radius:4px; }
     .glb-bot .glb-bubble { background:linear-gradient(135deg, #001a1f, #00282f); color:#cfeff2; border:1px solid rgba(0,140,255,0.2); box-shadow:0 2px 8px rgba(0,0,0,0.3); border-bottom-left-radius:4px; }
     .glb-bot .glb-bubble::before { content:''; position:absolute; left:-6px; bottom:8px; width:0; height:0; border-style:solid; border-width:0 6px 6px 0; border-color:transparent #001a1f transparent transparent; }
@@ -1363,7 +1363,8 @@ COMMON ISSUES & SOLUTIONS:
 Account Problems:
 - Login Issues: Clear browser cache and cookies, try incognito mode, check if Caps Lock is on, verify email is correct. Password reset available at /forgot-password.html
 - Account Creation: Must use valid email, password needs 8+ characters. Check spam folder for verification emails
-- Google Sign-In: Enable third-party cookies, disable ad blockers temporarily, try different browser
+- Google Sign-In Popup Blocked (Chrome): If popup blocker is stopping Google sign-in: (1) Look for popup blocked icon in address bar, click it and select "Always allow pop-ups from https://glitchrealm.ca", (2) Enable third-party cookies at chrome://settings/cookies - add glitchrealm.ca to "Sites that can always use cookies" with third-party cookies enabled, (3) Disable ad-blockers/privacy extensions temporarily, (4) On mobile Chrome: Settings > Site settings > Pop-ups and redirects > Allow. Alternative: use email/password sign-in instead.
+- Google Sign-In Other Issues: Enable third-party cookies, disable ad blockers temporarily, try different browser
 - Profile/Avatar Issues: Avatar changes may take a few minutes to update. Refresh page or clear cache
 - Account Deletion: Available at /delete-account.html - this is permanent and cannot be undone
 
@@ -1397,12 +1398,19 @@ Community & Content:
 System Status: Check /status.html for real-time Firebase/Firestore status
 
 RESPONSE GUIDELINES:
+- Keep responses SHORT and SIMPLE - aim for 2-4 sentences unless detailed steps are truly needed
+- DO NOT use markdown formatting (no **, ##, -, etc.) - responses are displayed as plain text
+- Use plain text with line breaks for readability
+- Number steps as: 1. Step one 2. Step two (not using markdown lists)
+- Get to the solution quickly without excessive explanation
 - Be concise but thorough with troubleshooting steps
 - Always provide specific actionable solutions
 - Reference exact page URLs when directing users
 - For complex issues, suggest contacting support team directly via contact form
 - If unsure about something, recommend reaching out to the support team
-- Be friendly and use cyberpunk-themed language occasionally (e.g., "Let's debug this glitch")` 
+- Be friendly and use cyberpunk-themed language occasionally (e.g., "Let's debug this glitch")
+
+IMPORTANT: The troubleshooting steps above are guidelines, not limits. You are an intelligent AI assistant - use your knowledge and reasoning to help with ANY issue users face, even if it's not explicitly covered in the instructions. Think critically, ask clarifying questions when needed, and provide creative solutions. You can troubleshoot browser issues, networking problems, game performance, account security, or any other tech problems users encounter on GlitchRealm or related to web gaming. Don't just repeat the script - actually solve problems.` 
                 },
                 { role: 'user', content: text }
               ] 
