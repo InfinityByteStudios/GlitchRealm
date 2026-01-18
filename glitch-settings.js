@@ -87,14 +87,14 @@
             }
         }, 100);
 
-        // Auto-show popup for first-time users
-        const hasSeenSettings = localStorage.getItem('hasSeenGlitchSettings');
-        if (!hasSeenSettings) {
-            setTimeout(() => {
-                openGlitchSettings();
-                localStorage.setItem('hasSeenGlitchSettings', 'true');
-            }, 1000);
-        }
+        // Auto-show popup disabled - users can access via settings
+        // const hasSeenSettings = localStorage.getItem('hasSeenGlitchSettings');
+        // if (!hasSeenSettings) {
+        //     setTimeout(() => {
+        //         openGlitchSettings();
+        //         localStorage.setItem('hasSeenGlitchSettings', 'true');
+        //     }, 1000);
+        // }
     }
 
     // Open glitch settings modal
