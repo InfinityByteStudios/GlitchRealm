@@ -43,6 +43,9 @@
   <link rel="stylesheet" href="newsletter-embed.css">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  
+  <!-- ConvertKit Newsletter Form -->
+  <script src="https://f.convertkit.com/ckjs/ck.5.js"></script>
   <style>
     .article-view { max-width:900px; margin:50px auto 120px; padding:0 20px; overflow-wrap:break-word; word-wrap:break-word; }
     .article-view * { max-width:100%; overflow-wrap:break-word; word-wrap:break-word; }
@@ -248,17 +251,16 @@
       <div id="article-tags" class="article-tags"></div>
       
       <!-- Newsletter CTA -->
-      <div class="newsletter-cta">
-        <h3>Stay Updated</h3>
-        <p style="margin:0 0 15px; opacity:.8;">Get the latest news and updates delivered to your inbox!</p>
-        <a href="https://sendfox.com/glitchrealm" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg, rgba(0,255,249,0.1) 0%, rgba(255,0,128,0.1) 100%); border:1px solid rgba(0,255,249,0.5); border-radius:8px; padding:14px 24px; font-size:.8rem; font-weight:600; letter-spacing:.7px; color:#00fff9; cursor:pointer; text-transform:uppercase; width:100%; max-width:300px; margin:0 auto; display:block; text-align:center; text-decoration:none; transition:all 0.3s ease;" onmouseover="this.style.borderColor='#00fff9'; this.style.boxShadow='0 0 20px rgba(0,255,249,0.3)';" onmouseout="this.style.borderColor='rgba(0,255,249,0.5)'; this.style.boxShadow='none';">📧 Subscribe to Newsletter</a>
-        <p style="margin:15px 0 0; font-size:.7rem; opacity:.7; text-align:center;">Read our <a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9;">Privacy Policy</a></p>
+      <div class="newsletter-cta" style="text-align:center; padding:30px 20px; background:linear-gradient(135deg, rgba(0,255,249,0.05) 0%, rgba(255,0,128,0.05) 100%); border:1px solid rgba(0,255,249,0.2); border-radius:12px; margin-top:40px;">
+        <h3 style="margin:0 0 10px; font-family:'Orbitron',sans-serif; color:#00fff9;">Stay Updated</h3>
+        <p style="margin:0 0 20px; opacity:.8;">Get the latest news and updates delivered to your inbox!</p>
+        <button data-formkit-toggle="18e64a3b1e" style="background:linear-gradient(135deg, rgba(0,255,249,0.1) 0%, rgba(255,0,128,0.1) 100%); border:1px solid rgba(0,255,249,0.5); border-radius:8px; padding:14px 24px; font-size:.8rem; font-weight:600; letter-spacing:.7px; color:#00fff9; cursor:pointer; text-transform:uppercase; width:100%; max-width:300px; margin:0 auto; display:block; transition:all 0.3s ease;">📧 Subscribe to Newsletter</button>
+        <script async data-uid="18e64a3b1e" src="https://glitchrealm.kit.com/18e64a3b1e/index.js"></script>
       </div>
     </div>
   </main>
 
-
-  <!-- Newsletter is handled via SendFox (no modal) -->
+  <!-- Newsletter handled by ConvertKit -->
 
   <footer class="footer">
     <div class="container">
