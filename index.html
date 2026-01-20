@@ -46,7 +46,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
   
-  <!-- HubSpot Tracking Script - REMOVED (switched to SendFox via serverless function) -->
+  <!-- ConvertKit Newsletter Form -->
+  <script src="https://f.convertkit.com/ckjs/ck.5.js"></script>
   <style>
     body { --news-accent:#00fff9; }
     .news-hero { padding:70px 0 30px; text-align:center; }
@@ -194,8 +195,7 @@
           <section class="news-subscribe">
             <h3>Newsletter</h3>
             <p style="margin:0 0 12px; font-size:.75rem; opacity:.75; line-height:1.5;">Subscribe for gaming updates!</p>
-            <a href="https://sendfox.com/glitchrealm" target="_blank" style="display:block; width:100%; background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:12px 16px; font-size:.8rem; font-weight:600; letter-spacing:.6px; color:#02141c; cursor:pointer; text-transform:uppercase; font-family:'Orbitron',sans-serif; transition:all 0.3s ease; text-decoration:none; text-align:center; box-sizing:border-box;">Subscribe Now</a>
-            <p style="margin:10px 0 0; font-size:.65rem; opacity:.65; line-height:1.4;"><a href="https://glitchrealm.ca/privacy-policy.html" style="color:#00fff9; text-decoration:none;">Privacy Policy</a></p>
+            <script async data-uid="18e64a3b1e" src="https://glitchrealm.ck.page/18e64a3b1e/index.js"></script>
           </section>
           <!-- Inline Netlify sidebar form (hidden by default) -->
           <form name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="news-subscribe-inline" style="display:none; margin-top:12px;">
@@ -270,8 +270,7 @@
     </div>
   </div>
 
-  <!-- SendFox Newsletter Handler (via serverless function) -->
-  <script src="../newsletter-handler.js"></script>
+  <!-- Newsletter handled by ConvertKit -->
 
   <style>
     /* Style newsletter form to match theme */
@@ -340,7 +339,6 @@
   </footer>
   
   <script type="module" src="news.js"></script>
-  <script src="newsletter-handler.js"></script>
   <script src="../script.js" defer></script>
 </body>
 </html>

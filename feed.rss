@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>GlitchRealm News</title>
+    <link>https://news.glitchrealm.ca/</link>
+    <description>Latest news, updates, and articles from the GlitchRealm cyberpunk gaming platform</description>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 10 Jan 2026 04:00:00 GMT</lastBuildDate>
+    <atom:link href="https://news.glitchrealm.ca/feed.rss" rel="self" type="application/rss+xml" />
+    <image>
+      <url>https://glitchrealm.ca/assets/Favicon%20and%20Icons/android-chrome-512x512.png</url>
+      <title>GlitchRealm News</title>
+      <link>https://news.glitchrealm.ca/</link>
+    </image>
+    
+    <item>
+      <title>How GlitchRealm Email Works</title>
+      <link>https://news.glitchrealm.ca/news-article.html?id=vNDJgB3vmKy6SzvfTzk1</link>
+      <guid isPermaLink="true">https://news.glitchrealm.ca/news-article.html?id=vNDJgB3vmKy6SzvfTzk1</guid>
+      <pubDate>Sun, 07 Dec 2025 06:02:09 GMT</pubDate>
+      <author>noreply@glitchrealm.com (InfinityByte)</author>
+      <description>We've had a few questions about how our @glitchrealm.ca email system is set up, so here's a quick breakdown:</description>
+      <content:encoded><![CDATA[We've had a few questions about how our @glitchrealm.ca email system is set up, so here's a quick breakdown:
+
+📨 Official Inboxes
+These are the only real inboxes at GlitchRealm — meaning they can receive and send emails directly:
+
+support@glitchrealm.ca — general support & user issues
+legal@glitchrealm.ca — legal matters & formal requests
+contact@glitchrealm.ca — general inquiries & partnerships
+
+📭 About Other @glitchrealm.ca Emails
+Addresses like suggestions@glitchrealm.ca can receive mail, but they do not send replies.
+
+Anything sent to these "extra" emails is forwarded internally, and all replies will always come from one of the three main inboxes listed above.
+
+This keeps the system organized while still letting us offer dedicated emails for things like suggestions and feedback.]]></content:encoded>
+      <category>community</category>
+      <category>Announcement</category>
+    </item>
+    
+    <item>
+      <title>Contact Page Revamp</title>
+      <link>https://news.glitchrealm.ca/news-article.html?id=9WCpTX5zh7XW0KtuoJpq</link>
+      <guid isPermaLink="true">https://news.glitchrealm.ca/news-article.html?id=9WCpTX5zh7XW0KtuoJpq</guid>
+      <pubDate>Fri, 05 Dec 2025 17:14:18 GMT</pubDate>
+      <author>noreply@glitchrealm.com (InfinityByte)</author>
+      <description>We've revamped the Contact page! The layout is cleaner, the old form is replaced with a compact mail button, team cards now include DEV/ARTIST role badges, social links are grouped together, and overall readability and accessibility have been improved.</description>
+      <content:encoded><![CDATA[### Contact Page Revamp — November 28, 2025
+
+We've updated the GlitchRealm Contact page to make it simpler, clearer, and easier to use. Here's what changed:
+
+---
+
+### Layout
+- Contact section moved to the top for faster access.
+- Duplicate forms removed so there's now a single, unified contact action.
+
+### Contact Control
+- Replaced the old form with a compact `mailto:` button.
+- Dark background with a cyan border for consistency and clarity.
+- Reduced padding and size so the CTA feels clean and less bulky.
+
+### Team Cards
+- Added role badges: **DEV** (blue) and **ARTIST** (pink).
+- Higher-contrast colors for improved readability.
+- Reduced padding + refined typography for a tighter layout.
+
+### Communities & Social
+- All external links consolidated under one section: **"Communities & Social (Outside of GlitchRealm.ca)"**
+- Includes Reddit, Discord, X, Instagram, and YouTube (all open in new tabs).
+
+### Visual & Accessibility
+- Improved color contrast across badges and text.
+- Reduced max widths and font sizes in the contact area.
+- Simplified visuals while keeping the cyberpunk GlitchRealm aesthetic.
+
+---]]></content:encoded>
+      <category>updates</category>
+      <category>patches</category>
+      <category>devlogs</category>
+      <category>contact page</category>
+      <category>ui update</category>
+      <category>platform update</category>
+      <category>accessibility</category>
+      <category>glitchrealm</category>
+      <category>site changes</category>
+      <category>revamp</category>
+    </item>
+    
+    <item>
+      <title>Sign-In Bug Fixed</title>
+      <link>https://news.glitchrealm.ca/news-article.html?id=90SRQgjxVnNlDPi1Iypo</link>
+      <guid isPermaLink="true">https://news.glitchrealm.ca/news-article.html?id=90SRQgjxVnNlDPi1Iypo</guid>
+      <pubDate>Tue, 11 Nov 2025 17:14:39 GMT</pubDate>
+      <author>noreply@glitchrealm.com (InfinityByte)</author>
+      <description>Google Sign-In is now fully fixed across the site. The Community page pop-up bug still exists but doesn't prevent users from signing in.</description>
+      <content:encoded><![CDATA[We've resolved the **Google Sign-In** issue that was affecting logins across the site. You can now use your Google account to sign in normally again.
+
+However, there's still a **minor bug** on the **Community page** where the sign-in pop-up sometimes appears but doesn't redirect correctly. The good news is that this doesn't stop anyone from logging in — it's just a small UI issue.
+
+---
+
+## What's Fixed
+- **Google Sign-In** now works across all GlitchRealm pages.
+- Authentication is syncing correctly between services.
+- Other login methods (email, GitHub, etc.) continue to work without issues.
+
+---
+
+## What's Ongoing
+- The **Community sign-in pop-up** occasionally appears but doesn't redirect properly.
+  - This bug is visual only and does not affect actual sign-in functionality.
+  - A fix is already in development and will roll out in an upcoming update.
+
+---
+
+## What's Next
+We expect to release a small patch later this month to fully resolve the pop-up issue. If you encounter any unusual login behavior, please report it to **contact@glitchrealm.com** with your browser and device details.
+
+---
+
+## Stay Connected
+Thanks to everyone who reported these issues and helped us test fixes. For more updates, follow us here:
+- **Twitter/X:** [@GlitchRealmGames]
+- **Instagram:** [@GlitchRealmGames]
+- **Email:** [contact@glitchrealm.com]]]></content:encoded>
+      <category>patches</category>
+      <category>devlogs</category>
+    </item>
+    
+    <item>
+      <title>Welcome to the GlitchRealm News Hub</title>
+      <link>https://news.glitchrealm.ca/news-article.html?id=ZVViTgWhaLVCHEnNtoFY</link>
+      <guid isPermaLink="true">https://news.glitchrealm.ca/news-article.html?id=ZVViTgWhaLVCHEnNtoFY</guid>
+      <pubDate>Wed, 05 Nov 2025 17:09:45 GMT</pubDate>
+      <author>noreply@glitchrealm.com (InfinityByte)</author>
+      <description>We're excited to officially launch news.glitchrealm.ca, the new home for all GlitchRealm updates, announcements, and behind-the-scenes insights. This site will serve as our central news feed for everything happening across the GlitchRealm universe.</description>
+      <content:encoded><![CDATA[We're excited to officially launch **news.glitchrealm.ca**, the new home for all GlitchRealm updates, announcements, and behind-the-scenes insights.
+
+This site will serve as our central news feed for everything happening across the GlitchRealm universe, from new game releases and patch notes to studio updates, developer diaries, and community highlights.
+
+---
+
+## Why We Built This Page
+Social media is great for quick posts and updates, but we wanted a space that's fully ours — a place where players and fans can find verified information straight from the source. No noise, no confusion, just real GlitchRealm news.
+
+This new page lets us share full details, developer commentary, and progress logs in one organized hub that's easy to browse, search, and reference.
+
+---
+
+## How We'll Use It
+From now on, all major updates will be published here first. You'll still see quick summaries and announcements on our social media channels, but the full stories, patch notes, and development breakdowns will live right here.
+
+Expect posts covering:
+- **Studio news** such as announcements and collaborations
+- **Game updates** with changelogs, balance tweaks, and new content
+- **Community posts** including highlights, fan creations, and event recaps
+
+---
+
+## Stay Connected
+This news hub is just one of the ways we'll keep you informed. For quick updates, sneak peeks, and live coverage, follow us on social media:
+- **Twitter/X:** [@GlitchRealmGames]
+- **Instagram:** [@GlitchRealmGames]
+- **Email:** [contact@glitchrealm.com]
+
+---
+
+Thanks for being part of the GlitchRealm community. This new page is our direct line to you, with updates straight from the team building the worlds you play in.]]></content:encoded>
+      <category>updates</category>
+      <category>community</category>
+      <category>Announcement</category>
+      <category>Site Update</category>
+      <category>Development</category>
+      <category>News Hub</category>
+    </item>
+  </channel>
+</rss>
