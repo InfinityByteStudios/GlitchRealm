@@ -23,7 +23,7 @@ export const supabase = isConfigured
 function checkSupabaseReady() {
     if (!supabase) {
         console.warn('⚠️ Supabase not configured. Please update supabase-config.js with your project credentials.');
-        console.warn('📖 See AVATAR_IMPLEMENTATION.md for setup instructions.');
+        console.warn(' See AVATAR_IMPLEMENTATION.md for setup instructions.');
         return false;
     }
     return true;
