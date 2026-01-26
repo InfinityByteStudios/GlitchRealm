@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessibility Statement - GlitchRealm Games</title>
+    <meta name="description" content="GlitchRealm's commitment to accessibility. Learn about our accessibility features, WCAG compliance, and how to request accommodations.">
+    <meta name="keywords" content="GlitchRealm, accessibility, WCAG, screen reader, keyboard navigation, accessibility statement">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="accessibility-performance.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .effective-date {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .policy-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: rgba(0, 255, 249, 0.8);
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .policy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+        }
+        
+        .policy-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+            padding: 0;
+        }
+        
+        .policy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.75rem;
+        }
+        
+        .highlight {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .policy-section a {
+            color: var(--primary-cyan);
+            text-decoration: underline;
+        }
+        
+        .policy-section a:hover {
+            color: rgba(0, 255, 249, 0.8);
+        }
+    </style>
+    
+    <script type="module" src="firebase-core.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.appspot.com",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+        
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
+        const analytics = getAnalytics(app);
+        
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+    </script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Accessibility Statement">Accessibility Statement</span>
+                </h1>
+                <p class="page-subtitle">Our Commitment to Inclusive Design</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <a href="legal.html" style="display: inline-block; color: var(--primary-cyan); text-decoration: none; margin-bottom: 20px; font-size: 0.9em;">
+                ← Back to Legal Hub
+            </a>
+            <div style="background: rgba(0, 255, 249, 0.05); border: 1px solid rgba(0, 255, 249, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                <p style="margin: 0; color: rgba(255, 255, 255, 0.85);"> For legal definitions, <a href="legal-definitions.html" style="color: var(--primary-cyan); text-decoration: none; font-weight: 600;">click here</a></p>
+            </div>
+            <div class="policy-header">
+                <p class="effective-date">Last updated: January 24, 2026</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>1. Our Commitment</h2>
+                <p>GlitchRealm is committed to ensuring digital accessibility for all users, including people with disabilities. We strive to meet the <span class="highlight">Web Content Accessibility Guidelines (WCAG) 2.1 Level AA</span> standards and continuously improve the user experience for everyone.</p>
+                <p>Accessibility is an ongoing effort, and we welcome feedback to help us achieve our goals.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>2. Accessibility Features</h2>
+                <p>GlitchRealm includes the following accessibility features:</p>
+                
+                <h3>Keyboard Navigation</h3>
+                <ul>
+                    <li>Full keyboard navigation support (Tab, Enter, Escape, Arrow keys)</li>
+                    <li>Visible focus indicators on interactive elements (implemented via <code>accessibility-keyboard-nav.js</code>)</li>
+                    <li>Skip to main content link for screen reader users</li>
+                </ul>
+                
+                <h3>Screen Reader Compatibility</h3>
+                <ul>
+                    <li>Semantic HTML5 structure (header, nav, main, footer, article, section)</li>
+                    <li>ARIA labels and roles for custom components (modals, dropdowns, interactive games)</li>
+                    <li>Descriptive alt text for images and icons</li>
+                    <li>Announced notifications for dynamic content updates (game submissions, reviews)</li>
+                </ul>
+                
+                <h3>Visual Accessibility</h3>
+                <ul>
+                    <li>High contrast color scheme (cyan/magenta on dark background)</li>
+                    <li>Minimum font size of 16px for body text</li>
+                    <li>Resizable text (up to 200% zoom without loss of functionality)</li>
+                    <li>No flashing or strobing content (reduced motion for glitch effects)</li>
+                </ul>
+                
+                <h3>Responsive Design</h3>
+                <ul>
+                    <li>Mobile-friendly layout with touch-friendly targets (minimum 44x44px)</li>
+                    <li>Viewport meta tag for proper scaling on mobile devices</li>
+                    <li>Responsive breakpoints for tablets, phones, and desktop screens</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>3. Known Accessibility Issues</h2>
+                <p>We are actively working to address the following known issues:</p>
+                <ul>
+                    <li><span class="highlight">Glitch Text Effects:</span> Animated glitch effects may not be accessible to screen readers (static fallback text provided)</li>
+                    <li><span class="highlight">Game Content:</span> Individual games submitted by developers may not meet WCAG standards (we encourage developers to follow accessibility best practices; see <a href="developer-agreement.html">Developer Agreement</a>)</li>
+                    <li><span class="highlight">Background Animations:</span> Cyberpunk background animations may be distracting for some users (reduced motion preference supported via CSS <code>prefers-reduced-motion</code>)</li>
+                    <li><span class="highlight">Color Contrast:</span> Some secondary UI elements (badges, tags) may have contrast ratios below WCAG AA (under review)</li>
+                </ul>
+                <p>We are committed to resolving these issues in future updates.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>4. WCAG 2.1 Compliance Status</h2>
+                <p>GlitchRealm's target is <span class="highlight">WCAG 2.1 Level AA</span> conformance. Current compliance status:</p>
+                <ul>
+                    <li><span class="highlight">Perceivable:</span> Mostly compliant (alt text, contrast, text resizing)</li>
+                    <li><span class="highlight">Operable:</span> Mostly compliant (keyboard navigation, no keyboard traps)</li>
+                    <li><span class="highlight">Understandable:</span> Compliant (clear language, predictable navigation, error identification)</li>
+                    <li><span class="highlight">Robust:</span> Compliant (valid HTML5, ARIA roles, semantic markup)</li>
+                </ul>
+                <p>See the <a href="ACCESSIBILITY_PERFORMANCE_GUIDE.md" target="_blank" rel="noopener noreferrer">Accessibility & Performance Guide</a> for detailed technical documentation.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>5. Assistive Technologies Supported</h2>
+                <p>GlitchRealm is tested with the following assistive technologies:</p>
+                <ul>
+                    <li><span class="highlight">Screen Readers:</span> NVDA (Windows), JAWS (Windows), VoiceOver (macOS/iOS), TalkBack (Android)</li>
+                    <li><span class="highlight">Keyboard-Only Navigation:</span> Full platform access without a mouse</li>
+                    <li><span class="highlight">Browser Zoom:</span> Up to 200% zoom without horizontal scrolling (text reflow)</li>
+                    <li><span class="highlight">High Contrast Modes:</span> Windows High Contrast Mode, browser extensions</li>
+                    <li><span class="highlight">Speech Input:</span> Dragon NaturallySpeaking, Voice Control (macOS)</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>6. Third-Party Content</h2>
+                <p>GlitchRealm hosts games submitted by third-party developers. While we encourage accessibility best practices, we cannot guarantee that all user-generated content meets WCAG standards.</p>
+                <p>If you encounter accessibility barriers in a specific game, please report it to <a href="mailto:accessibility@glitchrealm.ca">accessibility@glitchrealm.ca</a>, and we will contact the developer.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>7. Requesting Accommodations</h2>
+                <p>If you need assistance accessing content or features on GlitchRealm, we are here to help. You may request:</p>
+                <ul>
+                    <li>Alternative formats for content (text-only version of game descriptions, downloadable guides)</li>
+                    <li>Clarification on how to use specific features with assistive technologies</li>
+                    <li>Suggestions for accessibility improvements</li>
+                </ul>
+                <p>Contact us at <a href="mailto:accessibility@glitchrealm.ca">accessibility@glitchrealm.ca</a> with your request. We will respond within <span class="highlight">2 business days</span>.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>8. Feedback and Reporting Issues</h2>
+                <p>We welcome feedback on accessibility barriers or areas for improvement. To report an accessibility issue:</p>
+                <ol style="margin: 1rem 0 1rem 1.5rem; padding: 0;">
+                    <li>Email <a href="mailto:accessibility@glitchrealm.ca">accessibility@glitchrealm.ca</a> with a detailed description</li>
+                    <li>Include the page URL, browser/device information, and assistive technology used (if applicable)</li>
+                    <li>Describe the barrier you encountered and your expected behavior</li>
+                </ol>
+                <p>We will acknowledge your report within 2 business days and provide updates on resolution timelines.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>9. Accessibility Roadmap</h2>
+                <p>Planned accessibility improvements include:</p>
+                <ul>
+                    <li><span class="highlight">Q1 2026:</span> Full WCAG 2.1 Level AA audit and remediation</li>
+                    <li><span class="highlight">Q2 2026:</span> Accessibility settings panel (font size, contrast, reduced motion toggles)</li>
+                    <li><span class="highlight">Q3 2026:</span> Game developer accessibility guidelines and submission checklist</li>
+                    <li><span class="highlight">Q4 2026:</span> Screen reader optimization for game launcher and community features</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>10. Legal Compliance</h2>
+                <p>GlitchRealm strives to comply with accessibility laws and regulations, including:</p>
+                <ul>
+                    <li><span class="highlight">Canada:</span> Accessible Canada Act (ACA)</li>
+                    <li><span class="highlight">United States:</span> Americans with Disabilities Act (ADA), Section 508</li>
+                    <li><span class="highlight">Europe:</span> EN 301 549 (European accessibility standard)</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>11. Changes to This Statement</h2>
+                <p>This Accessibility Statement will be updated as we improve accessibility features. Changes will be posted on this page with an updated "Last updated" date.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>12. Contact Information</h2>
+                <p>For accessibility questions, accommodations, or feedback:</p>
+                <ul>
+                    <li><span class="highlight">Accessibility Contact:</span> <a href="mailto:accessibility@glitchrealm.ca">accessibility@glitchrealm.ca</a></li>
+                    <li><span class="highlight">General Support:</span> <a href="mailto:support@glitchrealm.ca">support@glitchrealm.ca</a></li>
+                    <li><span class="highlight">Legal Contact:</span> <a href="legal-contact.html">Legal Contact Information</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="header-avatar-integration.js"></script>
+    <script src="accessibility-keyboard-nav.js"></script>
+    <script>
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-placeholder').innerHTML = data;
+            });
+
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            });
+    </script>
+</body>
+</html>

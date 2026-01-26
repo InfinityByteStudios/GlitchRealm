@@ -182,3 +182,13 @@ DO NOT EVER MAKE A .MD DO NOT CREATE TEST PAGES EITHER. Make sure to USE CLI to 
 NEVER EVER TOUCH THE SCHOOL FOLDER
 
 ITS GLITCHREALM.CA not .com
+
+## Official Contact Emails
+- **legal@glitchrealm.ca** — legal inquiries and compliance
+- **support@glitchrealm.ca** — user support and general help
+- **contact@glitchrealm.ca** — general contact
+- **press@glitchrealm.ca** — media and press inquiries
+- **partnerships@glitchrealm.ca** — business and developer partnerships
+- **developers@glitchrealm.ca** — developer support and technical assistance
+- **security@glitchrealm.ca** — security reports and vulnerabilities
+- **donations@glitchrealm.ca** — donation inquiries
