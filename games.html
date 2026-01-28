@@ -3517,13 +3517,13 @@
                     }
                     const container = document.querySelector('.game-cards');
                     if(!container) return;
-                    if(container.dataset.communityLoaded === '1') return; // prevent duplicate listener
+                    if(container.dataset.communityLoaded === '1') return; // prevent duplicate polling
                     container.dataset.communityLoaded = '1';
 
-                    // Ensure onSnapshot is available
-                    if (!window.firestoreOnSnapshot) {
+                    // Ensure getDocs is available
+                    if (!window.firestoreGetDocs) {
                         const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                        window.firestoreOnSnapshot = f.onSnapshot;
+                        window.firestoreGetDocs = f.getDocs;
                         window.firestoreGetDoc = window.firestoreGetDoc || f.getDoc;
                         window.firestoreDoc = window.firestoreDoc || f.doc;
                     }
@@ -3534,9 +3534,10 @@
                         window.firestoreWhere('status','in',['published','Published'])
                     );
 
-                    // Attach listener
-                    const unsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
+                    async function loadSubmissions() {
                         try {
+                            const snapshot = await window.firestoreGetDocs(q);
+                            
                             const list = [];
                             snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
                             // Sort by updatedAt desc then createdAt desc
@@ -3564,21 +3565,22 @@
                             // Update menus and ratings
                             if (typeof setupGameCardMenus === 'function') {
                                 try { setupGameCardMenus(); } catch {}
-                                // Re-run shortly after to catch any auth state changes or slow DOM attachments
                                 try { setTimeout(setupGameCardMenus, 250); } catch {}
                             }
                             setTimeout(updateAllRatingDisplays, 200);
                         } catch (err) {
                             console.error('[games grid] snapshot render failed:', err);
                         }
-                    }, (error) => {
-                        console.error('[games grid] realtime error:', error);
-                    });
+                    }
 
-                    // Clean up on unload
-                    window.addEventListener('beforeunload', () => { try { unsubscribe(); } catch {} }, { once: true });
+                    // Initial load
+                    await loadSubmissions();
+
+                    // Poll every 30 seconds for updates
+                    setInterval(loadSubmissions, 30000);
+
                 }catch(e){
-                    console.error('[games grid] Failed to init realtime listener:', e);
+                    console.error('[games grid] Failed to load submissions:', e);
                 }
             })();
         }
