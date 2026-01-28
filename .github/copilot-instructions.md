@@ -192,3 +192,5 @@ ITS GLITCHREALM.CA not .com
 - **developers@glitchrealm.ca** — developer support and technical assistance
 - **security@glitchrealm.ca** — security reports and vulnerabilities
 - **donations@glitchrealm.ca** — donation inquiries
+
+FOR THE LEGAL PAGE MAKE SURE U ADD DEFINTIONS IF U NEED TOO
