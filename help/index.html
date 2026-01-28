@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- PWA Manifest & Theming -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00fff9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/Favicon and Icons/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support - GlitchRealm Help</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- SEO -->
+    <meta name="description" content="Get help with GlitchRealm - guides, tutorials, FAQs, and support for games, accounts, development, and more.">
+    <link rel="canonical" href="https://help.glitchrealm.ca/">
+    
+    <style>
+        .support-hero { padding:70px 0 30px; text-align:center; position:relative; }
+        .support-hero h1 { font-family:'Orbitron', monospace; font-size:2.4rem; background:linear-gradient(90deg,#00fff9,#008cff); -webkit-background-clip:text; background-clip:text; color:transparent; letter-spacing:2px; }
+        .support-grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); margin:40px 0; }
+        .support-card { background:linear-gradient(135deg,rgba(11,24,34,0.95),rgba(7,16,23,0.98)); border:1px solid rgba(0,255,249,0.2); padding:24px 24px 26px; border-radius:16px; position:relative; overflow:hidden; transition:all 0.3s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+        .support-card:hover { border-color:rgba(0,255,249,0.4); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,255,249,0.15), 0 0 40px rgba(0,255,249,0.08); }
+        .support-card:before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 20% 25%,rgba(0,255,249,0.15),transparent 55%),radial-gradient(circle at 80% 75%,rgba(0,140,255,0.12),transparent 60%); mix-blend-mode:screen; pointer-events:none; opacity:0.7; transition:opacity 0.3s ease; }
+        .support-card:hover:before { opacity:1; }
+        .support-card h3 { margin:0 0 10px; font-size:1.15rem; font-weight:700; letter-spacing:.8px; color:#00f5ff; font-family:'Orbitron', monospace; text-transform:uppercase; }
+        .support-card p { margin:0 0 16px; font-size:.88rem; line-height:1.5; color:#b8d4d8; opacity:0.9; }
+        .contact-chip { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid rgba(0,255,249,0.3); border-radius:20px; font-size:.72rem; letter-spacing:.6px; text-transform:uppercase; color:#00fff9; background:rgba(0,255,249,0.08); margin:4px 6px 4px 0; font-weight:600; cursor:pointer; text-decoration:none; position:relative; transition:all .22s ease; }
+        .contact-chip:hover, .contact-chip:focus { background:rgba(0,255,249,0.2); border-color:rgba(0,255,249,0.6); color:#00fff9; outline:none; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,255,249,0.25); }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <!-- Header -->
+    <header class="main-header">
+        <nav class="nav-container">
+            <a href="https://glitchrealm.ca/" class="logo">
+                <span class="glitch" data-text="GLITCHREALM">GLITCHREALM</span>
+            </a>
+            <div class="nav-links">
+                <a href="https://glitchrealm.ca/">Home</a>
+                <a href="https://glitchrealm.ca/games.html">Games</a>
+                <a href="https://glitchrealm.ca/community.html">Community</a>
+                <a href="/" class="active">Help</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="main">
+        <section class="support-hero">
+            <div class="container">
+                <h1>Support / Help Center</h1>
+                <p style="max-width:620px;margin:14px auto 0; font-size:1rem; color:#d4dde0;">Need help with your account, games, or platform features? Choose a category below to get started.</p>
+                
+                <!-- Quick Contact Support Button -->
+                <div style="margin-top:24px; text-align:center;">
+                    <a href="https://glitchrealm.ca/contact.html" class="contact-chip" style="padding:10px 20px; font-size:.82rem; cursor:pointer; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.4);">
+                        Contact Support
+                    </a>
+                    <p style="margin-top:10px; font-size:.78rem; opacity:.7; color:#b8d4d8;">Or browse categories below for instant answers</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="support-grid">
+                <a href="getting-started/" class="support-card" style="text-decoration:none; color:inherit;">
+                    <h3>Getting Started</h3>
+                    <p>New to GlitchRealm? Start here to learn the basics and set up your account.</p>
+                </a>
+                <a href="account/" class="support-card" style="text-decoration:none; color:inherit;">
+                    <h3>Account & Profile</h3>
+                    <p>Manage your account settings, profile, password, and privacy preferences.</p>
+                </a>
+                <a href="games/" class="support-card" style="text-decoration:none; color:inherit;">
+                    <h3>Games & Gameplay</h3>
+                    <p>Tips for playing games, tracking playtime, troubleshooting, and more.</p>
+                </a>
+                <a href="community/" class="support-card" style="text-decoration:none; color:inherit;">
+                    <h3>Community</h3>
+                    <p>Community guidelines, posting content, reviews, and moderation info.</p>
+                </a>
+                <a href="developers/" class="support-card" style="text-decoration:none; color:inherit;">
+                    <h3>Developers</h3>
+                    <p>Submit games, developer verification, APIs, and technical documentation.</p>
+                </a>
+                <a href="safety/" class="support-card" style="text-decoration:none; color:inherit;">
+                    <h3>Safety & Security</h3>
+                    <p>Privacy, data protection, reporting abuse, and account security.</p>
+                </a>
+                <a href="technical/" class="support-card" style="text-decoration:none; color:inherit;">
+                    <h3>Technical Support</h3>
+                    <p>Browser compatibility, performance issues, errors, and troubleshooting.</p>
+                </a>
+                <a href="legal/" class="support-card" style="text-decoration:none; color:inherit;">
+                    <h3>Legal & Policies</h3>
+                    <p>Terms of service, privacy policy, DMCA, licenses, and legal information.</p>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:2rem; max-width:1200px; margin:0 auto 2rem;">
+                <div class="footer-section">
+                    <h3 style="font-family:'Orbitron',sans-serif; font-size:1rem; color:#00fff9; margin-bottom:1rem;">GlitchRealm</h3>
+                    <p style="color:rgba(255,255,255,0.5); font-size:0.9rem;">Cyberpunk gaming platform</p>
+                </div>
+                <div class="footer-section">
+                    <h3 style="font-family:'Orbitron',sans-serif; font-size:1rem; color:#00fff9; margin-bottom:1rem;">Quick Links</h3>
+                    <a href="https://glitchrealm.ca/" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">Home</a>
+                    <a href="https://glitchrealm.ca/games.html" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">Games</a>
+                    <a href="https://glitchrealm.ca/community.html" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">Community</a>
+                    <a href="/" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">Help Center</a>
+                </div>
+                <div class="footer-section">
+                    <h3 style="font-family:'Orbitron',sans-serif; font-size:1rem; color:#00fff9; margin-bottom:1rem;">Legal</h3>
+                    <a href="https://glitchrealm.ca/terms-of-service.html" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">Terms of Service</a>
+                    <a href="https://glitchrealm.ca/privacy-policy.html" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">Privacy Policy</a>
+                    <a href="https://glitchrealm.ca/cookie-policy.html" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">Cookie Policy</a>
+                </div>
+                <div class="footer-section">
+                    <h3 style="font-family:'Orbitron',sans-serif; font-size:1rem; color:#00fff9; margin-bottom:1rem;">Contact</h3>
+                    <a href="mailto:support@glitchrealm.ca" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">support@glitchrealm.ca</a>
+                    <a href="mailto:developers@glitchrealm.ca" style="display:block; color:rgba(255,255,255,0.6); text-decoration:none; margin-bottom:0.5rem;">developers@glitchrealm.ca</a>
+                </div>
+            </div>
+            <div class="footer-bottom" style="text-align:center; padding-top:2rem; border-top:1px solid rgba(0,255,249,0.1); color:rgba(255,255,255,0.4); font-size:0.9rem;">
+                <p>&copy; 2026 GlitchRealm. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .footer-section a:hover {
+            color: #00fff9 !important;
+        }
+    </style>
+</body>
+</html>

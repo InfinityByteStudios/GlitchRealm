@@ -1,0 +1,3 @@
+# Help subdomain redirects
+/contact https://glitchrealm.ca/contact.html 302
+/support / 301

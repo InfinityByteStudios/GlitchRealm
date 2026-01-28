@@ -1,0 +1,6 @@
+# Allow all bots to crawl help pages
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://help.glitchrealm.ca/sitemap.xml
