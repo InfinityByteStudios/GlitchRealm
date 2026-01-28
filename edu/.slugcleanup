@@ -1,0 +1,4 @@
+app/javascript
+app/assets/stylesheets
+node_modules
+tmp

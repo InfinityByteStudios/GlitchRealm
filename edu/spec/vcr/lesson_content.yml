@@ -1,0 +1,80 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.github.com/repos/theodinproject/curriculum/contents/README.md
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - Octokit Ruby Gem 6.1.1
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - GitHub.com
+      Date:
+      - Tue, 27 Jun 2023 12:18:15 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Cache-Control:
+      - public, max-age=60, s-maxage=60
+      Vary:
+      - Accept, Accept-Encoding, Accept, X-Requested-With
+      Etag:
+      - W/"17f7e8d897a46a85d28a6def793ae67f7f841744"
+      Last-Modified:
+      - Mon, 26 Jun 2023 14:03:20 GMT
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Api-Version-Selected:
+      - '2022-11-28'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO,
+        X-GitHub-Request-Id, Deprecation, Sunset
+      Access-Control-Allow-Origin:
+      - "*"
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      X-Frame-Options:
+      - deny
+      X-Content-Type-Options:
+      - nosniff
+      X-Xss-Protection:
+      - '0'
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Content-Security-Policy:
+      - default-src 'none'
+      X-Ratelimit-Limit:
+      - '60'
+      X-Ratelimit-Remaining:
+      - '57'
+      X-Ratelimit-Reset:
+      - '1687870400'
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - '3'
+      Accept-Ranges:
+      - bytes
+      Content-Length:
+      - '3617'
+      X-Github-Request-Id:
+      - E397:C0CB:1EBD489:1F0DD23:649AD387
+    body:
+      encoding: ASCII-8BIT
+      string: '{"name":"README.md","path":"README.md","sha":"17f7e8d897a46a85d28a6def793ae67f7f841744","size":2031,"url":"https://api.github.com/repos/TheOdinProject/curriculum/contents/README.md?ref=main","html_url":"https://github.com/TheOdinProject/curriculum/blob/main/README.md","git_url":"https://api.github.com/repos/TheOdinProject/curriculum/git/blobs/17f7e8d897a46a85d28a6def793ae67f7f841744","download_url":"https://raw.githubusercontent.com/TheOdinProject/curriculum/main/README.md","type":"file","content":"IyBUaGUgT2RpbiBQcm9qZWN0IEN1cnJpY3VsdW0KCltUaGUgT2RpbiBQcm9q\nZWN0XShodHRwczovL3d3dy50aGVvZGlucHJvamVjdC5jb20vKSAoVE9QKSBp\ncyBhbiBvcGVuLXNvdXJjZSBjdXJyaWN1bHVtIGZvciBsZWFybmluZyBmdWxs\nLXN0YWNrIHdlYiBkZXZlbG9wbWVudC4gT3VyIGN1cnJpY3VsdW0gaXMgZGl2\naWRlZCBpbnRvIGRpc3RpbmN0IGNvdXJzZXMsIGVhY2ggY292ZXJpbmcgdGhl\nIHN1YmplY3QgbGFuZ3VhZ2UgaW4gZGVwdGguIEVhY2ggY291cnNlIGNvbnRh\naW5zIGEgbGlzdGluZyBvZiBsZXNzb25zIGludGVyc3BlcnNlZCB3aXRoIG11\nbHRpcGxlIHByb2plY3RzLiBUaGVzZSBwcm9qZWN0cyBnaXZlIHVzZXJzIHRo\nZSBvcHBvcnR1bml0eSB0byBwcmFjdGljZSB3aGF0IHRoZXkgYXJlIGxlYXJu\naW5nLCB0aGVyZWJ5IHJlaW5mb3JjaW5nIGFuZCBzb2xpZGlmeWluZyB0aGUg\ndGhlb3JldGljYWwga25vd2xlZGdlIGxlYXJuZWQgaW4gdGhlIGxlc3NvbnMu\nIENvbXBsZXRlZCBwcm9qZWN0cyBtYXkgdGhlbiBiZSBpbmNsdWRlZCBpbiB0\naGUgdXNlcidzIHBvcnRmb2xpby4KCkxlc3NvbnMgYXJlIHN0cnVjdHVyZWQg\ndGhyb3VnaCBhIGNvbWJpbmF0aW9uIG9mIG9yaWdpbmFsIHdyaXR0ZW4gY29u\ndGVudCBhbmQgYSBjb21waWxhdGlvbiBvZiBjYXJlZnVsbHkgY3VyYXRlZCBy\nZXNvdXJjZXMgZnJvbSB0aGUgd2ViLiBUaGlzIGlzIHdoZXJlIHRoZSBjb250\ncmlidXRpbmcgaGFwcGVucyEKClRoaXMgcmVwbyBjb250YWlucyB0aGUgYWN0\ndWFsIGxlc3NvbiBmaWxlcyB1c2VkIG9uIG91ciB3ZWJzaXRlLiBGb3IgdGhl\nIGFjdHVhbCBUT1AgYXBwIHRoYXQgcHVsbHMgaW4gdGhpcyBsZXNzb24gY29u\ndGVudCBhbmQgY29udGFpbnMgb3VyIGZyb250LWVuZCBhbmQgYmFjay1lbmQg\nY29kZSwgcGxlYXNlIGdvIHRvIHRoZSBbbWFpbiBUT1AgcmVwb10oaHR0cHM6\nLy9naXRodWIuY29tL1RoZU9kaW5Qcm9qZWN0L3RoZW9kaW5wcm9qZWN0KS4K\nCk91ciBjb21tdW5pdHkgY2FuIGJlIGZvdW5kIG9uIHRoZSBbVE9QIERpc2Nv\ncmQgc2VydmVyXShodHRwczovL2Rpc2NvcmQuZ2cvZmJGQ2tZYWJaQikuCgoj\nIyBDb250cmlidXRpbmcKClRoZSBPZGluIFByb2plY3QgZGVwZW5kcyBvbiBv\ncGVuLXNvdXJjZSBjb250cmlidXRpb25zIHRvIGltcHJvdmUsIGdyb3csIGFu\nZCB0aHJpdmUuIFdlIHdlbGNvbWUgY29udHJpYnV0b3JzIG9mIGFsbCBleHBl\ncmllbmNlIGxldmVscyBhbmQgYmFja2dyb3VuZHMgdG8gaGVscCBtYWludGFp\nbiB0aGlzIGF3ZXNvbWUgY3VycmljdWx1bSBhbmQgY29tbXVuaXR5LiBJZiB5\nb3Ugd291bGQgbGlrZSB0byBjb250cmlidXRlIHRvIG91ciBjdXJyaWN1bHVt\nLCBiZSBzdXJlIHRvIHRob3JvdWdobHkgcmVhZCBvdXIgW2NvbnRyaWJ1dGlu\nZyBndWlkZV0oaHR0cHM6Ly9naXRodWIuY29tL1RoZU9kaW5Qcm9qZWN0L3Ro\nZW9kaW5wcm9qZWN0L2Jsb2IvbWFpbi9DT05UUklCVVRJTkcubWQpIGluIG91\nciBtYWluIFRPUCByZXBvLgoKU29tZSBvZiB0aGUgdGhpbmdzIHlvdSBjYW4g\nZG8gdG8gY29udHJpYnV0ZSB0byBvdXIgY3VycmljdWx1bSBpbmNsdWRlOgoq\nIENvcnJlY3QgdHlwb3MgYW5kIG90aGVyIGdyYW1tYXIgZXJyb3JzLgoqIFJl\nd3JpdGUgcGFydHMgb2YgZXhpc3RpbmcgbGVzc29ucyB0byBtYWtlIHRoZW0g\nY2xlYXJlciBhbmQgZWFzaWVyIHRvIHVuZGVyc3RhbmQuCiogRml4IGJyb2tl\nbiBsaW5rcy4KKiBBZGQgbmV3IHJlc291cmNlIGxpbmtzIHlvdSB0aGluayB3\nb3VsZCBtYWtlIGEgbGVzc29uIGJldHRlci4KKiBXb3JrIG9uIGVudGlyZWx5\nIG5ldyBsZXNzb25zIGFmdGVyIGdldHRpbmcgYXBwcm92YWwuCgoqKkhhcHB5\nIENvZGluZyEqKgoKXCogU2VlIFtsaWNlbnNlLm1kXShodHRwczovL2dpdGh1\nYi5jb20vVGhlT2RpblByb2plY3QvY3VycmljdWx1bS9ibG9iL21haW4vbGlj\nZW5zZS5tZCkgZm9yIHVzYWdlIGRldGFpbHMuCgpfX18KQ3JlYXRlZCBieSBb\nRXJpayBUcmF1dG1hbl0oaHR0cDovL3d3dy5naXRodWIuY29tL2VyaWt0cmF1\ndG1hbikK\n","encoding":"base64","_links":{"self":"https://api.github.com/repos/TheOdinProject/curriculum/contents/README.md?ref=main","git":"https://api.github.com/repos/TheOdinProject/curriculum/git/blobs/17f7e8d897a46a85d28a6def793ae67f7f841744","html":"https://github.com/TheOdinProject/curriculum/blob/main/README.md"}}'
+  recorded_at: Tue, 27 Jun 2023 12:18:15 GMT
+recorded_with: VCR 6.1.0

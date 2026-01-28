@@ -1,0 +1,64 @@
+@utility lesson-note {
+  @apply bg-gray-50 p-4 my-4 border-l-4 border-gold dark:bg-gray-700/40 dark:border-gold-600 rounded-sm;
+
+  & > h4:has(.anchor-link:hover)::before {
+    @apply invisible;
+  }
+
+  & > *:first-child {
+    @apply mt-0;
+  }
+
+  & > *:last-child {
+    @apply mb-0;
+  }
+
+  & > *:first-child::before {
+    mask-image: url('/icons/pencil-square-solid.svg');
+    content: '';
+
+    @apply h-5 w-5 mr-2 inline-block align-text-bottom bg-gold dark:bg-gold-600;
+  }
+}
+
+@utility anchor-link {
+  .lesson-note > h4:has(&:hover)::before {
+    @apply invisible;
+  }
+}
+
+@utility lesson-note--tip {
+  /* Tip note */
+  @apply border-blue-600 dark:border-blue-500;
+
+  & > *:first-child::before {
+    mask-image: url('/icons/light-bulb-solid.svg');
+    content: '';
+
+    @apply h-5 w-5 inline-block align-text-bottom bg-blue-600 dark:bg-blue-500;
+  }
+}
+
+@utility lesson-note--warning {
+  /* Warning note */
+  @apply border-orange-500 dark:border-orange-400;
+
+  & > *:first-child::before {
+    mask-image: url('/icons/exclamation-triangle-solid.svg');
+    content: '';
+
+    @apply h-5 w-5 inline-block align-text-bottom bg-orange-500 dark:bg-orange-400;
+  }
+}
+
+@utility lesson-note--critical {
+  /* Critical note */
+  @apply border-red-600 dark:border-red-500;
+
+  & > *:first-child::before {
+    mask-image: url('/icons/exclamation-circle-solid.svg');
+    content: '';
+
+    @apply h-5 w-5 inline-block align-text-bottom bg-red-600 dark:bg-red-500;
+  }
+}
