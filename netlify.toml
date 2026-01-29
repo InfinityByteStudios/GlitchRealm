@@ -159,6 +159,12 @@
   status = 301
   force = true
 
+[[redirects]]
+  from = "/edu/*"
+  to = "https://edu.glitchrealm.ca/:splat"
+  status = 200
+  force = true
+
 # 404 page configuration
 [[redirects]]
   from = "/*"

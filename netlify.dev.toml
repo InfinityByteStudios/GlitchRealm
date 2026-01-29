@@ -1,0 +1,9 @@
+## Local Netlify Dev overrides
+## Use this config when running `netlify dev --config netlify.dev.toml`
+## It forwards /edu requests to a local Rails server on port 3000.
+
+[[redirects]]
+  from = "/edu/*"
+  to = "http://localhost:3000/:splat"
+  status = 200
+  force = true
