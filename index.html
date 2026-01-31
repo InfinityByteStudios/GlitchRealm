@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="monetag" content="db9dde504613de24fc3c9441de937154">
-    <style>
-    .ad-badge{position:fixed;right:18px;bottom:18px;background:rgba(0,0,0,0.6);color:#fff;padding:6px 8px;border-radius:12px;font-size:12px;font-weight:700;z-index:2147483646;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.35);font-family:Rajdhani,Arial,Helvetica,sans-serif}
-    .ad-badge--sr{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
-    </style>
     
     <!-- Critical Resource Hints - Load First -->
     <link rel="preconnect" href="https://www.gstatic.com">
@@ -657,21 +653,7 @@
         </div>
     </div>
 
-    <script>
-    (function(noxy){
-    var d = document,
-        s = d.createElement('script'),
-        l = d.scripts[d.scripts.length - 1];
-    s.settings = noxy || {};
-    s.src = "//reliablerelative.com/bEXZV.s_dTGKlg0tYMWAcD/leYmc9EuFZ/UvlBk/PJTGYG3mNujJEh2NMDzYUZtINpjacw2nMkTjYFz/NEgi";
-    s.async = true;
-    s.referrerPolicy = 'no-referrer-when-downgrade';
-    l.parentNode.insertBefore(s, l);
-    })({})
-    </script>
-
-    <!-- Ad badge (non-interactive) - visually indicates ad content near widget -->
-    <div class="ad-badge" aria-hidden="true">Ad</div>
+    <!-- Ads removed: moved to /ads.html -->
 
     <!-- Deferred: Non-critical scripts -->
     <script src="image-loader.js" defer></script>
@@ -683,25 +665,6 @@
     <script src="game-launcher-lazy.js" defer></script>
     
     <!-- Very Low Priority: Icons and widgets -->
-    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
-</body>
-<script>
-/* BMC widget lazy loader: prevents main-thread jank while keeping same visuals */
-(function(){
-    const cfg = {src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};
-    function inject(){
-        if(document.getElementById('bmc-widget-script')) return;
-        const s=document.createElement('script');
-        s.id='bmc-widget-script';
-        s.src=cfg.src; s.dataset.name='BMC-Widget'; s.setAttribute('data-cfasync','false');
-        s.setAttribute('data-id',cfg.id); s.setAttribute('data-description',cfg.desc); s.setAttribute('data-message',cfg.msg);
-        s.setAttribute('data-color',cfg.color); s.setAttribute('data-position',cfg.pos);
-        s.setAttribute('data-x_margin',cfg.x); s.setAttribute('data-y_margin',cfg.y);
-        document.body.appendChild(s);
-    }
-    if(window.requestIdleCallback) requestIdleCallback(inject,{timeout:2500});
-    else window.addEventListener('load',()=>setTimeout(inject,600));
-    ['pointerdown','keydown','scroll'].forEach(evt=>window.addEventListener(evt,inject,{once:true,passive:true}));
-})();
-</script>
-</html>
+        <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
+    </body>
+    </html>

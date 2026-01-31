@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GlitchRealm — Ads</title>
+  <meta name="robots" content="noindex">
+  <style>
+    body{font-family:Rajdhani,Arial,Helvetica,sans-serif;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+    .container{max-width:760px;padding:24px;background:rgba(255,255,255,0.03);border-radius:12px;text-align:center}
+    a.button{display:inline-block;margin-top:12px;padding:8px 12px;border-radius:8px;background:#00fff9;color:#000;text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ad Test Page</h1>
+    <p>This page hosts ad-related scripts isolated from the main site.</p>
+    <a class="button" href="/index.html">Return Home</a>
+
+    <!-- Reliablerelative ad script -->
+    <script>
+    (function(noxy){
+    var d = document,
+        s = d.createElement('script'),
+        l = d.scripts[d.scripts.length - 1];
+    s.settings = noxy || {};
+    s.src = "//reliablerelative.com/bEXZV.s_dTGKlg0tYMWAcD/leYmc9EuFZ/UvlBk/PJTGYG3mNujJEh2NMDzYUZtINpjacw2nMkTjYFz/NEgi";
+    s.async = true;
+    s.referrerPolicy = 'no-referrer-when-downgrade';
+    l.parentNode.insertBefore(s, l);
+    })({})
+    </script>
+
+    <!-- Buy Me a Coffee widget (lazy loader) -->
+    <script>
+    (function(){
+        const cfg = {src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};
+        function inject(){
+            if(document.getElementById('bmc-widget-script')) return;
+            const s=document.createElement('script');
+            s.id='bmc-widget-script';
+            s.src=cfg.src; s.dataset.name='BMC-Widget'; s.setAttribute('data-cfasync','false');
+            s.setAttribute('data-id',cfg.id); s.setAttribute('data-description',cfg.desc); s.setAttribute('data-message',cfg.msg);
+            s.setAttribute('data-color',cfg.color); s.setAttribute('data-position',cfg.pos);
+            s.setAttribute('data-x_margin',cfg.x); s.setAttribute('data-y_margin',cfg.y);
+            document.body.appendChild(s);
+        }
+        if(window.requestIdleCallback) requestIdleCallback(inject,{timeout:2500});
+        else window.addEventListener('load',()=>setTimeout(inject,600));
+        ['pointerdown','keydown','scroll'].forEach(evt=>window.addEventListener(evt,inject,{once:true,passive:true}));
+    })();
+    </script>
+  </div>
+</body>
+</html>
