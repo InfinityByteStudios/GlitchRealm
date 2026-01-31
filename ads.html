@@ -17,12 +17,17 @@
     <p>This page hosts ad-related scripts isolated from the main site.</p>
     <a class="button" href="/index.html">Return Home</a>
 
+    <!-- Backed-up nap5k snippet -->
+    <script>
+    (function(s){s.dataset.zone='10545002',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+    </script>
+
     <!-- Reliablerelative ad script -->
     <script>
     (function(noxy){
     var d = document,
-        s = d.createElement('script'),
-        l = d.scripts[d.scripts.length - 1];
+      s = d.createElement('script'),
+      l = d.scripts[d.scripts.length - 1];
     s.settings = noxy || {};
     s.src = "//reliablerelative.com/bEXZV.s_dTGKlg0tYMWAcD/leYmc9EuFZ/UvlBk/PJTGYG3mNujJEh2NMDzYUZtINpjacw2nMkTjYFz/NEgi";
     s.async = true;
@@ -34,20 +39,20 @@
     <!-- Buy Me a Coffee widget (lazy loader) -->
     <script>
     (function(){
-        const cfg = {src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};
-        function inject(){
-            if(document.getElementById('bmc-widget-script')) return;
-            const s=document.createElement('script');
-            s.id='bmc-widget-script';
-            s.src=cfg.src; s.dataset.name='BMC-Widget'; s.setAttribute('data-cfasync','false');
-            s.setAttribute('data-id',cfg.id); s.setAttribute('data-description',cfg.desc); s.setAttribute('data-message',cfg.msg);
-            s.setAttribute('data-color',cfg.color); s.setAttribute('data-position',cfg.pos);
-            s.setAttribute('data-x_margin',cfg.x); s.setAttribute('data-y_margin',cfg.y);
-            document.body.appendChild(s);
-        }
-        if(window.requestIdleCallback) requestIdleCallback(inject,{timeout:2500});
-        else window.addEventListener('load',()=>setTimeout(inject,600));
-        ['pointerdown','keydown','scroll'].forEach(evt=>window.addEventListener(evt,inject,{once:true,passive:true}));
+      const cfg = {src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};
+      function inject(){
+        if(document.getElementById('bmc-widget-script')) return;
+        const s=document.createElement('script');
+        s.id='bmc-widget-script';
+        s.src=cfg.src; s.dataset.name='BMC-Widget'; s.setAttribute('data-cfasync','false');
+        s.setAttribute('data-id',cfg.id); s.setAttribute('data-description',cfg.desc); s.setAttribute('data-message',cfg.msg);
+        s.setAttribute('data-color',cfg.color); s.setAttribute('data-position',cfg.pos);
+        s.setAttribute('data-x_margin',cfg.x); s.setAttribute('data-y_margin',cfg.y);
+        document.body.appendChild(s);
+      }
+      if(window.requestIdleCallback) requestIdleCallback(inject,{timeout:2500});
+      else window.addEventListener('load',()=>setTimeout(inject,600));
+      ['pointerdown','keydown','scroll'].forEach(evt=>window.addEventListener(evt,inject,{once:true,passive:true}));
     })();
     </script>
   </div>
