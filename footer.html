@@ -54,7 +54,25 @@
 
 <!-- Chatbot removed from global footer; now only on support.html -->
 
-<!-- Buy Me a Coffee widget now embedded directly per-page (see individual HTML files) -->
+<!-- Buy Me a Coffee widget global lazy loader -->
+<script>
+    (function(){
+        const cfg = {src:'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',id:'glitchrealmdevs',desc:'Support me on Buy me a coffee!',msg:'Contribute to the development of GlitchRealm.',color:'#5F7FFF',pos:'Right',x:'18',y:'18'};
+        function inject(){
+            if(document.getElementById('bmc-widget-script')) return;
+            const s=document.createElement('script');
+            s.id='bmc-widget-script';
+            s.src=cfg.src; s.dataset.name='BMC-Widget'; s.setAttribute('data-cfasync','false');
+            s.setAttribute('data-id',cfg.id); s.setAttribute('data-description',cfg.desc); s.setAttribute('data-message',cfg.msg);
+            s.setAttribute('data-color',cfg.color); s.setAttribute('data-position',cfg.pos);
+            s.setAttribute('data-x_margin',cfg.x); s.setAttribute('data-y_margin',cfg.y);
+            document.body.appendChild(s);
+        }
+        if(window.requestIdleCallback) requestIdleCallback(inject,{timeout:2500});
+        else window.addEventListener('load',()=>setTimeout(inject,600));
+        ['pointerdown','keydown','scroll'].forEach(evt=>window.addEventListener(evt,inject,{once:true,passive:true}));
+    })();
+</script>
 
 <!-- Structured Data: inject JSON-LD into <head> on every page -->
 <script>
