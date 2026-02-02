@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Lessons | GlitchRealm EDU</title>
+    <link rel="stylesheet" href="assets/css/main-style.css">    <script>
+        // Apply saved theme immediately to prevent flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-theme');
+                document.body.classList.add('dark-theme');
+            }
+        })();
+    </script></head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                GlitchRealm EDU
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="lessons.html" class="active">Lessons</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>All Coding Lessons</h1>
+            <p>Choose a lesson and start your coding journey!</p>
+        </div>
+    </section>
+
+    <!-- Lessons Grid -->
+    <section class="lessons-section">
+        <div class="container">
+            <div class="lessons-grid">
+                <!-- Lesson 1 -->
+                <div class="lesson-card">
+                    <div class="lesson-header">
+                        <span class="lesson-tag">Beginner • HTML</span>
+                        <h3>Build Your Profile Page</h3>
+                    </div>
+                    <div class="lesson-body">
+                        <p>Learn HTML by building your own personal profile page! Create headings, paragraphs, lists, links, and add images.</p>
+                        <div class="lesson-meta">
+                            <span>40 minutes</span>
+                            <span>5 exercises</span>
+                        </div>
+                        <div class="lesson-tags-list">
+                            <span class="tag">Tags</span>
+                            <span class="tag">Structure</span>
+                            <span class="tag">Content</span>
+                            <span class="tag">Links</span>
+                        </div>
+                        <a href="lesson-html-basics.html" class="lesson-btn">Start Lesson →</a>
+                    </div>
+                </div>
+
+                <!-- Lesson 2 -->
+                <div class="lesson-card">
+                    <div class="lesson-header">
+                        <span class="lesson-tag">Beginner • JavaScript</span>
+                        <h3>Random Color Generator</h3>
+                    </div>
+                    <div class="lesson-body">
+                        <p>Build an interactive app that generates random colors with a button click. Learn variables, functions, and event handling!</p>
+                        <div class="lesson-meta">
+                            <span>45 minutes</span>
+                            <span>5 exercises</span>
+                        </div>
+                        <div class="lesson-tags-list">
+                            <span class="tag">Variables</span>
+                            <span class="tag">Functions</span>
+                            <span class="tag">Events</span>
+                            <span class="tag">DOM</span>
+                        </div>
+                        <a href="lesson-color-generator.html" class="lesson-btn">Start Lesson →</a>
+                    </div>
+                </div>
+
+                <!-- Lesson 3 -->
+                <div class="lesson-card">
+                    <div class="lesson-header">
+                        <span class="lesson-tag">Intermediate • JavaScript</span>
+                        <h3>Calculator App</h3>
+                    </div>
+                    <div class="lesson-body">
+                        <p>Build a functional calculator with a beautiful interface. Practice working with numbers and user input!</p>
+                        <div class="lesson-meta">
+                            <span>45 minutes</span>
+                            <span>6 exercises</span>
+                        </div>
+                        <div class="lesson-tags-list">
+                            <span class="tag">Math</span>
+                            <span class="tag">UI Design</span>
+                            <span class="tag">Events</span>
+                            <span class="tag">Grid Layout</span>
+                        </div>
+                        <a href="lesson-calculator.html" class="lesson-btn">Start Lesson →</a>
+                    </div>
+                </div>
+
+                <!-- Lesson 4 -->
+                <div class="lesson-card">
+                    <div class="lesson-header">
+                        <span class="lesson-tag">Beginner • JavaScript</span>
+                        <h3>Dice Rolling Game</h3>
+                    </div>
+                    <div class="lesson-body">
+                        <p>Build a dice game with animations and score tracking. Master random numbers and game logic!</p>
+                        <div class="lesson-meta">
+                            <span>30 minutes</span>
+                            <span>5 exercises</span>
+                        </div>
+                        <div class="lesson-tags-list">
+                            <span class="tag">Animations</span>
+                            <span class="tag">Game Logic</span>
+                            <span class="tag">Random</span>
+                            <span class="tag">Math</span>
+                        </div>
+                        <a href="lesson-dice-game.html" class="lesson-btn">Start Lesson →</a>
+                    </div>
+                </div>
+
+                <!-- Coming Soon -->
+                <div class="lesson-card coming-soon">
+                    <div class="lesson-header">
+                        <span class="lesson-tag">Coming Soon</span>
+                        <h3>Build a Quiz Game</h3>
+                    </div>
+                    <div class="lesson-body">
+                        <p>Create an interactive quiz with scoring, timer, and multiple choice questions. Master arrays and conditionals!</p>
+                        <div class="lesson-meta">
+                            <span>60 minutes</span>
+                            <span>7 exercises</span>
+                        </div>
+                        <div class="lesson-tags-list">
+                            <span class="tag">Arrays</span>
+                            <span class="tag">Conditionals</span>
+                            <span class="tag">Objects</span>
+                        </div>
+                        <a href="#" class="lesson-btn disabled">Coming Soon</a>
+                    </div>
+                </div>
+
+                <!-- Coming Soon -->
+                <div class="lesson-card coming-soon">
+                    <div class="lesson-header">
+                        <span class="lesson-tag">Coming Soon</span>
+                        <h3>Weather Dashboard</h3>
+                    </div>
+                    <div class="lesson-body">
+                        <p>Fetch real weather data from an API and display it beautifully. Learn API calls and data manipulation!</p>
+                        <div class="lesson-meta">
+                            <span>75 minutes</span>
+                            <span>8 exercises</span>
+                        </div>
+                        <div class="lesson-tags-list">
+                            <span class="tag">APIs</span>
+                            <span class="tag">Async/Await</span>
+                            <span class="tag">JSON</span>
+                        </div>
+                        <a href="#" class="lesson-btn disabled">Coming Soon</a>
+                    </div>
+                </div>
+
+                <!-- Coming Soon -->
+                <div class="lesson-card coming-soon">
+                    <div class="lesson-header">
+                        <span class="lesson-tag">Coming Soon</span>
+                        <h3>To-Do List App</h3>
+                    </div>
+                    <div class="lesson-body">
+                        <p>Create a task manager with add, delete, and mark complete features. Learn about local storage!</p>
+                        <div class="lesson-meta">
+                            <span>55 minutes</span>
+                            <span>7 exercises</span>
+                        </div>
+                        <div class="lesson-tags-list">
+                            <span class="tag">Local Storage</span>
+                            <span class="tag">CRUD</span>
+                            <span class="tag">DOM</span>
+                        </div>
+                        <a href="#" class="lesson-btn disabled">Coming Soon</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 GlitchRealm. All rights reserved.</p>
+            <div class="theme-toggle">
+                <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">
+                    <span id="themeText">Toggle Dark Mode</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            body.classList.toggle('dark-theme');
+            
+            if (body.classList.contains('dark-theme')) {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            }
+        });
+    </script>
+</body>
+</html>

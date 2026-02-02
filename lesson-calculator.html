@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Lesson: Build a Calculator App | GlitchRealm EDU</title>
+    <link rel="stylesheet" href="assets/css/lesson-style.css">
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-theme');
+                document.body.classList.add('dark-theme');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span>⚡</span> GlitchRealm EDU
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="lessons.html" class="active">Lessons</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Celebration Overlay -->
+    <div class="overlay" id="overlay"></div>
+    <div class="celebration" id="celebration">
+        <h2 style="color: #667eea; font-size: 2.5em;">🎉 Congratulations! 🎉</h2>
+        <p style="font-size: 1.2em; margin: 20px 0;">You've completed the lesson!</p>
+        <p style="color: #666;">You built a working calculator!</p>
+        <button onclick="closeCelebration()" class="cta-button">Awesome!</button>
+    </div>
+
+    <!-- Lesson Content -->
+    <div class="lesson-container">
+        <div class="lesson-sidebar">
+            <h3>📚 Lesson Contents</h3>
+            <ul class="lesson-nav">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#concepts">Building a Calculator</a></li>
+                <li><a href="#exercise1">Exercise 1: Display Screen</a></li>
+                <li><a href="#exercise2">Exercise 2: Number Buttons</a></li>
+                <li><a href="#exercise3">Exercise 3: Operation Buttons</a></li>
+                <li><a href="#exercise4">Exercise 4: Clear & Equals</a></li>
+                <li><a href="#exercise5">Exercise 5: Calculator Logic</a></li>
+                <li><a href="#exercise6">Exercise 6: Complete Calculator</a></li>
+            </ul>
+        </div>
+
+        <div class="lesson-main">
+            <div class="lesson-header-section">
+                <span class="lesson-tag">Intermediate • HTML • CSS • JavaScript</span>
+                <h1>🧮 Build a Calculator App</h1>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">Progress: 0 of 6 exercises complete</div>
+            </div>
+
+            <div id="overview" class="section">
+                <div class="overview-box">
+                    <h3>📋 What You'll Build</h3>
+                    <p>In this <strong>interactive lesson</strong>, you'll create a fully-functional calculator app! You'll build the interface, add buttons, and write JavaScript logic to perform calculations.</p>
+                    <p><strong>How it works:</strong> Type code directly into the editors, click "Run Code" to see your calculator come to life, and check your answers to unlock the next exercise!</p>
+                </div>
+            </div>
+
+            <div id="concepts" class="section">
+                <h2>🎯 Building a Calculator - Understanding the Architecture</h2>
+
+
+                
+                <div class="analogy-box">
+                    <h3>🧮 What Makes a Calculator Work?</h3>
+                    <p><strong>Think about a real physical calculator:</strong></p>
+                    <ul>
+                        <li>You press buttons (numbers and operations)</li>
+                        <li>Numbers appear on a screen</li>
+                        <li>When you press "=", it calculates the answer</li>
+                        <li>The result appears on the screen</li>
+                    </ul>
+                    
+                    <p><strong>We're going to build the EXACT same thing, but on a webpage!</strong></p>
+                </div>
+                
+                <div class="analogy-box">
+                    <h3>🏗️ The Three Essential Components</h3>
+                    <p>Every calculator needs these three parts working together:</p>
+                    
+                    <p><strong>1. The Display (Output Screen)</strong></p>
+                    <ul>
+                        <li>Shows what the user has typed</li>
+                        <li>Shows the calculation result</li>
+                        <li>Like the LCD screen on a physical calculator</li>
+                        <li>We'll use an HTML <code>&lt;input&gt;</code> element set to readonly</li>
+                    </ul>
+                    
+                    <p><strong>2. The Buttons (Input Interface)</strong></p>
+                    <ul>
+                        <li>Number buttons: 0-9 and decimal point</li>
+                        <li>Operation buttons: +, -, *, / (add, subtract, multiply, divide)</li>
+                        <li>Function buttons: C (clear), = (calculate result)</li>
+                        <li>We'll use HTML <code>&lt;button&gt;</code> elements arranged in a grid</li>
+                    </ul>
+                    
+                    <p><strong>3. The Logic (Brain)</strong></p>
+                    <ul>
+                        <li>JavaScript functions that run when buttons are clicked</li>
+                        <li>Stores the current calculation as a string</li>
+                        <li>Evaluates the mathematical expression when "=" is pressed</li>
+                        <li>Updates the display with results</li>
+                    </ul>
+                </div>
+
+                <div class="analogy-box">
+                    <h3>💡 How Calculator Logic Works - Behind the Scenes</h3>
+                    <p><strong>When you type "5 + 3 =" on a calculator, here's what happens:</strong></p>
+                    <ol>
+                        <li>You press "5" → Display shows "5"</li>
+                        <li>You press "+" → Display shows "5+"</li>
+                        <li>You press "3" → Display shows "5+3"</li>
+                        <li>You press "=" → Calculator evaluates the expression and shows "8"</li>
+                    </ol>
+                    
+                    <p><strong>The key insight:</strong> We build the calculation as a TEXT STRING first, then evaluate it!</p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;"><code>// What the display contains at each step:
+Step 1: "5"
+Step 2: "5+"
+Step 3: "5+3"
+Step 4: Evaluate "5+3" → Result is 8</code></pre>
+                </div>
+
+                <div class="analogy-box">
+                    <h3>🎨 CSS Grid Layout - Arranging Buttons</h3>
+                    <p><strong>How do we arrange buttons in a grid pattern?</strong></p>
+                    <p>We'll use CSS Grid, which is like creating a spreadsheet layout:</p>
+                    
+                    <p><strong>Grid Template Columns:</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;"><code>display: grid;
+grid-template-columns: repeat(4, 1fr);</code></pre>
+                    
+                    <p><strong>What this means:</strong></p>
+                    <ul>
+                        <li><code>display: grid;</code> = "Use grid layout"</li>
+                        <li><code>repeat(4, 1fr)</code> = "Create 4 equal-width columns"</li>
+                        <li><code>1fr</code> = "1 fraction" (each column gets equal space)</li>
+                    </ul>
+                    
+                    <p><strong>Visual representation:</strong></p>
+                    <pre>Column1  Column2  Column3  Column4
+   [7]      [8]      [9]      [/]
+   [4]      [5]      [6]      [*]
+   [1]      [2]      [3]      [-]
+   [0]      [.]      [=]      [+]</pre>
+                    
+                    <p>Items automatically flow into the grid left-to-right, top-to-bottom!</p>
+                </div>
+
+                <div class="analogy-box">
+                    <h3>⚙️ Understanding JavaScript Event Handlers</h3>
+                    <p><strong>How do we make buttons DO something when clicked?</strong></p>
+                    <p>We use the <code>onclick</code> attribute:</p>
+                    
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;"><code>&lt;button onclick="appendToDisplay('5')"&gt;5&lt;/button&gt;</code></pre>
+                    
+                    <p><strong>Breaking it down:</strong></p>
+                    <ul>
+                        <li><code>onclick</code> = "When this button is clicked..."</li>
+                        <li><code>appendToDisplay</code> = Name of the JavaScript function to run</li>
+                        <li><code>('5')</code> = Pass the value '5' to the function</li>
+                    </ul>
+                    
+                    <p><strong>When user clicks the button:</strong></p>
+                    <ol>
+                        <li>Browser detects the click event</li>
+                        <li>Browser looks for the <code>onclick</code> attribute</li>
+                        <li>Browser runs <code>appendToDisplay('5')</code></li>
+                        <li>Our function adds '5' to the display!</li>
+                    </ol>
+                </div>
+
+                <div class="analogy-box">
+                    <h3>🔍 Understanding eval() - The Calculation Engine</h3>
+                    <p><strong>How does JavaScript calculate "5+3*2"?</strong></p>
+                    <p>We use the <code>eval()</code> function:</p>
+                    
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;"><code>const expression = "5+3*2";
+const result = eval(expression);
+console.log(result); // Shows: 11</code></pre>
+                    
+                    <p><strong>What eval() does:</strong></p>
+                    <ul>
+                        <li>Takes a STRING of JavaScript code</li>
+                        <li>Executes it as if you typed it directly</li>
+                        <li>Returns the result</li>
+                        <li>Follows proper math order of operations (PEMDAS)</li>
+                    </ul>
+                    
+                    <p><strong>Examples:</strong></p>
+                    <ul>
+                        <li><code>eval("2+2")</code> = 4</li>
+                        <li><code>eval("10-5")</code> = 5</li>
+                        <li><code>eval("3*4")</code> = 12</li>
+                        <li><code>eval("10/2")</code> = 5</li>
+                        <li><code>eval("5+3*2")</code> = 11 (multiplication happens first!)</li>
+                    </ul>
+                    
+                    <p><strong>⚠️ Important note:</strong> In real-world apps, eval() can be dangerous with user input from untrusted sources. But in our calculator, WE control what gets evaluated (only numbers and operators), so it's safe!</p>
+                </div>
+
+                <div class="analogy-box">
+                    <h3>🎯 Readonly Inputs - Why the Display Can't Be Typed Into</h3>
+                    <p><strong>Why use readonly?</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;"><code>&lt;input type="text" id="display" value="0" readonly&gt;</code></pre>
+                    
+                    <p><strong>The readonly attribute means:</strong></p>
+                    <ul>
+                        <li>Users can see the content</li>
+                        <li>Users can select/copy the text</li>
+                        <li>But users CAN'T type directly into it</li>
+                        <li>Only our JavaScript code can change the value</li>
+                    </ul>
+                    
+                    <p><strong>Why is this important?</strong></p>
+                    <ul>
+                        <li>On a real calculator, you can't write on the screen - you have to use the buttons!</li>
+                        <li>It prevents users from typing invalid characters</li>
+                        <li>It ensures our code has complete control over the display</li>
+                    </ul>
+                </div>
+
+                <div class="analogy-box">
+                    <h3>🛠️ The Core JavaScript Functions We'll Build</h3>
+                    
+                    <p><strong>appendToDisplay(value)</strong></p>
+                    <ul>
+                        <li>Adds a number or operator to the display</li>
+                        <li>Example: If display shows "5" and user clicks "3", it becomes "53"</li>
+                        <li>Used by all number and operator buttons</li>
+                    </ul>
+                    
+                    <p><strong>clearDisplay()</strong></p>
+                    <ul>
+                        <li>Resets the display back to "0"</li>
+                        <li>Like the "C" button on a physical calculator</li>
+                        <li>Clears any errors</li>
+                    </ul>
+                    
+                    <p><strong>calculate()</strong></p>
+                    <ul>
+                        <li>Takes the current display value</li>
+                        <li>Uses eval() to calculate the result</li>
+                        <li>Shows the result on the display</li>
+                        <li>Handles errors if the expression is invalid</li>
+                    </ul>
+                </div>
+            </section>
+
+            <h2>🎓 Interactive Exercises - Build Your Calculator!</h2>
+            
+            <div class="analogy-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin: 20px 0;">
+                <h3 style="color: white;">🚀 Your Learning Journey</h3>
+                <p><strong>We'll build this calculator in 6 progressive steps:</strong></p>
+                <ol>
+                    <li><strong>Exercise 1:</strong> Create the display screen (where numbers appear)</li>
+                    <li><strong>Exercise 2:</strong> Add number buttons in a grid layout</li>
+                    <li><strong>Exercise 3:</strong> Add operation buttons (+, -, *, /)</li>
+                    <li><strong>Exercise 4:</strong> Add Clear and Equals buttons that span multiple columns</li>
+                    <li><strong>Exercise 5:</strong> Write JavaScript to make buttons functional</li>
+                    <li><strong>Exercise 6:</strong> Put it all together in a polished, complete calculator!</li>
+                </ol>
+                
+                <p style="margin-top: 20px;"><strong>💡 By the end, you'll have a real calculator that works just like your phone's calculator app!</strong></p>
+            </div>
+
+            <!-- Exercise 1 -->
+            <div class="exercise" id="exercise1">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 1: Create the Display Screen</div>
+                    <div class="exercise-status status-pending" id="status1">Not Started</div>
+                </div>
+                <p><strong>Goal:</strong> Create the calculator's display screen where numbers and results will show.</p>
+                <p>Use a <code>&lt;div&gt;</code> with an <code>&lt;input&gt;</code> element to create the display.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code1"><div class="calculator">
+    <input type="text" id="display" value="0" readonly>
+</div>
+
+<style>
+    .calculator {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        width: 300px;
+        margin: 0 auto;
+    }
+    #display {
+        width: 100%;
+        padding: 15px;
+        font-size: 24px;
+        text-align: right;
+        border: 2px solid #667eea;
+        border-radius: 5px;
+    }
+</style></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode1()" id="run1">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise1()" id="check1">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint1')" id="hint1btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint1">
+                    <strong>Hint:</strong> The display uses an <code>&lt;input type="text"&gt;</code> with <code>readonly</code> so users can't type directly into it. The calculator will update it programmatically!
+                </div>
+                
+                <div class="preview-area" id="preview1">Click "Run Code" to see your calculator display!</div>
+            </div>
+
+            <!-- Exercise 2 -->
+            <div class="exercise" id="exercise2">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 2: Add Number Buttons</div>
+                    <div class="exercise-status status-pending" id="status2">Locked 🔒</div>
+                </div>
+                <p><strong>Goal:</strong> Create buttons for numbers 0-9.</p>
+                <p>Add a <code>&lt;div&gt;</code> container with number buttons in a grid layout.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code2" disabled><div class="calculator">
+    <input type="text" id="display" value="0" readonly>
+    <div class="buttons">
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>0</button>
+    </div>
+</div>
+
+<style>
+    .buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+    button {
+        padding: 20px;
+        font-size: 18px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: #667eea;
+        color: white;
+    }
+</style></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode2()" disabled id="run2">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise2()" disabled id="check2">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint2')" disabled id="hint2btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint2">
+                    <strong>Hint:</strong> Use CSS Grid with <code>grid-template-columns: repeat(3, 1fr)</code> to create a 3-column layout. The buttons will automatically wrap to create rows!
+                </div>
+                
+                <div class="preview-area" id="preview2">Complete Exercise 1 to unlock...</div>
+            </div>
+
+            <!-- Exercise 3 -->
+            <div class="exercise" id="exercise3">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 3: Add Operation Buttons</div>
+                    <div class="exercise-status status-pending" id="status3">Locked 🔒</div>
+                </div>
+                <p><strong>Goal:</strong> Add buttons for mathematical operations (+, -, *, /).</p>
+                <p>Add operation buttons with different styling to distinguish them from numbers.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code3" disabled style="min-height: 350px;"><div class="calculator">
+    <input type="text" id="display" value="0" readonly>
+    <div class="buttons">
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button class="operator">÷</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button class="operator">×</button>
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button class="operator">-</button>
+        <button>0</button>
+        <button>.</button>
+        <button class="operator">+</button>
+    </div>
+</div>
+
+<style>
+    .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+    button.operator {
+        background: #ff6b6b;
+    }
+</style></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode3()" disabled id="run3">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise3()" disabled id="check3">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint3')" disabled id="hint3btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint3">
+                    <strong>Hint:</strong> Change the grid to 4 columns to fit the operations. Use a class <code>operator</code> to style operation buttons differently (orange looks good!).
+                </div>
+                
+                <div class="preview-area" id="preview3">Complete Exercise 2 to unlock...</div>
+            </div>
+
+            <!-- Exercise 4 -->
+            <div class="exercise" id="exercise4">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 4: Add Clear and Equals Buttons</div>
+                    <div class="exercise-status status-pending" id="status4">Locked 🔒</div>
+                </div>
+                <p><strong>Goal:</strong> Add the Clear (C) and Equals (=) buttons to complete the button layout.</p>
+                <p>The Clear button should span multiple columns and the equals button should stand out.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code4" disabled style="min-height: 400px;"><div class="calculator">
+    <input type="text" id="display" value="0" readonly>
+    <div class="buttons">
+        <button style="grid-column: span 3;" class="clear">C</button>
+        <button class="operator">÷</button>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button class="operator">×</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button class="operator">-</button>
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button class="operator">+</button>
+        <button>0</button>
+        <button>.</button>
+        <button style="grid-column: span 2;" class="equals">=</button>
+    </div>
+</div>
+
+<style>
+    button.clear {
+        background: #ff4757;
+    }
+    button.equals {
+        background: #26de81;
+    }
+</style></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode4()" disabled id="run4">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise4()" disabled id="check4">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint4')" disabled id="hint4btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint4">
+                    <strong>Hint:</strong> Use <code>grid-column: span 3</code> to make the Clear button take 3 columns, and <code>grid-column: span 2</code> for the equals button. Different colors help: red for clear, green for equals!
+                </div>
+                
+                <div class="preview-area" id="preview4">Complete Exercise 3 to unlock...</div>
+            </div>
+
+            <!-- Exercise 5 -->
+            <div class="exercise" id="exercise5">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 5: Add Calculator Logic</div>
+                    <div class="exercise-status status-pending" id="status5">Locked 🔒</div>
+                </div>
+                <p><strong>Goal:</strong> Make the calculator functional with JavaScript!</p>
+                <p>Add <code>onclick</code> attributes to buttons and create functions to handle clicks.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code5" disabled style="min-height: 450px;"><div class="calculator">
+    <input type="text" id="display" value="0" readonly>
+    <div class="buttons">
+        <button onclick="clearDisplay()" class="clear">C</button>
+        <button onclick="appendToDisplay('/')" class="operator">÷</button>
+        <button onclick="appendToDisplay('7')">7</button>
+        <button onclick="appendToDisplay('8')">8</button>
+        <button onclick="appendToDisplay('9')">9</button>
+        <button onclick="appendToDisplay('*')" class="operator">×</button>
+        <button onclick="appendToDisplay('4')">4</button>
+        <button onclick="appendToDisplay('5')">5</button>
+        <button onclick="appendToDisplay('6')">6</button>
+        <button onclick="appendToDisplay('-')" class="operator">-</button>
+        <button onclick="appendToDisplay('1')">1</button>
+        <button onclick="appendToDisplay('2')">2</button>
+        <button onclick="appendToDisplay('3')">3</button>
+        <button onclick="appendToDisplay('+')" class="operator">+</button>
+        <button onclick="appendToDisplay('0')">0</button>
+        <button onclick="appendToDisplay('.')">.</button>
+        <button onclick="calculate()" class="equals">=</button>
+    </div>
+</div>
+
+<script>
+function appendToDisplay(value) {
+    const display = document.getElementById('display');
+    if (display.value === '0') {
+        display.value = value;
+    } else {
+        display.value += value;
+    }
+}
+
+function clearDisplay() {
+    document.getElementById('display').value = '0';
+}
+
+function calculate() {
+    const display = document.getElementById('display');
+    try {
+        display.value = eval(display.value);
+    } catch {
+        display.value = 'Error';
+    }
+}
+</script></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode5()" disabled id="run5">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise5()" disabled id="check5">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint5')" disabled id="hint5btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint5">
+                    <strong>Hint:</strong> Key functions:
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li><code>appendToDisplay()</code> - Adds number/operator to display</li>
+                        <li><code>clearDisplay()</code> - Resets display to '0'</li>
+                        <li><code>calculate()</code> - Uses <code>eval()</code> to compute result</li>
+                        <li>Check if display is '0' before appending</li>
+                    </ul>
+                </div>
+                
+                <div class="preview-area" id="preview5">Complete Exercise 4 to unlock...</div>
+            </div>
+
+            <!-- Exercise 6 -->
+            <div class="exercise" id="exercise6">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 6: Complete Working Calculator!</div>
+                    <div class="exercise-status status-pending" id="status6">Locked 🔒</div>
+                </div>
+                <p><strong>Final Challenge:</strong> Put it all together - a complete, working calculator with all features!</p>
+                <p>The calculator should handle all operations, clear, and display results correctly.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code6" disabled style="min-height: 500px;"><!-- Complete working calculator with all features -->
+<div class="calculator">
+    <input type="text" id="display" value="0" readonly>
+    <div class="buttons">
+        <button onclick="clearDisplay()" class="clear" style="grid-column: span 3;">C</button>
+        <button onclick="appendToDisplay('/')" class="operator">÷</button>
+        <button onclick="appendToDisplay('7')">7</button>
+        <button onclick="appendToDisplay('8')">8</button>
+        <button onclick="appendToDisplay('9')">9</button>
+        <button onclick="appendToDisplay('*')" class="operator">×</button>
+        <button onclick="appendToDisplay('4')">4</button>
+        <button onclick="appendToDisplay('5')">5</button>
+        <button onclick="appendToDisplay('6')">6</button>
+        <button onclick="appendToDisplay('-')" class="operator">-</button>
+        <button onclick="appendToDisplay('1')">1</button>
+        <button onclick="appendToDisplay('2')">2</button>
+        <button onclick="appendToDisplay('3')">3</button>
+        <button onclick="appendToDisplay('+')" class="operator">+</button>
+        <button onclick="appendToDisplay('0')">0</button>
+        <button onclick="appendToDisplay('.')">.</button>
+        <button onclick="calculate()" class="equals" style="grid-column: span 2;">=</button>
+    </div>
+</div>
+
+<style>
+    .calculator {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        width: 320px;
+        margin: 0 auto;
+    }
+    #display {
+        width: 100%;
+        padding: 20px;
+        font-size: 28px;
+        text-align: right;
+        border: none;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.95);
+    }
+    .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+    }
+    button {
+        padding: 22px;
+        font-size: 20px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: rgba(255,255,255,0.9);
+        color: #333;
+        transition: all 0.2s;
+    }
+    button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    button.operator {
+        background: #ff6b6b;
+        color: white;
+    }
+    button.clear {
+        background: #ff4757;
+        color: white;
+    }
+    button.equals {
+        background: #26de81;
+        color: white;
+    }
+</style>
+
+<script>
+function appendToDisplay(value) {
+    const display = document.getElementById('display');
+    if (display.value === '0' || display.value === 'Error') {
+        display.value = value;
+    } else {
+        display.value += value;
+    }
+}
+
+function clearDisplay() {
+    document.getElementById('display').value = '0';
+}
+
+function calculate() {
+    const display = document.getElementById('display');
+    try {
+        display.value = eval(display.value);
+    } catch {
+        display.value = 'Error';
+        setTimeout(() => clearDisplay(), 1500);
+    }
+}
+</script></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode6()" disabled id="run6">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise6()" disabled id="check6">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint6')" disabled id="hint6btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint6">
+                    <strong>Hint:</strong> This calculator includes:
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>✅ Beautiful gradient styling</li>
+                        <li>✅ Error handling with try/catch</li>
+                        <li>✅ Auto-reset after errors (1.5 seconds)</li>
+                        <li>✅ Hover effects on buttons</li>
+                        <li>✅ Professional color scheme</li>
+                        <li>Test it: Try "5+3*2" to see order of operations work!</li>
+                    </ul>
+                </div>
+                
+                <div class="preview-area" id="preview6">Complete Exercise 5 to unlock...</div>
+            </div>
+
+            <div class="lesson-footer">
+                <a href="lessons.html" class="btn-secondary">← Back to Lessons</a>
+                <a href="index.html" class="btn-secondary">Home</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 GlitchRealm. All rights reserved.</p>
+            <div class="theme-toggle">
+                <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">
+                    <span id="themeText">Toggle Dark Mode</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            body.classList.toggle('dark-theme');
+            
+            if (body.classList.contains('dark-theme')) {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            }
+        });
+    </script>
+
+    <script src="assets/js/lesson-calculator.js"></script>
+</body>
+</html>
