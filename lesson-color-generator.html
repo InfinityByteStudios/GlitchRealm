@@ -603,13 +603,13 @@ document.getElementById('generateBtn5').addEventListener('click', function() {
     <script>
         // Theme Toggle Functionality
         function toggleTheme() {
-            const body = document.body;
             const themeIcon = document.getElementById('themeIcon');
             const themeText = document.getElementById('themeText');
             
-            body.classList.toggle('dark-theme');
+            document.documentElement.classList.toggle('dark-theme');
+            document.body.classList.toggle('dark-theme');
             
-            if (body.classList.contains('dark-theme')) {
+            if (document.body.classList.contains('dark-theme')) {
                 themeIcon.textContent = '☀️';
                 themeText.textContent = 'Light Mode';
                 localStorage.setItem('theme', 'dark');
