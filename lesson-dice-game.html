@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Rolling Game - GlitchRealm EDU</title>
+    <link rel="stylesheet" href="assets/css/lesson-style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">GlitchRealm EDU</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html">Lessons</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="lesson-container">
+        <aside class="lesson-sidebar">
+            <h3>Dice Rolling Game</h3>
+            <div class="lesson-meta">
+                <span class="difficulty">⭐ Beginner</span>
+                <span class="duration">⏱️ 30 min</span>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">Progress: 0 of 5 exercises complete</div>
+            </div>
+
+            <ul class="lesson-nav">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#concepts">Random Numbers</a></li>
+                <li><a href="#exercise1">Exercise 1: Random Dice</a></li>
+                <li><a href="#exercise2">Exercise 2: Display Result</a></li>
+                <li><a href="#exercise3">Exercise 3: Roll Button</a></li>
+                <li><a href="#exercise4">Exercise 4: Dice Animation</a></li>
+                <li><a href="#exercise5">Exercise 5: Two Dice Game</a></li>
+            </ul>
+        </aside>
+
+        <div class="lesson-content">
+            <div class="lesson-header">
+                <h1>Build a Dice Rolling Game</h1>
+                <p class="lesson-description">Learn to create random numbers and build an interactive dice game!</p>
+            </div>
+
+            <!-- Overview -->
+            <section id="overview">
+                <h2>What You'll Learn</h2>
+                <ul class="feature-list">
+                    <li>✅ Generate random numbers with Math.random()</li>
+                    <li>✅ Round numbers with Math.floor()</li>
+                    <li>✅ Create interactive buttons</li>
+                    <li>✅ Update the DOM dynamically</li>
+                    <li>✅ Add visual effects and animations</li>
+                    <li>✅ Build a two-dice game with scoring</li>
+                </ul>
+            </section>
+
+            <!-- Concepts -->
+            <section id="concepts">
+                <h2>Understanding Random Numbers - The Foundation of Games</h2>
+                
+                <div class="analogy-box">
+                    <h3>🎲 Why Randomness Matters in Programming</h3>
+                    <p><strong>Random numbers power countless applications:</strong></p>
+                    <ul>
+                        <li>🎮 Video games - enemy spawn locations, loot drops, critical hits</li>
+                        <li>🎰 Casino games - slot machines, card shuffling, roulette wheels</li>
+                        <li>📊 Data science - random sampling, simulations, A/B testing</li>
+                        <li>🔒 Security - password generation, encryption keys</li>
+                        <li>🎯 Games - dice rolls, coin flips, random events</li>
+                    </ul>
+                    <p><strong>In this lesson, we'll master random number generation by building a dice game!</strong></p>
+                </div>
+                
+                <div class="analogy-box">
+                    <h3>🔢 How Computers Generate Random Numbers</h3>
+                    <p><strong>Here's the truth:</strong> Computers can't actually generate TRULY random numbers!</p>
+                    
+                    <p><strong>Why not?</strong></p>
+                    <ul>
+                        <li>Computers follow algorithms (step-by-step instructions)</li>
+                        <li>Algorithms are deterministic (same input → same output)</li>
+                        <li>True randomness requires unpredictable physical processes</li>
+                    </ul>
+                    
+                    <p><strong>What do they do instead?</strong></p>
+                    <p>They use <strong>pseudorandom number generators (PRNGs)</strong>:</p>
+                    <ul>
+                        <li>Start with a "seed" value (often current time in milliseconds)</li>
+                        <li>Apply complex mathematical formulas</li>
+                        <li>Produce numbers that APPEAR random</li>
+                        <li>For games and most apps, this is perfect!</li>
+                    </ul>
+                    
+                    <p><strong>JavaScript's Math.random()</strong> is a PRNG that's plenty random for our dice game!</p>
+                </div>
+                
+                <div class="analogy-box">
+                    <h3>📐 Understanding Math.random() - The Core Function</h3>
+                    <p>JavaScript's <code>Math.random()</code> generates a random decimal between 0 (inclusive) and 1 (exclusive).</p>
+                    
+                    <p><strong>What does \"0 inclusive, 1 exclusive\" mean?</strong></p>
+                    <ul>
+                        <li><strong>Inclusive:</strong> Can include 0 → <code>0.000000</code> is possible</li>
+                        <li><strong>Exclusive:</strong> Never reaches 1 → <code>0.999999</code> is closest it gets</li>
+                        <li>So you get: <code>0 ≤ random &lt; 1</code></li>
+                    </ul>
+                    
+                    <p><strong>Example outputs:</strong></p>
+                    <pre style="background: #2d2d2d; color: #0f0; padding: 15px; border-radius: 5px;">Math.random()  →  0.1234567
+Math.random()  →  0.8765432
+Math.random()  →  0.0000123
+Math.random()  →  0.9999876
+Math.random()  →  0.5555555</pre>
+                    
+                    <p><strong>Each time you call it, you get a different number!</strong></p>
+                </div>
+                
+                <div class="analogy-box">
+                    <h3>🎯 Converting Random Decimals to Dice Numbers (1-6)</h3>
+                    <p><strong>The problem:</strong> Math.random() gives us decimals, but we need whole numbers 1 through 6!</p>
+                    
+                    <p><strong>The solution - 4 steps:</strong></p>
+                    <pre style="background: #2d2d2d; color: #0f0; padding: 15px; border-radius: 5px; margin: 15px 0;">Math.floor(Math.random() * 6) + 1</pre>
+                    
+                    <p><strong>Let's break this down step-by-step:</strong></p>
+                    
+                    <p><strong>Step 1: Math.random()</strong></p>
+                    <ul>
+                        <li>Generates: <code>0.0</code> to <code>0.999...</code></li>
+                        <li>Example: <code>0.7382</code></li>
+                    </ul>
+                    
+                    <p><strong>Step 2: Multiply by 6</strong></p>
+                    <ul>
+                        <li>Formula: <code>Math.random() * 6</code></li>
+                        <li>Generates: <code>0.0</code> to <code>5.999...</code></li>
+                        <li>Example: <code>0.7382 * 6 = 4.4292</code></li>
+                    </ul>
+                    
+                    <p><strong>Step 3: Math.floor() - Round DOWN</strong></p>
+                    <ul>
+                        <li>Formula: <code>Math.floor(Math.random() * 6)</code></li>
+                        <li>Generates: <code>0, 1, 2, 3, 4, or 5</code></li>
+                        <li>Example: <code>Math.floor(4.4292) = 4</code></li>
+                        <li><strong>Why floor?</strong> It rounds DOWN to nearest integer</li>
+                    </ul>
+                    
+                    <p><strong>Step 4: Add 1</strong></p>
+                    <ul>
+                        <li>Formula: <code>Math.floor(Math.random() * 6) + 1</code></li>
+                        <li>Generates: <code>1, 2, 3, 4, 5, or 6</code></li>
+                        <li>Example: <code>4 + 1 = 5</code></li>
+                        <li><strong>Why +1?</strong> Shifts range from 0-5 to 1-6!</li>
+                    </ul>
+                    
+                    <p><strong>Visual breakdown:</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;">0.000 - 0.166  →  0  →  1
+0.167 - 0.333  →  1  →  2
+0.334 - 0.500  →  2  →  3
+0.501 - 0.667  →  3  →  4
+0.668 - 0.834  →  4  →  5
+0.835 - 0.999  →  5  →  6</pre>
+                </div>
+                
+                <div class="analogy-box">
+                    <h3>🧮 Understanding Math.floor() vs Math.ceil() vs Math.round()</h3>
+                    <p><strong>JavaScript has three rounding functions:</strong></p>
+                    
+                    <p><strong>Math.floor() - Always rounds DOWN</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;">Math.floor(4.1) = 4
+Math.floor(4.5) = 4
+Math.floor(4.9) = 4</pre>
+                    <p>Think: Floor is the ground, go DOWN to reach it!</p>
+                    
+                    <p><strong>Math.ceil() - Always rounds UP</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;">Math.ceil(4.1) = 5
+Math.ceil(4.5) = 5
+Math.ceil(4.9) = 5</pre>
+                    <p>Think: Ceiling is above, go UP to reach it!</p>
+                    
+                    <p><strong>Math.round() - Rounds to NEAREST</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;">Math.round(4.1) = 4
+Math.round(4.5) = 5
+Math.round(4.9) = 5</pre>
+                    <p>Think: Standard rounding - .5 and above goes up!</p>
+                    
+                    <p><strong>⚠️ Why we use floor() for dice:</strong></p>
+                    <ul>
+                        <li>We need consistent distribution across all numbers</li>
+                        <li>floor() gives us exactly 0-5, then we add 1</li>
+                        <li>round() would give uneven distribution!</li>
+                    </ul>
+                </div>
+                
+                <div class="analogy-box">
+                    <h3>🎨 Making Dice Visual with CSS and HTML</h3>
+                    <p><strong>A dice display needs:</strong></p>
+                    <ul>
+                        <li><strong>Container:</strong> A div to hold the dice</li>
+                        <li><strong>Dice Box:</strong> A square element showing the number</li>
+                        <li><strong>Text Display:</strong> Shows messages like "You rolled a 6!"</li>
+                    </ul>
+                    
+                    <p><strong>CSS properties for a good dice:</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;">width: 120px;           // Square size
+height: 120px;
+font-size: 80px;        // Big number
+font-weight: bold;
+display: flex;          // Center the number
+align-items: center;    // Vertically
+justify-content: center; // Horizontally
+border-radius: 20px;    // Rounded corners
+box-shadow: ...;        // 3D depth effect</pre>
+                </div>
+                
+                <div class="analogy-box">
+                    <h3>⚡ Understanding setInterval() for Animations</h3>
+                    <p><strong>How do we create a rolling animation effect?</strong></p>
+                    <p>Use <code>setInterval()</code> to repeatedly run code at timed intervals!</p>
+                    
+                    <p><strong>Basic syntax:</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;"><code>setInterval(function() {\n    // This code runs repeatedly\n}, 100); // Every 100 milliseconds</code></pre>
+                    
+                    <p><strong>For a dice rolling animation:</strong></p>
+                    <ol>
+                        <li>Start the interval when button is clicked</li>
+                        <li>Every 100ms, show a new random number</li>
+                        <li>After 10-15 cycles, stop the interval</li>
+                        <li>Show the final result</li>
+                    </ol>
+                    
+                    <p><strong>Why this creates excitement:</strong></p>
+                    <ul>
+                        <li>Numbers flash by quickly (like a real dice tumbling!)</li>
+                        <li>Builds anticipation - "What will it land on?"</li>
+                        <li>Feels more interactive than instant results</li>
+                    </ul>
+                    
+                    <p><strong>Stopping the interval:</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;"><code>const interval = setInterval(/* ... */);\n\n// Later, to stop:\nclearInterval(interval);</code></pre>
+                </div>
+                
+                <div class="analogy-box">
+                    <h3>🎯 Building a Two-Dice Game - Game Logic</h3>
+                    <p><strong>What makes the two-dice game interesting?</strong></p>
+                    <ul>
+                        <li>Roll TWO dice simultaneously</li>
+                        <li>Calculate the total</li>
+                        <li>Show special messages for special rolls!</li>
+                    </ul>
+                    
+                    <p><strong>Special roll messages:</strong></p>
+                    <ul>
+                        <li><strong>Doubles:</strong> Both dice show same number (ex: two 4s)</li>
+                        <li><strong>Lucky 7:</strong> Total equals 7 (most common total!)</li>
+                        <li><strong>Snake Eyes:</strong> Both dice show 1 (total = 2, worst roll)</li>
+                        <li><strong>Boxcars:</strong> Both dice show 6 (total = 12, best roll)</li>
+                    </ul>
+                    
+                    <p><strong>Implementation with if statements:</strong></p>
+                    <pre style="background: #2d3748; color: #fff; padding: 10px; border-radius: 5px;"><code>if (dice1 === dice2) {\n    message = \"DOUBLES!\";\n} else if (total === 7) {\n    message = \"LUCKY 7!\";\n} else if (total === 12) {\n    message = \"BOXCARS!\";\n}</code></pre>
+                </div>
+            </section>
+
+            <h2>🎯 Interactive Exercises - Build Your Dice Game!</h2>
+            
+            <div class="analogy-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin: 20px 0;">
+                <h3 style="color: white;">🎲 What You'll Build</h3>
+                <p><strong>Progress through 5 exercises to create a complete dice game:</strong></p>
+                <ol>
+                    <li><strong>Exercise 1:</strong> Master the random dice number formula</li>
+                    <li><strong>Exercise 2:</strong> Display the dice result with HTML/CSS</li>
+                    <li><strong>Exercise 3:</strong> Make it interactive with a Roll button</li>
+                    <li><strong>Exercise 4:</strong> Add exciting rolling animations</li>
+                    <li><strong>Exercise 5:</strong> Build a two-dice game with special scoring!</li>
+                </ol>
+                
+                <p style="margin-top: 20px;"><strong>💡 This lesson teaches random numbers - a concept you'll use in EVERY game you build!</strong></p>
+            </div>
+
+            <!-- Exercise 1 -->
+            <div class="exercise" id="exercise1">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 1: Generate a Random Dice Number</div>
+                    <div class="exercise-status status-pending" id="status1">Not Started</div>
+                </div>
+                <p><strong>Goal:</strong> Create a function that returns a random number from 1 to 6.</p>
+                <p>Use <code>Math.random()</code> and <code>Math.floor()</code> to generate the dice roll.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code1">// Create your dice rolling function here
+</textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode1()" id="run1">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise1()" id="check1">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint1')" id="hint1btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint1">
+                    <strong>Hint:</strong> The formula is <code>Math.floor(Math.random() * 6) + 1</code>. This ensures you get whole numbers from 1 to 6. Test it multiple times to see different results!
+                </div>
+                
+                <div class="preview-area" id="preview1" style="font-family: monospace; color: #0f0; background: #1a1a1a; padding: 15px;">
+Click "Run Code" to see random dice rolls!
+                </div>
+            </div>
+
+            <!-- Exercise 2 -->
+            <div class="exercise" id="exercise2">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 2: Display the Dice Result</div>
+                    <div class="exercise-status status-pending" id="status2">Locked 🔒</div>
+                </div>
+                <p><strong>Goal:</strong> Show the dice result on the screen with nice formatting.</p>
+                <p>Create HTML to display the rolled number in a styled dice box.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code2" disabled>// Display dice result here
+</textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode2()" disabled id="run2">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise2()" disabled id="check2">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint2')" disabled id="hint2btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint2">
+                    <strong>Hint:</strong> Use <code>document.getElementById().textContent</code> to update the display. The dice box should show the number, and result text should say "You rolled a X!"
+                </div>
+                
+                <div class="preview-area" id="preview2">Complete Exercise 1 to unlock...</div>
+            </div>
+
+            <!-- Exercise 3 -->
+            <div class="exercise" id="exercise3">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 3: Add a Roll Button</div>
+                    <div class="exercise-status status-pending" id="status3">Locked 🔒</div>
+                </div>
+                <p><strong>Goal:</strong> Add a button that rolls the dice when clicked.</p>
+                <p>Create a button with an <code>onclick</code> event that triggers the roll function.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code3" disabled style="min-height: 350px;">// Add a roll button here
+</textarea>
+                </div>
+.dice-box {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 80px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transition: all 0.3s;
+}
+#result3 {
+    font-size: 24px;
+    color: #667eea;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.roll-btn {
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s;
+}
+.roll-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 20px rgba(102, 126, 234, 0.6);
+}
+</style></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode3()" disabled id="run3">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise3()" disabled id="check3">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint3')" disabled id="hint3btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint3">
+                    <strong>Hint:</strong> Add special styling when the player rolls a 6 (the highest number) to make it exciting! Use an if statement to check the roll value.
+                </div>
+                
+                <div class="preview-area" id="preview3">Complete Exercise 2 to unlock...</div>
+            </div>
+
+            <!-- Exercise 4 -->
+            <div class="exercise" id="exercise4">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 4: Add Dice Animation</div>
+                    <div class="exercise-status status-pending" id="status4">Locked 🔒</div>
+                </div>
+                <p><strong>Goal:</strong> Make the dice spin when rolling for a more realistic effect!</p>
+                <p>Add CSS animations and JavaScript timing to create a rolling animation.</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code4" disabled style="min-height: 400px;">// Add dice animation here
+</textarea>
+                </div>
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transition: all 0.3s;
+}
+.dice-box.rolling {
+    animation: spin 0.1s infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
+}
+#result4 {
+    font-size: 24px;
+    color: #667eea;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.roll-btn {
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s;
+}
+.roll-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 20px rgba(102, 126, 234, 0.6);
+}
+.roll-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode4()" disabled id="run4">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise4()" disabled id="check4">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint4')" disabled id="hint4btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint4">
+                    <strong>Hint:</strong> Use <code>setInterval()</code> to rapidly change the dice number, then <code>clearInterval()</code> to stop after a few cycles. Disable the button during animation to prevent spam clicking!
+                </div>
+                
+                <div class="preview-area" id="preview4">Complete Exercise 3 to unlock...</div>
+            </div>
+
+            <!-- Exercise 5 -->
+            <div class="exercise" id="exercise5">
+                <div class="exercise-header">
+                    <div class="exercise-title">Exercise 5: Two Dice Game!</div>
+                    <div class="exercise-status status-pending" id="status5">Locked 🔒</div>
+                </div>
+                <p><strong>Final Challenge:</strong> Create a game with two dice that shows the total score!</p>
+                <p>Roll both dice together and display the sum with special messages for doubles and lucky 7s!</p>
+                
+                <div class="code-editor">
+                    <textarea class="code-input" id="code5" disabled style="min-height: 500px;">// Build your two dice game here
+</textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="run-btn" onclick="runCode5()" disabled id="run5">▶ Run Code</button>
+                    <button class="check-btn" onclick="checkExercise5()" disabled id="check5">✓ Check Answer</button>
+                    <button class="hint-btn" onclick="toggleHint('hint5')" disabled id="hint5btn">💡 Hint</button>
+                </div>
+                
+                <div class="hint-box" id="hint5">
+                    <strong>Hint:</strong> Special combinations to check:
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li><strong>Doubles:</strong> dice1 === dice2</li>
+                        <li><strong>Lucky 7:</strong> total === 7</li>
+                        <li><strong>Boxcars:</strong> total === 12 (two 6s)</li>
+                        <li><strong>Snake Eyes:</strong> total === 2 (two 1s)</li>
+                    </ul>
+                </div>
+                
+                <div class="preview-area" id="preview5">Complete Exercise 4 to unlock...</div>
+            </div>
+
+            <div class="lesson-footer">
+                <a href="index.html" class="btn-secondary">← Back to Lessons</a>
+                <a href="index.html" class="btn-secondary">Home</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 GlitchRealm. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/lesson-dice-game.js"></script>
+</body>
+</html>
