@@ -90,6 +90,22 @@
 [[plugins]]
   package = "@netlify/plugin-emails"
 
+# Prerendering plugin for SEO optimization
+# Generates static HTML for dynamic game pages
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+  
+  [plugins.inputs]
+    buildDir = "."
+    exclude = [
+      '/admin*',
+      '/Games/**/*',
+      '/functions/**/*'
+    ]
+    # Add dynamic game detail pages
+    prettyURLs = true
+    trailingSlash = false
+
 # Lighthouse plugin disabled - causing build failures
 # Re-enable once performance optimizations are fully deployed
 # [[plugins]]

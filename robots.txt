@@ -1,0 +1,42 @@
+# GlitchRealm Robots.txt
+# Updated for SEO and AdSense compliance
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin*
+Disallow: /functions/
+Disallow: /.well-known/
+Disallow: /auth-bridge*
+Disallow: /portal-auth.js
+Disallow: /delete-account.html
+
+# Disallow auth pages (separate subdomain)
+Disallow: /signin.html
+Disallow: /signup.html
+Disallow: /forgot-password.html
+
+# Allow important assets for rendering
+Allow: /assets/
+Allow: /Games/
+Allow: /styles.css
+Allow: /script.js
+
+# Sitemap location
+Sitemap: https://glitchrealm.ca/sitemap.xml
+
+# Google-specific directives
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Google AdSense bot
+User-agent: Mediapartners-Google
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1

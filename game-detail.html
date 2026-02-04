@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Game Details - GlitchRealm</title>
+  <meta name="description" content="Explore cyberpunk games on GlitchRealm - Play original indie games in your browser.">
+  <meta property="og:site_name" content="GlitchRealm">
+  <meta property="og:type" content="website">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://glitchrealm.ca/game-detail.html">
   <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
   <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
@@ -491,6 +496,30 @@
       transform: scale(1.1); 
     }
     
+    /* AdSense Containers */
+    .adsense-container {
+      background: rgba(0,255,249,.02);
+      border: 1px dashed rgba(0,255,249,.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .adsense-container::before {
+      content: 'Advertisement';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: rgba(255,255,255,.25);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    
     /* Responsive */
     @media (max-width: 1100px) {
       .detail-header { 
@@ -556,6 +585,16 @@
   <div id="header-placeholder"></div>
   
   <div class="detail-wrapper">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="Breadcrumb" style="margin-bottom: 20px;">
+      <ol style="display: flex; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 0.9rem; color: rgba(255,255,255,0.6);">
+        <li><a href="index.html" style="color: var(--primary-cyan); text-decoration: none;">Home</a></li>
+        <li aria-hidden="true" style="color: rgba(255,255,255,0.4);">/</li>
+        <li><a href="games.html" style="color: var(--primary-cyan); text-decoration: none;">Games</a></li>
+        <li aria-hidden="true" style="color: rgba(255,255,255,0.4);" id="breadcrumbSeparator" style="display:none;">/</li>
+        <li id="breadcrumbGame" aria-current="page" style="display:none;"></li>
+      </ol>
+    </nav>
     <a href="games.html" class="back-link">Back to Games Library</a>
     
     <div id="loadingState" class="loading-state">
@@ -568,7 +607,7 @@
       <a href="games.html" class="play-btn" style="margin-top:20px;">Return to Games</a>
     </div>
     
-    <div id="gameContent" style="display:none;">
+    <article id="gameContent" itemscope itemtype="https://schema.org/VideoGame" style="display:none;">
       <!-- Top-right menu for edit -->
       <div class="menu-container" id="menuContainer" style="display:none;">
         <button class="menu-button" id="menuButton" aria-label="Game options">⋯</button>
@@ -580,21 +619,24 @@
       <div class="detail-header">
         <!-- Left: Cover image -->
         <div class="detail-cover">
-          <img id="gameCover" src="" alt="Game Cover">
+          <img id="gameCover" src="" alt="Game Cover" itemprop="image" width="560" height="315" loading="eager">
         </div>
         
         <!-- Right: Game info -->
         <div class="detail-info">
-          <h1 id="gameTitle">Game Title</h1>
+          <h1 id="gameTitle" itemprop="name">Game Title</h1>
           
           <div class="detail-meta">
             <span id="gameBadge" class="detail-badge" style="display:none;"></span>
             <span id="gameStatus" class="detail-badge"></span>
           </div>
           
-          <div id="gameTags" class="detail-tags"></div>
+          <div id="gameTags" class="detail-tags" itemprop="genre"></div>
           
-          <p id="gameDescription" class="detail-description"></p>
+          <p id="gameDescription" class="detail-description" itemprop="description"></p>
+          
+          <!-- AdSense Container - Top CTA -->
+          <div id="adsense-top-cta" class="adsense-container" style="margin: 20px 0; min-height: 90px; text-align: center;"></div>
           
           <div class="action-buttons">
             <a id="playButton" href="#" target="_blank" class="play-btn" style="display:none;">
@@ -604,21 +646,27 @@
         </div>
       </div>
       
-      <div id="extendedDescSection" class="detail-section" style="display:none;">
+      <section id="extendedDescSection" class="detail-section" style="display:none;">
         <h2>About This Game</h2>
         <div id="extendedDescription"></div>
-      </div>
+      </section>
       
-      <div id="howToPlaySection" class="detail-section" style="display:none;">
+      <!-- AdSense Container - Mid Content -->
+      <div id="adsense-mid-content" class="adsense-container" style="margin: 40px 0; min-height: 250px; text-align: center;"></div>
+      
+      <section id="howToPlaySection" class="detail-section" style="display:none;">
         <h2>How to Play</h2>
         <div id="howToPlay"></div>
-      </div>
+      </section>
       
-      <div id="screenshotsSection" class="detail-section" style="display:none;">
+      <section id="screenshotsSection" class="detail-section" style="display:none;">
         <h2>Screenshots</h2>
         <div id="screenshotsGrid" class="screenshots-grid"></div>
-      </div>
-    </div>
+      </section>
+      
+      <!-- AdSense Container - Bottom -->
+      <div id="adsense-bottom" class="adsense-container" style="margin: 40px 0; min-height: 250px; text-align: center;"></div>
+    </article>
   </div>
   
   <div id="lightbox" class="lightbox">
@@ -705,8 +753,41 @@
         const game = gameSnap.data();
         gameData = { id: gameId, ...game };
         
-        // Update page title
+        // Update page title and meta tags
         document.title = `${game.title || 'Game'} - GlitchRealm`;
+        
+        // Update canonical URL
+        const canonicalLink = document.querySelector('link[rel="canonical"]');
+        if (canonicalLink) {
+          canonicalLink.href = `https://glitchrealm.ca/game-detail.html?id=${gameId}`;
+        }
+        
+        // Update meta description
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+          metaDesc = document.createElement('meta');
+          metaDesc.name = 'description';
+          document.head.appendChild(metaDesc);
+        }
+        metaDesc.content = game.description || 'Explore this cyberpunk game on GlitchRealm.';
+        
+        // Add Open Graph tags
+        updateMetaTag('og:title', `${game.title} - GlitchRealm`);
+        updateMetaTag('og:description', game.description || 'Explore this cyberpunk game on GlitchRealm.');
+        updateMetaTag('og:image', game.coverImageUrl || 'https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png');
+        updateMetaTag('og:url', `https://glitchrealm.ca/game-detail.html?id=${gameId}`);
+        
+        // Add Twitter Card tags
+        updateMetaTag('twitter:card', 'summary_large_image', 'name');
+        updateMetaTag('twitter:title', `${game.title} - GlitchRealm`, 'name');
+        updateMetaTag('twitter:description', game.description || 'Explore this cyberpunk game on GlitchRealm.', 'name');
+        updateMetaTag('twitter:image', game.coverImageUrl || 'https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png', 'name');
+        
+        // Add JSON-LD structured data
+        addStructuredData(game, gameId);
+        
+        // Update breadcrumb navigation
+        updateBreadcrumb(game.title);
 
         // Set basic info
         document.getElementById('gameTitle').textContent = game.title || 'Untitled Game';
@@ -791,6 +872,94 @@
         console.error('Error loading game details:', error);
         loadingState.style.display = 'none';
         notFoundState.style.display = 'block';
+      }
+    }
+    
+    function updateMetaTag(property, content, attrName = 'property') {
+      let meta = document.querySelector(`meta[${attrName}="${property}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attrName, property);
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    }
+    
+    function addStructuredData(game, gameId) {
+      // Remove existing structured data if present
+      const existingLD = document.getElementById('game-structured-data');
+      if (existingLD) existingLD.remove();
+      
+      const existingBreadcrumb = document.getElementById('breadcrumb-structured-data');
+      if (existingBreadcrumb) existingBreadcrumb.remove();
+      
+      // VideoGame structured data
+      const gameSchema = {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": game.title || 'Untitled Game',
+        "description": game.description || 'No description available.',
+        "image": game.coverImageUrl || 'https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png',
+        "url": `https://glitchrealm.ca/game-detail.html?id=${gameId}`,
+        "genre": game.tags || [],
+        "gamePlatform": "Web Browser",
+        "operatingSystem": "Any",
+        "applicationCategory": "Game"
+      };
+      
+      if (game.playUrl) {
+        gameSchema.url = game.playUrl;
+      }
+      
+      const gameScript = document.createElement('script');
+      gameScript.type = 'application/ld+json';
+      gameScript.id = 'game-structured-data';
+      gameScript.textContent = JSON.stringify(gameSchema);
+      document.head.appendChild(gameScript);
+      
+      // Breadcrumb structured data
+      const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://glitchrealm.ca/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Games",
+            "item": "https://glitchrealm.ca/games.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": game.title || 'Game',
+            "item": `https://glitchrealm.ca/game-detail.html?id=${gameId}`
+          }
+        ]
+      };
+      
+      const breadcrumbScript = document.createElement('script');
+      breadcrumbScript.type = 'application/ld+json';
+      breadcrumbScript.id = 'breadcrumb-structured-data';
+      breadcrumbScript.textContent = JSON.stringify(breadcrumbSchema);
+      document.head.appendChild(breadcrumbScript);
+    }
+    
+    function updateBreadcrumb(gameTitle) {
+      const breadcrumbGame = document.getElementById('breadcrumbGame');
+      const breadcrumbSeparator = document.getElementById('breadcrumbSeparator');
+      
+      if (breadcrumbGame && gameTitle) {
+        breadcrumbGame.textContent = gameTitle;
+        breadcrumbGame.style.display = '';
+        if (breadcrumbSeparator) {
+          breadcrumbSeparator.style.display = '';
+        }
       }
     }
 

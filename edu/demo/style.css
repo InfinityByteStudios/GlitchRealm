@@ -1,0 +1,113 @@
+/* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body styling - centers everything */
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #FFFFFF;
+    /* Smooth color transition when background changes */
+    transition: background-color 0.5s ease;
+}
+
+/* Main container for our app */
+.container {
+    text-align: center;
+    background: white;
+    padding: 50px 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    min-width: 400px;
+}
+
+/* Title styling */
+h1 {
+    color: #333;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+/* Subtitle text */
+.subtitle {
+    color: #777;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+}
+
+/* Color display box */
+#colorDisplay {
+    font-size: 3em;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    color: #667eea;
+    background: #f5f5f5;
+    padding: 30px;
+    border-radius: 15px;
+    margin: 30px 0;
+    border: 3px solid #e0e0e0;
+    letter-spacing: 3px;
+}
+
+/* Generate button */
+#generateBtn {
+    padding: 18px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+}
+
+/* Button hover effect */
+#generateBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* Button active/click effect */
+#generateBtn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+}
+
+/* Info section */
+.info {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #eee;
+}
+
+.info p {
+    color: #666;
+    font-size: 0.95em;
+    margin: 8px 0;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 500px) {
+    .container {
+        min-width: 90%;
+        padding: 30px 20px;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+    
+    #colorDisplay {
+        font-size: 2em;
+        padding: 20px;
+    }
+}
