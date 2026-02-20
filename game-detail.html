@@ -217,6 +217,100 @@
       transform: translateY(-1px);
     }
     
+    /* Play mode selector */
+    .play-mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 4px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      border: 1px solid rgba(0,255,249,0.15);
+      width: fit-content;
+    }
+    .play-mode-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .play-mode-btn:hover {
+      color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.05);
+    }
+    .play-mode-btn.active {
+      background: linear-gradient(135deg, rgba(0,255,249,0.15), rgba(0,212,255,0.15));
+      color: #00fff9;
+      border: 1px solid rgba(0,255,249,0.3);
+    }
+    .beta-badge {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      background: rgba(138,43,226,0.25);
+      border: 1px solid rgba(138,43,226,0.4);
+      border-radius: 4px;
+      color: #9966ff;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Embedded game container */
+    .embedded-game-container {
+      margin-top: 32px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 20px 60px rgba(0,0,0,.8), 0 0 0 1px rgba(0,255,249,.15);
+      position: relative;
+    }
+    .embedded-game-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      background: linear-gradient(90deg, #0a0a0a 0%, rgba(0,255,249,0.05) 50%, #0a0a0a 100%);
+      z-index: 1;
+      pointer-events: none;
+      border-bottom: 1px solid rgba(0,255,249,0.2);
+    }
+    .embedded-game-iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+      display: block;
+      background: #000;
+    }
+    .close-embedded-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 2;
+      background: rgba(255,0,128,0.15);
+      border: 1px solid rgba(255,0,128,0.3);
+      color: #ff0080;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .close-embedded-btn:hover {
+      background: rgba(255,0,128,0.25);
+      border-color: rgba(255,0,128,0.5);
+    }
+    
     /* Top-right menu */
     .menu-container {
       position: absolute;
@@ -638,12 +732,27 @@
           <!-- AdSense Container - Top CTA -->
           <div id="adsense-top-cta" class="adsense-container" style="margin: 20px 0; min-height: 90px; text-align: center;"></div>
           
+          <div id="playModeSelector" class="play-mode-selector" style="display:none;">
+            <button class="play-mode-btn active" data-mode="newtab" id="newTabBtn">
+              🚀 New Tab
+            </button>
+            <button class="play-mode-btn" data-mode="embedded" id="embeddedBtn">
+              📺 Embedded <span class="beta-badge">BETA</span>
+            </button>
+          </div>
+          
           <div class="action-buttons">
             <a id="playButton" href="#" target="_blank" class="play-btn" style="display:none;">
               ▶ Play Now
             </a>
           </div>
         </div>
+      </div>
+      
+      <!-- Embedded game container -->
+      <div id="embeddedGameContainer" class="embedded-game-container" style="display:none;">
+        <button class="close-embedded-btn" id="closeEmbeddedBtn">✕ Close</button>
+        <iframe id="embeddedGameIframe" class="embedded-game-iframe" src="" allowfullscreen allow="fullscreen; autoplay; encrypted-media"></iframe>
       </div>
       
       <section id="extendedDescSection" class="detail-section" style="display:none;">
@@ -826,11 +935,16 @@
           tagsContainer.style.display = 'none';
         }
 
-        // Set play button
+        // Set play button and mode selector
         const playBtn = document.getElementById('playButton');
+        const playModeSelector = document.getElementById('playModeSelector');
         if (game.playUrl) {
           playBtn.href = game.playUrl;
           playBtn.style.display = '';
+          playModeSelector.style.display = 'flex';
+          
+          // Initialize play mode functionality
+          initPlayModeSelector(game.playUrl);
         }
 
         // Extended description
@@ -1044,6 +1158,78 @@
         if (e.key === 'Escape') {
           menuDropdown.classList.remove('show');
         }
+      });
+    }
+    
+    function initPlayModeSelector(playUrl) {
+      const newTabBtn = document.getElementById('newTabBtn');
+      const embeddedBtn = document.getElementById('embeddedBtn');
+      const playButton = document.getElementById('playButton');
+      const embeddedGameContainer = document.getElementById('embeddedGameContainer');
+      const embeddedGameIframe = document.getElementById('embeddedGameIframe');
+      const closeEmbeddedBtn = document.getElementById('closeEmbeddedBtn');
+      
+      let currentMode = 'newtab';
+      
+      // Handle mode switching
+      function switchMode(mode) {
+        currentMode = mode;
+        
+        // Update button states
+        newTabBtn.classList.toggle('active', mode === 'newtab');
+        embeddedBtn.classList.toggle('active', mode === 'embedded');
+        
+        if (mode === 'newtab') {
+          // Hide embedded container if switching back
+          embeddedGameContainer.style.display = 'none';
+          embeddedGameIframe.src = '';
+        }
+        // Play button always stays visible
+      }
+      
+      // Mode button click handlers
+      newTabBtn.addEventListener('click', function() {
+        switchMode('newtab');
+      });
+      
+      embeddedBtn.addEventListener('click', function() {
+        switchMode('embedded');
+      });
+      
+      // Play button click handler
+      playButton.addEventListener('click', function(e) {
+        if (currentMode === 'embedded') {
+          e.preventDefault();
+          // Load game in iframe
+          embeddedGameIframe.src = playUrl;
+          embeddedGameContainer.style.display = 'block';
+          
+          // Request fullscreen after iframe loads
+          embeddedGameIframe.addEventListener('load', function() {
+            // Try to enter fullscreen
+            if (embeddedGameIframe.requestFullscreen) {
+              embeddedGameIframe.requestFullscreen().catch(err => {
+                console.log('Fullscreen request failed:', err);
+              });
+            } else if (embeddedGameIframe.webkitRequestFullscreen) {
+              embeddedGameIframe.webkitRequestFullscreen();
+            } else if (embeddedGameIframe.msRequestFullscreen) {
+              embeddedGameIframe.msRequestFullscreen();
+            }
+          }, { once: true });
+          
+          // Scroll to embedded player
+          setTimeout(() => {
+            embeddedGameContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+        // For 'newtab' mode, let the default link behavior work
+      });
+      
+      // Close embedded player
+      closeEmbeddedBtn.addEventListener('click', function() {
+        embeddedGameContainer.style.display = 'none';
+        embeddedGameIframe.src = '';
       });
     }
 

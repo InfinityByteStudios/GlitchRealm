@@ -1671,8 +1671,24 @@
       const messagesEl = document.getElementById('glitchbot-messages');
       const input = document.getElementById('glitchbot-input');
       const send = document.getElementById('glitchbot-send');
+      let hasInitialized = false;
 
-      function openPanel(){ panel.style.display='block'; panel.setAttribute('aria-hidden','false'); input.focus(); }
+      async function openPanel(){ 
+        panel.style.display='block'; 
+        panel.setAttribute('aria-hidden','false'); 
+        
+        // Show welcome message on first open (no API call)
+        if(!hasInitialized){
+          hasInitialized = true;
+          appendMessage('bot', 'Initializing GlitchBot with site information...');
+          // Small delay for visual effect
+          setTimeout(() => {
+            appendMessage('bot', 'Ready to help! Ask me anything about GlitchRealm.');
+          }, 800);
+        }
+        
+        input.focus(); 
+      }
       function closePanel(){ panel.style.display='none'; panel.setAttribute('aria-hidden','true'); }
 
       toggle.addEventListener('click', openPanel);
