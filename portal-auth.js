@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const setupHeaderSignIn = function() {
         const signInBtn = document.getElementById('sign-in-btn');
         if (signInBtn) {
+            // Check if listener is already attached by header.html inline script
+            if (signInBtn.dataset.listenerAttached === 'true') {
+                console.log('Sign-in button listener already attached in header.html, skipping duplicate');
+                return;
+            }
+            
             console.log('Found sign-in button in header, attaching event listener');
             
             signInBtn.addEventListener('click', function(e) {
@@ -29,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
+            signInBtn.dataset.listenerAttached = 'true';
             console.log('Event listener attached to sign-in button');
         }
     };

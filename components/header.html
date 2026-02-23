@@ -29,11 +29,24 @@
             </div>
             <a href="#" id="sign-in-btn" class="btn btn-primary nav-signin" aria-label="Sign in to your account">Sign In</a>
             <script>
-            // Dynamically set auth URL based on environment
+            // Dynamically set auth URL based on environment and attach handler immediately
             (function() {
+                const signInBtn = document.getElementById('sign-in-btn');
                 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.');
                 const authUrl = isDev ? '/auth/' : 'https://auth.glitchrealm.ca/';
-                document.getElementById('sign-in-btn').href = authUrl;
+                
+                // Set href as fallback
+                signInBtn.href = authUrl;
+                
+                // Attach click handler immediately to prevent race condition
+                signInBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const returnUrl = window.location.href;
+                    sessionStorage.setItem('gr.returnTo', returnUrl);
+                    const redirectUrl = isDev ? `/auth/?return=${encodeURIComponent(returnUrl)}` : `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
+                    window.location.href = redirectUrl;
+                });
+                signInBtn.dataset.listenerAttached = 'true';
             })();
             </script>
             <div id="user-profile" class="user-profile" style="display: none;" role="navigation" aria-label="User account menu">
