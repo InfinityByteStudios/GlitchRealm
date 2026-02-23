@@ -792,8 +792,8 @@
         async function loadHeaderFooter() {
             try {
                 const [headerResponse, footerResponse] = await Promise.all([
-                    fetch('header.html'),
-                    fetch('footer.html')
+                    fetch('components/header.html'),
+                    fetch('components/footer.html')
                 ]);
                 
                 if (headerResponse.ok) {

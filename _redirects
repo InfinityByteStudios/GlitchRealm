@@ -5,6 +5,10 @@
 # Both /page.html and /page (extensionless) are supported.
 # =============================================================================
 
+# Header/footer partials now live in components/
+/header.html    /components/header.html   200
+/footer.html    /components/footer.html   200
+
 # Portal subdomain rewrite - serve the User Portal for portal.glitchrealm.ca
 https://portal.glitchrealm.ca/*  /subdomains/pages/account/user-portal.html  200
 

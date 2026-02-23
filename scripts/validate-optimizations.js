@@ -196,7 +196,7 @@ class OptimizationValidator {
   async confirmFirestoreRulesUnchanged() {
     
     try {
-      const rulesFiles = ['firestore.rules', 'database.rules.json', 'storage.rules'];
+      const rulesFiles = ['config/firestore.rules', 'config/database.rules.json', 'config/storage.rules'];
       const rulesStatus = {};
       
       for (const file of rulesFiles) {

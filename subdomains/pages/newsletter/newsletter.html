@@ -325,10 +325,10 @@
     <script src="js/script.js"></script>
     <script>
         // Load header and footer
-        fetch('header.html').then(r => r.text()).then(html => {
+        fetch('components/header.html').then(r => r.text()).then(html => {
             document.getElementById('header-container').innerHTML = html;
         });
-        fetch('footer.html').then(r => r.text()).then(html => {
+        fetch('components/footer.html').then(r => r.text()).then(html => {
             document.getElementById('footer-container').innerHTML = html;
         });
     </script>

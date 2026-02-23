@@ -4,13 +4,13 @@
     "runtime": "nodejs20"
   },
   "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+    "rules": "config/firestore.rules",
+    "indexes": "config/firestore.indexes.json"
   },
   "storage": {
-    "rules": "storage.rules"
+    "rules": "config/storage.rules"
   },
   "database": {
-    "rules": "database.rules.json"
+    "rules": "config/database.rules.json"
   }
 }

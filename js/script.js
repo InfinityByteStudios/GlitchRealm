@@ -3261,7 +3261,7 @@ if (!document.querySelector('#fadeOutKeyframes')) {
 document.addEventListener('DOMContentLoaded', function() {
     
     // Load header (defer to idle when available to reduce TBT)
-    const loadHeader = () => fetch('header.html?v=' + Date.now())
+    const loadHeader = () => fetch('components/header.html?v=' + Date.now())
         .then(response => {
             return response.text();
         })
@@ -3382,7 +3382,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
 
     // Load footer (defer slightly)
-    const loadFooter = () => fetch('footer.html')
+    const loadFooter = () => fetch('components/footer.html')
         .then(response => response.text())
         .then(data => {
             const footerPlaceholder = document.getElementById('footer-placeholder');

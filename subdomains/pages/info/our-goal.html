@@ -621,14 +621,14 @@
     <script type="module" src="js/script.js"></script>
     <script>
         // Load header
-        fetch('header.html')
+        fetch('components/header.html')
             .then(response => response.text())
             .then(data => {
                 document.getElementById('header-placeholder').innerHTML = data;
             });
 
         // Load footer
-        fetch('footer.html')
+        fetch('components/footer.html')
             .then(response => response.text())
             .then(data => {
                 document.getElementById('footer-placeholder').innerHTML = data;
