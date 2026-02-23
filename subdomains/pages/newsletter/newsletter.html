@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter - GlitchRealm Games</title>
+    <meta name="description" content="Subscribe to GlitchRealm newsletter for exclusive game updates, community events, and special offers.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/newsletter-custom-styles.css">
+    
+    <style>
+        .newsletter-hero {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
+            padding: 100px 20px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .newsletter-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 249, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .newsletter-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .newsletter-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            color: #00fff9;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+        }
+        
+        .newsletter-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.3rem;
+            color: #b8d4d8;
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+        
+        .newsletter-benefits {
+            background: rgba(15, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto 60px;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .benefit-item {
+            text-align: left;
+        }
+        
+        .benefit-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .benefit-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: #00fff9;
+            margin-bottom: 10px;
+        }
+        
+        .benefit-description {
+            font-family: 'Rajdhani', sans-serif;
+            color: #b8d4d8;
+            line-height: 1.6;
+        }
+        
+        .newsletter-form-section {
+            background: #0a0e1a;
+            padding: 60px 20px;
+        }
+        
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .newsletter-footer-note {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(184, 212, 216, 0.6);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .newsletter-title {
+                font-size: 2rem;
+            }
+            
+            .newsletter-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .newsletter-benefits {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (load dynamically) -->
+    <div id="header-container"></div>
+
+    <!-- Newsletter Hero Section -->
+    <section class="newsletter-hero">
+        <div class="newsletter-hero-content">
+            <h1 class="newsletter-title glitch" data-text="GlitchRealm Newsletter">GlitchRealm Newsletter</h1>
+            <p class="newsletter-subtitle">
+                Get exclusive updates, early access to new games, and special offers delivered straight to your inbox. Join our cyberpunk gaming community!
+            </p>
+            <a href="https://sendfox.com/glitchrealm" target="_blank" style="display: inline-block; margin-top: 30px; background: linear-gradient(135deg, var(--primary-cyan), #008cff); color: #0a0a0a; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; transition: all 0.3s ease; box-shadow: 0 8px 24px rgba(0, 255, 249, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(0, 255, 249, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(0, 255, 249, 0.3)';">📧 Subscribe Now</a>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="newsletter-benefits">
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <span class="benefit-icon">&#128276;</span>
+                <h3 class="benefit-title">New Game Alerts</h3>
+                <p class="benefit-description">
+                    Be the first to know when we launch new games and updates to your favorites.
+                </p>
+            </div>
+            
+            <div class="benefit-item">
+                <span class="benefit-icon">&#127918;</span>
+                <h3 class="benefit-title">Community Events</h3>
+                <p class="benefit-description">
+                    Get exclusive invites to tournaments, challenges, and community gatherings.
+                </p>
+            </div>
+            
+            <div class="benefit-item">
+                <span class="benefit-icon">&#127873;</span>
+                <h3 class="benefit-title">Special Offers</h3>
+                <p class="benefit-description">
+                    Unlock subscriber-only content, beta access, and promotional rewards.
+                </p>
+            </div>
+            
+            <div class="benefit-item">
+                <span class="benefit-icon">&#128240;</span>                <h3 class="benefit-title">Platform News</h3>
+                <p class="benefit-description">
+                    Stay updated on new features, improvements, and behind-the-scenes insights.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Form Section -->
+    <section class="newsletter-form-section" style="display: none;">
+        <div class="form-container">
+            <!-- MailerLite Form Embed Code -->
+            <style type="text/css">@import url("https://assets.mlcdn.com/fonts.css?version=1759388");</style>
+            <style type="text/css">
+            /* LOADER */
+            .ml-form-embedSubmitLoad {
+              display: inline-block;
+              width: 20px;
+              height: 20px;
+            }
+
+            .g-recaptcha {
+            transform: scale(1);
+            -webkit-transform: scale(1);
+            transform-origin: 0 0;
+            -webkit-transform-origin: 0 0;
+            height: auto;
+            }
+
+            .sr-only {
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              padding: 0;
+              margin: -1px;
+              overflow: hidden;
+              clip: rect(0,0,0,0);
+              border: 0;
+            }
+
+            .ml-form-embedSubmitLoad:after {
+              content: " ";
+              display: block;
+              width: 11px;
+              height: 11px;
+              margin: 1px;
+              border-radius: 50%;
+              border: 4px solid #fff;
+              border-color: #ffffff #ffffff #ffffff transparent;
+              animation: ml-form-embedSubmitLoad 1.2s linear infinite;
+            }
+            @keyframes ml-form-embedSubmitLoad {
+              0% {
+              transform: rotate(0deg);
+              }
+              100% {
+              transform: rotate(360deg);
+              }
+            }
+              #mlb2-31687852.ml-form-embedContainer {
+                box-sizing: border-box;
+                display: table;
+                margin: 0 auto;
+                position: static;
+                width: 100% !important;
+              }
+              #mlb2-31687852.ml-form-embedContainer h4,
+              #mlb2-31687852.ml-form-embedContainer p,
+              #mlb2-31687852.ml-form-embedContainer span,
+              #mlb2-31687852.ml-form-embedContainer button {
+                text-transform: none !important;
+                letter-spacing: normal !important;
+              }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper {
+                background-color: #00505c;
+                
+                border-width: 0px;
+                border-color: transparent;
+                border-radius: 4px;
+                border-style: solid;
+                box-sizing: border-box;
+                display: inline-block !important;
+                margin: 0;
+                padding: 0;
+                position: relative;
+                      }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper.embedPopup,
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper.embedDefault { width: 400px; }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper.embedForm { max-width: 400px; width: 100%; }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-align-left { text-align: left; }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-align-center { text-align: center; }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-align-default { display: table-cell !important; vertical-align: middle !important; text-align: center !important; }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-align-right { text-align: right; }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedHeader img {
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                height: auto;
+                margin: 0 auto !important;
+                max-width: 100%;
+              }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody,
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-successBody {
+                padding: 20px 20px 0 20px;
+              }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody.ml-form-embedBodyHorizontal {
+                padding-bottom: 0;
+              }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedContent,
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-successBody .ml-form-successContent {
+                text-align: left;
+                margin: 0 0 20px 0;
+              }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedContent h4,
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-successBody .ml-form-successContent h4 {
+                color: #ffffff;
+                font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+                font-size: 30px;
+                font-weight: 400;
+                margin: 0 0 10px 0;
+                text-align: left;
+                word-break: break-word;
+              }
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-embedBody .ml-form-embedContent p,
+              #mlb2-31687852.ml-form-embedContainer .ml-form-embedWrapper .ml-form-successBody .ml-form-successContent p {
+                color: #e7e7e7;
+                font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 20px;
+                margin: 0 0 10px 0;
+                text-align: left;
+              }
+            </style>
+            <!-- MailerLite form code truncated - form hidden with display:none in section above -->
+        </div>
+    </section>
+
+    <!-- Footer (load dynamically) -->
+    <div id="footer-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/firebase-core.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        // Load header and footer
+        fetch('header.html').then(r => r.text()).then(html => {
+            document.getElementById('header-container').innerHTML = html;
+        });
+        fetch('footer.html').then(r => r.text()).then(html => {
+            document.getElementById('footer-container').innerHTML = html;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Dashboard - GlitchRealm</title>
+    
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/Favicon and Icons/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/developer-dashboard.css">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Enhanced auth redirect handler -->
+    <script src="js/auth-redirect-handler.js"></script>
+    
+    <!-- Performance optimization script -->
+    <script src="js/performance-optimization.js"></script>
+    
+    <!-- Game analytics tracker -->
+    <script src="js/game-analytics-tracker.js"></script>
+
+</head>
+<body>
+    <!-- Header placeholder -->
+    <div id="header-placeholder"></div>
+    
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="glitch" data-text="DEVELOPER DASHBOARD">DEVELOPER DASHBOARD</h1>
+            <p>Manage your games, track analytics, and grow your audience on GlitchRealm</p>
+        </div>
+        
+        <!-- Auth Required State -->
+        <div id="auth-required" class="auth-required" style="display: none;">
+            <h2>Authentication Required</h2>
+            <p>Please sign in to access your developer dashboard and manage your games.</p>
+            <button class="btn btn-primary" onclick="triggerSignIn()">Sign In</button>
+        </div>
+        
+        <!-- Dashboard Navigation -->
+        <div id="dashboard-nav" class="dashboard-nav" style="display: none;">
+            <button class="nav-tab active" data-tab="overview">Overview</button>
+            <button class="nav-tab" data-tab="analytics">Analytics</button>
+            <button class="nav-tab" data-tab="games">My Games</button>
+            <button class="nav-tab" data-tab="submissions">Submissions</button>
+            <button class="nav-tab" data-tab="settings">Settings</button>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div id="overview-content" class="dashboard-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-games">0</div>
+                    <div class="stat-label">Total Games</div>
+                    <div class="stat-change positive" id="games-change">+0 this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-plays">0</div>
+                    <div class="stat-label">Total Plays</div>
+                    <div class="stat-change positive" id="plays-change">+0 this week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-rating">0.0</div>
+                    <div class="stat-label">Average Rating</div>
+                    <div class="stat-change positive" id="rating-change">+0.0 this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-reviews">0</div>
+                    <div class="stat-label">Total Reviews</div>
+                    <div class="stat-change positive" id="reviews-change">+0 this week</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Plays Over Time</h3>
+                <canvas id="playsChart" width="400" height="200"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Game Performance</h3>
+                <canvas id="performanceChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        
+        <!-- Analytics Tab -->
+        <div id="analytics-content" class="dashboard-content">
+            <div class="chart-container">
+                <h3 class="chart-title">Daily Active Players</h3>
+                <canvas id="dailyPlayersChart" width="400" height="200"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Rating Distribution</h3>
+                <canvas id="ratingDistributionChart" width="400" height="200"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Traffic Sources</h3>
+                <canvas id="trafficSourcesChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        
+        <!-- My Games Tab -->
+        <div id="games-content" class="dashboard-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: #00fff9; font-family: 'Orbitron', monospace; margin: 0;">My Games</h2>
+                <button class="btn btn-primary" onclick="window.location.href='submit-game.html'">Submit New Game</button>
+            </div>
+            
+            <div id="games-grid" class="games-grid">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        
+        <!-- Submissions Tab -->
+        <div id="submissions-content" class="dashboard-content">
+            <h2 style="color: #00fff9; font-family: 'Orbitron', monospace; margin-bottom: 20px;">Recent Submissions</h2>
+            
+            <div id="submissions-list">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div id="settings-content" class="dashboard-content">
+            <h2 style="color: #00fff9; font-family: 'Orbitron', monospace; margin-bottom: 20px;">Developer Settings</h2>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Profile Settings</h3>
+                <p style="color: #b8d4d8; margin-bottom: 20px;">Manage your developer profile and preferences.</p>
+                
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="window.location.href='user-portal.html'">Edit Profile</button>
+                    <button class="btn btn-secondary" onclick="exportAnalytics()">Export Analytics</button>
+                    <button class="btn btn-secondary" onclick="downloadReports()">Download Reports</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer placeholder -->
+    <div id="footer-placeholder"></div>
+    
+    <!-- Firebase -->
+    <script type="module" src="js/firebase-core.js"></script>
+    
+    <!-- Firebase SDK for dashboard functionality -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.appspot.com",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+        
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
+        const firestore = window.firebaseFirestore || getFirestore(app);
+        
+        // Make available globally
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firebaseFirestore = firestore;
+        window.firestoreCollection = collection;
+        window.firestoreQuery = query;
+        window.firestoreWhere = where;
+        window.firestoreGetDocs = getDocs;
+        window.firestoreDoc = doc;
+        window.firestoreGetDoc = getDoc;
+        window.firestoreOrderBy = orderBy;
+        window.firestoreLimit = limit;
+    </script>
+    
+    <script>
+        // Dashboard functionality
+        let currentUser = null;
+        let userGames = [];
+        let analytics = {};
+        
+        // Tab switching
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTabSwitching();
+            loadHeaderFooter();
+            checkAuthState();
+        });
+        
+        function setupTabSwitching() {
+            const tabs = document.querySelectorAll('.nav-tab');
+            const contents = document.querySelectorAll('.dashboard-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Update active content
+                    contents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${targetTab}-content`) {
+                            content.classList.add('active');
+                        }
+                    });
+                    
+                    // Load content for the active tab
+                    loadTabContent(targetTab);
+                });
+            });
+        }
+        
+        function checkAuthState() {
+            if (window.firebaseAuth) {
+                window.firebaseAuth.onAuthStateChanged(user => {
+                    currentUser = user;
+                    if (user) {
+                        showDashboard();
+                        loadDashboardData();
+                    } else {
+                        showAuthRequired();
+                    }
+                });
+            } else {
+                setTimeout(checkAuthState, 1000);
+            }
+        }
+        
+        function showAuthRequired() {
+            document.getElementById('auth-required').style.display = 'block';
+            document.getElementById('dashboard-nav').style.display = 'none';
+            document.querySelectorAll('.dashboard-content').forEach(content => {
+                content.style.display = 'none';
+            });
+        }
+        
+        function showDashboard() {
+            document.getElementById('auth-required').style.display = 'none';
+            document.getElementById('dashboard-nav').style.display = 'flex';
+            document.getElementById('overview-content').style.display = 'block';
+        }
+        
+        function triggerSignIn() {
+            if (window.authRedirectHandler) {
+                window.authRedirectHandler.redirectToSignIn();
+            } else {
+                window.location.href = 'Sign In/index.html?redirect=' + encodeURIComponent(window.location.href);
+            }
+        }
+        
+        async function loadDashboardData() {
+            try {
+                await Promise.all([
+                    loadUserGames(),
+                    loadAnalytics(),
+                    loadOverviewStats()
+                ]);
+                
+                setupCharts();
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+        
+        async function loadUserGames() {
+            if (!currentUser || !window.firebaseFirestore) {
+                console.log('No user or Firestore not available');
+                return;
+            }
+            
+            try {
+                // Query games submitted by current user
+                const gamesQuery = window.firestoreQuery(
+                    window.firestoreCollection(window.firebaseFirestore, 'games'),
+                    window.firestoreWhere('submittedBy', '==', currentUser.uid),
+                    window.firestoreOrderBy('submittedAt', 'desc')
+                );
+                
+                const gamesSnapshot = await window.firestoreGetDocs(gamesQuery);
+                userGames = [];
+                
+                for (const gameDoc of gamesSnapshot.docs) {
+                    const gameData = gameDoc.data();
+                    
+                    // Get game analytics/stats
+                    const statsDoc = await window.firestoreGetDoc(
+                        window.firestoreDoc(window.firebaseFirestore, 'game_analytics', gameDoc.id)
+                    );
+                    
+                    const stats = statsDoc.exists() ? statsDoc.data() : {
+                        plays: 0,
+                        rating: 0,
+                        reviews: 0
+                    };
+                    
+                    userGames.push({
+                        id: gameDoc.id,
+                        title: gameData.title || 'Untitled Game',
+                        status: gameData.status || 'pending',
+                        plays: stats.totalPlays || 0,
+                        rating: stats.averageRating || 0,
+                        reviews: stats.totalReviews || 0,
+                        image: gameData.coverImage || '/assets/placeholder-game.png',
+                        submittedAt: gameData.submittedAt?.toDate() || new Date(),
+                        description: gameData.description || '',
+                        gameUrl: gameData.gameUrl || ''
+                    });
+                }
+                
+                console.log(`Loaded ${userGames.length} games for user`);
+            } catch (error) {
+                console.error('Error loading user games:', error);
+                // Fallback to mock data for demo
+                userGames = [
+                    {
+                        id: 'demo-game-1',
+                        title: 'Demo Game',
+                        status: 'approved',
+                        plays: 42,
+                        rating: 4.2,
+                        reviews: 8,
+                        image: '/assets/Game Logos/ByteSurge.png',
+                        submittedAt: new Date()
+                    }
+                ];
+            }
+        }
+        
+        async function loadAnalytics() {
+            if (!currentUser || !window.gameAnalyticsTracker) {
+                console.log('No user or analytics tracker not available');
+                return;
+            }
+            
+            try {
+                // Load analytics for all user games
+                const gameAnalytics = await Promise.all(
+                    userGames.map(game => 
+                        window.gameAnalyticsTracker.getGameAnalytics(game.id)
+                    )
+                );
+                
+                // Process analytics data
+                const dailyPlays = [];
+                const gamePerformance = {
+                    labels: [],
+                    plays: [],
+                    ratings: []
+                };
+                
+                let totalRatings = [0, 0, 0, 0, 0]; // 1-5 stars
+                
+                userGames.forEach((game, index) => {
+                    const gameStats = gameAnalytics[index];
+                    if (gameStats) {
+                        gamePerformance.labels.push(game.title);
+                        gamePerformance.plays.push(gameStats.totalPlays || 0);
+                        gamePerformance.ratings.push(gameStats.averageRating || 0);
+                        
+                        // Extract daily plays for the last 14 days
+                        const today = new Date();
+                        for (let i = 13; i >= 0; i--) {
+                            const date = new Date(today);
+                            date.setDate(date.getDate() - i);
+                            const dateStr = date.toISOString().split('T')[0];
+                            
+                            if (gameStats.dailyPlays && gameStats.dailyPlays[dateStr]) {
+                                if (!dailyPlays[13 - i]) dailyPlays[13 - i] = 0;
+                                dailyPlays[13 - i] += gameStats.dailyPlays[dateStr];
+                            }
+                        }
+                        
+                        // Simulate rating distribution (in real app, you'd track this)
+                        const rating = Math.round(gameStats.averageRating || 0);
+                        if (rating > 0 && rating <= 5) {
+                            totalRatings[rating - 1] += gameStats.totalReviews || 0;
+                        }
+                    }
+                });
+                
+                // Fill in missing daily data
+                for (let i = 0; i < 14; i++) {
+                    if (!dailyPlays[i]) dailyPlays[i] = 0;
+                }
+                
+                analytics = {
+                    dailyPlays: dailyPlays,
+                    gamePerformance: gamePerformance,
+                    ratingDistribution: totalRatings,
+                    trafficSources: {
+                        labels: ['Direct', 'Games Page', 'Search', 'Social'],
+                        data: [40, 35, 15, 10] // Mock data for now
+                    }
+                };
+                
+                console.log('Loaded analytics data:', analytics);
+                
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                // Fallback to mock data
+                analytics = {
+                    dailyPlays: [5, 8, 12, 15, 18, 22, 25, 28, 32, 35, 38, 42, 45, 48],
+                    gamePerformance: {
+                        labels: userGames.map(g => g.title),
+                        plays: userGames.map(g => g.plays),
+                        ratings: userGames.map(g => g.rating)
+                    },
+                    ratingDistribution: [2, 5, 12, 28, 45],
+                    trafficSources: {
+                        labels: ['Direct', 'Games Page', 'Search', 'Social'],
+                        data: [40, 35, 15, 10]
+                    }
+                };
+            }
+        }
+        
+        function loadOverviewStats() {
+            const totalGames = userGames.length;
+            const totalPlays = userGames.reduce((sum, game) => sum + game.plays, 0);
+            const totalReviews = userGames.reduce((sum, game) => sum + game.reviews, 0);
+            const avgRating = totalReviews > 0 ? 
+                userGames.reduce((sum, game) => sum + (game.rating * game.reviews), 0) / totalReviews : 0;
+            
+            document.getElementById('total-games').textContent = totalGames;
+            document.getElementById('total-plays').textContent = totalPlays.toLocaleString();
+            document.getElementById('avg-rating').textContent = avgRating.toFixed(1);
+            document.getElementById('total-reviews').textContent = totalReviews;
+        }
+        
+        function loadTabContent(tab) {
+            switch (tab) {
+                case 'games':
+                    renderGames();
+                    break;
+                case 'submissions':
+                    renderSubmissions();
+                    break;
+                case 'analytics':
+                    setupAnalyticsCharts();
+                    break;
+            }
+        }
+        
+        function renderGames() {
+            const gamesGrid = document.getElementById('games-grid');
+            
+            if (userGames.length === 0) {
+                gamesGrid.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No Games Yet</h3>
+                        <p>You haven't submitted any games yet. Start by submitting your first game!</p>
+                        <button class="btn btn-primary" onclick="window.location.href='submit-game.html'">Submit Your First Game</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            gamesGrid.innerHTML = userGames.map(game => `
+                <div class="game-card">
+                    <img src="${game.image}" alt="${game.title}" class="game-image" onerror="this.src='/assets/placeholder-game.png'">
+                    <h3 class="game-title">${game.title}</h3>
+                    <span class="game-status status-${game.status}">${game.status}</span>
+                    <div class="game-stats">
+                        <span>👥 ${game.plays.toLocaleString()} plays</span>
+                        <span>⭐ ${game.rating.toFixed(1)} (${game.reviews})</span>
+                    </div>
+                    <div class="game-actions">
+                        <button class="btn btn-primary" onclick="editGame('${game.id}')">Edit</button>
+                        <button class="btn btn-secondary" onclick="viewGame('${game.id}')">View</button>
+                        <button class="btn btn-danger" onclick="deleteGame('${game.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderSubmissions() {
+            const submissionsList = document.getElementById('submissions-list');
+            
+            const recentSubmissions = userGames
+                .sort((a, b) => b.submittedAt - a.submittedAt)
+                .slice(0, 5);
+            
+            if (recentSubmissions.length === 0) {
+                submissionsList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No Submissions</h3>
+                        <p>You haven't made any submissions yet.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            submissionsList.innerHTML = recentSubmissions.map(game => `
+                <div class="game-card">
+                    <h3 class="game-title">${game.title}</h3>
+                    <span class="game-status status-${game.status}">${game.status}</span>
+                    <p style="color: #b8d4d8; margin: 10px 0;">
+                        Submitted: ${game.submittedAt.toLocaleDateString()}
+                    </p>
+                    <div class="game-actions">
+                        <button class="btn btn-primary" onclick="editGame('${game.id}')">Edit</button>
+                        <button class="btn btn-secondary" onclick="viewSubmissionDetails('${game.id}')">Details</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function setupCharts() {
+            // Plays over time chart
+            const playsCtx = document.getElementById('playsChart').getContext('2d');
+            new Chart(playsCtx, {
+                type: 'line',
+                data: {
+                    labels: analytics.dailyPlays.map((_, i) => `Day ${i + 1}`),
+                    datasets: [{
+                        label: 'Daily Plays',
+                        data: analytics.dailyPlays,
+                        borderColor: '#00fff9',
+                        backgroundColor: 'rgba(0, 255, 249, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    }
+                }
+            });
+            
+            // Game performance chart
+            const perfCtx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(perfCtx, {
+                type: 'bar',
+                data: {
+                    labels: analytics.gamePerformance.labels,
+                    datasets: [{
+                        label: 'Plays',
+                        data: analytics.gamePerformance.plays,
+                        backgroundColor: 'rgba(0, 255, 249, 0.6)',
+                        borderColor: '#00fff9',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    }
+                }
+            });
+        }
+        
+        function setupAnalyticsCharts() {
+            // Daily players chart
+            const dailyCtx = document.getElementById('dailyPlayersChart').getContext('2d');
+            new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: analytics.dailyPlays.map((_, i) => `Day ${i + 1}`),
+                    datasets: [{
+                        label: 'Active Players',
+                        data: analytics.dailyPlays.map(plays => Math.floor(plays * 0.7)),
+                        borderColor: '#008cff',
+                        backgroundColor: 'rgba(0, 140, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    }
+                }
+            });
+            
+            // Rating distribution chart
+            const ratingCtx = document.getElementById('ratingDistributionChart').getContext('2d');
+            new Chart(ratingCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+                    datasets: [{
+                        data: analytics.ratingDistribution,
+                        backgroundColor: [
+                            '#ff4757',
+                            '#ff6b7a',
+                            '#ffa502',
+                            '#2ed573',
+                            '#00fff9'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    }
+                }
+            });
+            
+            // Traffic sources chart
+            const trafficCtx = document.getElementById('trafficSourcesChart').getContext('2d');
+            new Chart(trafficCtx, {
+                type: 'pie',
+                data: {
+                    labels: analytics.trafficSources.labels,
+                    datasets: [{
+                        data: analytics.trafficSources.data,
+                        backgroundColor: [
+                            '#00fff9',
+                            '#008cff',
+                            '#ff6b7a',
+                            '#2ed573'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    }
+                }
+            });
+        }
+        
+        // Game management functions
+        function editGame(gameId) {
+            console.log('Editing game:', gameId);
+            window.location.href = `submit-game.html?edit=${gameId}`;
+        }
+        
+        function viewGame(gameId) {
+            console.log('Viewing game:', gameId);
+            const game = userGames.find(g => g.id === gameId);
+            if (game && game.gameUrl) {
+                window.open(game.gameUrl, '_blank');
+            } else {
+                window.location.href = `game-detail.html?id=${gameId}`;
+            }
+        }
+        
+        async function deleteGame(gameId) {
+            const game = userGames.find(g => g.id === gameId);
+            if (!game) return;
+            
+            const confirmMessage = `Are you sure you want to delete "${game.title}"? This action cannot be undone.`;
+            if (confirm(confirmMessage)) {
+                try {
+                    // In a real implementation, you'd delete from Firestore here
+                    console.log('Deleting game:', gameId);
+                    
+                    // For now, just remove from local array
+                    userGames = userGames.filter(g => g.id !== gameId);
+                    renderGames();
+                    loadOverviewStats();
+                    
+                    // Show success message
+                    showNotification('Game deleted successfully', 'success');
+                } catch (error) {
+                    console.error('Error deleting game:', error);
+                    showNotification('Failed to delete game', 'error');
+                }
+            }
+        }
+        
+        function viewSubmissionDetails(gameId) {
+            const game = userGames.find(g => g.id === gameId);
+            if (!game) return;
+            
+            // Create a simple modal to show submission details
+            const modal = document.createElement('div');
+            modal.className = 'submission-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${game.title} - Submission Details</h3>
+                        <button class="close-btn" onclick="this.closest('.submission-modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Status:</strong> <span class="status-${game.status}">${game.status.toUpperCase()}</span></p>
+                        <p><strong>Submitted:</strong> ${game.submittedAt.toLocaleDateString()}</p>
+                        <p><strong>Total Plays:</strong> ${game.plays.toLocaleString()}</p>
+                        <p><strong>Average Rating:</strong> ${game.rating.toFixed(1)}/5.0</p>
+                        <p><strong>Total Reviews:</strong> ${game.reviews}</p>
+                        ${game.description ? `<p><strong>Description:</strong> ${game.description}</p>` : ''}
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" onclick="editGame('${game.id}')">Edit Game</button>
+                        <button class="btn btn-secondary" onclick="this.closest('.submission-modal').remove()">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            // Style the notification
+            Object.assign(notification.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                padding: '15px 20px',
+                borderRadius: '8px',
+                color: '#fff',
+                fontWeight: '600',
+                zIndex: '10000',
+                transform: 'translateX(100%)',
+                transition: 'transform 0.3s ease'
+            });
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, #00ff88, #00cc66)';
+            } else if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #ff4757, #ff3742)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, #00fff9, #008cff)';
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        function exportAnalytics() {
+            // Export analytics data as CSV/JSON
+            const data = JSON.stringify(analytics, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'analytics-export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function downloadReports() {
+            // Generate and download reports
+            console.log('Downloading reports...');
+        }
+        
+        // Load header and footer
+        async function loadHeaderFooter() {
+            try {
+                const [headerResponse, footerResponse] = await Promise.all([
+                    fetch('header.html'),
+                    fetch('footer.html')
+                ]);
+                
+                if (headerResponse.ok) {
+                    document.getElementById('header-placeholder').innerHTML = await headerResponse.text();
+                }
+                
+                if (footerResponse.ok) {
+                    document.getElementById('footer-placeholder').innerHTML = await footerResponse.text();
+                }
+            } catch (error) {
+                console.error('Error loading header/footer:', error);
+            }
+        }
+    </script>
+</body>
+</html>

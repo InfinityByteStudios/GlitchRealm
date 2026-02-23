@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter Subscription Successful - GlitchRealm</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .success-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .success-card {
+            background: linear-gradient(135deg, rgba(0, 255, 249, 0.1), rgba(0, 255, 65, 0.1));
+            border: 2px solid var(--primary-cyan);
+            border-radius: 16px;
+            padding: 60px 40px;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 255, 249, 0.3);
+        }
+        
+        .success-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        
+        .success-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            color: var(--primary-cyan);
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+        }
+        
+        .success-message {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.2rem;
+            color: #b8d4d8;
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+        
+        .success-cta {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-cyan), #008cff);
+            color: #0a0a0a;
+            padding: 14px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        
+        .success-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 255, 249, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-card">
+            <div class="success-icon">✓</div>
+            <h1 class="success-title">You're Subscribed!</h1>
+            <p class="success-message">
+                Thank you for confirming your subscription! You're now part of the GlitchRealm community and will receive the latest gaming updates, news, and exclusive content straight to your inbox.
+            </p>
+            <p class="success-message" style="font-size: 1rem; opacity: 0.8;">
+                Get ready to dive into the cyberpunk gaming world!
+            </p>
+            <a href="/" class="success-cta">Return to Home</a>
+        </div>
+    </div>
+    
+    <script src="js/firebase-core.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

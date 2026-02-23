@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Details - GlitchRealm</title>
+  <meta name="description" content="Explore cyberpunk games on GlitchRealm - Play original indie games in your browser.">
+  <meta property="og:site_name" content="GlitchRealm">
+  <meta property="og:type" content="website">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://glitchrealm.ca/game-detail.html">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png" />
+  <link rel="preload" as="style" href="css/styles.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="css/styles.css"></noscript>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  </noscript>
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+  <style>
+    #gameContent {
+      position: relative;
+    }
+    
+    .detail-wrapper { 
+      max-width: 1400px; 
+      margin: 100px auto 80px; 
+      padding: 0 24px; 
+    }
+    
+    /* Hero section with cover on left, info on right */
+    .detail-header { 
+      display: grid; 
+      grid-template-columns: 560px 1fr; 
+      gap: 56px; 
+      margin-bottom: 64px; 
+      position: relative;
+    }
+    
+    /* Left: Cover image panel */
+    .detail-cover { 
+      position: relative;
+      border-radius: 20px; 
+      overflow: hidden;
+      background: #000;
+      box-shadow: 
+        0 20px 60px rgba(0,0,0,.8),
+        0 0 0 1px rgba(0,255,249,.15);
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .detail-cover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.4) 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .detail-cover:hover {
+      box-shadow: 
+        0 28px 80px rgba(0,0,0,.9),
+        0 0 0 1px rgba(0,255,249,.4),
+        0 0 40px rgba(0,255,249,.15);
+      transform: translateY(-4px);
+    }
+    .detail-cover img { 
+      width: 100%; 
+      aspect-ratio: 16/9;
+      object-fit: cover; 
+      display: block;
+    }
+    
+    /* Right: Game info */
+    .detail-info {
+      display: flex;
+      flex-direction: column;
+      padding-top: 8px;
+    }
+    .detail-info h1 { 
+      font-family: 'Orbitron', monospace; 
+      font-size: 3.2rem; 
+      font-weight: 900;
+      margin: 0 0 16px; 
+      letter-spacing: 1px; 
+      line-height: 1.15;
+      color: #fff;
+      text-shadow: 0 0 24px rgba(0,255,249,.25);
+    }
+    
+    /* Metadata row (badges + tags) */
+    .detail-meta { 
+      display: flex; 
+      gap: 10px; 
+      flex-wrap: wrap; 
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    .detail-badge { 
+      padding: 6px 14px; 
+      border-radius: 6px; 
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      letter-spacing: 1px; 
+      text-transform: uppercase;
+      display: inline-block;
+      transition: transform 0.2s ease;
+    }
+    .detail-badge:hover {
+      transform: translateY(-1px);
+    }
+    .detail-badge.new { 
+      background: rgba(0,255,170,.18);
+      color: #00ffaa;
+      border: 1px solid rgba(0,255,170,.4);
+    }
+    .detail-badge.updated { 
+      background: rgba(255,140,0,.18);
+      color: #ff8c00;
+      border: 1px solid rgba(255,140,0,.4);
+    }
+    .detail-badge.beta { 
+      background: rgba(138,43,226,.18);
+      color: #9966ff;
+      border: 1px solid rgba(138,43,226,.4);
+    }
+    .detail-badge:not(.new):not(.updated):not(.beta) {
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.7);
+      border: 1px solid rgba(255,255,255,.15);
+    }
+    
+    /* Tags */
+    .detail-tags { 
+      display: flex; 
+      gap: 8px; 
+      flex-wrap: wrap; 
+      margin-bottom: 28px; 
+    }
+    .detail-tag { 
+      background: rgba(0,255,249,.08); 
+      border: 1px solid rgba(0,255,249,.25); 
+      padding: 6px 14px; 
+      border-radius: 6px; 
+      font-size: 0.85rem; 
+      font-weight: 500;
+      color: rgba(0,255,249,.9);
+      transition: all 0.2s ease;
+      cursor: default;
+    }
+    .detail-tag:hover {
+      background: rgba(0,255,249,.15);
+      border-color: rgba(0,255,249,.4);
+    }
+    
+    /* Description */
+    .detail-description { 
+      line-height: 1.8; 
+      color: rgba(255,255,255,.85);
+      margin-bottom: 32px; 
+      font-size: 1.05rem;
+      font-weight: 400;
+      max-width: 700px;
+    }
+    
+    /* Action buttons */
+    .action-buttons {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: auto;
+      padding-top: 12px;
+    }
+    .play-btn { 
+      font-family: 'Orbitron', monospace; 
+      font-size: 1.05rem; 
+      font-weight: 700;
+      padding: 16px 40px; 
+      border-radius: 12px; 
+      background: linear-gradient(135deg, #00fff9 0%, #00d4ff 100%);
+      border: none;
+      color: #0a0a0a; 
+      cursor: pointer; 
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+      text-decoration: none;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 8px 24px rgba(0,255,249,.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .play-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.3), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .play-btn:hover::before {
+      opacity: 1;
+    }
+    .play-btn:hover { 
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,255,249,.5);
+    }
+    .play-btn:active {
+      transform: translateY(-1px);
+    }
+    
+    /* Play mode selector */
+    .play-mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 4px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      border: 1px solid rgba(0,255,249,0.15);
+      width: fit-content;
+    }
+    .play-mode-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .play-mode-btn:hover {
+      color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.05);
+    }
+    .play-mode-btn.active {
+      background: linear-gradient(135deg, rgba(0,255,249,0.15), rgba(0,212,255,0.15));
+      color: #00fff9;
+      border: 1px solid rgba(0,255,249,0.3);
+    }
+    .beta-badge {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      background: rgba(138,43,226,0.25);
+      border: 1px solid rgba(138,43,226,0.4);
+      border-radius: 4px;
+      color: #9966ff;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Embedded game container */
+    .embedded-game-container {
+      margin-top: 32px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 20px 60px rgba(0,0,0,.8), 0 0 0 1px rgba(0,255,249,.15);
+      position: relative;
+    }
+    .embedded-game-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      background: linear-gradient(90deg, #0a0a0a 0%, rgba(0,255,249,0.05) 50%, #0a0a0a 100%);
+      z-index: 1;
+      pointer-events: none;
+      border-bottom: 1px solid rgba(0,255,249,0.2);
+    }
+    .embedded-game-iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+      display: block;
+      background: #000;
+    }
+    .close-embedded-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 2;
+      background: rgba(255,0,128,0.15);
+      border: 1px solid rgba(255,0,128,0.3);
+      color: #ff0080;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .close-embedded-btn:hover {
+      background: rgba(255,0,128,0.25);
+      border-color: rgba(255,0,128,0.5);
+    }
+    
+    /* Top-right menu */
+    .menu-container {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 100;
+    }
+    .menu-button {
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.7);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      line-height: 1;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .menu-button:hover {
+      background: rgba(0,255,249,0.12);
+      border-color: rgba(0,255,249,0.4);
+      color: #00fff9;
+    }
+    .menu-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(0,255,249,.25);
+      border-radius: 10px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.8);
+      min-width: 160px;
+      z-index: 1001;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      pointer-events: none;
+    }
+    .menu-dropdown.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+    .menu-item {
+      display: block;
+      width: 100%;
+      padding: 14px 18px;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      border: none;
+      background: none;
+      text-align: left;
+      cursor: pointer;
+    }
+    .menu-item:hover {
+      background: rgba(0,255,249,0.1);
+      color: #00fff9;
+    }
+
+    /* Content sections */
+    .detail-section { 
+      background: rgba(10,10,10,0.4);
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(20px); 
+      padding: 48px; 
+      border-radius: 16px; 
+      margin-bottom: 32px; 
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+      transition: all 0.3s ease;
+    }
+    .detail-section:hover {
+      border-color: rgba(0,255,249,.15);
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .detail-section h2 { 
+      font-family: 'Orbitron', monospace; 
+      font-size: 1.5rem; 
+      font-weight: 700;
+      margin: 0 0 32px; 
+      letter-spacing: 1px; 
+      color: #00fff9;
+      position: relative;
+      padding-bottom: 16px;
+    }
+    .detail-section h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 2px;
+      background: linear-gradient(90deg, #00fff9, transparent);
+    }
+    .detail-section h3 { 
+      font-family: 'Orbitron', monospace; 
+      font-size: 1.15rem; 
+      margin: 32px 0 16px; 
+      letter-spacing: 0.5px; 
+      color: rgba(255,255,255,.9); 
+    }
+    .detail-section p, .detail-section ul, .detail-section ol { 
+      line-height: 1.9; 
+      color: rgba(255,255,255,.8);
+      font-size: 1.05rem;
+      margin-bottom: 20px;
+      max-width: 900px;
+    }
+    .detail-section ul, .detail-section ol { 
+      padding-left: 24px; 
+    }
+    .detail-section li { 
+      margin-bottom: 12px; 
+      padding-left: 8px;
+    }
+    
+    /* Screenshots grid */
+    .screenshots-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); 
+      gap: 28px; 
+    }
+    .screenshot { 
+      aspect-ratio: 16/9; 
+      border-radius: 12px; 
+      overflow: hidden; 
+      border: 1px solid rgba(255,255,255,.1); 
+      cursor: pointer; 
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      background: #000;
+    }
+    .screenshot::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,255,249,.1), rgba(255,0,128,.1));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .screenshot img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+      display: block;
+    }
+    .screenshot:hover { 
+      border-color: rgba(0,255,249,.4); 
+      box-shadow: 0 16px 48px rgba(0,0,0,.6); 
+      transform: translateY(-6px);
+    }
+    .screenshot:hover::before {
+      opacity: 1;
+    }
+    .screenshot:hover img { 
+      transform: scale(1.1); 
+    }
+    
+    /* Back link */
+    .back-link { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 10px; 
+      color: rgba(255,255,255,.7); 
+      text-decoration: none; 
+      font-family: 'Rajdhani', sans-serif; 
+      font-size: 0.95rem; 
+      font-weight: 600;
+      margin-bottom: 32px; 
+      transition: all 0.3s ease; 
+      padding: 10px 18px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      background: rgba(255,255,255,.03);
+    }
+    .back-link:hover { 
+      color: #00fff9; 
+      background: rgba(0,255,249,.08);
+      border-color: rgba(0,255,249,.3);
+      transform: translateX(-4px);
+    }
+    .back-link:before { 
+      content: "←"; 
+      font-size: 1.2rem; 
+      transition: transform 0.3s ease;
+    }
+    .back-link:hover:before {
+      transform: translateX(-3px);
+    }
+    
+    /* Loading & error states */
+    .loading-state { 
+      text-align: center; 
+      padding: 120px 20px; 
+      background: rgba(10,10,10,0.4);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      margin: 40px 0;
+    }
+    .loading-state h2 { 
+      font-family: 'Orbitron', monospace; 
+      color: rgba(255,255,255,.6);
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    .not-found { 
+      text-align: center; 
+      padding: 120px 20px; 
+      background: rgba(20,0,0,0.4);
+      border: 1px solid rgba(255,100,100,.2);
+      border-radius: 16px;
+      margin: 40px 0;
+    }
+    .not-found h2 { 
+      font-family: 'Orbitron', monospace; 
+      color: rgba(255,120,120,.9); 
+      margin-bottom: 16px; 
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+    .not-found p {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,.7);
+      margin-bottom: 32px;
+    }
+    
+    /* Lightbox */
+    .lightbox { 
+      display: none; 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(0,0,0,.95); 
+      z-index: 10000; 
+      align-items: center; 
+      justify-content: center; 
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img { 
+      max-width: 92%; 
+      max-height: 90vh; 
+      border-radius: 12px; 
+      box-shadow: 0 20px 80px rgba(0,0,0,.8); 
+    }
+    .lightbox-close { 
+      position: absolute; 
+      top: 24px; 
+      right: 32px; 
+      color: rgba(255,255,255,.8); 
+      font-size: 3rem; 
+      font-weight: 300; 
+      cursor: pointer; 
+      line-height: 1; 
+      transition: all 0.2s ease; 
+      z-index: 10001;
+    }
+    .lightbox-close:hover { 
+      color: #00fff9; 
+      transform: scale(1.1); 
+    }
+    
+    /* AdSense Containers */
+    .adsense-container {
+      background: rgba(0,255,249,.02);
+      border: 1px dashed rgba(0,255,249,.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .adsense-container::before {
+      content: 'Advertisement';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: rgba(255,255,255,.25);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .detail-header { 
+        grid-template-columns: 1fr; 
+        gap: 40px; 
+      }
+      .detail-cover {
+        max-width: 680px;
+        margin: 0 auto;
+      }
+      .detail-info h1 {
+        font-size: 2.6rem;
+      }
+    }
+    @media (max-width: 768px) {
+      .detail-wrapper { 
+        margin-top: 80px; 
+        padding: 0 16px;
+      }
+      .detail-info h1 {
+        font-size: 2.2rem;
+      }
+      .detail-section {
+        padding: 32px 24px;
+      }
+      .detail-section h2 {
+        font-size: 1.3rem;
+      }
+      .screenshots-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .play-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .action-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
+      .menu-button {
+        padding: 8px 12px;
+        font-size: 20px;
+      }
+    }
+    @media (max-width: 500px) {
+      .detail-info h1 {
+        font-size: 1.9rem;
+      }
+      .detail-section {
+        padding: 28px 20px;
+      }
+      .back-link {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+  <script type="module" src="js/firebase-core.js"></script>
+</head>
+<body>
+  <div class="background-animation"></div>
+  <div id="header-placeholder"></div>
+  
+  <div class="detail-wrapper">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="Breadcrumb" style="margin-bottom: 20px;">
+      <ol style="display: flex; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 0.9rem; color: rgba(255,255,255,0.6);">
+        <li><a href="index.html" style="color: var(--primary-cyan); text-decoration: none;">Home</a></li>
+        <li aria-hidden="true" style="color: rgba(255,255,255,0.4);">/</li>
+        <li><a href="games.html" style="color: var(--primary-cyan); text-decoration: none;">Games</a></li>
+        <li aria-hidden="true" style="color: rgba(255,255,255,0.4);" id="breadcrumbSeparator" style="display:none;">/</li>
+        <li id="breadcrumbGame" aria-current="page" style="display:none;"></li>
+      </ol>
+    </nav>
+    <a href="games.html" class="back-link">Back to Games Library</a>
+    
+    <div id="loadingState" class="loading-state">
+      <h2>Loading game details...</h2>
+    </div>
+    
+    <div id="notFoundState" class="not-found" style="display:none;">
+      <h2>Game Not Found</h2>
+      <p>The game you are looking for does not exist or has been removed.</p>
+      <a href="games.html" class="play-btn" style="margin-top:20px;">Return to Games</a>
+    </div>
+    
+    <article id="gameContent" itemscope itemtype="https://schema.org/VideoGame" style="display:none;">
+      <!-- Top-right menu for edit -->
+      <div class="menu-container" id="menuContainer" style="display:none;">
+        <button class="menu-button" id="menuButton" aria-label="Game options">⋯</button>
+        <div class="menu-dropdown" id="menuDropdown">
+          <a href="#" class="menu-item" id="editMenuItem">Edit Game</a>
+        </div>
+      </div>
+      
+      <div class="detail-header">
+        <!-- Left: Cover image -->
+        <div class="detail-cover">
+          <img id="gameCover" src="" alt="Game Cover" itemprop="image" width="560" height="315" loading="eager">
+        </div>
+        
+        <!-- Right: Game info -->
+        <div class="detail-info">
+          <h1 id="gameTitle" itemprop="name">Game Title</h1>
+          
+          <div class="detail-meta">
+            <span id="gameBadge" class="detail-badge" style="display:none;"></span>
+            <span id="gameStatus" class="detail-badge"></span>
+          </div>
+          
+          <div id="gameTags" class="detail-tags" itemprop="genre"></div>
+          
+          <p id="gameDescription" class="detail-description" itemprop="description"></p>
+          
+          <!-- AdSense Container - Top CTA -->
+          <div id="adsense-top-cta" class="adsense-container" style="margin: 20px 0; min-height: 90px; text-align: center;"></div>
+          
+          <div id="playModeSelector" class="play-mode-selector" style="display:none;">
+            <button class="play-mode-btn active" data-mode="newtab" id="newTabBtn">
+              🚀 New Tab
+            </button>
+            <button class="play-mode-btn" data-mode="embedded" id="embeddedBtn">
+              📺 Embedded <span class="beta-badge">BETA</span>
+            </button>
+          </div>
+          
+          <div class="action-buttons">
+            <a id="playButton" href="#" target="_blank" class="play-btn" style="display:none;">
+              ▶ Play Now
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Embedded game container -->
+      <div id="embeddedGameContainer" class="embedded-game-container" style="display:none;">
+        <button class="close-embedded-btn" id="closeEmbeddedBtn">✕ Close</button>
+        <iframe id="embeddedGameIframe" class="embedded-game-iframe" src="" allowfullscreen allow="fullscreen; autoplay; encrypted-media"></iframe>
+      </div>
+      
+      <section id="extendedDescSection" class="detail-section" style="display:none;">
+        <h2>About This Game</h2>
+        <div id="extendedDescription"></div>
+      </section>
+      
+      <!-- AdSense Container - Mid Content -->
+      <div id="adsense-mid-content" class="adsense-container" style="margin: 40px 0; min-height: 250px; text-align: center;"></div>
+      
+      <section id="howToPlaySection" class="detail-section" style="display:none;">
+        <h2>How to Play</h2>
+        <div id="howToPlay"></div>
+      </section>
+      
+      <section id="screenshotsSection" class="detail-section" style="display:none;">
+        <h2>Screenshots</h2>
+        <div id="screenshotsGrid" class="screenshots-grid"></div>
+      </section>
+      
+      <!-- AdSense Container - Bottom -->
+      <div id="adsense-bottom" class="adsense-container" style="margin: 40px 0; min-height: 250px; text-align: center;"></div>
+    </article>
+  </div>
+  
+  <div id="lightbox" class="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightboxImage" src="" alt="Screenshot">
+  </div>
+  
+  <div id="footer-placeholder"></div>
+  <script src="js/script.js" defer></script>
+  <script type="module">
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    // Wait for Firebase to be initialized by firebase-core.js
+    function waitForFirebase() {
+      return new Promise((resolve) => {
+        if (window.firebaseApp) {
+          resolve();
+        } else {
+          const checkInterval = setInterval(() => {
+            if (window.firebaseApp) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 50);
+        }
+      });
+    }
+
+    // Initialize after Firebase is ready
+    waitForFirebase().then(() => {
+      initGameDetail();
+    });
+
+    function initGameDetail() {
+      // Use globally initialized Firebase app from firebase-core.js
+      const db = getFirestore(window.firebaseApp);
+      const auth = getAuth(window.firebaseApp);
+
+      // Developer UIDs
+    const DEV_UIDS = new Set([
+      '6iZDTXC78aVwX22qrY43BOxDRLt1',
+      'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+    ]);
+
+    // Get game ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameId = urlParams.get('id');
+    let currentUser = null;
+    let gameData = null;
+
+    // Listen for auth state
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (gameData) {
+        checkOwnership();
+      }
+    });
+
+    async function loadGameDetails() {
+      const loadingState = document.getElementById('loadingState');
+      const notFoundState = document.getElementById('notFoundState');
+      const gameContent = document.getElementById('gameContent');
+
+      if (!gameId) {
+        loadingState.style.display = 'none';
+        notFoundState.style.display = 'block';
+        return;
+      }
+
+      try {
+        const gameRef = doc(db, 'game_submissions', gameId);
+        const gameSnap = await getDoc(gameRef);
+
+        if (!gameSnap.exists()) {
+          loadingState.style.display = 'none';
+          notFoundState.style.display = 'block';
+          return;
+        }
+
+        const game = gameSnap.data();
+        gameData = { id: gameId, ...game };
+        
+        // Update page title and meta tags
+        document.title = `${game.title || 'Game'} - GlitchRealm`;
+        
+        // Update canonical URL
+        const canonicalLink = document.querySelector('link[rel="canonical"]');
+        if (canonicalLink) {
+          canonicalLink.href = `https://glitchrealm.ca/game-detail.html?id=${gameId}`;
+        }
+        
+        // Update meta description
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+          metaDesc = document.createElement('meta');
+          metaDesc.name = 'description';
+          document.head.appendChild(metaDesc);
+        }
+        metaDesc.content = game.description || 'Explore this cyberpunk game on GlitchRealm.';
+        
+        // Add Open Graph tags
+        updateMetaTag('og:title', `${game.title} - GlitchRealm`);
+        updateMetaTag('og:description', game.description || 'Explore this cyberpunk game on GlitchRealm.');
+        updateMetaTag('og:image', game.coverImageUrl || 'https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png');
+        updateMetaTag('og:url', `https://glitchrealm.ca/game-detail.html?id=${gameId}`);
+        
+        // Add Twitter Card tags
+        updateMetaTag('twitter:card', 'summary_large_image', 'name');
+        updateMetaTag('twitter:title', `${game.title} - GlitchRealm`, 'name');
+        updateMetaTag('twitter:description', game.description || 'Explore this cyberpunk game on GlitchRealm.', 'name');
+        updateMetaTag('twitter:image', game.coverImageUrl || 'https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png', 'name');
+        
+        // Add JSON-LD structured data
+        addStructuredData(game, gameId);
+        
+        // Update breadcrumb navigation
+        updateBreadcrumb(game.title);
+
+        // Set basic info
+        document.getElementById('gameTitle').textContent = game.title || 'Untitled Game';
+        document.getElementById('gameDescription').textContent = game.description || 'No description provided.';
+        
+        // Set cover image
+        const coverImg = document.getElementById('gameCover');
+        if (game.coverImageUrl) {
+          coverImg.src = game.coverImageUrl;
+          coverImg.alt = game.title || 'Game Cover';
+        } else {
+          coverImg.src = 'assets/game logos/ByteSurge.webp';
+          coverImg.alt = 'Default Cover';
+        }
+
+        // Set badge
+        const badgeEl = document.getElementById('gameBadge');
+        if (game.badge && ['new', 'updated', 'beta'].includes(game.badge)) {
+          badgeEl.className = `detail-badge ${game.badge}`;
+          badgeEl.textContent = game.badge.toUpperCase();
+          badgeEl.style.display = '';
+        }
+
+        // Set status
+        const statusEl = document.getElementById('gameStatus');
+        statusEl.textContent = (game.status || 'draft').toUpperCase();
+        statusEl.className = 'detail-badge';
+
+        // Set tags
+        const tagsContainer = document.getElementById('gameTags');
+        if (game.tags && Array.isArray(game.tags) && game.tags.length > 0) {
+          tagsContainer.innerHTML = game.tags.map(tag => 
+            `<span class="detail-tag">${tag}</span>`
+          ).join('');
+        } else {
+          tagsContainer.style.display = 'none';
+        }
+
+        // Set play button and mode selector
+        const playBtn = document.getElementById('playButton');
+        const playModeSelector = document.getElementById('playModeSelector');
+        if (game.playUrl) {
+          playBtn.href = game.playUrl;
+          playBtn.style.display = '';
+          playModeSelector.style.display = 'flex';
+          
+          // Initialize play mode functionality
+          initPlayModeSelector(game.playUrl);
+        }
+
+        // Extended description
+        const extDescSection = document.getElementById('extendedDescSection');
+        const extDescContent = document.getElementById('extendedDescription');
+        if (game.extendedDescription) {
+          extDescContent.innerHTML = formatContent(game.extendedDescription);
+          extDescSection.style.display = '';
+        }
+
+        // How to play
+        const howToPlaySection = document.getElementById('howToPlaySection');
+        const howToPlayContent = document.getElementById('howToPlay');
+        if (game.howToPlay) {
+          howToPlayContent.innerHTML = formatContent(game.howToPlay);
+          howToPlaySection.style.display = '';
+        }
+
+        // Screenshots
+        const screenshotsSection = document.getElementById('screenshotsSection');
+        const screenshotsGrid = document.getElementById('screenshotsGrid');
+        if (game.screenshots && Array.isArray(game.screenshots) && game.screenshots.length > 0) {
+          screenshotsGrid.innerHTML = game.screenshots.map((url, index) => 
+            `<div class="screenshot" onclick="openLightbox('${url}')">
+              <img src="${url}" alt="Screenshot ${index + 1}" loading="lazy">
+            </div>`
+          ).join('');
+          screenshotsSection.style.display = '';
+        }
+
+        // Show content
+        loadingState.style.display = 'none';
+        gameContent.style.display = '';
+        
+        // Check ownership for edit button
+        checkOwnership();
+
+      } catch (error) {
+        console.error('Error loading game details:', error);
+        loadingState.style.display = 'none';
+        notFoundState.style.display = 'block';
+      }
+    }
+    
+    function updateMetaTag(property, content, attrName = 'property') {
+      let meta = document.querySelector(`meta[${attrName}="${property}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attrName, property);
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    }
+    
+    function addStructuredData(game, gameId) {
+      // Remove existing structured data if present
+      const existingLD = document.getElementById('game-structured-data');
+      if (existingLD) existingLD.remove();
+      
+      const existingBreadcrumb = document.getElementById('breadcrumb-structured-data');
+      if (existingBreadcrumb) existingBreadcrumb.remove();
+      
+      // VideoGame structured data
+      const gameSchema = {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": game.title || 'Untitled Game',
+        "description": game.description || 'No description available.',
+        "image": game.coverImageUrl || 'https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png',
+        "url": `https://glitchrealm.ca/game-detail.html?id=${gameId}`,
+        "genre": game.tags || [],
+        "gamePlatform": "Web Browser",
+        "operatingSystem": "Any",
+        "applicationCategory": "Game"
+      };
+      
+      if (game.playUrl) {
+        gameSchema.url = game.playUrl;
+      }
+      
+      const gameScript = document.createElement('script');
+      gameScript.type = 'application/ld+json';
+      gameScript.id = 'game-structured-data';
+      gameScript.textContent = JSON.stringify(gameSchema);
+      document.head.appendChild(gameScript);
+      
+      // Breadcrumb structured data
+      const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://glitchrealm.ca/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Games",
+            "item": "https://glitchrealm.ca/games.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": game.title || 'Game',
+            "item": `https://glitchrealm.ca/game-detail.html?id=${gameId}`
+          }
+        ]
+      };
+      
+      const breadcrumbScript = document.createElement('script');
+      breadcrumbScript.type = 'application/ld+json';
+      breadcrumbScript.id = 'breadcrumb-structured-data';
+      breadcrumbScript.textContent = JSON.stringify(breadcrumbSchema);
+      document.head.appendChild(breadcrumbScript);
+    }
+    
+    function updateBreadcrumb(gameTitle) {
+      const breadcrumbGame = document.getElementById('breadcrumbGame');
+      const breadcrumbSeparator = document.getElementById('breadcrumbSeparator');
+      
+      if (breadcrumbGame && gameTitle) {
+        breadcrumbGame.textContent = gameTitle;
+        breadcrumbGame.style.display = '';
+        if (breadcrumbSeparator) {
+          breadcrumbSeparator.style.display = '';
+        }
+      }
+    }
+
+    function checkOwnership() {
+      if (!currentUser || !gameData) return;
+      
+      const isDeveloper = DEV_UIDS.has(currentUser.uid);
+      const isOwner = gameData.ownerId === currentUser.uid;
+      
+      if (isDeveloper || isOwner) {
+        const menuContainer = document.getElementById('menuContainer');
+        const editMenuItem = document.getElementById('editMenuItem');
+        
+        menuContainer.style.display = '';
+        editMenuItem.href = `submit-game.html?edit=${gameId}&step=3`;
+        
+        // Set up menu functionality
+        setupMenu();
+      }
+    }
+
+    function formatContent(content) {
+      // Parse markdown to HTML
+      if (typeof marked !== 'undefined') {
+        marked.setOptions({
+          breaks: true,
+          gfm: true,
+          headerIds: false,
+          mangle: false
+        });
+        return marked.parse(content);
+      }
+      // Fallback: Convert line breaks to paragraphs
+      return content
+        .split('\n\n')
+        .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+        .join('');
+    }
+
+    // Lightbox functionality
+    window.openLightbox = function(imageUrl) {
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImage = document.getElementById('lightboxImage');
+      lightboxImage.src = imageUrl;
+      lightbox.classList.add('active');
+    };
+
+    document.getElementById('lightbox').addEventListener('click', function(e) {
+      if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-close')) {
+        this.classList.remove('active');
+      }
+    });
+
+    // Escape key to close lightbox
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.getElementById('lightbox').classList.remove('active');
+      }
+    });
+
+    function setupMenu() {
+      const menuButton = document.getElementById('menuButton');
+      const menuDropdown = document.getElementById('menuDropdown');
+      
+      if (!menuButton || !menuDropdown) return;
+      
+      // Toggle menu on button click
+      menuButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        menuDropdown.classList.toggle('show');
+      });
+      
+      // Close menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!menuButton.contains(e.target) && !menuDropdown.contains(e.target)) {
+          menuDropdown.classList.remove('show');
+        }
+      });
+      
+      // Close menu on escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          menuDropdown.classList.remove('show');
+        }
+      });
+    }
+    
+    function initPlayModeSelector(playUrl) {
+      const newTabBtn = document.getElementById('newTabBtn');
+      const embeddedBtn = document.getElementById('embeddedBtn');
+      const playButton = document.getElementById('playButton');
+      const embeddedGameContainer = document.getElementById('embeddedGameContainer');
+      const embeddedGameIframe = document.getElementById('embeddedGameIframe');
+      const closeEmbeddedBtn = document.getElementById('closeEmbeddedBtn');
+      
+      let currentMode = 'newtab';
+      
+      // Handle mode switching
+      function switchMode(mode) {
+        currentMode = mode;
+        
+        // Update button states
+        newTabBtn.classList.toggle('active', mode === 'newtab');
+        embeddedBtn.classList.toggle('active', mode === 'embedded');
+        
+        if (mode === 'newtab') {
+          // Hide embedded container if switching back
+          embeddedGameContainer.style.display = 'none';
+          embeddedGameIframe.src = '';
+        }
+        // Play button always stays visible
+      }
+      
+      // Mode button click handlers
+      newTabBtn.addEventListener('click', function() {
+        switchMode('newtab');
+      });
+      
+      embeddedBtn.addEventListener('click', function() {
+        switchMode('embedded');
+      });
+      
+      // Play button click handler
+      playButton.addEventListener('click', function(e) {
+        if (currentMode === 'embedded') {
+          e.preventDefault();
+          // Load game in iframe
+          embeddedGameIframe.src = playUrl;
+          embeddedGameContainer.style.display = 'block';
+          
+          // Request fullscreen after iframe loads
+          embeddedGameIframe.addEventListener('load', function() {
+            // Try to enter fullscreen
+            if (embeddedGameIframe.requestFullscreen) {
+              embeddedGameIframe.requestFullscreen().catch(err => {
+                console.log('Fullscreen request failed:', err);
+              });
+            } else if (embeddedGameIframe.webkitRequestFullscreen) {
+              embeddedGameIframe.webkitRequestFullscreen();
+            } else if (embeddedGameIframe.msRequestFullscreen) {
+              embeddedGameIframe.msRequestFullscreen();
+            }
+          }, { once: true });
+          
+          // Scroll to embedded player
+          setTimeout(() => {
+            embeddedGameContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+        // For 'newtab' mode, let the default link behavior work
+      });
+      
+      // Close embedded player
+      closeEmbeddedBtn.addEventListener('click', function() {
+        embeddedGameContainer.style.display = 'none';
+        embeddedGameIframe.src = '';
+      });
+    }
+
+    // Load game details on page load
+    loadGameDetails();
+    
+    } // End initGameDetail
+  </script>
+</body>
+</html>

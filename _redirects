@@ -1,19 +1,175 @@
 # Netlify Redirects Configuration
+# =============================================================================
+# HTML files are organized in pages/ subdirectories for a clean repo structure.
+# These 200 rewrites keep all public URLs unchanged (e.g. /legal.html still works).
+# Both /page.html and /page (extensionless) are supported.
+# =============================================================================
+
 # Portal subdomain rewrite - serve the User Portal for portal.glitchrealm.ca
-https://portal.glitchrealm.ca/*  /user-portal.html  200
+https://portal.glitchrealm.ca/*  /subdomains/pages/account/user-portal.html  200
 
 # Developers subdomain - serve the Developer API page
-https://developers.glitchrealm.ca/*  /developers/:splat  200
+https://developers.glitchrealm.ca/*  /subdomains/developers/:splat  200
 
 # Retire legacy Community Games page -> send to main Games
 /community-games        /games.html   301
 /community-games.html   /games.html   301
 
 # News section
-/news                   /news/index.html   200
-/news/                  /news/index.html   200
-/feed                   /news/feed.rss   200
-/feed.rss               /news/feed.rss   200
-/news/feed              /news/feed.rss   200
-/news/rss               /news/feed.rss   200
-/api/news-feed          /news/feed.rss   200
+/news                   /subdomains/news/index.html   200
+/subdomains/news/                  /subdomains/news/index.html   200
+/feed                   /subdomains/news/feed.rss   200
+/feed.rss               /subdomains/news/feed.rss   200
+/subdomains/news/feed              /subdomains/news/feed.rss   200
+/subdomains/news/rss               /subdomains/news/feed.rss   200
+/api/news-feed          /subdomains/news/feed.rss   200
+# =============================================================================
+# URL-preserving rewrites - pages/legal/
+# =============================================================================
+/accessibility-statement.html           /subdomains/pages/legal/accessibility-statement.html   200
+/accessibility-statement                /subdomains/pages/legal/accessibility-statement.html   200
+/brand-protection.html                  /subdomains/pages/legal/brand-protection.html   200
+/brand-protection                       /subdomains/pages/legal/brand-protection.html   200
+/code-of-conduct.html                   /subdomains/pages/legal/code-of-conduct.html   200
+/code-of-conduct                        /subdomains/pages/legal/code-of-conduct.html   200
+/cookie-policy.html                     /subdomains/pages/legal/cookie-policy.html   200
+/cookie-policy                          /subdomains/pages/legal/cookie-policy.html   200
+/coppa.html                             /subdomains/pages/legal/coppa.html   200
+/coppa                                  /subdomains/pages/legal/coppa.html   200
+/copyright-dmca.html                    /subdomains/pages/legal/copyright-dmca.html   200
+/copyright-dmca                         /subdomains/pages/legal/copyright-dmca.html   200
+/developer-agreement.html               /subdomains/pages/legal/developer-agreement.html   200
+/developer-agreement                    /subdomains/pages/legal/developer-agreement.html   200
+/donation-policy.html                   /subdomains/pages/legal/donation-policy.html   200
+/donation-policy                        /subdomains/pages/legal/donation-policy.html   200
+/dpa.html                               /subdomains/pages/legal/dpa.html   200
+/dpa                                    /subdomains/pages/legal/dpa.html   200
+/eula.html                              /subdomains/pages/legal/eula.html   200
+/eula                                   /subdomains/pages/legal/eula.html   200
+/external-platforms.html                /subdomains/pages/legal/external-platforms.html   200
+/external-platforms                     /subdomains/pages/legal/external-platforms.html   200
+/ip-notice.html                         /subdomains/pages/legal/ip-notice.html   200
+/ip-notice                              /subdomains/pages/legal/ip-notice.html   200
+/legal.html                             /subdomains/pages/legal/legal.html   200
+/legal                                  /subdomains/pages/legal/legal.html   200
+/legal-contact.html                     /subdomains/pages/legal/legal-contact.html   200
+/legal-contact                          /subdomains/pages/legal/legal-contact.html   200
+/legal-definitions.html                 /subdomains/pages/legal/legal-definitions.html   200
+/legal-definitions                      /subdomains/pages/legal/legal-definitions.html   200
+/legal-information.html                 /subdomains/pages/legal/legal-information.html   200
+/legal-information                      /subdomains/pages/legal/legal-information.html   200
+/moderation-policy.html                 /subdomains/pages/legal/moderation-policy.html   200
+/moderation-policy                      /subdomains/pages/legal/moderation-policy.html   200
+/privacy-policy.html                    /subdomains/pages/legal/privacy-policy.html   200
+/privacy-policy                         /subdomains/pages/legal/privacy-policy.html   200
+/refund-policy.html                     /subdomains/pages/legal/refund-policy.html   200
+/refund-policy                          /subdomains/pages/legal/refund-policy.html   200
+/submission-policy.html                 /subdomains/pages/legal/submission-policy.html   200
+/submission-policy                      /subdomains/pages/legal/submission-policy.html   200
+/terms-of-service.html                  /subdomains/pages/legal/terms-of-service.html   200
+/terms-of-service                       /subdomains/pages/legal/terms-of-service.html   200
+
+# =============================================================================
+# URL-preserving rewrites - pages/admin/
+# =============================================================================
+/admin.html                             /subdomains/pages/admin/admin.html   200
+/admin                                  /subdomains/pages/admin/admin.html   200
+/admin-panel.html                       /subdomains/pages/admin/admin-panel.html   200
+/admin-panel                            /subdomains/pages/admin/admin-panel.html   200
+/admin-status.html                      /subdomains/pages/admin/admin-status.html   200
+/admin-status                           /subdomains/pages/admin/admin-status.html   200
+/admin-verify-writer.html               /subdomains/pages/admin/admin-verify-writer.html   200
+/admin-verify-writer                    /subdomains/pages/admin/admin-verify-writer.html   200
+/moderation.html                        /subdomains/pages/admin/moderation.html   200
+/moderation                             /subdomains/pages/admin/moderation.html   200
+
+# =============================================================================
+# URL-preserving rewrites - pages/auth/
+# =============================================================================
+/auth-bridge.html                       /subdomains/pages/auth/auth-bridge.html   200
+/auth-bridge                            /subdomains/pages/auth/auth-bridge.html   200
+/auth-bridge-template.html              /subdomains/pages/auth/auth-bridge-template.html   200
+/auth-bridge-template                   /subdomains/pages/auth/auth-bridge-template.html   200
+/delete-account.html                    /subdomains/pages/auth/delete-account.html   200
+/delete-account                         /subdomains/pages/auth/delete-account.html   200
+/forgot-password.html                   /subdomains/pages/auth/forgot-password.html   200
+/forgot-password                        /subdomains/pages/auth/forgot-password.html   200
+/migrate-usernames.html                 /subdomains/pages/auth/migrate-usernames.html   200
+/migrate-usernames                      /subdomains/pages/auth/migrate-usernames.html   200
+/reset-password.html                    /subdomains/pages/auth/reset-password.html   200
+/reset-password                         /subdomains/pages/auth/reset-password.html   200
+/signin.html                            /subdomains/pages/auth/signin.html   200
+/signin                                 /subdomains/pages/auth/signin.html   200
+
+# =============================================================================
+# URL-preserving rewrites - pages/games/
+# =============================================================================
+/community-games.html                   /subdomains/pages/games/community-games.html   200
+/community-games                        /subdomains/pages/games/community-games.html   200
+/game-detail.html                       /subdomains/pages/games/game-detail.html   200
+/game-detail                            /subdomains/pages/games/game-detail.html   200
+/games.html                             /subdomains/pages/games/games.html   200
+/games                                  /subdomains/pages/games/games.html   200
+/publish.html                           /subdomains/pages/games/publish.html   200
+/publish                                /subdomains/pages/games/publish.html   200
+/reviews.html                           /subdomains/pages/games/reviews.html   200
+/reviews                                /subdomains/pages/games/reviews.html   200
+/submit-game.html                       /subdomains/pages/games/submit-game.html   200
+/submit-game                            /subdomains/pages/games/submit-game.html   200
+
+# =============================================================================
+# URL-preserving rewrites - pages/account/
+# =============================================================================
+/developer-dashboard.html               /subdomains/pages/account/developer-dashboard.html   200
+/developer-dashboard                    /subdomains/pages/account/developer-dashboard.html   200
+/request-verification.html              /subdomains/pages/account/request-verification.html   200
+/request-verification                   /subdomains/pages/account/request-verification.html   200
+/settings.html                          /subdomains/pages/account/settings.html   200
+/settings                               /subdomains/pages/account/settings.html   200
+/user-portal.html                       /subdomains/pages/account/user-portal.html   200
+/user-portal                            /subdomains/pages/account/user-portal.html   200
+/user-portal-revamp.html                /subdomains/pages/account/user-portal-revamp.html   200
+/user-portal-revamp                     /subdomains/pages/account/user-portal-revamp.html   200
+
+# =============================================================================
+# URL-preserving rewrites - pages/community/
+# =============================================================================
+/community.html                         /subdomains/pages/community/community.html   200
+/community                              /subdomains/pages/community/community.html   200
+/news-article.html                      /subdomains/pages/community/news-article.html   200
+/news-article                           /subdomains/pages/community/news-article.html   200
+
+# =============================================================================
+# URL-preserving rewrites - pages/newsletter/
+# =============================================================================
+/newsletter.html                        /subdomains/pages/newsletter/newsletter.html   200
+/newsletter                             /subdomains/pages/newsletter/newsletter.html   200
+/newsletter-modal.html                  /subdomains/pages/newsletter/newsletter-modal.html   200
+/newsletter-modal                       /subdomains/pages/newsletter/newsletter-modal.html   200
+/newsletter-success.html                /subdomains/pages/newsletter/newsletter-success.html   200
+/newsletter-success                     /subdomains/pages/newsletter/newsletter-success.html   200
+
+# =============================================================================
+# URL-preserving rewrites - pages/info/
+# =============================================================================
+/about.html                             /subdomains/pages/info/about.html   200
+/about                                  /subdomains/pages/info/about.html   200
+/ads.html                               /subdomains/pages/info/ads.html   200
+/ads                                    /subdomains/pages/info/ads.html   200
+/contact.html                           /subdomains/pages/info/contact.html   200
+/contact                                /subdomains/pages/info/contact.html   200
+/credits.html                           /subdomains/pages/info/credits.html   200
+/credits                                /subdomains/pages/info/credits.html   200
+/donate.html                            /subdomains/pages/info/donate.html   200
+/donate                                 /subdomains/pages/info/donate.html   200
+/our-goal.html                          /subdomains/pages/info/our-goal.html   200
+/our-goal                               /subdomains/pages/info/our-goal.html   200
+/projects.html                          /subdomains/pages/info/projects.html   200
+/projects                               /subdomains/pages/info/projects.html   200
+/support.html                           /subdomains/pages/info/support.html   200
+/support                                /subdomains/pages/info/support.html   200
+/thank-you.html                         /subdomains/pages/info/thank-you.html   200
+/thank-you                              /subdomains/pages/info/thank-you.html   200
+/theme-scheduler.html                   /subdomains/pages/info/theme-scheduler.html   200
+/theme-scheduler                        /subdomains/pages/info/theme-scheduler.html   200
+

@@ -333,7 +333,6 @@ class PlaytimeTracker {
     // Utility method for logging
     log(message) {
         if (this.DEBUG) {
-            console.log(`[PlaytimeTracker] ${message}`);
         }
     }
 }

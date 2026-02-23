@@ -3,9 +3,7 @@
 
 module.exports = {
   onPreBuild: async () => {
-    console.log('[Image Optim Override] Skipping image optimization (using Netlify built-in instead)');
   },
   onPostBuild: async () => {
-    console.log('[Image Optim Override] Image optimization handled by Netlify');
   }
 };

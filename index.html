@@ -49,8 +49,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
     
     <!-- Preload Critical CSS -->
-    <link rel="preload" as="style" href="styles.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="preload" as="style" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
     
     <!-- Preload LCP image (lazy load actual src) -->
     <link rel="preload" as="image" href="assets/game logos/ByteSurge.webp" type="image/webp">
@@ -339,7 +339,7 @@
     </style>
     
     <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
-    <script type="module" src="firebase-core.js"></script>
+    <script type="module" src="js/firebase-core.js"></script>
     <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -369,12 +369,12 @@
     </script>
     
     <!-- Accessibility & Performance Enhancements -->
-    <link rel="stylesheet" href="accessibility-performance.css">
-    <link rel="stylesheet" href="play-now-enhancement.css">
-    <script src="dev-config.js" defer></script>
-    <script src="performance-optimization.js" defer></script>
-    <script src="accessibility-keyboard-nav.js" defer></script>
-    <script src="play-now-enhancement.js" defer></script>
+    <link rel="stylesheet" href="css/accessibility-performance.css">
+    <link rel="stylesheet" href="css/play-now-enhancement.css">
+    <script src="js/dev-config.js" defer></script>
+    <script src="js/performance-optimization.js" defer></script>
+    <script src="js/accessibility-keyboard-nav.js" defer></script>
+    <script src="js/play-now-enhancement.js" defer></script>
 </head>
 <body>
     <div class="background-animation" aria-hidden="true"></div>
@@ -533,7 +533,7 @@
     </main>
 
     <!-- Critical: Firebase Auth (load immediately) -->
-    <script src="firebase-core.js"></script>
+    <script src="js/firebase-core.js"></script>
     
     <!-- Load newest game from Firestore -->
     <script type="module">
@@ -674,13 +674,13 @@
     <!-- Ads removed: moved to /ads.html -->
 
     <!-- Deferred: Non-critical scripts -->
-    <script src="image-loader.js" defer></script>
-    <script src="script.js" defer></script>
-    <script src="glitch-settings.js" defer></script>
-    <script type="module" src="header-avatar-integration.js"></script>
+    <script src="js/image-loader.js" defer></script>
+    <script src="js/script.js" defer></script>
+    <script src="js/glitch-settings.js" defer></script>
+    <script type="module" src="js/header-avatar-integration.js"></script>
     
     <!-- Lazy: Game launcher (only load on interaction) -->
-    <script src="game-launcher-lazy.js" defer></script>
+    <script src="js/game-launcher-lazy.js" defer></script>
     
     <!-- Very Low Priority: Icons and widgets -->
         <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>

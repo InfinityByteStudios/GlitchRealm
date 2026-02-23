@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Writer Verification - GlitchRealm News</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/Favicon and Icons/favicon-96x96.png">
+  <link rel="icon" type="image/x-icon" href="assets/Favicon and Icons/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png">
+  <link rel="manifest" href="assets/Favicon and Icons/site.webmanifest">
+  
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  
+  <style>
+    body { --news-accent:#00fff9; }
+    .verify-wrap { max-width:720px; margin:60px auto; padding:0 24px; }
+    .verify-hero { text-align:center; margin-bottom:40px; }
+    .verify-hero h1 { font-family:'Orbitron', monospace; font-size:2.2rem; background:linear-gradient(90deg,#00fff9,#008cff); -webkit-background-clip:text; background-clip:text; color:transparent; letter-spacing:1.5px; margin-bottom:16px; }
+    .verify-hero p { font-size:1rem; color:#b8d4d8; line-height:1.6; max-width:600px; margin:0 auto; }
+    .verify-card { background:linear-gradient(135deg,#0b1822,#07131b); border:1px solid rgba(0,255,249,0.25); border-radius:16px; padding:40px 35px; }
+    .loading-state { text-align:center; padding:80px 30px; }
+    .loading-state h2 { margin:0 0 12px; font-size:1.3rem; color:#00fff9; }
+  </style>
+  
+  <script type="module" src="js/firebase-core.js"></script>
+  <script type="module" src="js/script.js"></script>
+</head>
+<body>
+  <div class="background-animation" aria-hidden="true"></div>
+  <div id="header-placeholder"></div>
+  
+  <main class="main">
+    <div class="verify-wrap">
+      <div class="verify-hero">
+        <h1>Writer Verification</h1>
+        <p>Request verification to publish news articles, game announcements, patch notes, and community updates on GlitchRealm.</p>
+      </div>
+      
+      <div id="verification-content" class="verify-card">
+        <div class="loading-state">
+          <h2>Loading...</h2>
+          <p style="opacity:0.7;">Checking your verification status...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <div id="footer-placeholder"></div>
+  
+  <script type="module" src="js/request-verification.js"></script>
+  <script>
+    // Load header and footer
+    fetch('header.html').then(r => r.text()).then(html => {
+      document.getElementById('header-placeholder').innerHTML = html;
+    });
+    fetch('footer.html').then(r => r.text()).then(html => {
+      document.getElementById('footer-placeholder').innerHTML = html;
+    });
+  </script>
+</body>
+</html>

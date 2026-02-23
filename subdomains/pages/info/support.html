@@ -1,0 +1,2647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- PWA Manifest & Theming -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00fff9">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Favicons - Multiple formats for maximum compatibility -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/Favicon and Icons/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support - GlitchRealm</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <!-- Enhanced auth redirect handler -->
+  <script src="js/auth-redirect-handler.js"></script>
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  <style>
+    .support-hero { padding:70px 0 30px; text-align:center; position:relative; }
+    .support-hero h1 { font-family:'Orbitron', monospace; font-size:2.4rem; background:linear-gradient(90deg,#00fff9,#008cff); -webkit-background-clip:text; background-clip:text; color:transparent; letter-spacing:2px; }
+    .support-grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); margin:40px 0; }
+    .support-card { background:linear-gradient(135deg,rgba(11,24,34,0.95),rgba(7,16,23,0.98)); border:1px solid rgba(0,255,249,0.2); padding:24px 24px 26px; border-radius:16px; position:relative; overflow:hidden; transition:all 0.3s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+    .support-card:hover { border-color:rgba(0,255,249,0.4); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,255,249,0.15), 0 0 40px rgba(0,255,249,0.08); }
+    .support-card:before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 20% 25%,rgba(0,255,249,0.15),transparent 55%),radial-gradient(circle at 80% 75%,rgba(0,140,255,0.12),transparent 60%); mix-blend-mode:screen; pointer-events:none; opacity:0.7; transition:opacity 0.3s ease; }
+    .support-card:hover:before { opacity:1; }
+    .support-card h3 { margin:0 0 10px; font-size:1.15rem; font-weight:700; letter-spacing:.8px; color:#00f5ff; font-family:'Orbitron', monospace; text-transform:uppercase; }
+    .support-card p { margin:0 0 16px; font-size:.88rem; line-height:1.5; color:#b8d4d8; opacity:0.9; }
+    /* System Status Box - Clickable */
+    #system-status:hover { border-color:rgba(0,255,249,0.4); background:linear-gradient(135deg,rgba(11,24,34,0.95),rgba(7,16,23,1)); box-shadow:0 4px 16px rgba(0,255,249,0.15); }
+    #system-status:active { transform:scale(0.99); }
+  .contact-chip { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid rgba(0,255,249,0.3); border-radius:20px; font-size:.72rem; letter-spacing:.6px; text-transform:uppercase; color:#00fff9; background:rgba(0,255,249,0.08); margin:4px 6px 4px 0; font-weight:600; cursor:pointer; text-decoration:none; position:relative; transition:all .22s ease; }
+  .contact-chip:hover, .contact-chip:focus { background:rgba(0,255,249,0.2); border-color:rgba(0,255,249,0.6); color:#00fff9; outline:none; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,255,249,0.25); }
+  .contact-chip:active { transform:translateY(0); }
+  .help-section-divider { margin:60px 0 30px; height:1px; background:linear-gradient(90deg,rgba(0,255,249,0),rgba(0,255,249,.35),rgba(0,255,249,0)); border:none; }
+  .help-top-link { font-size:.65rem; letter-spacing:.5px; text-transform:uppercase; color:#00f5ff; text-decoration:none; display:inline-block; margin-top:14px; opacity:.8; }
+  .help-top-link:hover { opacity:1; text-decoration:underline; }
+  .issue-detail { padding:22px 24px 26px; border:1px solid rgba(0,255,249,0.18); border-radius:14px; background:linear-gradient(135deg,#07141c,#041017); margin:0 0 26px; position:relative; }
+  .issue-detail h3 { margin:0 0 10px; font-size:1.05rem; letter-spacing:.6px; color:#00f5ff; }
+  .issue-detail h4 { margin:18px 0 6px; font-size:.85rem; letter-spacing:.5px; color:#fff; text-transform:uppercase; }
+  .issue-detail p, .issue-detail li { font-size:.82rem; line-height:1.45; color:#c3d2d6; }
+  .issue-detail code { background:rgba(0,255,249,0.1); padding:2px 5px; border-radius:4px; font-size:.75rem; }
+  .issue-detail ul { margin:6px 0 0 18px; padding:0; }
+  .issue-detail .tag-ref { font-size:.65rem; padding:3px 6px; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.3); border-radius:20px; letter-spacing:.5px; margin-left:6px; }
+  .issue-target-highlight { box-shadow:0 0 0 2px rgba(0,255,249,0.4), 0 0 14px -2px rgba(0,255,249,0.7); transition: box-shadow 1.8s ease; }
+    .support-section { margin:50px 0; }
+    .support-section h2 { font-size:1.4rem; letter-spacing:1px; margin:0 0 14px; color:#00f5ff; }
+    .faq-item { margin:14px 0; }
+    .faq-item h4 { margin:0 0 4px; font-size:.95rem; color:#fff; }
+    .faq-item p { margin:0; font-size:.85rem; line-height:1.4; color:#b8c5c9; }
+    .bot-note { margin-top:28px; font-size:.8rem; opacity:.75; }
+    .bmc-inline-note { font-size:.75rem; opacity:.65; margin-top:6px; }
+    /* Category sections - hidden by default */
+    .category-section { display:none; }
+    .category-section.active { display:block; animation:fadeIn 0.3s ease; }
+    /* General content - hidden by default, shown only on main screen */
+    #general-content { display:none; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    /* Back button */
+    .back-to-categories { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; background:rgba(0,255,249,0.1); border:1px solid rgba(0,255,249,0.3); border-radius:24px; color:#00fff9; font-size:.85rem; font-weight:600; letter-spacing:.6px; text-transform:uppercase; text-decoration:none; margin-bottom:24px; transition:all .25s ease; cursor:pointer; }
+    .back-to-categories:hover { background:rgba(0,255,249,0.2); border-color:rgba(0,255,249,0.5); transform:translateX(-3px); }
+    .back-to-categories::before { content:'←'; font-size:1.1rem; }
+    /* Support form modal */
+    .support-form-modal { position:fixed; inset:0; display:none; z-index:4000; }
+    .support-form-modal.visible .support-form-dialog { transform:translateY(0); opacity:1; }
+    .support-form-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); }
+    .support-form-dialog { position:relative; width:100%; max-width:560px; margin:60px auto; background:#0b1822; border:1px solid rgba(0,255,249,0.25); border-radius:16px; padding:28px 30px 30px; box-shadow:0 10px 40px -8px rgba(0,0,0,.55),0 0 0 1px rgba(0,255,249,0.08); transform:translateY(12px); opacity:0; transition:.25s ease; font-size:.9rem; }
+    .support-form-close { position:absolute; top:10px; right:12px; background:none; border:none; color:#9fb3b9; font-size:1.6rem; line-height:1; cursor:pointer; padding:4px 8px; }
+    .support-form-close:hover { color:#fff; }
+    .support-form h3 { margin:0 0 14px; font-size:1.2rem; letter-spacing:.5px; color:#00f5ff; }
+    .support-form .sf-field { display:flex; flex-direction:column; margin:0 0 14px; gap:6px; }
+    .support-form .sf-field span { font-size:.7rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0; }
+    .support-form input, .support-form select, .support-form textarea { background:#08131b; border:1px solid #12313d; border-radius:8px; padding:10px 12px; color:#d7e5e8; font-family:inherit; font-size:.85rem; resize:vertical; }
+    .support-form input:focus, .support-form select:focus, .support-form textarea:focus { outline:2px solid #00e3ff; outline-offset:2px; }
+    .support-form .sf-actions { display:flex; gap:12px; margin-top:4px; }
+    .support-form .sf-note { font-size:.65rem; opacity:.6; margin-top:12px; }
+    @media (max-width:620px){ .support-form-dialog { margin:30px 14px; padding:24px 22px 26px; } }
+    /* RSS Status Styles */
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .rss-status-item { padding:8px 0; border-bottom:1px solid rgba(0,255,249,0.08); }
+    .rss-status-item:last-child { border-bottom:none; padding-bottom:0; }
+    .rss-status-item:first-child { padding-top:0; }
+    .rss-incident-badge { display:inline-block; padding:3px 8px; border-radius:12px; font-size:.65rem; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-right:6px; }
+    .rss-incident-up { background:rgba(0,255,65,0.15); color:#00ff41; border:1px solid rgba(0,255,65,0.3); }
+    .rss-incident-down { background:rgba(255,0,128,0.15); color:#ff0080; border:1px solid rgba(255,0,128,0.3); }
+    .rss-incident-degraded { background:rgba(255,170,0,0.15); color:#ffaa00; border:1px solid rgba(255,170,0,0.3); }
+    .rss-read-more { color:#00fff9; text-decoration:none; font-size:.7rem; font-weight:600; cursor:pointer; opacity:.8; transition:opacity .2s; }
+    .rss-read-more:hover { opacity:1; text-decoration:underline; }
+    /* RSS Detail Modal */
+    .rss-detail-modal { position:fixed; inset:0; display:none; z-index:5000; }
+    .rss-detail-modal.visible { display:flex; align-items:center; justify-content:center; }
+    .rss-detail-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); }
+    .rss-detail-dialog { position:relative; width:100%; max-width:600px; margin:20px; background:#0b1822; border:1px solid rgba(0,255,249,0.3); border-radius:16px; padding:24px; box-shadow:0 10px 50px rgba(0,0,0,.6); max-height:80vh; overflow-y:auto; transform:scale(0.95); opacity:0; transition:all .25s ease; }
+    .rss-detail-modal.visible .rss-detail-dialog { transform:scale(1); opacity:1; }
+    .rss-detail-close { position:absolute; top:12px; right:12px; background:none; border:none; color:#9fb3b9; font-size:1.8rem; line-height:1; cursor:pointer; padding:4px 8px; transition:color .2s; }
+    .rss-detail-close:hover { color:#fff; }
+  </style>
+  <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+  <script type="module" src="js/firebase-core.js"></script>
+</head>
+<body>
+  <div class="background-animation"></div>
+  <div id="header-placeholder"></div>
+  <main class="main">
+    <section class="support-hero">
+      <div class="container">
+        <h1>Support / Help Center</h1>
+        <p style="max-width:620px;margin:14px auto 0; font-size:1rem; color:#d4dde0;">Need help with your account, games, or platform features? Choose a category below to get started.</p>
+        
+        <!-- Status Container - order changes based on staff status -->
+        <div id="status-container" style="max-width:620px; margin:20px auto 0;">
+        
+        <!-- Live RSS Status Feed -->
+        <div id="rss-status-widget" style="padding:16px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.85),rgba(7,16,23,0.9)); border:1px solid rgba(0,255,249,0.15); border-radius:12px; margin-bottom:20px;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00fff9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11a9 9 0 0 1 9 9"></path>
+              <path d="M4 4a16 16 0 0 1 16 16"></path>
+              <circle cx="5" cy="19" r="1"></circle>
+            </svg>
+            <span style="font-weight:700; font-size:.85rem; color:#00fff9; letter-spacing:.5px;">LIVE UPTIME MONITOR</span>
+          </div>
+          <div id="rss-status-content" style="font-size:.78rem; color:#b8d4d8; line-height:1.5;">
+            <div style="display:flex; align-items:center; gap:8px; opacity:.7;">
+              <div class="loading-spinner" style="width:12px; height:12px; border:2px solid rgba(0,255,249,0.2); border-top-color:#00fff9; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+              <span>Loading status updates...</span>
+            </div>
+          </div>
+          <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,255,249,0.1); font-size:.68rem; color:#7edcf0; opacity:.7;">
+            Data from <a href="https://status.glitchrealm.ca/" target="_blank" style="color:#00fff9; text-decoration:underline;">status.glitchrealm.ca</a> • Next update in <span id="rss-timer">30</span>s
+          </div>
+        </div>
+        
+        <!-- System Status (Staff Updated) -->
+        <div id="system-status" style="padding:14px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.9),rgba(7,16,23,0.95)); border:1px solid rgba(0,255,249,0.2); border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all .25s ease; margin-bottom:10px;" role="button" tabindex="0" aria-label="View system status details">
+          <div id="status-indicator" style="width:10px; height:10px; border-radius:50%; background:#00ff00; box-shadow:0 0 10px #00ff00;"></div>
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-weight:700; font-size:.9rem; color:#fff;">Staff Update: <span id="status-text">All Systems Operational</span></span>
+              <span style="font-size:.7rem; color:#7edcf0; opacity:.8;">Click for details →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Note -->
+        <p style="margin:0; font-size:.75rem; color:#7edcf0; text-align:center; opacity:.8;">
+          Staff status manually updated • Live monitoring above
+        </p>
+        
+        </div><!-- End status container -->
+        
+        <!-- Quick Contact Support Button -->
+        <div style="margin-top:24px; text-align:center;">
+          <button id="quick-contact-btn" class="contact-chip" style="padding:10px 20px; font-size:.82rem; cursor:pointer; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.4);">
+            Contact Support
+          </button>
+          <p style="margin-top:10px; font-size:.78rem; opacity:.7; color:#b8d4d8;">Or browse categories below for instant answers</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="container">
+      <div class="support-grid" id="category-cards">
+        <a href="#category-account" class="support-card" style="text-decoration:none; color:inherit;" data-category="account">
+          <h3>Account</h3>
+          <p>Password resets, email issues, and verification requests.</p>
+        </a>
+        <a href="#category-platform" class="support-card" style="text-decoration:none; color:inherit;" data-category="platform">
+          <h3>Games & Platform</h3>
+            <p>Game performance, browser issues, and progress tracking help.</p>
+        </a>
+        <a href="#category-developers" class="support-card" style="text-decoration:none; color:inherit;" data-category="developers">
+          <h3>Developers</h3>
+          <p>Submitting games, asset guidelines, and publishing requirements.</p>
+        </a>
+        <a href="#category-community" class="support-card" style="text-decoration:none; color:inherit;" data-category="community">
+          <h3>Community</h3>
+          <p>Guidelines, moderation, and community engagement.</p>
+        </a>
+        <a href="#category-legal" class="support-card" style="text-decoration:none; color:inherit;" data-category="legal">
+          <h3>Legal & Policies</h3>
+          <p>Terms, privacy, DMCA, refunds, and legal documentation.</p>
+        </a>
+        <a href="#category-contact" class="support-card" style="text-decoration:none; color:inherit;" data-category="contact">
+          <h3>Contact</h3>
+          <p>Reach the team directly for reports, legal, or security matters.</p>
+        </a>
+      </div>
+
+      <!-- ACCOUNT CATEGORY -->
+      <div id="category-account" class="category-section">
+        <button class="back-to-categories">Back to Categories</button>
+        <hr class="help-section-divider" style="margin-top:0;" />
+        <div style="margin-bottom:24px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a class="contact-chip" href="#help-reset-password">Reset Password</a>
+          <a class="contact-chip" href="#help-change-email">Change Email</a>
+          <a class="contact-chip" href="#help-verification">Verification</a>
+          <a class="contact-chip" href="#help-avatar">Avatar</a>
+          <a class="contact-chip" href="#help-privacy">Privacy</a>
+          <a class="contact-chip" href="#help-security">Security</a>
+        </div>
+        <div class="support-section">
+          <h2 style="font-size:1.8rem; margin-bottom:20px;">Account Support</h2>
+
+        <div id="help-reset-password" class="issue-detail" data-issue="reset-password">
+          <h3>Reset Password <span class="tag-ref">ACCOUNT</span></h3>
+          <p>If you forgot your password, use <strong>Forgot Password</strong> on the sign-in page. You'll receive an email with a link.</p>
+          <h4>Quick Steps</h4>
+          <ul>
+            <li>Open the sign in page &gt; Forgot Password.</li>
+            <li>Enter the email tied to your GlitchRealm account.</li>
+            <li>Click the link in the email within 15 minutes.</li>
+          </ul>
+          <h4>If Email Doesn't Arrive</h4>
+            <ul>
+              <li>Check spam / promotions folders.</li>
+              <li>Make sure you didn't sign up with a different email alias.</li>
+              <li>Wait 2–3 minutes; some providers delay new senders.</li>
+            </ul>
+          <h4>Link Says Expired</h4>
+          <p>Request a new reset. Only the most recent link works.</p>
+          <a class="help-top-link" href="#category-account">Back to Account</a>
+        </div>
+
+        <div id="help-change-email" class="issue-detail" data-issue="change-email">
+          <h3>Change Email <span class="tag-ref">ACCOUNT</span></h3>
+          <p>In the User Portal, open <strong>Account Settings</strong> and use the Change Email form. You'll need to re-authenticate for security.</p>
+          <h4>Checklist</h4>
+          <ul>
+            <li>New email isn't already used on another account.</li>
+            <li>You are still signed in (token not expired).</li>
+            <li>Confirm any verification mail if required.</li>
+          </ul>
+          <h4>Common Errors</h4>
+          <ul>
+            <li><code>requires-recent-login</code>: Sign out & sign in again, then retry.</li>
+            <li><code>email-already-in-use</code>: That address already exists—use password reset instead.</li>
+          </ul>
+          <a class="help-top-link" href="#category-account">Back to Account</a>
+        </div>
+
+        <div id="help-verification" class="issue-detail" data-issue="verification">
+          <h3>Verification <span class="tag-ref">ACCOUNT</span></h3>
+          <p>Verification unlocks creator / submission features and a badge. Use the Verification form in the User Portal.</p>
+          <h4>Tips</h4>
+          <ul>
+            <li>Add a short description of what you build.</li>
+            <li>Provide links (GitHub, itch.io) if available.</li>
+            <li>Submissions are usually reviewed within 24–72h.</li>
+          </ul>
+          <a class="help-top-link" href="#category-account">Back to Account</a>
+        </div>
+
+        <div id="help-avatar" class="issue-detail" data-issue="avatar">
+          <h3>Profile Avatars <span class="tag-ref">ACCOUNT</span></h3>
+          <p>Upload or change your profile avatar from the User Portal. Avatars are stored securely in Supabase.</p>
+          <h4>Upload Requirements</h4>
+          <ul>
+            <li>Image formats: JPG, PNG, GIF (no animated GIFs).</li>
+            <li>Max file size: 2MB.</li>
+            <li>Recommended: 256×256 or larger square images.</li>
+            <li>Content must be appropriate (no NSFW, offensive, or copyrighted material).</li>
+          </ul>
+          <h4>Troubleshooting Upload Issues</h4>
+          <ul>
+            <li>If upload fails, check file size and format.</li>
+            <li>Try a different browser if issues persist.</li>
+            <li>Clear cache and cookies, then retry.</li>
+            <li>Contact support if you see storage quota errors.</li>
+          </ul>
+          <a class="help-top-link" href="#category-account">Back to Account</a>
+        </div>
+
+        <div id="help-privacy" class="issue-detail" data-issue="privacy">
+          <h3>Privacy & Data <span class="tag-ref">ACCOUNT</span></h3>
+          <p>We take your privacy seriously. See our full <a href="privacy-policy.html" style="color:#00f5ff;">Privacy Policy</a> for details.</p>
+          <h4>What Data We Collect</h4>
+          <ul>
+            <li>Account info: Email, display name, verification status.</li>
+            <li>Playtime data: Per-game session tracking (local + cloud sync).</li>
+            <li>Analytics: Page visits, feature usage (anonymized where possible).</li>
+            <li>Uploads: Avatar images, game cover art (if you're a developer).</li>
+          </ul>
+          <h4>Your Rights</h4>
+          <ul>
+            <li><strong>Access:</strong> Request a copy of your data via support@glitchrealm.ca.</li>
+            <li><strong>Deletion:</strong> Use the Delete Account feature in User Portal.</li>
+            <li><strong>Correction:</strong> Update profile info directly in User Portal.</li>
+            <li><strong>Opt-out:</strong> Disable analytics tracking in browser settings.</li>
+          </ul>
+          <h4>Third-Party Services</h4>
+          <p>We use Firebase (Google) and Supabase for backend services. Each follows their own privacy policies.</p>
+          <a class="help-top-link" href="#category-account">Back to Account</a>
+        </div>
+
+        <div id="help-security" class="issue-detail" data-issue="security">
+          <h3>Account Security <span class="tag-ref">ACCOUNT</span></h3>
+          <p>Keep your account safe with these best practices.</p>
+          <h4>Strong Passwords</h4>
+          <ul>
+            <li>Use at least 12 characters with mixed case, numbers, symbols.</li>
+            <li>Don't reuse passwords from other sites.</li>
+            <li>Consider a password manager (1Password, Bitwarden, etc.).</li>
+          </ul>
+          <h4>Two-Factor Authentication</h4>
+          <p>Firebase supports 2FA. Enable it in your Google account settings if you signed up via Google.</p>
+          <h4>Suspicious Activity</h4>
+          <ul>
+            <li>Unexpected password reset emails? Someone may be trying to access your account.</li>
+            <li>Change password immediately and contact security@glitchrealm.ca.</li>
+            <li>Check recent sign-in activity in Firebase console if suspicious.</li>
+          </ul>
+          <h4>Phishing Protection</h4>
+          <ul>
+            <li>Always verify URL is <code>glitchrealm.ca</code> (not glitch-realm, glitchrealms, etc.).</li>
+            <li>We'll never ask for your password via email or chatbot.</li>
+            <li>Report suspicious emails to security@glitchrealm.ca.</li>
+          </ul>
+          <a class="help-top-link" href="#category-account">Back to Account</a>
+        </div>
+        </div>
+      </div>
+
+      <!-- GAMES & PLATFORM CATEGORY -->
+      <div id="category-platform" class="category-section">
+        <button class="back-to-categories">Back to Categories</button>
+        <hr class="help-section-divider" style="margin-top:0;" />
+        <div style="margin-bottom:24px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a class="contact-chip" href="#help-playtime">Playtime Tracking</a>
+          <a class="contact-chip" href="#help-cloud-save">Cloud Save</a>
+          <a class="contact-chip" href="#help-performance">Performance</a>
+          <a class="contact-chip" href="#help-notifications">Notifications</a>
+          <a class="contact-chip" href="#help-mobile">Mobile</a>
+          <a class="contact-chip" href="#help-keyboard-shortcuts">Shortcuts</a>
+          <a class="contact-chip" href="#help-game-controllers">Controllers</a>
+        </div>
+        <div class="support-section">
+        <h2 style="font-size:1.8rem; margin-bottom:20px;">Games & Platform Support</h2>
+
+        <div id="help-playtime" class="issue-detail" data-issue="playtime">
+          <h3>Playtime Not Updating <span class="tag-ref">PLATFORM</span></h3>
+          <p>Playtime is tracked client-side and periodically synced to Firestore.</p>
+          <h4>Quick Fix</h4>
+          <ul>
+            <li>Keep the game tab focused at least once every 60s.</li>
+            <li>Stay signed in (the tracker pauses if auth token expires).</li>
+            <li>Don't block <code>localStorage</code> or script execution.</li>
+          </ul>
+          <h4>Advanced Troubleshooting</h4>
+          <ul>
+            <li>Open DevTools Console; check for Firebase permission errors.</li>
+            <li>Clear site data (localStorage key: <code>gr.playtime.*</code>) if corrupt.</li>
+            <li>Multiple tabs: only the most active tab should accumulate time.</li>
+          </ul>
+          <a class="help-top-link" href="#category-platform">Back to Platform</a>
+        </div>
+
+        <div id="help-cloud-save" class="issue-detail" data-issue="cloud-save">
+          <h3>Cloud Save Issues <span class="tag-ref">PLATFORM</span></h3>
+          <p>If a game supports saves, they sync using Firestore or Supabase depending on the title.</p>
+          <h4>Fixes</h4>
+          <ul>
+            <li>Ensure network isn't blocking <code>firestore.googleapis.com</code>.</li>
+            <li>Disable aggressive privacy extensions temporarily.</li>
+            <li>Confirm you're signed into the same account across devices.</li>
+          </ul>
+          <a class="help-top-link" href="#category-platform">Back to Platform</a>
+        </div>
+
+        <div id="help-performance" class="issue-detail" data-issue="performance">
+          <h3>Performance / Low FPS <span class="tag-ref">PLATFORM</span></h3>
+          <p>Performance depends on browser GPU acceleration and asset caching.</p>
+          <h4>Quick Wins</h4>
+          <ul>
+            <li>Close other heavy tabs (video streaming, WebGL sites).</li>
+            <li>Use Chromium-based browser with hardware acceleration on.</li>
+            <li>Disable unnecessary overlays (recorders, extensions).</li>
+          </ul>
+          <h4>Advanced</h4>
+          <ul>
+            <li>Open DevTools Performance panel to spot layout thrash.</li>
+            <li>Clear cache if assets changed recently (Shift + Reload).</li>
+          </ul>
+          <a class="help-top-link" href="#category-platform">Back to Platform</a>
+        </div>
+
+        <div id="help-notifications" class="issue-detail" data-issue="notifications">
+          <h3>Notifications <span class="tag-ref">PLATFORM</span> <span style="background:rgba(255,191,0,0.15); border:1px solid rgba(255,191,0,0.4); color:#ffbf00; padding:2px 8px; border-radius:12px; font-size:.65rem; font-weight:700; letter-spacing:.8px; margin-left:8px;">COMING SOON</span></h3>
+          <p>Browser notifications for new games, updates, and community events are currently in development.</p>
+          <h4>Planned Features</h4>
+          <ul>
+            <li>New game releases in genres you play.</li>
+            <li>Platform updates and maintenance notices.</li>
+            <li>Community event announcements.</li>
+            <li>Developer updates for games you follow.</li>
+            <li>Playtime milestones and achievements.</li>
+          </ul>
+          <h4>When Available</h4>
+          <p>When notifications launch, you'll be prompted to enable them on your first visit. You can also enable them manually via browser settings &gt; Site Permissions &gt; Notifications for glitchrealm.ca.</p>
+          <h4>Privacy First</h4>
+          <ul>
+            <li>Opt-in only – we'll never enable without your permission.</li>
+            <li>Easy opt-out anytime via browser settings.</li>
+            <li>Frequency controls to prevent notification fatigue.</li>
+          </ul>
+          <p style="font-size:.75rem; opacity:.7; margin-top:12px;"><strong>Expected Release:</strong> Q1 2026. Follow our updates for launch announcements.</p>
+          <a class="help-top-link" href="#category-platform">Back to Platform</a>
+        </div>
+
+        <div id="help-mobile" class="issue-detail" data-issue="mobile">
+          <h3>Mobile Experience <span class="tag-ref">PLATFORM</span></h3>
+          <p>GlitchRealm works on mobile browsers and can be installed as a PWA for app-like functionality.</p>
+          <h4>Installing as PWA</h4>
+          <ul>
+            <li><strong>Android Chrome:</strong> Tap menu (⋮) &gt; Add to Home screen.</li>
+            <li><strong>iOS Safari:</strong> Tap share icon &gt; Add to Home Screen.</li>
+            <li>Launch from home screen for fullscreen mode without browser UI.</li>
+          </ul>
+          <h4>Mobile Performance Tips</h4>
+          <ul>
+            <li>Close other apps to free up RAM.</li>
+            <li>Use Wi-Fi for best loading speeds.</li>
+            <li>Some WebGL games may perform better on tablets vs. phones.</li>
+            <li>Landscape orientation recommended for most games.</li>
+          </ul>
+          <h4>Known Mobile Limitations</h4>
+          <ul>
+            <li>Keyboard-heavy games may be difficult on touchscreen.</li>
+            <li>Some browsers (Safari) have limited WebGL support.</li>
+            <li>Audio may require user interaction to start (browser policy).</li>
+          </ul>
+          <a class="help-top-link" href="#category-platform">Back to Platform</a>
+        </div>
+
+        <div id="help-keyboard-shortcuts" class="issue-detail" data-issue="shortcuts">
+          <h3>Keyboard Shortcuts <span class="tag-ref">PLATFORM</span></h3>
+          <p>Speed up navigation with these keyboard shortcuts.</p>
+          <h4>Global Shortcuts</h4>
+          <ul>
+            <li><code>Ctrl + /</code>: Open support chatbot.</li>
+            <li><code>Ctrl + K</code>: Quick search (when available).</li>
+            <li><code>Esc</code>: Close modals and overlays.</li>
+          </ul>
+          <h4>In-Game</h4>
+          <ul>
+            <li><code>F11</code>: Toggle fullscreen (browser-dependent).</li>
+            <li><code>M</code>: Mute/unmute (if supported by game).</li>
+            <li><code>P</code>: Pause (if supported by game).</li>
+          </ul>
+          <p style="font-size:.75rem; opacity:.75; margin-top:10px;">Note: Game-specific shortcuts vary. Check each game's controls page.</p>
+          <a class="help-top-link" href="#category-platform">Back to Platform</a>
+        </div>
+
+        <div id="help-game-controllers" class="issue-detail" data-issue="controllers">
+          <h3>Game Controllers <span class="tag-ref">PLATFORM</span></h3>
+          <p>Many games support USB or Bluetooth gamepads via the Gamepad API.</p>
+          <h4>Supported Controllers</h4>
+          <ul>
+            <li>Xbox One / Series X|S controllers (wired or Bluetooth).</li>
+            <li>PlayStation DualShock 4 / DualSense (via USB or Bluetooth).</li>
+            <li>Nintendo Switch Pro Controller (Bluetooth).</li>
+            <li>Generic USB/Bluetooth HID gamepads.</li>
+          </ul>
+          <h4>Setup</h4>
+          <ul>
+            <li>Connect controller before launching game.</li>
+            <li>Press any button to activate detection.</li>
+            <li>Check game settings for button mapping.</li>
+          </ul>
+          <h4>Troubleshooting</h4>
+          <ul>
+            <li>Browser must support Gamepad API (Chrome, Edge, Firefox).</li>
+            <li>Bluetooth controllers may have input lag on some systems.</li>
+            <li>Test controller at <code>gamepad-tester.com</code> if issues persist.</li>
+          </ul>
+          <a class="help-top-link" href="#category-platform">Back to Platform</a>
+        </div>
+        </div>
+      </div>
+
+      <!-- DEVELOPERS CATEGORY -->
+      <div id="category-developers" class="category-section">
+        <button class="back-to-categories">Back to Categories</button>
+        <hr class="help-section-divider" style="margin-top:0;" />
+        <div style="margin-bottom:24px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a class="contact-chip" href="#help-submit-game">Submit Game</a>
+          <a class="contact-chip" href="#help-branding">Branding</a>
+          <a class="contact-chip" href="#help-cover-art">Cover Art</a>
+          <a class="contact-chip" href="#help-developer-api">API & Integration</a>
+        </div>
+        <div class="support-section">
+        <h2 style="font-size:1.8rem; margin-bottom:20px;">Developer Resources</h2>
+
+        <div id="help-submit-game" class="issue-detail" data-issue="submit-game">
+          <h3>Submitting a Game <span class="tag-ref">DEVELOPERS</span></h3>
+          <p>Use the Submit Game page (requires verified or developer status).</p>
+          <h4>Requirements</h4>
+          <ul>
+            <li>Cover image (PNG/JPG) ≤ 1MB.</li>
+            <li>Unique slug (a-z, 0-9, dashes).</li>
+            <li>Short + long description (avoid raw HTML script tags).</li>
+          </ul>
+          <h4>After Submitting</h4>
+          <p>Status begins as <code>draft</code> or <code>pending</code> until staffed review.</p>
+          <a class="help-top-link" href="#category-developers">Back to Developers</a>
+        </div>
+
+        <div id="help-branding" class="issue-detail" data-issue="branding">
+          <h3>Branding & Assets <span class="tag-ref">DEVELOPERS</span></h3>
+          <p>Follow consistent visual identity for listing and badges.</p>
+          <h4>Guidelines</h4>
+          <ul>
+            <li>High contrast logo (transparent PNG).</li>
+            <li>No copyrighted third‑party art unless you own rights.</li>
+            <li>Keep cover safe-area (avoid vital text near edges).</li>
+          </ul>
+          <a class="help-top-link" href="#category-developers">Back to Developers</a>
+        </div>
+
+        <div id="help-cover-art" class="issue-detail" data-issue="cover-art">
+          <h3>Cover Art Specs <span class="tag-ref">DEVELOPERS</span></h3>
+          <p>Recommended size 1024×576 (16:9). Smaller images are accepted but will be upscaled which can soften detail.</p>
+          <p style="font-size:.75rem; opacity:.75; margin-top:6px;">Upload pipeline is currently in <strong>beta</strong> (testing stability + storage quotas). If the direct upload fails or is temporarily disabled, you can still provide a hosted image URL (CDN, GitHub raw, etc.) and it will render normally.</p>
+          <h4>Best Practices</h4>
+          <ul>
+            <li>Keep text large & readable.</li>
+            <li>Export at 80–90% quality (optimize size).</li>
+            <li>Avoid heavy motion blur – crisp edges compress better.</li>
+          </ul>
+          <a class="help-top-link" href="#category-developers">Back to Developers</a>
+        </div>
+
+        <div id="help-developer-api" class="issue-detail" data-issue="developer-api">
+          <h3>Developer API & Integration <span class="tag-ref">DEVELOPERS</span></h3>
+          <p>Planning to integrate with GlitchRealm or build custom tools?</p>
+          <h4>Current Availability</h4>
+          <p>We don't yet have a public REST API. Authentication and game data are managed through Firebase/Firestore with direct client SDK access.</p>
+          <h4>What You Can Do</h4>
+          <ul>
+            <li>Use Firebase SDK for auth integration in your games.</li>
+            <li>Access Firestore for playtime/save data (with proper security rules).</li>
+            <li>Embed GlitchRealm games in iframes (check game-specific permissions).</li>
+          </ul>
+          <h4>Firebase Integration Setup</h4>
+          <p>To integrate GlitchRealm Hub Sign-In with your game or application:</p>
+          <ol>
+            <li><strong>Request Firebase Config:</strong> Email <a href="mailto:developers@glitchrealm.ca" style="color:#00fff9;">developers@glitchrealm.ca</a> with your use case and domain name.</li>
+            <li><strong>Domain Authorization:</strong> We'll authorize your domain for Firebase authentication.</li>
+            <li><strong>Receive Config:</strong> You'll receive the Firebase configuration needed for integration.</li>
+            <li><strong>Implement Sign-In:</strong> Use the provided config to enable GlitchRealm Hub Sign-In on your domain.</li>
+          </ol>
+          <p style="background:rgba(0,255,249,0.05); border-left:3px solid #00fff9; padding:10px 14px; margin:12px 0; font-size:.85rem;"><strong>Supported Authentication Methods:</strong> GitHub, Google, Email/Password, Phone, Anonymous sign-in, and SMS Multi-factor Authentication (MFA).</p>
+          <p style="background:rgba(255,170,0,0.05); border-left:3px solid #ffaa00; padding:10px 14px; margin:12px 0; font-size:.85rem;"><strong>Requirements:</strong> You must provide your verified GlitchRealm UID (found in your <a href="user-portal.html" style="color:#ffaa00; text-decoration:underline;">User Portal</a> under your name) and have at least one submitted game that we can review for safety and quality assurance before granting Firebase access.</p>
+          <p style="background:rgba(0,255,249,0.05); border-left:3px solid #00fff9; padding:10px 14px; margin:12px 0; font-size:.85rem;"><strong>Note:</strong> Domain authorization is required for security. Include your exact domain (e.g., yourgame.example.com) in your request.</p>
+          <h4>Upcoming Features</h4>
+          <ul>
+            <li>Public API for game stats and leaderboards (planned Q1 2026).</li>
+            <li>Webhooks for game events (in development).</li>
+            <li>OAuth integration for third-party services.</li>
+          </ul>
+          <p>Interested in early access to upcoming features? Email <a href="mailto:developers@glitchrealm.ca" style="color:#00fff9;">developers@glitchrealm.ca</a> with your use case.</p>
+          <a class="help-top-link" href="#category-developers">Back to Developers</a>
+        </div>
+        </div>
+      </div>
+
+      <!-- LEGAL & POLICIES CATEGORY -->
+      <div id="category-legal" class="category-section">
+        <button class="back-to-categories">Back to Categories</button>
+        <hr class="help-section-divider" style="margin-top:0;" />
+        <div style="margin-bottom:24px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a class="contact-chip" href="terms-of-service.html">Terms of Service</a>
+          <a class="contact-chip" href="privacy-policy.html">Privacy Policy</a>
+          <a class="contact-chip" href="cookie-policy.html">Cookie Policy</a>
+          <a class="contact-chip" href="eula.html">EULA</a>
+          <a class="contact-chip" href="refund-policy.html">Refund Policy</a>
+          <a class="contact-chip" href="copyright-dmca.html">DMCA</a>
+          <a class="contact-chip" href="#help-legal-general">Legal Help</a>
+        </div>
+        <div class="support-section">
+        <h2 style="font-size:1.8rem; margin-bottom:20px;">Legal & Policies</h2>
+
+        <div id="help-legal-general" class="issue-detail" data-issue="legal-general">
+          <h3>Legal Information Overview <span class="tag-ref">LEGAL</span></h3>
+          <p>GlitchRealm is committed to transparency and legal compliance. All our policies are available for review.</p>
+          <h4>Key Legal Documents</h4>
+          <ul>
+            <li><a href="terms-of-service.html" style="color:#00f5ff;">Terms of Service</a> - Your agreement to use GlitchRealm</li>
+            <li><a href="privacy-policy.html" style="color:#00f5ff;">Privacy Policy</a> - How we collect and protect your data</li>
+            <li><a href="cookie-policy.html" style="color:#00f5ff;">Cookie Policy</a> - Information about cookies and tracking</li>
+            <li><a href="eula.html" style="color:#00f5ff;">End User License Agreement (EULA)</a> - Software license terms</li>
+            <li><a href="refund-policy.html" style="color:#00f5ff;">Refund Policy</a> - Donation and payment refund guidelines</li>
+            <li><a href="copyright-dmca.html" style="color:#00f5ff;">Copyright & DMCA</a> - Intellectual property and takedown procedures</li>
+            <li><a href="legal-information.html" style="color:#00f5ff;">Legal Information Hub</a> - Comprehensive legal resources</li>
+            <li><a href="legal-definitions.html" style="color:#00f5ff;">Legal Definitions</a> - Terminology used in our policies</li>
+          </ul>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-terms" class="issue-detail" data-issue="terms">
+          <h3>Terms of Service <span class="tag-ref">LEGAL</span></h3>
+          <p>By using GlitchRealm, you agree to our Terms of Service. Key points include:</p>
+          <h4>Account Responsibilities</h4>
+          <ul>
+            <li>You must be 13 years or older to create an account</li>
+            <li>You are responsible for maintaining account security</li>
+            <li>One account per person; no account sharing</li>
+            <li>Accurate information required for verification</li>
+          </ul>
+          <h4>Acceptable Use</h4>
+          <ul>
+            <li>No harassment, hate speech, or illegal content</li>
+            <li>No cheating, exploits, or automated access</li>
+            <li>Respect intellectual property rights</li>
+            <li>No unauthorized commercial use</li>
+          </ul>
+          <h4>Content & Submissions</h4>
+          <ul>
+            <li>You retain rights to your submitted games</li>
+            <li>You grant GlitchRealm license to display and distribute your content</li>
+            <li>You must own or have rights to all submitted content</li>
+            <li>We reserve the right to remove content that violates policies</li>
+          </ul>
+          <p style="margin-top:14px;">Read the full <a href="terms-of-service.html" style="color:#00f5ff;">Terms of Service</a> for complete details.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-dmca" class="issue-detail" data-issue="dmca">
+          <h3>Copyright & DMCA Takedowns <span class="tag-ref">LEGAL</span></h3>
+          <p>We respect intellectual property rights and comply with the Digital Millennium Copyright Act (DMCA).</p>
+          <h4>Reporting Copyright Infringement</h4>
+          <ul>
+            <li>Email <a href="mailto:legal@glitchrealm.ca" style="color:#00f5ff;">legal@glitchrealm.ca</a> with subject "DMCA Takedown Request"</li>
+            <li>Include: Your contact info, description of copyrighted work, location of infringing content</li>
+            <li>Provide statement of good faith belief and accuracy under penalty of perjury</li>
+            <li>Include physical or electronic signature</li>
+          </ul>
+          <h4>Counter-Notice Process</h4>
+          <p>If your content was removed and you believe it was a mistake, you can file a counter-notice following the process outlined in our <a href="copyright-dmca.html" style="color:#00f5ff;">DMCA Policy</a>.</p>
+          <h4>Repeat Infringers</h4>
+          <p>Users with multiple valid DMCA claims may have their accounts terminated per our policy.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-refunds" class="issue-detail" data-issue="refunds">
+          <h3>Refund Policy <span class="tag-ref">LEGAL</span></h3>
+          <p>GlitchRealm is a free platform. Our refund policy applies to donations and any future premium features.</p>
+          <h4>Donations</h4>
+          <ul>
+            <li>Donations via Buy Me a Coffee are generally non-refundable</li>
+            <li>Refunds may be granted for duplicate charges or technical errors</li>
+            <li>Contact <a href="mailto:support@glitchrealm.ca" style="color:#00f5ff;">support@glitchrealm.ca</a> within 14 days for donation issues</li>
+          </ul>
+          <h4>Future Premium Features</h4>
+          <ul>
+            <li>If we introduce paid features, refunds will be available within 14 days</li>
+            <li>Refunds only for unused or defective services</li>
+            <li>Abusive refund requests may result in account restrictions</li>
+          </ul>
+          <p style="margin-top:14px;">Full details in our <a href="refund-policy.html" style="color:#00f5ff;">Refund Policy</a>.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-cookies" class="issue-detail" data-issue="cookies">
+          <h3>Cookies & Tracking <span class="tag-ref">LEGAL</span></h3>
+          <p>We use cookies and similar technologies to provide and improve our services.</p>
+          <h4>Types of Cookies We Use</h4>
+          <ul>
+            <li><strong>Essential:</strong> Authentication, session management, security (required)</li>
+            <li><strong>Functional:</strong> User preferences, language settings, playtime tracking</li>
+            <li><strong>Analytics:</strong> Google Analytics for usage patterns (can be disabled)</li>
+            <li><strong>Third-Party:</strong> Firebase, Supabase for backend services</li>
+          </ul>
+          <h4>Managing Cookies</h4>
+          <ul>
+            <li>Browser settings: Most browsers allow blocking/deleting cookies</li>
+            <li>Privacy extensions: uBlock Origin, Privacy Badger supported</li>
+            <li>Do Not Track: We respect DNT browser signals where feasible</li>
+          </ul>
+          <h4>Impact of Blocking Cookies</h4>
+          <p>Blocking essential cookies will prevent sign-in and core features. Blocking analytics cookies has no functional impact.</p>
+          <p style="margin-top:14px;">See our <a href="cookie-policy.html" style="color:#00f5ff;">Cookie Policy</a> for complete information.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-data-requests" class="issue-detail" data-issue="data-requests">
+          <h3>Data Requests & Rights <span class="tag-ref">LEGAL</span></h3>
+          <p>Under privacy laws like GDPR and CCPA, you have rights regarding your personal data.</p>
+          <h4>Your Rights</h4>
+          <ul>
+            <li><strong>Access:</strong> Request a copy of all data we hold about you</li>
+            <li><strong>Rectification:</strong> Correct inaccurate personal information</li>
+            <li><strong>Erasure:</strong> Request deletion of your account and data ("right to be forgotten")</li>
+            <li><strong>Portability:</strong> Receive your data in a structured, machine-readable format</li>
+            <li><strong>Objection:</strong> Object to processing of your data for certain purposes</li>
+          </ul>
+          <h4>How to Exercise Your Rights</h4>
+          <ol style="margin-left:20px; font-size:.82rem; line-height:1.6;">
+            <li>Email <a href="mailto:legal@glitchrealm.ca" style="color:#00f5ff;">legal@glitchrealm.ca</a> with subject "Data Request"</li>
+            <li>Specify which right you wish to exercise</li>
+            <li>Provide your account email for verification</li>
+            <li>We will respond within 30 days as required by law</li>
+          </ol>
+          <h4>Account Deletion</h4>
+          <p>You can delete your account directly from <a href="delete-account.html" style="color:#00f5ff;">User Portal > Settings > Delete Account</a>. This removes all personal data within 30 days.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-age-restrictions" class="issue-detail" data-issue="age-restrictions">
+          <h3>Age Requirements & Parental Consent <span class="tag-ref">LEGAL</span></h3>
+          <p>GlitchRealm complies with COPPA and international age verification requirements.</p>
+          <h4>Minimum Age</h4>
+          <ul>
+            <li>Users must be <strong>13 years or older</strong> to create an account (US law)</li>
+            <li>EU users must be 16+ or have parental consent</li>
+            <li>Age verification may be required for certain features</li>
+          </ul>
+          <h4>Parental Rights</h4>
+          <ul>
+            <li>Parents can request access to their child's data</li>
+            <li>Parents can request deletion of minor accounts</li>
+            <li>Contact <a href="mailto:legal@glitchrealm.ca" style="color:#00f5ff;">legal@glitchrealm.ca</a> with proof of guardianship</li>
+          </ul>
+          <h4>Content Rating</h4>
+          <p>Most games are suitable for ages 13+. Games with mature content are clearly labeled. Parents should supervise younger users.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+        </div>
+      </div>
+
+      <!-- LEGAL & POLICIES CATEGORY -->
+      <div id="category-legal" class="category-section">
+        <button class="back-to-categories">Back to Categories</button>
+        <hr class="help-section-divider" style="margin-top:0;" />
+        <div style="margin-bottom:24px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a class="contact-chip" href="terms-of-service.html">Terms of Service</a>
+          <a class="contact-chip" href="privacy-policy.html">Privacy Policy</a>
+          <a class="contact-chip" href="cookie-policy.html">Cookie Policy</a>
+          <a class="contact-chip" href="eula.html">EULA</a>
+          <a class="contact-chip" href="refund-policy.html">Refund Policy</a>
+          <a class="contact-chip" href="copyright-dmca.html">DMCA</a>
+          <a class="contact-chip" href="#help-legal-general">Legal Help</a>
+        </div>
+        <div class="support-section">
+        <h2 style="font-size:1.8rem; margin-bottom:20px;">Legal & Policies</h2>
+
+        <div id="help-legal-general" class="issue-detail" data-issue="legal-general">
+          <h3>Legal Information Overview <span class="tag-ref">LEGAL</span></h3>
+          <p>GlitchRealm is committed to transparency and legal compliance. All our policies are available for review.</p>
+          <h4>Key Legal Documents</h4>
+          <ul>
+            <li><a href="terms-of-service.html" style="color:#00f5ff;">Terms of Service</a> - Your agreement to use GlitchRealm</li>
+            <li><a href="privacy-policy.html" style="color:#00f5ff;">Privacy Policy</a> - How we collect and protect your data</li>
+            <li><a href="cookie-policy.html" style="color:#00f5ff;">Cookie Policy</a> - Information about cookies and tracking</li>
+            <li><a href="eula.html" style="color:#00f5ff;">End User License Agreement (EULA)</a> - Software license terms</li>
+            <li><a href="refund-policy.html" style="color:#00f5ff;">Refund Policy</a> - Donation and payment refund guidelines</li>
+            <li><a href="copyright-dmca.html" style="color:#00f5ff;">Copyright & DMCA</a> - Intellectual property and takedown procedures</li>
+            <li><a href="legal-information.html" style="color:#00f5ff;">Legal Information Hub</a> - Comprehensive legal resources</li>
+            <li><a href="legal-definitions.html" style="color:#00f5ff;">Legal Definitions</a> - Terminology used in our policies</li>
+          </ul>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-terms" class="issue-detail" data-issue="terms">
+          <h3>Terms of Service <span class="tag-ref">LEGAL</span></h3>
+          <p>By using GlitchRealm, you agree to our Terms of Service. Key points include:</p>
+          <h4>Account Responsibilities</h4>
+          <ul>
+            <li>You must be 13 years or older to create an account</li>
+            <li>You are responsible for maintaining account security</li>
+            <li>One account per person; no account sharing</li>
+            <li>Accurate information required for verification</li>
+          </ul>
+          <h4>Acceptable Use</h4>
+          <ul>
+            <li>No harassment, hate speech, or illegal content</li>
+            <li>No cheating, exploits, or automated access</li>
+            <li>Respect intellectual property rights</li>
+            <li>No unauthorized commercial use</li>
+          </ul>
+          <h4>Content & Submissions</h4>
+          <ul>
+            <li>You retain rights to your submitted games</li>
+            <li>You grant GlitchRealm license to display and distribute your content</li>
+            <li>You must own or have rights to all submitted content</li>
+            <li>We reserve the right to remove content that violates policies</li>
+          </ul>
+          <p style="margin-top:14px;">Read the full <a href="terms-of-service.html" style="color:#00f5ff;">Terms of Service</a> for complete details.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-dmca" class="issue-detail" data-issue="dmca">
+          <h3>Copyright & DMCA Takedowns <span class="tag-ref">LEGAL</span></h3>
+          <p>We respect intellectual property rights and comply with the Digital Millennium Copyright Act (DMCA).</p>
+          <h4>Reporting Copyright Infringement</h4>
+          <ul>
+            <li>Email <a href="mailto:legal@glitchrealm.ca" style="color:#00f5ff;">legal@glitchrealm.ca</a> with subject "DMCA Takedown Request"</li>
+            <li>Include: Your contact info, description of copyrighted work, location of infringing content</li>
+            <li>Provide statement of good faith belief and accuracy under penalty of perjury</li>
+            <li>Include physical or electronic signature</li>
+          </ul>
+          <h4>Counter-Notice Process</h4>
+          <p>If your content was removed and you believe it was a mistake, you can file a counter-notice following the process outlined in our <a href="copyright-dmca.html" style="color:#00f5ff;">DMCA Policy</a>.</p>
+          <h4>Repeat Infringers</h4>
+          <p>Users with multiple valid DMCA claims may have their accounts terminated per our policy.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-refunds" class="issue-detail" data-issue="refunds">
+          <h3>Refund Policy <span class="tag-ref">LEGAL</span></h3>
+          <p>GlitchRealm is a free platform. Our refund policy applies to donations and any future premium features.</p>
+          <h4>Donations</h4>
+          <ul>
+            <li>Donations via Buy Me a Coffee are generally non-refundable</li>
+            <li>Refunds may be granted for duplicate charges or technical errors</li>
+            <li>Contact <a href="mailto:support@glitchrealm.ca" style="color:#00f5ff;">support@glitchrealm.ca</a> within 14 days for donation issues</li>
+          </ul>
+          <h4>Future Premium Features</h4>
+          <ul>
+            <li>If we introduce paid features, refunds will be available within 14 days</li>
+            <li>Refunds only for unused or defective services</li>
+            <li>Abusive refund requests may result in account restrictions</li>
+          </ul>
+          <p style="margin-top:14px;">Full details in our <a href="refund-policy.html" style="color:#00f5ff;">Refund Policy</a>.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-cookies" class="issue-detail" data-issue="cookies">
+          <h3>Cookies & Tracking <span class="tag-ref">LEGAL</span></h3>
+          <p>We use cookies and similar technologies to provide and improve our services.</p>
+          <h4>Types of Cookies We Use</h4>
+          <ul>
+            <li><strong>Essential:</strong> Authentication, session management, security (required)</li>
+            <li><strong>Functional:</strong> User preferences, language settings, playtime tracking</li>
+            <li><strong>Analytics:</strong> Google Analytics for usage patterns (can be disabled)</li>
+            <li><strong>Third-Party:</strong> Firebase, Supabase for backend services</li>
+          </ul>
+          <h4>Managing Cookies</h4>
+          <ul>
+            <li>Browser settings: Most browsers allow blocking/deleting cookies</li>
+            <li>Privacy extensions: uBlock Origin, Privacy Badger supported</li>
+            <li>Do Not Track: We respect DNT browser signals where feasible</li>
+          </ul>
+          <h4>Impact of Blocking Cookies</h4>
+          <p>Blocking essential cookies will prevent sign-in and core features. Blocking analytics cookies has no functional impact.</p>
+          <p style="margin-top:14px;">See our <a href="cookie-policy.html" style="color:#00f5ff;">Cookie Policy</a> for complete information.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-data-requests" class="issue-detail" data-issue="data-requests">
+          <h3>Data Requests & Rights <span class="tag-ref">LEGAL</span></h3>
+          <p>Under privacy laws like GDPR and CCPA, you have rights regarding your personal data.</p>
+          <h4>Your Rights</h4>
+          <ul>
+            <li><strong>Access:</strong> Request a copy of all data we hold about you</li>
+            <li><strong>Rectification:</strong> Correct inaccurate personal information</li>
+            <li><strong>Erasure:</strong> Request deletion of your account and data ("right to be forgotten")</li>
+            <li><strong>Portability:</strong> Receive your data in a structured, machine-readable format</li>
+            <li><strong>Objection:</strong> Object to processing of your data for certain purposes</li>
+          </ul>
+          <h4>How to Exercise Your Rights</h4>
+          <ol style="margin-left:20px; font-size:.82rem; line-height:1.6;">
+            <li>Email <a href="mailto:legal@glitchrealm.ca" style="color:#00f5ff;">legal@glitchrealm.ca</a> with subject "Data Request"</li>
+            <li>Specify which right you wish to exercise</li>
+            <li>Provide your account email for verification</li>
+            <li>We will respond within 30 days as required by law</li>
+          </ol>
+          <h4>Account Deletion</h4>
+          <p>You can delete your account directly from <a href="delete-account.html" style="color:#00f5ff;">User Portal > Settings > Delete Account</a>. This removes all personal data within 30 days.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+
+        <div id="help-age-restrictions" class="issue-detail" data-issue="age-restrictions">
+          <h3>Age Requirements & Parental Consent <span class="tag-ref">LEGAL</span></h3>
+          <p>GlitchRealm complies with COPPA and international age verification requirements.</p>
+          <h4>Minimum Age</h4>
+          <ul>
+            <li>Users must be <strong>13 years or older</strong> to create an account (US law)</li>
+            <li>EU users must be 16+ or have parental consent</li>
+            <li>Age verification may be required for certain features</li>
+          </ul>
+          <h4>Parental Rights</h4>
+          <ul>
+            <li>Parents can request access to their child's data</li>
+            <li>Parents can request deletion of minor accounts</li>
+            <li>Contact <a href="mailto:legal@glitchrealm.ca" style="color:#00f5ff;">legal@glitchrealm.ca</a> with proof of guardianship</li>
+          </ul>
+          <h4>Content Rating</h4>
+          <p>Most games are suitable for ages 13+. Games with mature content are clearly labeled. Parents should supervise younger users.</p>
+          <a class="help-top-link" href="#category-legal">Back to Legal</a>
+        </div>
+        </div>
+      </div>
+
+      <!-- COMMUNITY CATEGORY -->
+      <div id="category-community" class="category-section">
+        <button class="back-to-categories">Back to Categories</button>
+        <hr class="help-section-divider" style="margin-top:0;" />
+        <div style="margin-bottom:24px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a class="contact-chip" href="#help-community-guidelines">Community Guidelines</a>
+          <a class="contact-chip" href="community.html">Forums</a>
+          <a class="contact-chip" href="moderation.html">Moderation</a>
+        </div>
+        <div class="support-section">
+        <h2 style="font-size:1.8rem; margin-bottom:20px;">Community</h2>
+
+        <div id="help-community-guidelines" class="issue-detail" data-issue="community">
+          <h3>Community Guidelines <span class="tag-ref">COMMUNITY</span></h3>
+          <p>GlitchRealm is a welcoming space for all gamers and creators. Please follow these guidelines.</p>
+          <h4>Be Respectful</h4>
+          <ul>
+            <li>No harassment, hate speech, or discriminatory language.</li>
+            <li>Respect other players' skill levels and learning curves.</li>
+            <li>Constructive criticism is welcome; toxicity is not.</li>
+          </ul>
+          <h4>Keep It Safe</h4>
+          <ul>
+            <li>No NSFW content in public areas (avatars, usernames, comments).</li>
+            <li>Don't share personal information publicly.</li>
+            <li>Report any content that makes you uncomfortable.</li>
+          </ul>
+          <h4>Play Fair</h4>
+          <ul>
+            <li>No cheating, exploiting bugs, or manipulating leaderboards.</li>
+            <li>Don't spam chat or flood game submissions.</li>
+            <li>Give credit when using others' work or ideas.</li>
+          </ul>
+          <h4>Enforcement</h4>
+          <p>Violations may result in warnings, content removal, or account suspension. Serious violations are reported to authorities where required by law.</p>
+          <a class="help-top-link" href="#category-community">Back to Community</a>
+        </div>
+        </div>
+      </div>
+
+      <!-- CONTACT CATEGORY -->
+      <div id="category-contact" class="category-section">
+        <button class="back-to-categories">Back to Categories</button>
+        <hr class="help-section-divider" style="margin-top:0;" />
+        <div style="margin-bottom:24px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a class="contact-chip" href="mailto:support@glitchrealm.ca">General Support</a>
+          <a class="contact-chip" href="mailto:legal@glitchrealm.ca">Legal</a>
+          <a class="contact-chip" href="mailto:security@glitchrealm.ca">Security</a>
+          <a class="contact-chip" href="mailto:developers@glitchrealm.ca">Developer Support</a>
+          <a class="contact-chip" href="mailto:moderation@glitchrealm.ca">Moderation</a>
+          <a class="contact-chip" href="#" id="open-support-form-chip">Support Form</a>
+        </div>
+        <div class="support-section">
+        <h2 style="font-size:1.8rem; margin-bottom:20px;">Contact Us</h2>
+        
+        <div style="display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); margin-bottom:30px;">
+          <div style="padding:18px 20px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); border-radius:12px;">
+            <h4 style="margin:0 0 8px; font-size:1rem; color:#00f5ff;">General Support</h4>
+            <p style="margin:0 0 10px; font-size:.85rem; line-height:1.5; color:#c3d2d6;">Questions about your account, games, or platform features.</p>
+            <a href="mailto:support@glitchrealm.ca" class="contact-chip">support@glitchrealm.ca</a>
+          </div>
+          <div style="padding:18px 20px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); border-radius:12px;">
+            <h4 style="margin:0 0 8px; font-size:1rem; color:#00f5ff;">Legal Inquiries</h4>
+            <p style="margin:0 0 10px; font-size:.85rem; line-height:1.5; color:#c3d2d6;">Copyright, DMCA, data requests, terms of service, and legal matters.</p>
+            <a href="mailto:legal@glitchrealm.ca" class="contact-chip">legal@glitchrealm.ca</a>
+          </div>
+          <div style="padding:18px 20px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); border-radius:12px;">
+            <h4 style="margin:0 0 8px; font-size:1rem; color:#00f5ff;">Security Reports</h4>
+            <p style="margin:0 0 10px; font-size:.85rem; line-height:1.5; color:#c3d2d6;">Report vulnerabilities, account breaches, or security concerns.</p>
+            <a href="mailto:security@glitchrealm.ca" class="contact-chip">security@glitchrealm.ca</a>
+          </div>
+          <div style="padding:18px 20px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); border-radius:12px;">
+            <h4 style="margin:0 0 8px; font-size:1rem; color:#00f5ff;">Developer Support</h4>
+            <p style="margin:0 0 10px; font-size:.85rem; line-height:1.5; color:#c3d2d6;">Game submission, API access, and integration questions.</p>
+            <a href="mailto:developers@glitchrealm.ca" class="contact-chip">developers@glitchrealm.ca</a>
+          </div>
+          <div style="padding:18px 20px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); border-radius:12px;">
+            <h4 style="margin:0 0 8px; font-size:1rem; color:#00f5ff;">Moderation & Reports</h4>
+            <p style="margin:0 0 10px; font-size:.85rem; line-height:1.5; color:#c3d2d6;">Report inappropriate content, abuse, or policy violations.</p>
+            <a href="mailto:moderation@glitchrealm.ca" class="contact-chip">moderation@glitchrealm.ca</a>
+          </div>
+        </div>
+
+        <div style="margin-top:28px;">
+          <h4 style="margin:0 0 12px; font-size:1rem; color:#00f5ff;">Submit a Support Request</h4>
+          <p style="font-size:.85rem; margin-bottom:14px; color:#c3d2d6;">For detailed issues, use our support form for faster assistance.</p>
+          <button id="open-support-form" type="button" class="btn btn-primary">Open Support Form</button>
+        </div>
+        </div>
+      </div>
+
+      <!-- General Content (FAQ, Resources, etc.) - shown when no category is active -->
+      <div id="general-content">
+      <!-- Quick FAQ Section -->
+      <hr class="help-section-divider" />
+      <div class="support-section" id="faq">
+        <h2 style="font-size:1.8rem; margin-bottom:20px;">Frequently Asked Questions</h2>
+        <div class="faq-item">
+          <h4>How do I verify my account?</h4>
+          <p>Go to the User Portal and open the Verification section. Complete the brief form and a team member will review it.</p>
+        </div>
+        <div class="faq-item">
+          <h4>My playtime isn’t syncing.</h4>
+          <p>Make sure you are signed in on all tabs. Refresh the game tab and allow a few seconds for sync. If it persists, clear local storage using the test script.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Can I submit a game?</h4>
+          <p>Yes—verified creators or approved developers can submit via the Submit Game page. Cover image upload via Supabase is required.</p>
+        </div>
+        <div class="faq-item">
+          <h4>How do I report a bug?</h4>
+          <p>Use the in-game report option (if available) or email support@glitchrealm.ca with steps to reproduce and your browser version.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Can I change my display name?</h4>
+          <p>Yes. Open the User Portal and use the profile section. Changes may be rate‑limited to prevent abuse.</p>
+        </div>
+        <div class="faq-item">
+          <h4>What browsers are supported?</h4>
+          <p>Latest Chrome / Edge / Brave are recommended. Firefox works for most features; Safari may have reduced performance for WebGL titles.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Is my data secure?</h4>
+          <p>Authentication and core data use Firebase (Google infrastructure). Game cover uploads use Supabase storage. We never store plaintext passwords.</p>
+        </div>
+        <div class="faq-item">
+            <h4>How do I delete my account?</h4>
+            <p>From the User Portal open Settings &gt; Delete Account. This immediately schedules removal of profile + playtime data after a short safety delay.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Can I play games offline?</h4>
+          <p>Currently, most games require an active internet connection for asset loading and authentication. Some games may cache after first load, but full offline mode is not yet supported.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Do you have a mobile app?</h4>
+          <p>Not yet. GlitchRealm is optimized as a Progressive Web App (PWA). You can "Add to Home Screen" on mobile devices for an app-like experience.</p>
+        </div>
+        <div class="faq-item">
+          <h4>How do I report inappropriate content?</h4>
+          <p>Use the report button on game pages or contact moderation@glitchrealm.ca with the game title and specific details. Reports are reviewed within 24 hours.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Can I request a feature?</h4>
+          <p>Yes! Email support@glitchrealm.ca with your feature request or join our community discussions. Popular requests are tracked and prioritized.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Is GlitchRealm free?</h4>
+          <p>Yes, 100% free to use. Donations can be made via Buy Me a Coffee to help keep the platform running. Premium features may be introduced in the future.</p>
+        </div>
+        <div class="faq-item">
+          <h4>How often are new games added?</h4>
+          <p>New games are added as developers submit them and they pass our review process. Typically 2-5 new titles per month, with more during game jam seasons.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Is there an age limit for accounts?</h4>
+          <p>You must be 13 years or older to create an account per our Terms of Service. Parental consent is required for users under 18 in certain regions.</p>
+        </div>
+        <div class="faq-item">
+          <h4>How do I report copyright infringement?</h4>
+          <p>Email legal@glitchrealm.ca with subject "DMCA Takedown Request" including details of the copyrighted work and infringing content. See our Copyright & DMCA page for full requirements.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Can I request a copy of my data?</h4>
+          <p>Yes. Under GDPR/CCPA, you can request a copy of all data we hold about you. Email legal@glitchrealm.ca with subject "Data Request" and we'll respond within 30 days.</p>
+        </div>
+        <div class="faq-item">
+          <h4>What cookies does GlitchRealm use?</h4>
+          <p>We use essential cookies for authentication, functional cookies for preferences, and analytics cookies (optional). See our Cookie Policy for details and opt-out options.</p>
+        </div>
+      </div>
+
+      <!-- Additional Resources -->
+      <hr class="help-section-divider" />
+      <div class="support-section" id="additional-resources">
+        <h2 style="font-size:1.8rem; margin-bottom:20px;">Additional Resources</h2>
+        
+        <div style="display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); margin-bottom:30px;">
+
+
+          <!-- Support Development -->
+          <div style="padding:20px 22px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); border-radius:14px;">
+            <h4 style="margin:0 0 10px; font-size:1.05rem; color:#00f5ff; display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.2rem;">☕</span> Support Development
+            </h4>
+            <p style="font-size:.85rem; margin:0 0 12px; line-height:1.5; color:#c3d2d6;">Your contributions help keep GlitchRealm online and expanding.</p>
+            <div id="bmc-container"></div>
+          </div>
+
+          <!-- System Status -->
+          <div style="padding:20px 22px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.15); border-radius:14px;">
+            <h4 style="margin:0 0 10px; font-size:1.05rem; color:#00f5ff; display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.2rem;">📊</span> System Status
+            </h4>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="width:10px; height:10px; background:#00ff88; border-radius:50%; box-shadow:0 0 6px rgba(0,255,136,0.6);"></span>
+              <strong style="color:#00ff88; font-size:.85rem; letter-spacing:.4px;">All Systems Operational</strong>
+            </div>
+            <p style="font-size:.75rem; margin:0; opacity:.7;">Last updated: January 24, 2026</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Helpful Documentation -->
+      <div class="support-section" id="resources">
+        <h2 style="font-size:1.4rem; margin-bottom:18px;">Documentation & Links</h2>
+        <div style="display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); margin-top:16px;">
+          <div style="padding:14px 16px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.12); border-radius:10px;">
+            <h4 style="margin:0 0 6px; font-size:.95rem; color:#00f5ff;">Documentation</h4>
+            <ul style="font-size:.8rem; margin:4px 0 0 18px; padding:0; line-height:1.7; color:#c3d2d6;">
+              <li><a href="README.md" style="color:#00e3ff; text-decoration:none;">README.md</a> – Project overview</li>
+              <li><a href="planning.md" style="color:#00e3ff; text-decoration:none;">planning.md</a> – Development roadmap</li>
+              <li><a href="AVATAR_IMPLEMENTATION.md" style="color:#00e3ff; text-decoration:none;">Avatar Implementation</a> – Technical guide</li>
+            </ul>
+          </div>
+          <div style="padding:14px 16px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.12); border-radius:10px;">
+            <h4 style="margin:0 0 6px; font-size:.95rem; color:#00f5ff;">Legal & Policies</h4>
+            <ul style="font-size:.8rem; margin:4px 0 0 18px; padding:0; line-height:1.7; color:#c3d2d6;">
+              <li><a href="terms-of-service.html" style="color:#00e3ff; text-decoration:none;">Terms of Service</a></li>
+              <li><a href="privacy-policy.html" style="color:#00e3ff; text-decoration:none;">Privacy Policy</a></li>
+              <li><a href="LEGAL.md" style="color:#00e3ff; text-decoration:none;">Legal Information</a></li>
+            </ul>
+          </div>
+          <div style="padding:14px 16px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.12); border-radius:10px;">
+            <h4 style="margin:0 0 6px; font-size:.95rem; color:#00f5ff;">Developer Tools</h4>
+            <ul style="font-size:.8rem; margin:4px 0 0 18px; padding:0; line-height:1.7; color:#c3d2d6;">
+              <li><a href="submit-game.html" style="color:#00e3ff; text-decoration:none;">Submit a Game</a></li>
+              <li><a href="test-playtime.js" style="color:#00e3ff; text-decoration:none;">Playtime Debugger</a></li>
+              <li><a href="https://firebase.google.com/docs" target="_blank" rel="noopener" style="color:#00e3ff; text-decoration:none;">Firebase Docs ↗</a></li>
+              <li><a href="https://supabase.com/docs" target="_blank" rel="noopener" style="color:#00e3ff; text-decoration:none;">Supabase Docs ↗</a></li>
+            </ul>
+          </div>
+          <div style="padding:14px 16px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.12); border-radius:10px;">
+            <h4 style="margin:0 0 6px; font-size:.95rem; color:#00f5ff;">Testing Pages</h4>
+            <ul style="font-size:.8rem; margin:4px 0 0 18px; padding:0; line-height:1.7; color:#c3d2d6;">
+              <li><a href="playtime-test.html" style="color:#00e3ff; text-decoration:none;">Playtime Test</a></li>
+              <li><a href="test-modal.html" style="color:#00e3ff; text-decoration:none;">Modal Test</a></li>
+              <li><a href="test-dropdown.html" style="color:#00e3ff; text-decoration:none;">Dropdown Test</a></li>
+              <li><a href="test-delete-account.html" style="color:#00e3ff; text-decoration:none;">Delete Account Test</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <hr class="help-section-divider" />
+      <div class="support-section" id="detailed-help">
+        <h2>Detailed Help Guides</h2>
+        <p style="font-size:.85rem; opacity:.8; max-width:760px">Click any topic chip above or jump to a section below. Each guide lists quick fixes first, then advanced troubleshooting.</p>
+
+        <div id="help-reset-password" class="issue-detail" data-issue="reset-password">
+          <h3>Reset Password <span class="tag-ref">ACCOUNT</span></h3>
+          <p>If you forgot your password, use <strong>Forgot Password</strong> on the sign-in page. You'll receive an email with a link.</p>
+          <h4>Quick Steps</h4>
+          <ul>
+            <li>Open the sign in page &gt; Forgot Password.</li>
+            <li>Enter the email tied to your GlitchRealm account.</li>
+            <li>Click the link in the email within 15 minutes.</li>
+          </ul>
+          <h4>If Email Doesn't Arrive</h4>
+            <ul>
+              <li>Check spam / promotions folders.</li>
+              <li>Make sure you didn't sign up with a different email alias.</li>
+              <li>Wait 2–3 minutes; some providers delay new senders.</li>
+            </ul>
+          <h4>Link Says Expired</h4>
+          <p>Request a new reset. Only the most recent link works.</p>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-change-email" class="issue-detail" data-issue="change-email">
+          <h3>Change Email <span class="tag-ref">ACCOUNT</span></h3>
+          <p>In the User Portal, open <strong>Account Settings</strong> and use the Change Email form. You'll need to re-authenticate for security.</p>
+          <h4>Checklist</h4>
+          <ul>
+            <li>New email isn't already used on another account.</li>
+            <li>You are still signed in (token not expired).</li>
+            <li>Confirm any verification mail if required.</li>
+          </ul>
+          <h4>Common Errors</h4>
+          <ul>
+            <li><code>requires-recent-login</code>: Sign out & sign in again, then retry.</li>
+            <li><code>email-already-in-use</code>: That address already exists—use password reset instead.</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-verification" class="issue-detail" data-issue="verification">
+          <h3>Verification <span class="tag-ref">ACCOUNT</span></h3>
+          <p>Verification unlocks creator / submission features and a badge. Use the Verification form in the User Portal.</p>
+          <h4>Tips</h4>
+          <ul>
+            <li>Add a short description of what you build.</li>
+            <li>Provide links (GitHub, itch.io) if available.</li>
+            <li>Submissions are usually reviewed within 24–72h.</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-playtime" class="issue-detail" data-issue="playtime">
+          <h3>Playtime Not Updating <span class="tag-ref">PLATFORM</span></h3>
+          <p>Playtime is tracked client-side and periodically synced to Firestore.</p>
+          <h4>Quick Fix</h4>
+          <ul>
+            <li>Keep the game tab focused at least once every 60s.</li>
+            <li>Stay signed in (the tracker pauses if auth token expires).</li>
+            <li>Don’t block <code>localStorage</code> or script execution.</li>
+          </ul>
+          <h4>Advanced Troubleshooting</h4>
+          <ul>
+            <li>Open DevTools Console; check for Firebase permission errors.</li>
+            <li>Clear site data (localStorage key: <code>gr.playtime.*</code>) if corrupt.</li>
+            <li>Multiple tabs: only the most active tab should accumulate time.</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-cloud-save" class="issue-detail" data-issue="cloud-save">
+          <h3>Cloud Save Issues <span class="tag-ref">PLATFORM</span></h3>
+          <p>If a game supports saves, they sync using Firestore or Supabase depending on the title.</p>
+          <h4>Fixes</h4>
+          <ul>
+            <li>Ensure network isn't blocking <code>firestore.googleapis.com</code>.</li>
+            <li>Disable aggressive privacy extensions temporarily.</li>
+            <li>Confirm you're signed into the same account across devices.</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-performance" class="issue-detail" data-issue="performance">
+          <h3>Performance / Low FPS <span class="tag-ref">PLATFORM</span></h3>
+          <p>Performance depends on browser GPU acceleration and asset caching.</p>
+          <h4>Quick Wins</h4>
+          <ul>
+            <li>Close other heavy tabs (video streaming, WebGL sites).</li>
+            <li>Use Chromium-based browser with hardware acceleration on.</li>
+            <li>Disable unnecessary overlays (recorders, extensions).</li>
+          </ul>
+          <h4>Advanced</h4>
+          <ul>
+            <li>Open DevTools Performance panel to spot layout thrash.</li>
+            <li>Clear cache if assets changed recently (Shift + Reload).</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-submit-game" class="issue-detail" data-issue="submit-game">
+          <h3>Submitting a Game <span class="tag-ref">DEVELOPERS</span></h3>
+          <p>Use the Submit Game page (requires verified or developer status).</p>
+          <h4>Requirements</h4>
+          <ul>
+            <li>Cover image (PNG/JPG) ≤ 1MB.</li>
+            <li>Unique slug (a-z, 0-9, dashes).</li>
+            <li>Short + long description (avoid raw HTML script tags).</li>
+          </ul>
+          <h4>After Submitting</h4>
+          <p>Status begins as <code>draft</code> or <code>pending</code> until staffed review.</p>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-branding" class="issue-detail" data-issue="branding">
+          <h3>Branding & Assets <span class="tag-ref">DEVELOPERS</span></h3>
+          <p>Follow consistent visual identity for listing and badges.</p>
+          <h4>Guidelines</h4>
+          <ul>
+            <li>High contrast logo (transparent PNG).</li>
+            <li>No copyrighted third‑party art unless you own rights.</li>
+            <li>Keep cover safe-area (avoid vital text near edges).</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-cover-art" class="issue-detail" data-issue="cover-art">
+          <h3>Cover Art Specs <span class="tag-ref">DEVELOPERS</span></h3>
+          <p>Recommended size 1024×576 (16:9). Smaller images are accepted but will be upscaled which can soften detail.</p>
+          <p style="font-size:.75rem; opacity:.75; margin-top:6px;">Upload pipeline is currently in <strong>beta</strong> (testing stability + storage quotas). If the direct upload fails or is temporarily disabled, you can still provide a hosted image URL (CDN, GitHub raw, etc.) and it will render normally.</p>
+          <h4>Best Practices</h4>
+          <ul>
+            <li>Keep text large & readable.</li>
+            <li>Export at 80–90% quality (optimize size).</li>
+            <li>Avoid heavy motion blur – crisp edges compress better.</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-avatar" class="issue-detail" data-issue="avatar">
+          <h3>Profile Avatars <span class="tag-ref">ACCOUNT</span></h3>
+          <p>Upload or change your profile avatar from the User Portal. Avatars are stored securely in Supabase.</p>
+          <h4>Upload Requirements</h4>
+          <ul>
+            <li>Image formats: JPG, PNG, GIF (no animated GIFs).</li>
+            <li>Max file size: 2MB.</li>
+            <li>Recommended: 256×256 or larger square images.</li>
+            <li>Content must be appropriate (no NSFW, offensive, or copyrighted material).</li>
+          </ul>
+          <h4>Troubleshooting Upload Issues</h4>
+          <ul>
+            <li>If upload fails, check file size and format.</li>
+            <li>Try a different browser if issues persist.</li>
+            <li>Clear cache and cookies, then retry.</li>
+            <li>Contact support if you see storage quota errors.</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-privacy" class="issue-detail" data-issue="privacy">
+          <h3>Privacy & Data <span class="tag-ref">ACCOUNT</span></h3>
+          <p>We take your privacy seriously. See our full <a href="privacy-policy.html" style="color:#00f5ff;">Privacy Policy</a> for details.</p>
+          <h4>What Data We Collect</h4>
+          <ul>
+            <li>Account info: Email, display name, verification status.</li>
+            <li>Playtime data: Per-game session tracking (local + cloud sync).</li>
+            <li>Analytics: Page visits, feature usage (anonymized where possible).</li>
+            <li>Uploads: Avatar images, game cover art (if you're a developer).</li>
+          </ul>
+          <h4>Your Rights</h4>
+          <ul>
+            <li><strong>Access:</strong> Request a copy of your data via support@glitchrealm.ca.</li>
+            <li><strong>Deletion:</strong> Use the Delete Account feature in User Portal.</li>
+            <li><strong>Correction:</strong> Update profile info directly in User Portal.</li>
+            <li><strong>Opt-out:</strong> Disable analytics tracking in browser settings.</li>
+          </ul>
+          <h4>Third-Party Services</h4>
+          <p>We use Firebase (Google) and Supabase for backend services. Each follows their own privacy policies.</p>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-notifications" class="issue-detail" data-issue="notifications">
+          <h3>Notifications <span class="tag-ref">PLATFORM</span> <span style="background:rgba(255,191,0,0.15); border:1px solid rgba(255,191,0,0.4); color:#ffbf00; padding:2px 8px; border-radius:12px; font-size:.65rem; font-weight:700; letter-spacing:.8px; margin-left:8px;">COMING SOON</span></h3>
+          <p>Browser notifications for new games, updates, and community events are currently in development.</p>
+          <h4>Planned Features</h4>
+          <ul>
+            <li>New game releases in genres you play.</li>
+            <li>Platform updates and maintenance notices.</li>
+            <li>Community event announcements.</li>
+            <li>Developer updates for games you follow.</li>
+            <li>Playtime milestones and achievements.</li>
+          </ul>
+          <h4>When Available</h4>
+          <p>When notifications launch, you'll be prompted to enable them on your first visit. You can also enable them manually via browser settings &gt; Site Permissions &gt; Notifications for glitchrealm.ca.</p>
+          <h4>Privacy First</h4>
+          <ul>
+            <li>Opt-in only – we'll never enable without your permission.</li>
+            <li>Easy opt-out anytime via browser settings.</li>
+            <li>Frequency controls to prevent notification fatigue.</li>
+          </ul>
+          <p style="font-size:.75rem; opacity:.7; margin-top:12px;\"><strong>Expected Release:</strong> Q1 2026. Follow our updates for launch announcements.</p>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-mobile" class="issue-detail" data-issue="mobile">
+          <h3>Mobile Experience <span class="tag-ref">PLATFORM</span></h3>
+          <p>GlitchRealm works on mobile browsers and can be installed as a PWA for app-like functionality.</p>
+          <h4>Installing as PWA</h4>
+          <ul>
+            <li><strong>Android Chrome:</strong> Tap menu (⋮) &gt; Add to Home screen.</li>
+            <li><strong>iOS Safari:</strong> Tap share icon &gt; Add to Home Screen.</li>
+            <li>Launch from home screen for fullscreen mode without browser UI.</li>
+          </ul>
+          <h4>Mobile Performance Tips</h4>
+          <ul>
+            <li>Close other apps to free up RAM.</li>
+            <li>Use Wi-Fi for best loading speeds.</li>
+            <li>Some WebGL games may perform better on tablets vs. phones.</li>
+            <li>Landscape orientation recommended for most games.</li>
+          </ul>
+          <h4>Known Mobile Limitations</h4>
+          <ul>
+            <li>Keyboard-heavy games may be difficult on touchscreen.</li>
+            <li>Some browsers (Safari) have limited WebGL support.</li>
+            <li>Audio may require user interaction to start (browser policy).</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-keyboard-shortcuts" class="issue-detail" data-issue="shortcuts">
+          <h3>Keyboard Shortcuts <span class="tag-ref">PLATFORM</span></h3>
+          <p>Speed up navigation with these keyboard shortcuts.</p>
+          <h4>Global Shortcuts</h4>
+          <ul>
+            <li><code>Ctrl / ⌘ + /</code>: Open support chatbot.</li>
+            <li><code>Ctrl / ⌘ + K</code>: Quick search (when available).</li>
+            <li><code>Esc</code>: Close modals and overlays.</li>
+          </ul>
+          <h4>In-Game</h4>
+          <ul>
+            <li><code>F11</code>: Toggle fullscreen (browser-dependent).</li>
+            <li><code>M</code>: Mute/unmute (if supported by game).</li>
+            <li><code>P</code>: Pause (if supported by game).</li>
+          </ul>
+          <p style="font-size:.75rem; opacity:.75; margin-top:10px;">Note: Game-specific shortcuts vary. Check each game's controls page.</p>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-game-controllers" class="issue-detail" data-issue="controllers">
+          <h3>Game Controllers <span class="tag-ref">PLATFORM</span></h3>
+          <p>Many games support USB or Bluetooth gamepads via the Gamepad API.</p>
+          <h4>Supported Controllers</h4>
+          <ul>
+            <li>Xbox One / Series X|S controllers (wired or Bluetooth).</li>
+            <li>PlayStation DualShock 4 / DualSense (via USB or Bluetooth).</li>
+            <li>Nintendo Switch Pro Controller (Bluetooth).</li>
+            <li>Generic USB/Bluetooth HID gamepads.</li>
+          </ul>
+          <h4>Setup</h4>
+          <ul>
+            <li>Connect controller before launching game.</li>
+            <li>Press any button to activate detection.</li>
+            <li>Check game settings for button mapping.</li>
+          </ul>
+          <h4>Troubleshooting</h4>
+          <ul>
+            <li>Browser must support Gamepad API (Chrome, Edge, Firefox).</li>
+            <li>Bluetooth controllers may have input lag on some systems.</li>
+            <li>Test controller at <code>gamepad-tester.com</code> if issues persist.</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-security" class="issue-detail" data-issue="security">
+          <h3>Account Security <span class="tag-ref">ACCOUNT</span></h3>
+          <p>Keep your account safe with these best practices.</p>
+          <h4>Strong Passwords</h4>
+          <ul>
+            <li>Use at least 12 characters with mixed case, numbers, symbols.</li>
+            <li>Don't reuse passwords from other sites.</li>
+            <li>Consider a password manager (1Password, Bitwarden, etc.).</li>
+          </ul>
+          <h4>Two-Factor Authentication</h4>
+          <p>Firebase supports 2FA. Enable it in your Google account settings if you signed up via Google.</p>
+          <h4>Suspicious Activity</h4>
+          <ul>
+            <li>Unexpected password reset emails? Someone may be trying to access your account.</li>
+            <li>Change password immediately and contact security@glitchrealm.ca.</li>
+            <li>Check recent sign-in activity in Firebase console if suspicious.</li>
+          </ul>
+          <h4>Phishing Protection</h4>
+          <ul>
+            <li>Always verify URL is <code>glitchrealm.ca</code> (not glitch-realm, glitchrealms, etc.).</li>
+            <li>We'll never ask for your password via email or chatbot.</li>
+            <li>Report suspicious emails to security@glitchrealm.ca.</li>
+          </ul>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-community-guidelines" class="issue-detail" data-issue="community">
+          <h3>Community Guidelines <span class="tag-ref">COMMUNITY</span></h3>
+          <p>GlitchRealm is a welcoming space for all gamers and creators. Please follow these guidelines.</p>
+          <h4>Be Respectful</h4>
+          <ul>
+            <li>No harassment, hate speech, or discriminatory language.</li>
+            <li>Respect other players' skill levels and learning curves.</li>
+            <li>Constructive criticism is welcome; toxicity is not.</li>
+          </ul>
+          <h4>Keep It Safe</h4>
+          <ul>
+            <li>No NSFW content in public areas (avatars, usernames, comments).</li>
+            <li>Don't share personal information publicly.</li>
+            <li>Report any content that makes you uncomfortable.</li>
+          </ul>
+          <h4>Play Fair</h4>
+          <ul>
+            <li>No cheating, exploiting bugs, or manipulating leaderboards.</li>
+            <li>Don't spam chat or flood game submissions.</li>
+            <li>Give credit when using others' work or ideas.</li>
+          </ul>
+          <h4>Enforcement</h4>
+          <p>Violations may result in warnings, content removal, or account suspension. Serious violations are reported to authorities where required by law.</p>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+
+        <div id="help-developer-api" class="issue-detail" data-issue="developer-api">
+          <h3>Developer API & Integration <span class="tag-ref">DEVELOPERS</span></h3>
+          <p>Planning to integrate with GlitchRealm or build custom tools?</p>
+          <h4>Current Availability</h4>
+          <p>We don't yet have a public REST API. Authentication and game data are managed through Firebase/Firestore with direct client SDK access.</p>
+          <h4>What You Can Do</h4>
+          <ul>
+            <li>Use Firebase SDK for auth integration in your games.</li>
+            <li>Access Firestore for playtime/save data (with proper security rules).</li>
+            <li>Embed GlitchRealm games in iframes (check game-specific permissions).</li>
+          </ul>
+          <h4>Upcoming Features</h4>
+          <ul>
+            <li>Public API for game stats and leaderboards (planned Q1 2026).</li>
+            <li>Webhooks for game events (in development).</li>
+            <li>OAuth integration for third-party services.</li>
+          </ul>
+          <p>Interested in early access? Email developers@glitchrealm.ca with your use case.</p>
+          <a class="help-top-link" href="#top">Back to top</a>
+        </div>
+      </div>
+      </div><!-- End general-content -->
+
+    </section>
+  </main>
+  
+  <!-- RSS Status Detail Modal -->
+  <div id="rss-detail-modal" class="rss-detail-modal" aria-hidden="true" role="dialog" aria-labelledby="rss-detail-title">
+    <div class="rss-detail-backdrop" data-close-rss-detail></div>
+    <div class="rss-detail-dialog">
+      <button class="rss-detail-close" aria-label="Close" data-close-rss-detail>&times;</button>
+      <div id="rss-detail-content"></div>
+    </div>
+  </div>
+  
+  <div id="footer-placeholder"></div>
+
+  <!-- Static Netlify Support Request Form (hidden modal so Netlify can index it) -->
+  <div id="support-form-modal" class="support-form-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="support-form-title" style="display:none;">
+    <div class="support-form-backdrop" data-close></div>
+    <div class="support-form-dialog">
+      <button class="support-form-close" id="close-support-form" aria-label="Close">&times;</button>
+      <h3 id="support-form-title">Submit a Support Request</h3>
+      <form name="support-request" method="POST" data-netlify="true" netlify data-netlify-honeypot="bot-field" class="support-form" autocomplete="on" action="thank-you.html">
+        <input type="hidden" name="form-name" value="support-request" />
+        <!-- Automatically captured environment info (readonly, populated by JS) -->
+        <label class="sf-field" style="display:none;">
+          <span>Environment</span>
+          <textarea name="environment" id="support-env-field" readonly rows="3" style="opacity:.7; font-size:.7rem; resize:vertical;" tabindex="-1"></textarea>
+        </label>
+        <p class="sf-note" style="margin-top:4px; margin-bottom:14px; font-size:.7rem; line-height:1.4; color:#89a6ad;">
+          This form automatically includes basic system info (browser, OS, and device type) to help us resolve issues faster. No personal data is collected.
+        </p>
+        <p class="sr-only" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+          <label>Don’t fill this out: <input name="bot-field" /></label>
+        </p>
+        <label class="sf-field">
+          <span>Name</span>
+          <input required name="name" type="text" maxlength="80" />
+        </label>
+        <label class="sf-field">
+          <span>Email</span>
+            <input required name="email" type="email" maxlength="120" />
+        </label>
+        <label class="sf-field">
+          <span>Category</span>
+          <select name="category" required>
+            <option value="Account">Account</option>
+            <option value="Playtime">Playtime</option>
+            <option value="Bug">Bug Report</option>
+            <option value="Verification">Verification</option>
+            <option value="Submission">Game Submission</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+        <label class="sf-field">
+          <span>Subject</span>
+          <input required name="subject" type="text" maxlength="140" />
+        </label>
+        <label class="sf-field">
+          <span>Message</span>
+          <textarea required name="message" rows="6" maxlength="4000" placeholder="Describe the issue, steps to reproduce, expected vs actual behavior..."></textarea>
+        </label>
+        <div class="sf-actions">
+          <button type="submit" class="btn btn-primary">Send</button>
+          <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+        </div>
+        <p class="sf-note">Files or screenshots? Paste image links (GitHub, Imgur, etc.) into the message body.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- System Status Details Modal -->
+  <div id="status-details-modal" class="support-form-modal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
+    <div class="support-form-backdrop" data-close-status></div>
+    <div class="support-form-dialog" style="max-width:520px;">
+      <button class="support-form-close" id="close-status-modal" aria-label="Close">&times;</button>
+      <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+        <div id="modal-status-indicator" style="width:12px; height:12px; border-radius:50%; background:#00ff00; box-shadow:0 0 12px #00ff00;"></div>
+        System Status
+      </h3>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:.7rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0; margin-bottom:6px;">Current Status</div>
+        <div id="modal-status-text" style="font-size:1.1rem; font-weight:700; color:#fff;">All Systems Operational</div>
+      </div>
+      <div id="modal-status-message-section" style="margin-bottom:16px;">
+        <div style="font-size:.7rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0; margin-bottom:6px;">Message</div>
+        <div id="modal-status-message" style="font-size:.9rem; line-height:1.5; color:#d7e5e8;">Everything is running smoothly.</div>
+      </div>
+      <div id="modal-status-description-section" style="display:none; margin-bottom:16px;">
+        <div style="font-size:.7rem; letter-spacing:.6px; font-weight:600; text-transform:uppercase; color:#7edcf0; margin-bottom:6px;">Details</div>
+        <div id="modal-status-description" style="font-size:.85rem; line-height:1.6; color:#c3d2d6; padding:12px; background:rgba(0,255,249,0.05); border:1px solid rgba(0,255,249,0.1); border-radius:8px;"></div>
+      </div>
+      <div id="modal-status-updated" style="font-size:.72rem; color:#7edcf0; opacity:.7; margin-top:20px; padding-top:16px; border-top:1px solid rgba(0,255,249,0.15);">
+        Last updated: <span id="modal-status-time">Just now</span>
+      </div>
+      <div style="margin-top:20px; text-align:center;">
+        <button id="modal-contact-btn" class="contact-chip" style="padding:10px 20px; font-size:.82rem; cursor:pointer; background:rgba(0,255,249,0.12); border:1px solid rgba(0,255,249,0.4);">
+            Contact Support
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-page GlitchBot (replaces external widget) -->
+  <style>
+    #glitchbot-root { position:fixed; bottom:24px; right:24px; z-index:5000; }
+    #glitchbot-toggle { position:relative; padding:12px 20px; background:linear-gradient(135deg, rgba(0,255,249,0.15), rgba(0,140,255,0.15)); border:2px solid rgba(0,255,249,0.4); border-radius:30px; color:#00fff9; font-family:'Orbitron', sans-serif; font-size:0.9rem; font-weight:700; letter-spacing:1px; cursor:pointer; box-shadow:0 4px 20px rgba(0,255,249,0.3), 0 0 40px rgba(0,255,249,0.15); transition:all 0.3s ease; animation:pulse-glow 3s infinite; }
+    #glitchbot-toggle:hover { transform:translateY(-2px); box-shadow:0 6px 25px rgba(0,255,249,0.45), 0 0 50px rgba(0,255,249,0.25); background:linear-gradient(135deg, rgba(0,255,249,0.25), rgba(0,140,255,0.25)); }
+
+    @keyframes pulse-glow { 0%, 100% { box-shadow:0 4px 20px rgba(0,255,249,0.3), 0 0 40px rgba(0,255,249,0.15); } 50% { box-shadow:0 4px 25px rgba(0,255,249,0.4), 0 0 50px rgba(0,255,249,0.2); } }
+    
+    #glitchbot-panel { display:none; position:fixed; right:24px; bottom:88px; width:420px; max-width:calc(100vw - 48px); background:linear-gradient(135deg, #0a1822 0%, #07141a 100%); border:2px solid rgba(0,255,249,0.3); border-radius:16px; box-shadow:0 10px 50px rgba(0,0,0,0.7), 0 0 80px rgba(0,255,249,0.2), inset 0 1px 0 rgba(0,255,249,0.1); overflow:hidden; animation:slideUp 0.3s ease; }
+    #glitchbot-panel::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, transparent, #00fff9, transparent); animation:scanline 2s linear infinite; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes scanline { 0% { left:-100%; } 100% { left:100%; } }
+    
+    .glitchbot-header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; background:linear-gradient(135deg, rgba(0,255,249,0.08), rgba(0,140,255,0.05)); border-bottom:1px solid rgba(0,255,249,0.2); position:relative; }
+    .glitchbot-header::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(0,255,249,0.5), transparent); }
+    .glitchbot-title { display:flex; align-items:center; gap:10px; font-family:'Orbitron', sans-serif; font-size:1.1rem; font-weight:700; color:#00fff9; letter-spacing:1.2px; text-transform:uppercase; }
+
+    @keyframes flicker { 0%, 100% { opacity:1; } 50% { opacity:0.6; } }
+    #glitchbot-close { background:rgba(255,0,128,0.1); border:1px solid rgba(255,0,128,0.3); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:#ff0080; font-size:1.2rem; cursor:pointer; transition:all 0.2s ease; }
+    #glitchbot-close:hover { background:rgba(255,0,128,0.2); border-color:rgba(255,0,128,0.5); transform:rotate(90deg); }
+    
+    #glitchbot-messages { max-height:400px; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; background:rgba(0,10,15,0.3); }
+    #glitchbot-messages::-webkit-scrollbar { width:6px; }
+    #glitchbot-messages::-webkit-scrollbar-track { background:rgba(0,255,249,0.05); border-radius:3px; }
+    #glitchbot-messages::-webkit-scrollbar-thumb { background:rgba(0,255,249,0.3); border-radius:3px; }
+    #glitchbot-messages::-webkit-scrollbar-thumb:hover { background:rgba(0,255,249,0.5); }
+    
+    .glb-welcome { font-size:0.88rem; color:#b8d4d8; padding:12px; background:rgba(0,255,249,0.05); border-left:3px solid #00fff9; border-radius:8px; }
+    
+    .glb-message { display:flex; gap:10px; animation:messageSlide 0.3s ease; }
+    @keyframes messageSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .glb-user { justify-content:flex-end; }
+    .glb-bot { justify-content:flex-start; }
+    
+    .glb-bubble { max-width:85%; padding:12px 16px; border-radius:16px; font-size:0.9rem; line-height:1.5; position:relative; word-wrap:break-word; white-space:pre-wrap; }
+    .glb-user .glb-bubble { background:linear-gradient(135deg, #0a3540, #0a2b33); color:#d7e5e8; border:1px solid rgba(0,255,249,0.3); box-shadow:0 2px 8px rgba(0,255,249,0.2); border-bottom-right-radius:4px; }
+    .glb-bot .glb-bubble { background:linear-gradient(135deg, #001a1f, #00282f); color:#cfeff2; border:1px solid rgba(0,140,255,0.2); box-shadow:0 2px 8px rgba(0,0,0,0.3); border-bottom-left-radius:4px; }
+    .glb-bot .glb-bubble::before { content:''; position:absolute; left:-6px; bottom:8px; width:0; height:0; border-style:solid; border-width:0 6px 6px 0; border-color:transparent #001a1f transparent transparent; }
+    
+    .glb-typing { display:flex; gap:4px; padding:12px 16px; background:linear-gradient(135deg, #001a1f, #00282f); border:1px solid rgba(0,140,255,0.2); border-radius:16px; border-bottom-left-radius:4px; width:fit-content; }
+    .glb-typing span { width:8px; height:8px; background:#00fff9; border-radius:50%; animation:typing 1.4s infinite; }
+    .glb-typing span:nth-child(2) { animation-delay:0.2s; }
+    .glb-typing span:nth-child(3) { animation-delay:0.4s; }
+    @keyframes typing { 0%, 60%, 100% { transform:translateY(0); opacity:0.5; } 30% { transform:translateY(-10px); opacity:1; } }
+    
+    .glitchbot-input-area { padding:14px; border-top:1px solid rgba(0,255,249,0.15); background:linear-gradient(135deg, rgba(0,20,25,0.8), rgba(7,20,26,0.9)); display:flex; gap:10px; align-items:center; }
+    #glitchbot-input { flex:1; padding:12px 16px; border-radius:24px; border:1px solid rgba(0,255,249,0.25); background:rgba(0,10,15,0.6); color:#d7e5e8; font-family:'Rajdhani', sans-serif; font-size:0.95rem; transition:all 0.2s ease; }
+    #glitchbot-input:focus { outline:none; border-color:rgba(0,255,249,0.5); background:rgba(0,10,15,0.8); box-shadow:0 0 0 3px rgba(0,255,249,0.1); }
+    #glitchbot-input::placeholder { color:rgba(184,212,216,0.5); }
+    #glitchbot-send { padding:10px 20px; background:linear-gradient(135deg, rgba(0,255,249,0.2), rgba(0,140,255,0.2)); border:1px solid rgba(0,255,249,0.4); border-radius:24px; color:#00fff9; font-family:'Orbitron', sans-serif; font-size:0.85rem; font-weight:600; letter-spacing:0.8px; cursor:pointer; transition:all 0.2s ease; text-transform:uppercase; }
+    #glitchbot-send:hover { background:linear-gradient(135deg, rgba(0,255,249,0.3), rgba(0,140,255,0.3)); box-shadow:0 0 15px rgba(0,255,249,0.4); transform:translateY(-1px); }
+    #glitchbot-send:active { transform:translateY(0); }
+    
+    @media (max-width:520px) { #glitchbot-panel { width:calc(100vw - 32px); right:16px; bottom:80px; } #glitchbot-root { right:16px; bottom:16px; } #glitchbot-messages { max-height:300px; } }
+  </style>
+  
+  <div id="glitchbot-root">
+    <button id="glitchbot-toggle" aria-label="Open GlitchBot">GlitchBot</button>
+    
+    <div id="glitchbot-panel" aria-hidden="true">
+      <div class="glitchbot-header">
+        <div class="glitchbot-title">GlitchBot</div>
+        <button id="glitchbot-close" aria-label="Close">✕</button>
+      </div>
+      <div id="glitchbot-messages">
+        <div class="glb-welcome">Welcome to GlitchRealm support! Ask me about accounts, games, technical issues, or platform features.</div>
+      </div>
+      <div class="glitchbot-input-area">
+        <input id="glitchbot-input" placeholder="Ask a question..." autocomplete="off">
+        <button id="glitchbot-send">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const toggle = document.getElementById('glitchbot-toggle');
+      const panel = document.getElementById('glitchbot-panel');
+      const closeBtn = document.getElementById('glitchbot-close');
+      const messagesEl = document.getElementById('glitchbot-messages');
+      const input = document.getElementById('glitchbot-input');
+      const send = document.getElementById('glitchbot-send');
+      let hasInitialized = false;
+
+      async function openPanel(){ 
+        panel.style.display='block'; 
+        panel.setAttribute('aria-hidden','false'); 
+        
+        // Show welcome message on first open (no API call)
+        if(!hasInitialized){
+          hasInitialized = true;
+          appendMessage('bot', 'Initializing GlitchBot with site information...');
+          // Small delay for visual effect
+          setTimeout(() => {
+            appendMessage('bot', 'Ready to help! Ask me anything about GlitchRealm.');
+          }, 800);
+        }
+        
+        input.focus(); 
+      }
+      function closePanel(){ panel.style.display='none'; panel.setAttribute('aria-hidden','true'); }
+
+      toggle.addEventListener('click', openPanel);
+      closeBtn.addEventListener('click', closePanel);
+
+      // Keyboard shortcut: Ctrl/⌘ + /
+      window.addEventListener('keydown', (e)=>{ if(e.key==='/' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); if(panel.style.display==='none') openPanel(); else closePanel(); } });
+
+      async function sendMessage(){
+        const text = input.value.trim(); if(!text) return;
+        appendMessage('user', text);
+        input.value='';
+        showTyping();
+
+        try{
+          const resp = await fetch('/.netlify/functions/support-proxy', {
+            method: 'POST', headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify({ 
+              model: 'openai/gpt-5.1', 
+              messages: [
+                { 
+                  role: 'system', 
+                  content: `You are the official support assistant for GlitchRealm, a cyberpunk-themed browser gaming platform at glitchrealm.ca.
+
+PLATFORM FEATURES:
+- User authentication with email/password or Google Sign-In
+- Playtime tracking across all games
+- Community game submissions with moderation
+- Verified creator badges for trusted developers
+- Game reviews and ratings system
+- Community hub with discussions and news
+- Developer dashboard for game management
+- News articles and updates
+- Support for both built-in and user-submitted HTML5 games
+
+COMMON ISSUES & SOLUTIONS:
+
+Account Problems:
+- Login Issues: Clear browser cache and cookies, try incognito mode, check if Caps Lock is on, verify email is correct. Password reset available at /forgot-password.html
+- Account Creation: Must use valid email, password needs 8+ characters. Check spam folder for verification emails
+- Google Sign-In Popup Blocked (Chrome): If popup blocker is stopping Google sign-in: (1) Look for popup blocked icon in address bar, click it and select "Always allow pop-ups from https://glitchrealm.ca", (2) Enable third-party cookies at chrome://settings/cookies - add glitchrealm.ca to "Sites that can always use cookies" with third-party cookies enabled, (3) Disable ad-blockers/privacy extensions temporarily, (4) On mobile Chrome: Settings > Site settings > Pop-ups and redirects > Allow. Alternative: use email/password sign-in instead.
+- Google Sign-In Other Issues: Enable third-party cookies, disable ad blockers temporarily, try different browser
+- Profile/Avatar Issues: Avatar changes may take a few minutes to update. Refresh page or clear cache
+- Account Deletion: Available at /delete-account.html - this is permanent and cannot be undone
+
+Game Issues:
+- Games Not Loading: Check internet connection, disable browser extensions, enable JavaScript, clear cache, try different browser (Chrome/Firefox recommended)
+- Black Screen: Wait 10-15 seconds for loading, check browser console (F12) for errors, ensure WebGL is enabled
+- Playtime Not Tracking: Must be logged in, check that cookies are enabled, ensure game window stays in focus
+- Game Submissions: Use /submit-game.html, requires valid URL, screenshots, and description. Moderation takes 24-48 hours
+- Performance Issues: Close other tabs, disable hardware acceleration if glitchy, lower game quality settings if available
+
+Technical Troubleshooting:
+- Browser Requirements: Modern Chrome, Firefox, Safari, or Edge. JavaScript and cookies must be enabled
+- Mobile Issues: Some games may not be mobile-optimized. Try desktop mode or use desktop browser
+- Audio Problems: Check browser audio permissions, unmute tab, check system volume
+- Fullscreen Issues: Press F11 or use in-game fullscreen button, allow fullscreen permission when prompted
+- Connection Errors: Check firewall/antivirus settings, ensure glitchrealm.ca is not blocked
+
+Developer Resources:
+- Submit games at /submit-game.html
+- Developer dashboard at /developer-dashboard.html
+- Verification badge: Email team or use contact form with portfolio
+- Game analytics available in developer dashboard
+- Integration docs available on GitHub
+
+Community & Content:
+- Community posts at /community.html
+- News articles at /news.html
+- Code of Conduct at /code-of-conduct.html
+- Report issues via contact form or moderation tools
+
+System Status: Check /status.html for real-time Firebase/Firestore status
+
+RESPONSE GUIDELINES:
+- Act like a normal ChatGPT assistant - natural, conversational, and helpful
+- For non-support questions (general chat, questions about topics unrelated to GlitchRealm support), respond naturally like a standard AI assistant
+- The troubleshooting guidelines below only apply to support-related questions
+- Only greet users (with "Hello" or "Hi") on initial contact, not in every message
+- Keep responses SHORT and SIMPLE - aim for 2-4 sentences unless detailed steps are truly needed
+- DO NOT use markdown formatting (no **, ##, -, etc.) - responses are displayed as plain text
+- Use plain text with line breaks for readability
+- Number steps as: 1. Step one 2. Step two (not using markdown lists)
+- Get to the solution quickly without excessive explanation
+- Be concise but thorough with troubleshooting steps
+- Always provide specific actionable solutions
+- Reference exact page URLs when directing users
+- For complex issues, suggest contacting support team directly via contact form
+- If you don't know the answer or are unsure, direct users to use the "Submit a Support Request" button on this page or email one of these addresses: contact@glitchrealm.ca (general inquiries), support@glitchrealm.ca (support issues), or legal@glitchrealm.ca (legal matters)
+- Be professional, friendly, and helpful at all times
+- Use clear, standard language - avoid slang, themed language, or roleplay
+
+IMPORTANT: The troubleshooting steps above are guidelines, not limits. You are an intelligent AI assistant - use your knowledge and reasoning to help with ANY issue users face, even if it's not explicitly covered in the instructions. Think critically, ask clarifying questions when needed, and provide creative solutions. You can troubleshoot browser issues, networking problems, game performance, account security, or any other tech problems users encounter on GlitchRealm or related to web gaming. Don't just repeat the script - actually solve problems.` 
+                },
+                { role: 'user', content: text }
+              ] 
+            })
+          });
+
+          // Remove typing indicator
+          hideTyping();
+
+          // Handle non-200 responses
+          if(!resp.ok){
+            if(resp.status === 402){
+              appendMessage('bot', 'Sorry, the AI service is currently unavailable due to quota limits. Please try again later or contact our team directly via the contact form below.');
+            } else if(resp.status === 500){
+              appendMessage('bot', 'Server error. Please try again later.');
+            } else {
+              appendMessage('bot', `Service temporarily unavailable (Error ${resp.status}). Please try the contact form below.`);
+            }
+            console.error('[GlitchBot] HTTP', resp.status);
+            return;
+          }
+
+          let data;
+          const ct = resp.headers.get && resp.headers.get('content-type');
+          if(ct && ct.indexOf('application/json')!==-1){ data = await resp.json(); }
+          else { data = await resp.text(); }
+
+          if(typeof data === 'string') appendMessage('bot', data);
+          else if(data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) appendMessage('bot', data.choices[0].message.content);
+          else if(data && data.response) appendMessage('bot', data.response);
+          else appendMessage('bot', JSON.stringify(data));
+
+        }catch(err){
+          hideTyping();
+          appendMessage('bot', 'Connection error. Please check your internet connection or try again later.');
+          console.error('[GlitchBot] error', err);
+        }
+      }
+
+      function appendMessage(who, text){
+        const wrap = document.createElement('div');
+        wrap.className = who === 'user' ? 'glb-message glb-user' : 'glb-message glb-bot';
+        const bubble = document.createElement('div');
+        bubble.className = 'glb-bubble';
+        bubble.textContent = text;
+        wrap.appendChild(bubble);
+        messagesEl.appendChild(wrap);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+      
+      function showTyping(){
+        const typing = document.createElement('div');
+        typing.className = 'glb-message glb-bot';
+        typing.id = 'typing-indicator';
+        typing.innerHTML = '<div class="glb-typing"><span></span><span></span><span></span></div>';
+        messagesEl.appendChild(typing);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+      
+      function hideTyping(){
+        const typing = document.getElementById('typing-indicator');
+        if(typing) typing.remove();
+      }
+
+      send.addEventListener('click', sendMessage);
+      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
+    })();
+  </script>
+ 
+  <script>
+    // System Status Loader with Real-time Updates
+    (async function(){
+      const statusIndicator = document.getElementById('status-indicator');
+      const statusText = document.getElementById('status-text');
+      const statusInfoBtn = document.getElementById('status-info-btn');
+      const statusDescription = document.getElementById('status-description');
+      
+      // Function to update UI with status data
+      function updateStatusUI(data) {
+        const status = data.status || 'operational';
+        const message = data.message || 'All Systems Operational';
+        const description = data.description || '';
+        
+        console.log('[Support] Status updated:', { status, message, description });
+        
+        // Update status text
+        statusText.textContent = message;
+        
+        // Update indicator color with animation
+        statusIndicator.style.transition = 'all 0.3s ease';
+        if(status === 'operational'){
+          statusIndicator.style.background = '#00ff00';
+          statusIndicator.style.boxShadow = '0 0 10px #00ff00';
+        } else if(status === 'degraded'){
+          statusIndicator.style.background = '#ffaa00';
+          statusIndicator.style.boxShadow = '0 0 10px #ffaa00';
+        } else if(status === 'down'){
+          statusIndicator.style.background = '#ff0000';
+          statusIndicator.style.boxShadow = '0 0 10px #ff0000';
+        }
+        
+        // Reorder status widgets based on staff status
+        const container = document.getElementById('status-container');
+        const staffStatus = document.getElementById('system-status');
+        const rssWidget = document.getElementById('rss-status-widget');
+        
+        if (container && staffStatus && rssWidget) {
+          // Add transition for smooth reordering
+          staffStatus.style.transition = 'all 0.4s ease';
+          rssWidget.style.transition = 'all 0.4s ease';
+          
+          // If staff status is degraded or down, move it to the top (before RSS)
+          if (status === 'degraded' || status === 'down') {
+            if (container.firstElementChild !== staffStatus) {
+              // Force reflow for animation
+              void container.offsetHeight;
+              container.insertBefore(staffStatus, rssWidget);
+            }
+          } else {
+            // If operational, move RSS to top (staff status goes after)
+            if (container.firstElementChild !== rssWidget) {
+              // Force reflow for animation
+              void container.offsetHeight;
+              container.insertBefore(rssWidget, staffStatus);
+            }
+          }
+        }
+        
+        // Show or hide info button and description (only if elements exist)
+        if(statusDescription && statusInfoBtn) {
+          if(description && description.trim()){
+            statusDescription.textContent = description;
+            statusInfoBtn.style.display = 'inline-block';
+          } else {
+            statusInfoBtn.style.display = 'none';
+            statusDescription.style.display = 'none';
+          }
+        }
+      }
+      
+      try {
+        // Import Firestore with real-time listener
+        const { getFirestore, doc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        
+        // Wait for Firebase app to be available
+        let attempts = 0;
+        while (!window.firebaseApp && attempts < 20) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        
+        if (!window.firebaseApp) {
+          console.error('[Support] Firebase app not available - showing database error status');
+          updateStatusUI({
+            status: 'down',
+            message: 'Database Issues',
+            description: 'Unable to connect to the database. Our team has been notified and is working on a fix.'
+          });
+          return;
+        }
+        
+        const db = getFirestore(window.firebaseApp);
+        const statusDocRef = doc(db, 'system', 'status');
+        
+        // Set up real-time listener with error handling
+        const unsubscribe = onSnapshot(statusDocRef, (docSnap) => {
+          if(docSnap.exists()){
+            updateStatusUI(docSnap.data());
+          } else {
+            console.log('[Support] No status document found, using defaults');
+            updateStatusUI({
+              status: 'operational',
+              message: 'All Systems Operational',
+              description: ''
+            });
+          }
+        }, (error) => {
+          console.error('[Support] Error listening to status:', error);
+          // Show database error if listener fails
+          updateStatusUI({
+            status: 'down',
+            message: 'Database Issues',
+            description: 'Unable to retrieve system status. Our team has been notified and is working on a fix.'
+          });
+        });
+        
+        console.log('[Support] Real-time status listener active');
+        
+      } catch(err) {
+        console.error('[Support] Failed to set up status listener:', err);
+        // Show database error on any exception
+        updateStatusUI({
+          status: 'down',
+          message: 'Database Issues',
+          description: 'Unable to connect to the database. Our team has been notified and is working on a fix.'
+        });
+      }
+    })();
+
+    // Category Navigation System
+    (function(){
+      const categoryCards = document.getElementById('category-cards');
+      const categorySections = document.querySelectorAll('.category-section');
+      const backButtons = document.querySelectorAll('.back-to-categories');
+      const generalContent = document.getElementById('general-content');
+      
+      function showCategories(){
+        categoryCards.style.display = 'grid';
+        if(generalContent) generalContent.style.display = 'none';
+        categorySections.forEach(section => section.classList.remove('active'));
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        history.replaceState(null, '', window.location.pathname);
+      }
+      
+      function showCategory(categoryId){
+        categoryCards.style.display = 'none';
+        if(generalContent) generalContent.style.display = 'none';
+        categorySections.forEach(section => {
+          if(section.id === categoryId){
+            section.classList.add('active');
+          } else {
+            section.classList.remove('active');
+          }
+        });
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+      
+      // Handle category card clicks
+      document.querySelectorAll('.support-card[data-category]').forEach(card =>{
+        card.addEventListener('click', (e) =>{
+          e.preventDefault();
+          const category = card.getAttribute('data-category');
+          const categoryId = `category-${category}`;
+          showCategory(categoryId);
+          history.replaceState(null, '', `#${categoryId}`);
+        });
+      });
+      
+      // Handle back button clicks
+      backButtons.forEach(btn =>{
+        btn.addEventListener('click', showCategories);
+      });
+      
+      // Handle direct hash navigation
+      if(location.hash && location.hash.startsWith('#category-')){
+        setTimeout(() => showCategory(location.hash.substring(1)), 100);
+      }
+      
+      // Handle hash links within category sections
+      document.querySelectorAll('a[href^="#help-"]').forEach(link =>{
+        link.addEventListener('click', (e) =>{
+          const targetId = link.getAttribute('href').substring(1);
+          const target = document.getElementById(targetId);
+          if(target){
+            e.preventDefault();
+            // Find which category this help item belongs to
+            let categorySection = target.closest('.category-section');
+            if(categorySection && !categorySection.classList.contains('active')){
+              showCategory(categorySection.id);
+              setTimeout(() =>{
+                target.scrollIntoView({behavior:'smooth', block:'start'});
+                target.classList.add('issue-target-highlight');
+                setTimeout(() => target.classList.remove('issue-target-highlight'), 1900);
+              }, 300);
+            } else {
+              target.scrollIntoView({behavior:'smooth', block:'start'});
+              target.classList.add('issue-target-highlight');
+              setTimeout(() => target.classList.remove('issue-target-highlight'), 1900);
+            }
+          }
+        });
+      });
+    })();
+    
+    // Support Request Modal open/close (static Netlify form present in DOM)
+    (function(){
+      const openBtn = document.getElementById('open-support-form');
+      const openChip = document.getElementById('open-support-form-chip');
+      const modal = document.getElementById('support-form-modal');
+      const envField = document.getElementById('support-env-field');
+      function buildEnvSummary(){
+        try {
+          const ua = navigator.userAgent || '';
+          // Detect major browsers and version
+          const detectors = [
+            /(Edg)\/([0-9]+)\./i,
+            /(Chrome)\/([0-9]+)\./i,
+            /(Firefox)\/([0-9]+)\./i,
+            /(Safari)\/([0-9]+)\./i,
+            /(OPR)\/([0-9]+)\./i
+          ];
+          const isMobile = (navigator.userAgentData && navigator.userAgentData.mobile) || /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+          const deviceLabel = isMobile ? 'Mobile' : 'Desktop';
+            for (const re of detectors){
+              const m = ua.match(re);
+              if(m){
+                let name = m[1];
+                if(name === 'OPR') name = 'Opera';
+                if(name === 'Edg') name = 'Edge';
+                // Safari's version token is actually from Version/XX sometimes
+                if(name === 'Safari'){
+                  const verAlt = ua.match(/Version\/([0-9]+)/i);
+                  if(verAlt) {
+                    const os2 = detectOS(ua);
+                    return os2 ? `${name} ${verAlt[1]} on ${os2} (${deviceLabel})` : `${name} ${verAlt[1]} (${deviceLabel})`;
+                  }
+                }
+                const browserString = `${name} ${m[2]}`;
+                const os = detectOS(ua);
+                return os ? `${browserString} on ${os} (${deviceLabel})` : `${browserString} (${deviceLabel})`;
+              }
+            }
+          // Fallback: use first product token
+          const fallback = (ua.split(' ').find(t=>/\//.test(t)) || 'Unknown');
+          const os = detectOS(ua);
+          return os ? `${fallback} on ${os} (${deviceLabel})` : `${fallback} (${deviceLabel})`;
+        } catch { return 'Unknown'; }
+      }
+      let hiPlatformVersion = null; // High entropy platformVersion when available
+      function detectOS(ua){
+        try {
+          const uaData = navigator.userAgentData;
+          const platform = uaData?.platform || '';
+
+          // Try Windows detection using high-entropy platformVersion (Chromium browsers)
+          if (platform === 'Windows') {
+            if (hiPlatformVersion) {
+              const major = parseInt(hiPlatformVersion.split('.')[0], 10);
+              // Chromium mapping: Windows 11 => major >= 13
+              if (!isNaN(major)) {
+                if (major >= 13) return 'Windows 11';
+                return 'Windows 10';
+              }
+            }
+            // Fallback to UA tokens (may misreport Win11 as NT 10.0 due to UA freeze)
+            if (/Windows NT 11\.0/i.test(ua)) return 'Windows 11';
+            if (/Windows NT 10\.0/i.test(ua)) return 'Windows 10';
+            if (/Windows NT 6\.3/i.test(ua)) return 'Windows 8.1';
+            if (/Windows NT 6\.2/i.test(ua)) return 'Windows 8';
+            if (/Windows NT 6\.1/i.test(ua)) return 'Windows 7';
+          }
+
+          // macOS
+          if (platform === 'macOS' || /Mac OS X/i.test(ua)) {
+            // Attempt to extract 10.x version token from UA (UA freeze may always show 10_15_7 on newer macOS)
+            const m10 = ua.match(/Mac OS X (10_[0-9_]+)/i);
+            if (m10) return 'macOS ' + m10[1].replace(/_/g,'.');
+            if (hiPlatformVersion && !/10_[0-9_]+/.test(ua)) {
+              const major = parseInt(hiPlatformVersion.split('.')[0],10);
+              if (!isNaN(major)) return 'macOS ' + major; // e.g. macOS 14
+            }
+            return 'macOS';
+          }
+
+            // iOS / iPadOS (UA)
+          if (/(iPhone|iPad|iPod).*OS ([0-9_]+)/i.test(ua)) return 'iOS ' + ua.match(/OS ([0-9_]+)/i)[1].replace(/_/g,'.');
+          // Android
+          if (/Android ([0-9.]+)/i.test(ua)) return 'Android ' + ua.match(/Android ([0-9.]+)/i)[1];
+          // ChromeOS
+          if (platform === 'Chrome OS' || /CrOS/i.test(ua)) return 'ChromeOS';
+          // Linux
+          if (platform === 'Linux' || /Linux/i.test(ua)) return 'Linux';
+          return '';
+        } catch { return ''; }
+      }
+
+      // Attempt to fetch high entropy platformVersion to refine OS detection (async enhancement)
+      (function fetchHighEntropyPlatform(){
+        try {
+          if (navigator.userAgentData?.getHighEntropyValues) {
+            navigator.userAgentData.getHighEntropyValues(['platformVersion']).then(res => {
+              if (res?.platformVersion) {
+                hiPlatformVersion = res.platformVersion;
+                // Rebuild environment string with improved OS detail if field already populated
+                if (envField && envField.value) {
+                  const improved = buildEnvSummary();
+                  if (improved && improved !== envField.value) envField.value = improved;
+                }
+              }
+            }).catch(()=>{});
+          }
+        } catch {}
+      })();
+      function ensureEnv(){ if(envField && !envField.value) envField.value = buildEnvSummary(); }
+      if(!modal) return;
+      let lastFocused = null;
+      const dialog = modal.querySelector('.support-form-dialog');
+      function trapFocus(){
+        lastFocused = document.activeElement;
+        const focusables = modal.querySelectorAll('button, [href], input, select, textarea');
+        const first = focusables[0]; const last = focusables[focusables.length-1];
+        if(first) first.focus();
+        function loop(e){ if(e.key==='Tab'){ if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); } else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); } } }
+        modal.addEventListener('keydown', loop);
+        modal._loop = loop;
+      }
+      function releaseFocus(){ if(lastFocused) try{ lastFocused.focus(); }catch{} if(modal._loop) modal.removeEventListener('keydown', modal._loop); }
+  function open(){ ensureEnv(); modal.style.display='block'; modal.setAttribute('aria-hidden','false'); setTimeout(()=> modal.classList.add('visible'), 10); trapFocus(); }
+      function close(){ modal.classList.remove('visible'); setTimeout(()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); releaseFocus(); }, 180); }
+      if(openBtn) openBtn.addEventListener('click', open);
+      if(openChip) openChip.addEventListener('click', (e) => { e.preventDefault(); open(); });
+      // Quick contact button in hero section
+      const quickContactBtn = document.getElementById('quick-contact-btn');
+      if(quickContactBtn) quickContactBtn.addEventListener('click', open);
+      // Populate env just before submit as well (in case user cleared / delayed open)
+      const supportForm = modal.querySelector('form[name="support-request"]');
+      if(supportForm){
+        supportForm.addEventListener('submit', () => { ensureEnv(); });
+      }
+      modal.addEventListener('click', e=>{ if(e.target===modal || e.target.hasAttribute('data-close')) close(); });
+      document.getElementById('close-support-form')?.addEventListener('click', close);
+      document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.classList.contains('visible')) close(); });
+    })();
+
+    // System Status Details Modal
+    (function(){
+      const statusBox = document.getElementById('system-status');
+      const statusModal = document.getElementById('status-details-modal');
+      if(!statusBox || !statusModal) return;
+      
+      let currentStatusData = null;
+      
+      // Store status data when updated
+      const statusIndicator = document.getElementById('status-indicator');
+      const statusText = document.getElementById('status-text');
+      
+      // Modal elements
+      const modalIndicator = document.getElementById('modal-status-indicator');
+      const modalStatusText = document.getElementById('modal-status-text');
+      const modalMessage = document.getElementById('modal-status-message');
+      const modalDescription = document.getElementById('modal-status-description');
+      const modalDescriptionSection = document.getElementById('modal-status-description-section');
+      const modalTime = document.getElementById('modal-status-time');
+      const modalContactBtn = document.getElementById('modal-contact-btn');
+      const closeBtn = document.getElementById('close-status-modal');
+      
+      function formatTime(timestamp) {
+        if(!timestamp) return 'Just now';
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if(diffMins < 1) return 'Just now';
+        if(diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+        
+        const diffHours = Math.floor(diffMins / 60);
+        if(diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        
+        const diffDays = Math.floor(diffHours / 24);
+        if(diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        
+        return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      }
+      
+      function openStatusModal() {
+        // Get current status from hero section
+        const status = currentStatusData?.status || 'operational';
+        const message = statusText.textContent || 'All Systems Operational';
+        const description = currentStatusData?.description || '';
+        const updatedAt = currentStatusData?.updatedAt;
+        
+        // Update modal content
+        modalStatusText.textContent = message;
+        modalMessage.textContent = message;
+        
+        // Update indicator color
+        if(status === 'operational'){
+          modalIndicator.style.background = '#00ff00';
+          modalIndicator.style.boxShadow = '0 0 12px #00ff00';
+        } else if(status === 'degraded'){
+          modalIndicator.style.background = '#ffaa00';
+          modalIndicator.style.boxShadow = '0 0 12px #ffaa00';
+        } else if(status === 'down'){
+          modalIndicator.style.background = '#ff0000';
+          modalIndicator.style.boxShadow = '0 0 12px #ff0000';
+        }
+        
+        // Show/hide description section
+        if(description && description.trim()){
+          modalDescription.textContent = description;
+          modalDescriptionSection.style.display = 'block';
+        } else {
+          modalDescriptionSection.style.display = 'none';
+        }
+        
+        // Update timestamp
+        modalTime.textContent = formatTime(updatedAt);
+        
+        // Open modal
+        statusModal.style.display = 'block';
+        statusModal.setAttribute('aria-hidden', 'false');
+        setTimeout(() => statusModal.classList.add('visible'), 10);
+      }
+      
+      function closeStatusModal() {
+        statusModal.classList.remove('visible');
+        setTimeout(() => {
+          statusModal.style.display = 'none';
+          statusModal.setAttribute('aria-hidden', 'true');
+        }, 180);
+      }
+      
+      // Click handlers
+      statusBox.addEventListener('click', openStatusModal);
+      statusBox.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openStatusModal();
+        }
+      });
+      
+      closeBtn.addEventListener('click', closeStatusModal);
+      statusModal.addEventListener('click', (e) => {
+        if(e.target === statusModal || e.target.hasAttribute('data-close-status')) {
+          closeStatusModal();
+        }
+      });
+      
+      // Modal contact button opens support form
+      modalContactBtn.addEventListener('click', () => {
+        closeStatusModal();
+        setTimeout(() => {
+          const supportFormModal = document.getElementById('support-form-modal');
+          if(supportFormModal) {
+            supportFormModal.style.display = 'block';
+            supportFormModal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => supportFormModal.classList.add('visible'), 10);
+          }
+        }, 200);
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape' && statusModal.classList.contains('visible')) {
+          closeStatusModal();
+        }
+      });
+      
+      // Listen for status updates and store the data
+      (async function(){
+        try {
+          const { getFirestore, doc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          let attempts = 0;
+          while (!window.firebaseApp && attempts < 20) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          
+          if (!window.firebaseApp) {
+            console.error('[Status Modal] Firebase app not available');
+            currentStatusData = {
+              status: 'down',
+              message: 'Database Issues',
+              description: 'Unable to connect to the database. Our team has been notified and is working on a fix.',
+              updatedAt: new Date()
+            };
+            return;
+          }
+          
+          const db = getFirestore(window.firebaseApp);
+          const statusDocRef = doc(db, 'system', 'status');
+          
+          onSnapshot(statusDocRef, (docSnap) => {
+            if(docSnap.exists()){
+              currentStatusData = docSnap.data();
+            } else {
+              currentStatusData = {
+                status: 'operational',
+                message: 'All Systems Operational',
+                description: '',
+                updatedAt: new Date()
+              };
+            }
+          }, (error) => {
+            console.error('[Status Modal] Error listening to status:', error);
+            currentStatusData = {
+              status: 'down',
+              message: 'Database Issues',
+              description: 'Unable to retrieve system status. Our team has been notified and is working on a fix.',
+              updatedAt: new Date()
+            };
+          });
+        } catch(err) {
+          console.error('[Status Modal] Failed to listen for status updates:', err);
+          currentStatusData = {
+            status: 'down',
+            message: 'Database Issues',
+            description: 'Unable to connect to the database. Our team has been notified and is working on a fix.',
+            updatedAt: new Date()
+          };
+        }
+      })();
+    })();
+  </script>
+
+  <!-- RSS Status Feed Loader -->
+  <script>
+    (function() {
+      const rssContentEl = document.getElementById('rss-status-content');
+      if (!rssContentEl) return;
+
+      async function loadRSSFeed() {
+        try {
+          // Priority 1: Try main status page HTML directly (highest priority)
+          const urls = [
+            'https://status.glitchrealm.ca/',
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/'),
+            'https://status.glitchrealm.ca/feed.atom',
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/feed.rss'),
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/feed.atom')
+          ];
+          
+          let xmlDoc = null;
+          let lastError = null;
+          let isHtmlSource = false;
+          
+          for (let i = 0; i < urls.length; i++) {
+            const url = urls[i];
+            try {
+              const response = await fetch(url);
+              if (!response.ok) continue;
+              
+              const feedText = await response.text();
+              
+              // Check if this is the HTML status page
+              if (i < 2 && feedText.includes('<!DOCTYPE') || feedText.includes('<html')) {
+                // Parse HTML to extract status info
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = feedText;
+                
+                // Try to find status elements (this depends on the actual HTML structure)
+                // We'll create a pseudo-XML structure from it
+                isHtmlSource = true;
+                
+                // Extract any visible status information from the page
+                // For now, skip HTML and continue to feeds
+                continue;
+              }
+              
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(feedText, 'text/xml');
+              
+              // Check for parsing errors
+              const parserError = doc.querySelector('parsererror');
+              if (parserError) continue;
+              
+              xmlDoc = doc;
+              break;
+            } catch (err) {
+              lastError = err;
+              continue;
+            }
+          }
+          
+          if (!xmlDoc) {
+            throw lastError || new Error('All feed URLs failed');
+          }
+
+          // Extract items from the feed (supports both RSS and Atom)
+          let items = xmlDoc.querySelectorAll('item');
+          if (items.length === 0) {
+            // Try Atom format
+            items = xmlDoc.querySelectorAll('entry');
+          }
+          
+          if (items.length === 0) {
+            rssContentEl.innerHTML = `
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="rss-incident-badge rss-incident-up">✓ UP</span>
+                <span style="opacity:.9;">All systems operational - No recent incidents</span>
+              </div>
+            `;
+            return;
+          }
+
+          // Build HTML for recent status updates (max 3 items)
+          let html = '';
+          const maxItems = 3;
+          
+          for (let i = 0; i < Math.min(items.length, maxItems); i++) {
+            const item = items[i];
+            const title = item.querySelector('title')?.textContent || 'Status Update';
+            // Support both RSS (pubDate) and Atom (published/updated) formats
+            const pubDate = item.querySelector('pubDate')?.textContent || 
+                           item.querySelector('published')?.textContent || 
+                           item.querySelector('updated')?.textContent || '';
+            const description = item.querySelector('description')?.textContent || 
+                               item.querySelector('summary')?.textContent || 
+                               item.querySelector('content')?.textContent || '';
+            
+            // Determine status type from title/description
+            const titleLower = title.toLowerCase();
+            const descLower = description.toLowerCase();
+            let badge = '';
+            let statusText = '';
+            let detailText = '';
+            
+            // Extract status from description HTML and get the detail after it
+            const statusMatch = description.match(/<b>Status:\s*([^<]+)<\/b>/i);
+            if (statusMatch) {
+              statusText = statusMatch[1].trim();
+              // Get everything after the status tag, strip HTML, and clean up
+              const afterStatus = description.substring(description.indexOf('</b>') + 4);
+              detailText = afterStatus.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+            } else {
+              // No status tag found, use whole description
+              detailText = description.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+            }
+            
+            // Set badge based on status
+            if (statusText.toLowerCase().includes('resolved') || statusText.toLowerCase().includes('operational') || 
+                titleLower.includes('up') || titleLower.includes('operational') || descLower.includes('up')) {
+              badge = '<span class="rss-incident-badge rss-incident-up">✓ UP</span>';
+              if (!statusText) statusText = 'Operational';
+            } else if (titleLower.includes('down') || descLower.includes('down') || statusText.toLowerCase().includes('down')) {
+              badge = '<span class="rss-incident-badge rss-incident-down">✗ DOWN</span>';
+              if (!statusText) statusText = 'Service Issue';
+            } else if (titleLower.includes('degraded') || titleLower.includes('slow') || descLower.includes('degraded') || 
+                      statusText.toLowerCase().includes('degraded') || statusText.toLowerCase().includes('investigating')) {
+              badge = '<span class="rss-incident-badge rss-incident-degraded">⚠ DEGRADED</span>';
+              if (!statusText) statusText = 'Performance Issue';
+            }
+            
+            // Format date
+            let dateStr = '';
+            if (pubDate) {
+              const date = new Date(pubDate);
+              const now = new Date();
+              const diffMs = now - date;
+              const diffMins = Math.floor(diffMs / 60000);
+              const diffHours = Math.floor(diffMs / 3600000);
+              const diffDays = Math.floor(diffMs / 86400000);
+              
+              if (diffMins < 1) {
+                dateStr = 'Just now';
+              } else if (diffMins < 60) {
+                dateStr = `${diffMins}m ago`;
+              } else if (diffHours < 24) {
+                dateStr = `${diffHours}h ago`;
+              } else if (diffDays < 7) {
+                dateStr = `${diffDays}d ago`;
+              } else {
+                dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }
+            }
+            
+            const itemId = `rss-item-${i}`;
+            const showReadMore = detailText && detailText.length > 120;
+            
+            html += `
+              <div class="rss-status-item">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+                  ${badge}
+                  <span style="font-weight:600; color:#fff; font-size:.8rem;">${escapeHtml(title)}</span>
+                  ${statusText ? `<span style="font-size:.7rem; color:#7edcf0; opacity:.9;">• ${escapeHtml(statusText)}</span>` : ''}
+                </div>
+                ${detailText && detailText.length > 10 ? `<div style="font-size:.72rem; color:#b8d4d8; opacity:.85; margin-left:${badge ? '70px' : '0'}; margin-top:2px; line-height:1.4;">${escapeHtml(detailText.substring(0, 120))}${detailText.length > 120 ? '...' : ''} ${showReadMore ? `<a class="rss-read-more" data-rss-item="${itemId}">Read more →</a>` : ''}</div>` : ''}
+                ${dateStr ? `<div style="font-size:.68rem; opacity:.7; margin-left:${badge ? '70px' : '0'}; margin-top:3px;">${dateStr}</div>` : ''}
+              </div>
+            `;
+            
+            // Store full data for modal
+            window.rssStatusData = window.rssStatusData || {};
+            window.rssStatusData[itemId] = { title, statusText, badge, detailText, dateStr, pubDate };
+          }
+          
+          rssContentEl.innerHTML = html;
+
+        } catch (error) {
+          console.error('[RSS Status] Failed to load feed:', error);
+          rssContentEl.innerHTML = `
+            <div style="display:flex; align-items:center; gap:6px; opacity:.7;">
+              <span>⚠</span>
+              <span>Unable to load live status. Visit <a href="https://status.glitchrealm.ca/" target="_blank" style="color:#00fff9; text-decoration:underline;">status.glitchrealm.ca</a></span>
+            </div>
+          `;
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Load RSS feed on page load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadRSSFeed);
+      } else {
+        loadRSSFeed();
+      }
+
+      // Refresh every 30 seconds
+      let countdown = 30;
+      const timerEl = document.getElementById('rss-timer');
+      
+      setInterval(loadRSSFeed, 30 * 1000);
+      
+      // Update countdown timer every second
+      setInterval(() => {
+        countdown--;
+        if (countdown <= 0) {
+          countdown = 30;
+        }
+        if (timerEl) {
+          timerEl.textContent = countdown;
+        }
+      }, 1000);
+      
+      // Handle "Read more" clicks
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('rss-read-more')) {
+          const itemId = e.target.dataset.rssItem;
+          const data = window.rssStatusData?.[itemId];
+          if (!data) return;
+          
+          const modal = document.getElementById('rss-detail-modal');
+          const content = document.getElementById('rss-detail-content');
+          if (!modal || !content) return;
+          
+          // Build modal content
+          content.innerHTML = `
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+              ${data.badge}
+              <h3 id="rss-detail-title" style="margin:0; font-size:1.15rem; color:#00fff9; font-family:'Orbitron',monospace;">${escapeHtml(data.title)}</h3>
+            </div>
+            ${data.statusText ? `<div style="font-size:.85rem; color:#7edcf0; margin-bottom:12px; font-weight:600; letter-spacing:.5px; text-transform:uppercase;">Status: ${escapeHtml(data.statusText)}</div>` : ''}
+            <div style="font-size:.88rem; color:#d4dde0; line-height:1.6; margin-bottom:16px; white-space:pre-wrap;">${escapeHtml(data.detailText)}</div>
+            ${data.dateStr ? `<div style="font-size:.75rem; color:#7edcf0; opacity:.7; padding-top:12px; border-top:1px solid rgba(0,255,249,0.1);">Updated: ${data.dateStr}${data.pubDate ? ` (${new Date(data.pubDate).toLocaleString()})` : ''}</div>` : ''}
+          `;
+          
+          modal.classList.add('visible');
+          modal.setAttribute('aria-hidden', 'false');
+        }
+      });
+      
+      // Close modal handlers
+      const modal = document.getElementById('rss-detail-modal');
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target.hasAttribute('data-close-rss-detail') || e.target.closest('[data-close-rss-detail]')) {
+            modal.classList.remove('visible');
+            modal.setAttribute('aria-hidden', 'true');
+          }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && modal.classList.contains('visible')) {
+            modal.classList.remove('visible');
+            modal.setAttribute('aria-hidden', 'true');
+          }
+        });
+      }
+    })();
+  </script>
+  
+  <!-- Legacy DoAI helper removed; GlitchBot uses an in-page widget -->
+  <!-- BMC widget intentionally omitted on support page (present on all other pages) -->
+  <script src="js/script.js" defer></script>
+</body>
+</html>
+

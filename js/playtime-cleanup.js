@@ -28,10 +28,8 @@ function cleanupPlaytimeData() {
     
     window.firestoreGetDocs(q)
         .then(querySnapshot => {
-            console.log(`Found ${querySnapshot.size} playtime documents`);
             
             if (querySnapshot.empty) {
-                console.log('No playtime data to clean up.');
                 return null;
             }
             
@@ -105,8 +103,6 @@ function cleanupPlaytimeData() {
         })
         .then(result => {
             if (result === null) return; // No cleanup needed
-            console.log('✅ Playtime data has been cleaned up and consolidated');
-            console.log('🔄 Refresh the page to see the updated playtime data');
         })
         .catch(error => {
             console.error('❌ Error cleaning up playtime data:', error);
@@ -114,8 +110,3 @@ function cleanupPlaytimeData() {
 }
 
 // Usage instructions
-console.log('🧹 Playtime Cleanup Utility');
-console.log('------------------------');
-console.log('To clean up duplicate playtime data: cleanupPlaytimeData()');
-console.log('This will consolidate all playtime data and remove duplicates.');
-console.log('------------------------');

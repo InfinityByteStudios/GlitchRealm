@@ -30,7 +30,6 @@ class CriticalImagePreloader {
   }
 
   async run() {
-    console.log('🚀 Starting critical image preloading implementation...');
     
     try {
       // Load optimization mappings if available
@@ -42,8 +41,6 @@ class CriticalImagePreloader {
       // Generate preload report
       await this.generatePreloadReport();
       
-      console.log('✅ Critical image preloading completed successfully!');
-      console.log(`📄 Files updated: ${this.updatedFiles.length}`);
       
     } catch (error) {
       console.error('❌ Critical preloading failed:', error);
@@ -67,10 +64,8 @@ class CriticalImagePreloader {
         });
       }
       
-      console.log(`📋 Loaded optimization mappings for ${this.lcpImages.size} images`);
       
     } catch (error) {
-      console.log('⚠️  No optimization report found, using original image paths');
       // Continue without optimization mappings
     }
   }
@@ -87,11 +82,9 @@ class CriticalImagePreloader {
       try {
         await fs.access(htmlFilePath);
       } catch {
-        console.log(`ℹ️  File not found: ${htmlFilePath}, skipping...`);
         return;
       }
 
-      console.log(`🔄 Processing: ${htmlFilePath}`);
       
       let content = await fs.readFile(htmlFilePath, 'utf8');
       let hasChanges = false;
@@ -184,9 +177,7 @@ class CriticalImagePreloader {
           preloads: addedPreloads
         });
         
-        console.log(`✅ Updated: ${htmlFilePath} (${addedPreloads.length} critical images preloaded)`);
       } else {
-        console.log(`ℹ️  No changes needed: ${htmlFilePath}`);
       }
       
     } catch (error) {
@@ -216,8 +207,6 @@ class CriticalImagePreloader {
     const summary = this.generatePreloadSummaryMarkdown(report);
     await fs.writeFile(summaryPath, summary);
     
-    console.log(`📋 Preload report generated: ${reportPath}`);
-    console.log(`📋 Preload summary generated: ${summaryPath}`);
   }
 
   generatePreloadSummaryMarkdown(report) {

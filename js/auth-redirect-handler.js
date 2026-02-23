@@ -37,7 +37,6 @@ class AuthRedirectHandler {
         try {
             sessionStorage.setItem(this.storageKey, currentUrl);
             localStorage.setItem(this.storageKey, currentUrl); // Backup
-            console.log('[AuthRedirect] Stored return URL:', currentUrl);
         } catch (e) {
             console.warn('[AuthRedirect] Could not store return URL:', e);
         }
@@ -109,7 +108,6 @@ class AuthRedirectHandler {
             localStorage.removeItem(this.storageKey);
         } catch (e) { }
 
-        console.log('[AuthRedirect] Redirecting to:', returnUrl);
 
         // Small delay to ensure auth state is synced
         setTimeout(() => {
@@ -173,7 +171,6 @@ class AuthRedirectHandler {
                 return;
         }
 
-        console.log('[AuthRedirect] Redirecting to OAuth:', authUrl);
         window.location.href = authUrl;
     }
 }
@@ -205,5 +202,3 @@ window.triggerSignInWithRedirect = function (event, provider = null) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AuthRedirectHandler;
 }
-
-console.log('[AuthRedirect] Auth redirect handler initialized');

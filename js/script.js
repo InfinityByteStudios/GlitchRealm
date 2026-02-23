@@ -5,10 +5,8 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('/sw.js')
             .then(function(registration) {
-                console.log('ServiceWorker registered:', registration.scope);
             })
             .catch(function(error) {
-                console.log('ServiceWorker registration failed:', error);
             });
     });
 }
@@ -22,7 +20,6 @@ if ('serviceWorker' in navigator) {
             const authData = JSON.parse(cachedAuthState);
             // If auth state exists and is recent (within 24 hours), show user profile immediately
             if (authData.timestamp && (Date.now() - authData.timestamp) < 86400000) {
-                console.log('[News Auth] Found cached auth state, will restore UI on Firebase init');
                 window.__cachedAuthState = authData;
             }
         }
@@ -51,7 +48,6 @@ async function loadSupabaseAvatarIfAvailable(userId) {
         
         // If custom avatar exists, update all avatar elements
         if (profile?.custom_photo_url) {
-            console.log('[News Auth] Found Supabase custom avatar, updating UI');
             const userAvatar = document.getElementById('user-avatar');
             const userAvatarLarge = document.getElementById('user-avatar-large');
             
@@ -69,35 +65,6 @@ async function loadSupabaseAvatarIfAvailable(userId) {
     // Accessor for the Terms Update version used in localStorage keys
     function getTermsUpdateVersion() {
         return (typeof window.GR_TERMS_UPDATE_VERSION !== 'undefined' && window.GR_TERMS_UPDATE_VERSION) ? window.GR_TERMS_UPDATE_VERSION : '2025-09-05';
-    }
-
-    // Legal notice helpers
-    if (typeof window.grResetLegalNotice !== 'function') {
-        window.grResetLegalNotice = function() {
-            try {
-                localStorage.removeItem('gr.legal.accepted');
-                localStorage.removeItem('gr.legal.declined');
-            } catch {}
-        };
-    }
-            const accept = document.getElementById('accept-terms-update');
-            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-            const seenKey = 'gr.terms.updated.seen.v' + getTermsUpdateVersion();
-            const finalize = () => {
-                try { localStorage.setItem(seenKey, '1'); } catch {}
-                overlay.style.display = 'none';
-                document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                delete overlay.dataset.prevOverflow;
-            };
-            // Dismiss just closes (the decline-equivalent behavior is handled elsewhere when scheduled)
-            dismiss && dismiss.addEventListener('click', (e) => { try { e.preventDefault(); } catch {}; finalize(); }, { once: true });
-            // Accept acknowledges and closes
-            accept && accept.addEventListener('click', finalize, { once: true });
-            // Inline links count as seen
-            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
-        };
     }
 })();
 
@@ -198,95 +165,36 @@ function checkPasswordChangeSuccess() {
 
 // Show password change success notification
 function showPasswordChangeSuccessNotification() {
-    // Create side notification
     const notification = document.createElement('div');
     notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: -400px;
-        width: 350px;
-        background: linear-gradient(145deg, rgba(0, 255, 88, 0.1), rgba(0, 200, 70, 0.15));
-        border: 2px solid #00ff58;
-        border-radius: 12px;
-        padding: 0;
-        z-index: 10000;
-                    const declinedKey = 'gr.terms.updated.declined.v' + TERMS_UPDATE_VERSION;
+        position: fixed; top: 20px; right: -400px; width: 350px;
+        background: linear-gradient(145deg, rgba(0,255,88,0.1), rgba(0,200,70,0.15));
+        border: 2px solid #00ff58; border-radius: 12px; padding: 0; z-index: 10000;
         transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-                    const declined = localStorage.getItem(declinedKey) === '1';
-                    return !seen && !declined;
-        backdrop-filter: blur(10px);
-        font-family: 'Orbitron', monospace;
+        backdrop-filter: blur(10px); font-family: 'Orbitron', monospace;
     `;
-    
     notification.innerHTML = `
-        <div style="display: flex; align-items: flex-start; padding: 1rem; gap: 0.75rem;">
-            <div style="font-size: 1.5rem; flex-shrink: 0; animation: pulse 2s infinite;">✅</div>
-            <div style="flex: 1; color: #00ff58;">
-                <strong style="font-size: 0.9rem; display: block; margin-bottom: 0.25rem; text-shadow: 0 0 10px rgba(0, 255, 88, 0.5);">
-                    const declinedKey = 'gr.terms.updated.declined.v' + TERMS_UPDATE_VERSION;
+        <div style="display:flex; align-items:flex-start; padding:1rem; gap:0.75rem;">
+            <div style="font-size:1.5rem; flex-shrink:0;">✅</div>
+            <div style="flex:1; color:#00ff58;">
+                <strong style="font-size:0.9rem; display:block; margin-bottom:0.25rem; text-shadow:0 0 10px rgba(0,255,88,0.5);">
                     Password Successfully Changed!
                 </strong>
-                <p style="font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; margin: 0; opacity: 0.9;">
+                <p style="font-family:'Rajdhani',sans-serif; font-size:0.85rem; margin:0; opacity:0.9;">
                     Your account credentials have been updated.
                 </p>
             </div>
-            <button onclick="this.parentElement.parentElement.remove()" style="
-                background: none; border: none; color: #00ff58; font-size: 1.2rem; 
-                cursor: pointer; padding: 0; width: 20px; height: 20px; 
-                display: flex; align-items: center; justify-content: center; 
-                border-radius: 50%; transition: all 0.3s ease; flex-shrink: 0;
-            " onmouseover="this.style.background='rgba(0, 255, 88, 0.2)'; this.style.transform='scale(1.1)';" 
-                    // Dismiss: behave like decline of regular TOS
-                    if (dismiss) {
-                        const navigateBlank = () => {
-                            // Prefer local blank.html, then fall back
-                            try { (window.top || window).location.replace('blank.html'); return; } catch {}
-                            try { window.location.href = 'blank.html'; return; } catch {}
-                            try { (window.top || window).location.replace('about:blank'); return; } catch {}
-                            try { (window.top || window).location.assign('about:blank'); return; } catch {}
-                            try { window.open('about:blank', '_top'); return; } catch {}
-                            try { window.location.href = 'about:blank'; return; } catch {}
-                            try { window.close(); } catch {}
-                            closeOnly();
-                        };
-                        const onDismiss = (e) => {
-                            try {
-                                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-                            } catch {}
-                            try { localStorage.setItem(declinedKey, '1'); } catch {}
-                            try { alert('You declined the updated Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected.'); } catch {}
-                            setTimeout(navigateBlank, 0);
-                        };
-                        dismiss.addEventListener('click', onDismiss, { once: true });
-                        dismiss.addEventListener('pointerdown', onDismiss, { once: true });
-                        dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
-                    }
+            <button onclick="this.closest('div[style]').remove()" style="
+                background:none; border:none; color:#00ff58; font-size:1.2rem;
+                cursor:pointer; padding:0; width:20px; height:20px;
+                display:flex; align-items:center; justify-content:center;
+                border-radius:50%; transition:all 0.3s ease; flex-shrink:0;
+            " aria-label="Dismiss">&times;</button>
         </div>
     `;
-    
     document.body.appendChild(notification);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 5000);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.style.right = '20px';
-    }, 100);
-    
-    // Add pulse animation for icon
-    const pulseStyle = document.createElement('style');
-    pulseStyle.textContent = `
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-    `;
-    document.head.appendChild(pulseStyle);
+    setTimeout(() => { notification.style.right = '20px'; }, 100);
+    setTimeout(() => { if (notification.parentNode) notification.remove(); }, 5000);
 }
 
 // Error message mapping for Firebase auth errors
@@ -434,11 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const setupSignInButton = function() {
         const signInBtn = document.getElementById('sign-in-btn');
         if (signInBtn && !signInBtn.dataset.listenerAttached) {
-            console.log('[Auth] Setting up sign-in button handler');
             
             signInBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('[Auth] Sign-in button clicked');
                 
                 // Detect localhost vs production
                 const isDev = window.location.hostname === 'localhost' || 
@@ -452,17 +358,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Redirect to auth (local folder or subdomain)
                 if (isDev) {
                     const authUrl = `/auth/?return=${encodeURIComponent(returnUrl)}`;
-                    console.log('[Auth] Redirecting to local auth:', authUrl);
                     window.location.href = authUrl;
                 } else {
                     const authUrl = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
-                    console.log('[Auth] Redirecting to production auth:', authUrl);
                     window.location.href = authUrl;
                 }
             });
             
             signInBtn.dataset.listenerAttached = 'true';
-            console.log('[Auth] Sign-in button handler attached');
         }
     };
     
@@ -473,7 +376,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // IMMEDIATELY restore UI from cached auth state if available
     try {
         if (window.__cachedAuthState) {
-            console.log('[News Auth] Restoring UI from cached auth state on DOMContentLoaded');
             const signInBtn = document.getElementById('sign-in-btn');
             const userProfile = document.getElementById('user-profile');
             const userName = document.getElementById('user-name');
@@ -496,7 +398,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (userAvatarLarge) userAvatarLarge.src = window.__cachedAuthState.photoURL;
                 }
                 
-                console.log('[News Auth] UI restored successfully from cache');
                 
                 // Check for Supabase custom avatar asynchronously (higher priority than cached photoURL)
                 loadSupabaseAvatarIfAvailable(window.__cachedAuthState.uid).catch(err => {
@@ -730,7 +631,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 if (e.target.closest('.menu-item.edit')) {
                     closeAllGameMenus();
-                    if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
+                    // Redirect to submit-game.html edit page instead of opening modal
+                    window.location.href = `submit-game.html?edit=${gameId}&step=2`;
                     return;
                 }
                 if (e.target.closest('.menu-item.report')) {
@@ -756,7 +658,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gameId = card?.getAttribute('data-game');
                 switch (action) {
                     case 'edit':
-                        if (typeof window.openEditSubmissionModal === 'function') window.openEditSubmissionModal(gameId);
+                        // Redirect to submit-game.html edit page instead of opening modal
+                        window.location.href = `submit-game.html?edit=${gameId}&step=2`;
                         break;
                     case 'delete':
                         (async () => {
@@ -993,11 +896,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     await ensureFirestoreLight();
                     const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', String(gameId));
                     const snap = await window.firestoreGetDoc(dref);
-                    if (!snap.exists()) { console.log('No such submission'); return; }
+                    if (!snap.exists()) { return; }
                     const data = snap.data();
                     const ownerId = data?.ownerId || '(none)';
-                    console.log('[debugSubmissionOwnership]', { gameId, ownerId, currentUid: window.firebaseAuth?.currentUser?.uid });
-                } catch (e) { console.log('debugSubmissionOwnership error', e); }
+
+                } catch (e) { /* silently handle */ }
             };
         })();
     const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
@@ -1092,7 +995,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOnly(); }, { once: true });
                     return true;
                 }
-            }
+            },
             // Add more providers here safely without changing functionality
         ];
 
@@ -1574,10 +1477,9 @@ function initializeBasicModal() {
 async function initializeAuth() {
     try {
         if (!window.firebaseAuth) {
-            console.log('Firebase not yet initialized, retrying...');
             setTimeout(initializeAuth, 500);
             return;
-        }        console.log('Initializing Firebase Auth...');
+        }
         // Attempt to initialize App Check if configured
         try {
             const { getApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
@@ -1593,24 +1495,22 @@ async function initializeAuth() {
                         provider: new ReCaptchaV3Provider(String(window.GR_APPCHECK_SITE_KEY)),
                         isTokenAutoRefreshEnabled: true,
                     });
-                    console.log('[AppCheck] Initialized with reCAPTCHA v3');
                 } catch (appCheckErr) {
                     console.warn('[AppCheck] Initialization skipped or failed:', appCheckErr?.message || appCheckErr);
                 }
             } else {
-                console.log('[AppCheck] GR_APPCHECK_SITE_KEY not set; skipping App Check init');
             }
         } catch (e) {
-            console.log('[AppCheck] Not initialized (modules unavailable or not needed).');
         }
 
-        const { signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
     
     // Expose deleteUser to global scope for account deletion
     window.deleteUser = deleteUser;
     
     const auth = window.firebaseAuth;
     try { auth.languageCode = navigator.language || 'en'; } catch {}
+    const forceRedirect = !!window.GR_AUTH_FORCE_REDIRECT;
     const googleProvider = new GoogleAuthProvider();
     const githubProvider = new GithubAuthProvider();
     try { githubProvider.setCustomParameters({ allow_signup: 'true' }); } catch {}
@@ -1632,10 +1532,7 @@ async function initializeAuth() {
                 document.body.style.overflow = 'auto';
             }
             showAuthMessage('Signed in successfully!', 'success');
-            console.log('Completed redirect sign-in:', {
-                providerId: redirectResult.providerId,
-                user: { uid: redirectResult.user.uid, email: redirectResult.user.email }
-            });
+
         }
     } catch (redirectErr) {
         console.warn('getRedirectResult error (safe to ignore if no redirect happened):', redirectErr);
@@ -1644,7 +1541,6 @@ async function initializeAuth() {
     
     // If header elements aren't loaded yet, store auth function for later
     if (!signInBtn || !signInModal || !userProfile) {
-        console.log('Header elements not yet loaded, deferring auth initialization...');
         window.pendingAuthInit = () => initializeAuth();
         return;
     }
@@ -1697,35 +1593,82 @@ async function initializeAuth() {
 
     // Authentication methods (Firebase-dependent)
     googleSignIn?.addEventListener('click', async () => {
+        let finalized = false;
         try {
             showAuthLoading(googleSignIn, 'CONNECTING...');
-            await signInWithRedirect(auth, googleProvider);
-            return;
+            if (forceRedirect) {
+                console.warn('Forcing Google sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
+                await signInWithRedirect(auth, googleProvider);
+                return;
+            }
+            await signInWithPopup(auth, googleProvider);
+            finalized = true;
+            if (signInModal) signInModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            showAuthMessage('Neural sync successful!', 'success');
         } catch (error) {
-            console.error('Google sign-in redirect error:', error);
+            console.error('Google sign-in error:', error);
+            const code = String(error?.code || error?.message || '');
+            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
+            if (shouldRedirect) {
+                try {
+                    console.warn('Falling back to redirect for Google sign-in...');
+                    await signInWithRedirect(auth, googleProvider);
+                    return; // Will navigate and complete via getRedirectResult()
+                } catch (redirectErr) {
+                    console.error('Google redirect sign-in failed:', redirectErr);
+                }
+            }
             showAuthMessage('Connection failed. Please try again.', 'error');
         } finally {
-            const activeTab = document.querySelector('.auth-tab.active');
-            const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-            const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
-            hideAuthLoading(googleSignIn, defaultText);
+            if (!finalized) {
+                // Reset to proper default text based on active tab
+                const activeTab = document.querySelector('.auth-tab.active');
+                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
+                const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
+                hideAuthLoading(googleSignIn, defaultText);
+            }
         }
     });
 
-    // GitHub sign-in (redirect-only to avoid popup blocking)
+    // GitHub sign-in (with redirect fallback for popup/internal errors)
     githubSignIn?.addEventListener('click', async () => {
+        let finalized = false;
         try {
             showAuthLoading(githubSignIn, 'CONNECTING...');
-            await signInWithRedirect(auth, githubProvider);
-            return;
+            if (forceRedirect) {
+                console.warn('Forcing GitHub sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
+                await signInWithRedirect(auth, githubProvider);
+                return;
+            }
+            await signInWithPopup(auth, githubProvider);
+            finalized = true;
+            if (signInModal) signInModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            showAuthMessage('GitHub sync successful!', 'success');
         } catch (error) {
-            console.error('GitHub sign-in redirect error:', error);
+            console.error('GitHub sign-in error:', error);
+            const code = String(error?.code || error?.message || '');
+            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
+            if (shouldRedirect) {
+                try {
+                    console.warn('Falling back to redirect for GitHub sign-in...');
+                    // Keep loading state; navigation should occur
+                    await signInWithRedirect(auth, githubProvider);
+                    return; // Will navigate away; getRedirectResult will complete later
+                } catch (redirectErr) {
+                    console.error('GitHub redirect sign-in failed:', redirectErr);
+                }
+            }
             showAuthMessage('GitHub connection failed. Please try again.', 'error');
         } finally {
-            const activeTab = document.querySelector('.auth-tab.active');
-            const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-            const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
-            hideAuthLoading(githubSignIn, defaultText);
+            // Reset to proper default text based on active tab unless we’ve navigated/finished
+            if (!finalized) {
+                const activeTab = document.querySelector('.auth-tab.active');
+                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
+                const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
+                hideAuthLoading(githubSignIn, defaultText);
+            }
         }
     });
 
@@ -1821,7 +1764,6 @@ async function initializeAuth() {
         // First check localStorage for existing auth state
         const existingAuthState = window.sharedAuth.checkExistingAuthState();
         if (existingAuthState) {
-            console.log('Found existing auth state in localStorage, updating UI...');
             const mockUser = {
                 uid: existingAuthState.uid,
                 email: existingAuthState.email,
@@ -1835,12 +1777,10 @@ async function initializeAuth() {
             }
         } else {
             // If no localStorage auth, actively check other games
-            console.log('No localStorage auth found, checking other games...');
             window.sharedAuth.checkOtherGamesForAuth().then(foundAuth => {
                 if (foundAuth) {
                     showAuthMessage('Connected via cross-game account.', 'success');
                 } else {
-                    console.log('No existing authentication found in other games');
                 }
             }).catch(error => {
                 console.error('Error checking other games for auth:', error);
@@ -1855,7 +1795,6 @@ async function initializeAuth() {
         
         if (user) {
             // User is signed in
-            try { console.log('[Auth] User signed in:', { uid: user.uid, email: user.email }); } catch {}
             updateUserProfile(user);
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
@@ -1900,24 +1839,21 @@ async function initializeAuth() {
             (async () => {
                 try {
                     await startGlobalNotificationsListener();
-                    console.log('[Notifications] Listener started for user:', user.uid);
                 } catch (e) {
                     console.warn('[Notifications] Failed to start listener:', e);
                 }
             })();
 
-            // Notifications now use a global feed; listener starts on page load.
+            // Notifications use a global feed; listener now starts after sign-in.
             // Optional: auto-open portal on sign-in
             if (GR_SETTINGS.portalAutoOpenOnSignIn && !/user-portal\.html$/i.test(location.pathname)) {
                 setTimeout(() => { window.location.href = 'user-portal.html'; }, 300);
             }
         } else {
             // User is signed out
-            try { console.log('[Auth] User signed out'); } catch {}
             if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
             if (notificationBell) notificationBell.style.display = 'none';
-            if (notificationBellFloating) notificationBellFloating.style.display = 'none';
             if (moderationMenuBtn) moderationMenuBtn.remove();
             
             // Clear auth state for SSO
@@ -1934,25 +1870,19 @@ async function initializeAuth() {
             // Stop notifications listener when signed out
             if (window.detachNotificationsListener) {
                 window.detachNotificationsListener();
-                console.log('[Notifications] Listener detached on sign out');
             }
             updateNotificationCount(0);
-
-            // Global notifications remain active regardless of auth state.
         }
     });
 
     // Listen for auth state changes from other tabs/windows
     window.addEventListener('storage', (e) => {
         if (e.key === 'firebase_auth_state') {
-            console.log('[Auth] Auth state changed in another tab');
             
             // Force auth state refresh
             if (auth.currentUser) {
-                console.log('[Auth] Updating UI for current user');
                 updateUserProfile(auth.currentUser);
             } else {
-                console.log('[Auth] No current user, checking for changes');
                 // Auth state might have changed, let Firebase handle it
                 auth.currentUser; // This triggers internal check
             }
@@ -1962,7 +1892,6 @@ async function initializeAuth() {
     // Listen for custom Firebase auth events
     window.addEventListener('firebaseAuthStateChanged', (e) => {
         const user = e.detail?.user;
-        console.log('[Auth] Custom auth state event received:', user ? user.uid : 'signed out');
         
         if (user) {
             // Ensure UI is updated even if onAuthStateChanged already fired
@@ -1980,12 +1909,9 @@ async function initializeAuth() {
         if (user && user.isAnonymous) {
             try {
                 deleteUser(user).then(() => {
-                    console.log('Anonymous account deleted on tab close/hide');
                 }).catch((error) => {
-                    console.log('Anonymous account cleanup attempted:', error.message);
                 });
             } catch (error) {
-                console.log('Anonymous account cleanup attempted');
             }
         }
     }
@@ -2039,411 +1965,8 @@ async function initializeAuth() {
         // Old initializeProfilePictureUpload() call removed
     }
     
-    // Profile picture upload functionality
-    function initializeProfilePictureUpload() {
-        // DISABLED: This old profile picture upload is replaced by Supabase avatar integration
-        // The new system is in portal-avatar-integration.js and handles uploads properly
-        // Only runs on user-portal.html with Supabase Storage
-        
-        console.log('Old profile picture upload disabled - using Supabase avatar system');
-        return; // Exit early - don't set up old handlers
-        
-        const uploadOverlays = document.querySelectorAll('.avatar-upload-overlay, .avatar-upload-overlay-large');
-        const fileInput = document.getElementById('profile-picture-upload');
-        
-        console.log('Initializing profile picture upload...');
-        console.log('Found upload overlays:', uploadOverlays.length);
-        console.log('Found file input:', !!fileInput);
-        
-        if (!fileInput) {
-            console.log('Profile picture upload input not found');
-            return;
-        }
-        
-        // Add click handlers to upload overlays
-        uploadOverlays.forEach((overlay, index) => {
-            console.log(`Adding click handler to overlay ${index}:`, overlay);
-            overlay.addEventListener('click', (e) => {
-                console.log('Upload overlay clicked - FEATURE DISABLED');
-                e.stopPropagation(); // Prevent dropdown from closing
-                
-                // FEATURE DISABLED: Profile picture upload is currently disabled
-                showAuthMessage('📷 Profile picture upload feature is temporarily disabled.', 'info');
-                
-                // Commented out: fileInput.click();
-            });
-        });
-        
-        // Handle file selection
-        fileInput.addEventListener('change', async (e) => {
-            console.log('File input changed, files:', e.target.files);
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                showAuthMessage('❌ Please select a valid image file.', 'error');
-                return;
-            }
-            
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                showAuthMessage('❌ Image file size must be less than 5MB.', 'error');
-                return;
-            }
-            
-            try {
-                // FEATURE DISABLED: Skip crop modal and upload directly
-                // showCropModal(file);
-                console.log('Crop modal feature disabled - uploading directly');
-                await uploadProfilePicture(file);
-            } catch (error) {
-                console.error('Error uploading profile picture:', error);
-                showAuthMessage('❌ Failed to process image.', 'error');
-            }
-        });
-    }
-    
-    // Upload profile picture function (Supabase Storage)
-    async function uploadProfilePicture(file) {
-        const user = auth.currentUser;
-        if (!user) {
-            showAuthMessage('❌ You must be signed in to change your profile picture.', 'error');
-            return;
-        }
-
-        try {
-            showAuthMessage('📷 Uploading profile picture...', 'info');
-
-            // Initialize Supabase client once
-            async function ensureSupabase() {
-                if (window.grSupabase) return window.grSupabase;
-                const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm');
-                const createClient = mod.createClient || mod.default?.createClient;
-                const SUPABASE_URL = window.GR_SUPABASE_URL || 'https://hkogcnxmrrkxggwcrqyh.supabase.co';
-                const SUPABASE_ANON_KEY = window.GR_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrb2djbnhtcnJreGdnd2NycXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA5MDQsImV4cCI6MjA3Mjc2NjkwNH0.mOrnXNJBQLgMg1oq4zW1ySvCMXAbo-ZNAMwx59NJyxM';
-                window.grSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                return window.grSupabase;
-            }
-
-            const supabase = await ensureSupabase();
-            const bucket = 'profile-pictures'; // Assumes this bucket exists and is public or policies allow access
-            const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-            const path = `${user.uid}/${Date.now()}_${safeName}`;
-
-            // Upload with upsert to avoid conflicts when retrying
-            const { data: upData, error: upErr } = await supabase
-                .storage
-                .from(bucket)
-                .upload(path, file, { cacheControl: '3600', upsert: true, contentType: file.type || 'image/jpeg' });
-
-            if (upErr) {
-                console.error('Supabase upload error:', upErr);
-                showAuthMessage('❌ Failed to upload to storage.', 'error');
-                return;
-            }
-
-            // Get a public URL (requires bucket to be public). Otherwise, consider generating a signed URL.
-            const { data: pub, error: pubErr } = supabase.storage.from(bucket).getPublicUrl(path);
-            if (pubErr) {
-                console.error('Supabase getPublicUrl error:', pubErr);
-                showAuthMessage('❌ Failed to obtain file URL.', 'error');
-                return;
-            }
-            const publicUrl = pub.publicUrl;
-
-            // Update Firebase user profile with new photo URL
-            const { updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-            await updateProfile(user, { photoURL: publicUrl });
-
-            // Update UI immediately
-            updateUserProfile(user);
-
-            showAuthMessage('✅ Profile picture updated successfully!', 'success');
-
-            // Store auth state for SSO
-            if (window.sharedAuth) {
-                window.sharedAuth.storeAuthState(user);
-            }
-
-        } catch (error) {
-            console.error('Profile update error:', error);
-            showAuthMessage('❌ Failed to update profile picture.', 'error');
-        }
-    }
-    
-    // Show crop modal for profile picture
-    function showCropModal(file) {
-        console.log('showCropModal called with file:', file.name);
-        
-        const modal = document.getElementById('crop-modal');
-        const cropImage = document.getElementById('crop-image');
-        const zoomSlider = document.getElementById('zoom-slider');
-        
-        console.log('Modal elements found:', { 
-            modal: !!modal, 
-            cropImage: !!cropImage, 
-            zoomSlider: !!zoomSlider 
-        });
-        
-        if (!modal || !cropImage) {
-            console.error('Crop modal elements not found');
-            console.log('Available elements in DOM:', {
-                cropModal: document.querySelector('#crop-modal'),
-                cropImage: document.querySelector('#crop-image'),
-                allModals: document.querySelectorAll('[id*="modal"]')
-            });
-            // Fallback: directly upload without cropping
-            uploadProfilePicture(file);
-            return;
-        }
-        
-        // Create a FileReader to load the image
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            cropImage.src = e.target.result;
-            
-            // Wait for image to load before showing modal
-            cropImage.onload = function() {
-                // Show modal with proper class
-                modal.style.display = 'flex';
-                modal.classList.add('show');
-                
-                // Reset zoom and apply initial transform
-                if (zoomSlider) {
-                    zoomSlider.value = 1;
-                    cropImage.style.transform = 'scale(1)';
-                    cropImage.style.transformOrigin = 'center center';
-                    
-                    console.log('Image loaded and zoom reset to 1');
-                }
-                
-                // Store the original file for later use
-                modal.dataset.originalFile = JSON.stringify({
-                    name: file.name,
-                    type: file.type,
-                    size: file.size
-                });
-            };
-        };
-        
-        reader.readAsDataURL(file);
-    }
-    
-    // Initialize crop modal event listeners
-    function initializeCropModal() {
-        const modal = document.getElementById('crop-modal');
-        const cropImage = document.getElementById('crop-image');
-        const zoomSlider = document.getElementById('zoom-slider');
-        const cancelBtn = document.getElementById('crop-cancel');
-        const confirmBtn = document.getElementById('crop-confirm');
-        const closeBtn = document.getElementById('crop-modal-close');
-        
-        if (!modal) return;
-        
-        // Ensure modal is hidden on initialization
-        modal.style.display = 'none';
-        modal.classList.remove('show');
-        
-        // Zoom functionality
-        if (zoomSlider && cropImage) {
-            // Remove any existing listeners first
-            const newZoomSlider = zoomSlider.cloneNode(true);
-            zoomSlider.parentNode.replaceChild(newZoomSlider, zoomSlider);
-            
-            newZoomSlider.addEventListener('input', (e) => {
-                const zoomValue = parseFloat(e.target.value);
-                console.log('Zoom value changed to:', zoomValue);
-                cropImage.style.transform = `scale(${zoomValue})`;
-                cropImage.style.transformOrigin = 'center center';
-            });
-            
-            newZoomSlider.addEventListener('change', (e) => {
-                const zoomValue = parseFloat(e.target.value);
-                console.log('Zoom value final:', zoomValue);
-                cropImage.style.transform = `scale(${zoomValue})`;
-                cropImage.style.transformOrigin = 'center center';
-            });
-        }
-        
-        // Cancel button
-        if (cancelBtn) {
-            // Remove existing listeners by cloning
-            const newCancelBtn = cancelBtn.cloneNode(true);
-            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-            
-            newCancelBtn.addEventListener('click', (e) => {
-                console.log('Cancel button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                hideCropModal();
-            });
-        }
-        
-        // Close button
-        if (closeBtn) {
-            // Remove existing listeners by cloning
-            const newCloseBtn = closeBtn.cloneNode(true);
-            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-            
-            newCloseBtn.addEventListener('click', (e) => {
-                console.log('Close button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                hideCropModal();
-            });
-        }
-        
-        // Confirm button
-        if (confirmBtn) {
-            // Remove existing listeners by cloning
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            
-            newConfirmBtn.addEventListener('click', async (e) => {
-                console.log('Confirm button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                await cropAndUploadImage();
-            });
-        }
-        
-        // Close modal when clicking outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                console.log('Modal backdrop clicked');
-                hideCropModal();
-            }
-        });
-        
-        // Add event delegation for button clicks
-        modal.addEventListener('click', (e) => {
-            if (e.target.id === 'crop-cancel' || e.target.classList.contains('crop-cancel')) {
-                console.log('Cancel clicked via delegation');
-                e.preventDefault();
-                e.stopPropagation();
-                hideCropModal();
-            }
-            
-            if (e.target.id === 'crop-modal-close' || e.target.classList.contains('crop-modal-close')) {
-                console.log('Close clicked via delegation');
-                e.preventDefault();
-                e.stopPropagation();
-                hideCropModal();
-            }
-            
-            if (e.target.id === 'crop-confirm' || e.target.classList.contains('crop-confirm')) {
-                console.log('Confirm clicked via delegation');
-                e.preventDefault();
-                e.stopPropagation();
-                cropAndUploadImage();
-            }
-        });
-        
-        // Add keyboard support
-        document.addEventListener('keydown', (e) => {
-            if (modal.classList.contains('show')) {
-                if (e.key === 'Escape') {
-                    console.log('Escape key pressed');
-                    hideCropModal();
-                }
-                if (e.key === 'Enter') {
-                    console.log('Enter key pressed');
-                    e.preventDefault();
-                    cropAndUploadImage();
-                }
-            }
-        });
-    }
-    
-    // Hide crop modal
-    function hideCropModal() {
-        console.log('hideCropModal called');
-        const modal = document.getElementById('crop-modal');
-        if (modal) {
-            console.log('Modal found, hiding...');
-            modal.classList.remove('show');
-            
-            // Hide after transition
-            setTimeout(() => {
-                modal.style.display = 'none';
-                console.log('Modal display set to none');
-            }, 300);
-            
-            // Clear the file input
-            const fileInput = document.getElementById('profile-picture-upload');
-            if (fileInput) {
-                fileInput.value = '';
-                console.log('File input cleared');
-            }
-        } else {
-            console.error('Modal not found when trying to hide');
-        }
-    }
-    
-    // Crop and upload the image
-    async function cropAndUploadImage() {
-        const modal = document.getElementById('crop-modal');
-        const cropImage = document.getElementById('crop-image');
-        const zoomSlider = document.getElementById('zoom-slider');
-        
-        if (!modal || !cropImage || !zoomSlider) return;
-        
-        try {
-            showAuthMessage('📷 Processing image...', 'info');
-            
-            // Create a canvas to crop the image
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Set canvas size to desired profile picture size
-            const size = 200; // 200x200 profile picture
-            canvas.width = size;
-            canvas.height = size;
-            
-            // Get the zoom value
-            const zoom = parseFloat(zoomSlider.value);
-            
-            // Create a new image element to get natural dimensions
-            const img = new Image();
-            img.onload = async function() {
-                // Calculate crop dimensions
-                const cropSize = Math.min(img.naturalWidth, img.naturalHeight) / zoom;
-                const cropX = (img.naturalWidth - cropSize) / 2;
-                const cropY = (img.naturalHeight - cropSize) / 2;
-                
-                // Draw the cropped image on canvas
-                ctx.drawImage(
-                    img,
-                    cropX, cropY, cropSize, cropSize, // Source rectangle
-                    0, 0, size, size // Destination rectangle
-                );
-                
-                // Convert canvas to blob
-                canvas.toBlob(async (blob) => {
-                    if (blob) {
-                        // Create a new File object
-                        const originalFileData = JSON.parse(modal.dataset.originalFile || '{}');
-                        const croppedFile = new File([blob], originalFileData.name || 'profile.jpg', {
-                            type: 'image/jpeg'
-                        });
-                        
-                        // Hide modal
-                        hideCropModal();
-                        
-                        // Upload the cropped image
-                        await uploadProfilePicture(croppedFile);
-                    }
-                }, 'image/jpeg', 0.9);
-            };
-            
-            img.src = cropImage.src;
-            
-        } catch (error) {
-            console.error('Crop error:', error);
-            showAuthMessage('❌ Failed to crop image.', 'error');
-        }
-    }
+    // Profile picture upload handled by portal-avatar-integration.js (Supabase)
+    // Old initializeProfilePictureUpload / showCropModal / cropAndUploadImage removed
     
     // Update UI for external auth state (for SSO)
     function updateUIForUser(user) {
@@ -2505,32 +2028,27 @@ async function initializeAuth() {
         }
 
         async function startGlobalNotificationsListener() {
-            console.log('🚀🚀🚀 STARTING NOTIFICATIONS LISTENER 🚀🚀🚀');
             const db = await ensureFirestore();
             const auth = window.firebaseAuth;
-            
-            if (!auth || !auth.currentUser) {
-                console.log('❌ No user logged in, skipping listener');
-                return;
-            }
-            
-            const userId = auth.currentUser.uid;
-            console.log('✅ User ID:', userId);
-            
-            // Clean up any existing listener
+            const user = auth?.currentUser;
+
+            // Always clean up before reattaching
             detachNotificationsListener();
 
-            // Query notifications for current user (count unread locally to include docs missing the read flag)
+            // No user means no listener and zero badge
+            if (!user) {
+                updateNotificationCount(0);
+                return;
+            }
+
             const notificationsRef = window.firestoreCollection(db, 'notifications');
             const q = window.firestoreQuery(
                 notificationsRef,
-                window.firestoreWhere('userId', '==', userId)
+                window.firestoreWhere('userId', '==', user.uid)
             );
+
             notificationsUnsubscribe = window.firestoreOnSnapshot(q, (snapshot) => {
                 const unreadCount = snapshot.docs.filter(doc => doc.data()?.read !== true).length;
-                console.log('🔔🔔🔔 LISTENER FIRED 🔔🔔🔔');
-                console.log('Unread notifications count:', unreadCount);
-                console.log('Snapshot docs:', snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
                 updateNotificationCount(unreadCount);
             }, (error) => {
                 console.warn('Global notifications snapshot error:', error);
@@ -2539,8 +2057,6 @@ async function initializeAuth() {
 
         // Expose detach for use in auth sign-out branch
         window.detachNotificationsListener = detachNotificationsListener;
-        
-        // Expose listener starter globally
         window.startGlobalNotificationsListener = startGlobalNotificationsListener;
 
         // Create a test notification for the current user
@@ -2566,35 +2082,21 @@ async function initializeAuth() {
         // Expose for console use
         window.createTestNotification = createTestNotification;
 
-    // Profile picture monitoring system
+    // Profile picture monitoring - listen for profile changes via auth reload
+    // Instead of polling every 2 seconds, check on visibility change (more efficient)
     function setupProfilePictureMonitoring(auth) {
-        let lastPhotoURL = auth.currentUser?.photoURL;
-        let lastDisplayName = auth.currentUser?.displayName;
-        
-        window.profileMonitorInterval = setInterval(() => {
-            const currentUser = auth.currentUser;
-            if (currentUser) {
-                // Check if profile picture or display name changed
-                if (currentUser.photoURL !== lastPhotoURL || currentUser.displayName !== lastDisplayName) {
-                    console.log('Profile picture or display name changed, updating UI...');
-                    
-                    // Update the UI with new profile data
-                    updateUserProfile(currentUser);
-                    
-                    // Update SSO state with new data
-                    if (window.sharedAuth) {
-                        window.sharedAuth.storeAuthState(currentUser);
-                    }
-                    
-                    // Show notification about profile update
-                    showAuthMessage('Profile updated successfully!', 'success');
-                    
-                    // Update stored values
-                    lastPhotoURL = currentUser.photoURL;
-                    lastDisplayName = currentUser.displayName;
-                }
-            }
-        }, 2000); // Check every 2 seconds
+        const handleVisibilityChange = async () => {
+            if (document.visibilityState !== 'visible') return;
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                await user.reload();
+                updateUserProfile(user);
+                if (window.sharedAuth) window.sharedAuth.storeAuthState(user);
+            } catch (e) { /* silent - non-critical */ }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window._profileMonitorCleanup = () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }
     
     // Force refresh profile data (can be called manually)
@@ -2603,7 +2105,6 @@ async function initializeAuth() {
         if (currentUser) {
             // Reload user data from Firebase
             currentUser.reload().then(() => {
-                console.log('User profile refreshed from Firebase');
                 updateUserProfile(currentUser);
                 
                 // Update SSO state
@@ -2776,14 +2277,12 @@ class SharedAuthSystem {
                 };
                 document.body.appendChild(iframe);
             } catch (error) {
-                console.log('Could not communicate with game:', origin);
             }
         });
     }
 
     // NEW: Actively check other games for existing auth state
     async checkOtherGamesForAuth() {
-        console.log('Checking other games for existing authentication...');
         
         const promises = this.gameOrigins.map(origin => {
             return new Promise((resolve) => {
@@ -2825,7 +2324,6 @@ class SharedAuthSystem {
                     
                     document.body.appendChild(iframe);
                 } catch (error) {
-                    console.log('Could not check auth for:', origin);
                     resolve(null);
                 }
             });
@@ -2840,7 +2338,6 @@ class SharedAuthSystem {
             );
             
             if (validAuth) {
-                console.log('Found existing authentication from another game:', validAuth);
                 this.syncExternalSignIn(validAuth);
                 return true;
             }
@@ -2870,11 +2367,9 @@ class SharedAuthSystem {
             if (authData.timestamp > Date.now() - 5000) { // 5 second window
                 if (authData.isSignedIn && !window.firebaseAuth?.currentUser) {
                     // User signed in elsewhere - we should sync this state
-                    console.log('User signed in from another game/tab');
                     this.syncExternalSignIn(authData);
                 } else if (!authData.isSignedIn && window.firebaseAuth?.currentUser) {
                     // User signed out elsewhere - sign out here too
-                    console.log('User signed out from another game/tab');
                     if (window.firebaseAuth) {
                         window.firebaseAuth.signOut();
                     }
@@ -2919,7 +2414,6 @@ class SharedAuthSystem {
                 if (authData.isSignedIn && 
                     authData.timestamp > Date.now() - (24 * 60 * 60 * 1000) &&
                     authData.uid) { // Make sure we have actual user data
-                    console.log('Found existing auth state from localStorage');
                     return authData;
                 }
             } catch (error) {
@@ -3048,106 +2542,6 @@ function applySettings() {
 try { loadSettings(); } catch (e) {}
 document.addEventListener('DOMContentLoaded', () => { try { loadSettings(); } catch (e) {} });
 
-// Globally style the widget's launcher to match our FAB (works even without our own button)
-let __doaiWidgetStyled = false;
-function styleDoAIWidgetLauncher() {
-    if (__doaiWidgetStyled) return true;
-    try {
-        const selectors = [
-            '[data-doai-launcher]',
-            '[class*="doai"][class*="launch"]',
-            '.doai-launcher',
-            '.doai-widget-launcher',
-            '.doai-chatbot-launcher',
-            '.doai-floating-button',
-            'button[aria-label*="chat" i]',
-            'button[title*="chat" i]'
-        ];
-        const candidates = [];
-        selectors.forEach(sel => document.querySelectorAll(sel).forEach(el => candidates.push(el)));
-        const launcher = candidates.find(el => {
-            try { const r = el.getBoundingClientRect(); return r.width && r.height; } catch { return false; }
-        });
-        if (!launcher) return false;
-        launcher.classList.add('chatbot-fab', 'doai-styled-fab');
-        Object.assign(launcher.style, {
-            position: 'fixed', right: '20px', bottom: '20px', width: '56px', height: '56px', zIndex: '2200'
-        });
-        // Hide original icon and inject ours
-        const existingIcon = launcher.querySelector('svg, img');
-        if (existingIcon) existingIcon.style.display = 'none';
-        if (!launcher.querySelector('.gr-fab-icon')) {
-            const wrapper = document.createElement('span');
-            wrapper.className = 'gr-fab-icon';
-            wrapper.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.48 3 2 6.94 2 11.8c0 2.48 1.24 4.72 3.26 6.28V21l2.98-1.64c1.11.31 2.3.48 3.76.48 5.52 0 10-3.94 10-8.8S17.52 3 12 3zm-5 8h10v2H7v-2zm8-3v2H7V8h8z"/></svg>';
-            launcher.appendChild(wrapper);
-        }
-        __doaiWidgetStyled = true;
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-// Try to preload chatbot script early and bind when FAB appears
-// Chatbot auto-loader now restricted to support page only
-(function primeChatbotInit() {
-    if (!/\/support\.html$/i.test(location.pathname)) return; // Do not load chatbot off support page
-    function ensureLoaderPresent() {
-        if (!document.getElementById('doai-chatbot-loader')) {
-            const s = document.createElement('script');
-            s.id = 'doai-chatbot-loader';
-            s.async = true;
-            s.src = 'https://kcur57gey4euhzpupakvb43g.agents.do-ai.run/static/chatbot/widget.js';
-            s.setAttribute('data-agent-id', 'bd55ebc0-7b86-11f0-b074-4e013e2ddde4');
-            s.setAttribute('data-chatbot-id', 'iLcsXT380jITKSw3t6GQxi14J3z3bc64');
-            s.setAttribute('data-name', 'GlitchRealm Bot');
-            s.setAttribute('data-primary-color', '#031B4E');
-            s.setAttribute('data-secondary-color', '#E5E8ED');
-            s.setAttribute('data-button-background-color', '#0061EB');
-            s.setAttribute('data-starting-message', 'Hello! How can I help you today?');
-            s.setAttribute('data-logo', '/static/chatbot/icons/default-agent.svg');
-            document.body.appendChild(s);
-        }
-    }
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        try { ensureLoaderPresent(); } catch {}
-    } else {
-        document.addEventListener('DOMContentLoaded', () => { try { ensureLoaderPresent(); } catch {} });
-    }
-    function tryBind() {
-        if (document.getElementById('chatbot-fab')) {
-            try { setupChatbotFab(); } catch {}
-            return true;
-        }
-        return false;
-    }
-    if (!tryBind()) {
-        const obs = new MutationObserver(() => { if (tryBind()) { obs.disconnect(); } });
-        obs.observe(document.documentElement, { childList: true, subtree: true });
-        setTimeout(() => { try { obs.disconnect(); } catch {} }, 10000);
-    }
-    let tries = 0;
-    const t = setInterval(() => { tries++; if (styleDoAIWidgetLauncher() || tries > 40) clearInterval(t); }, 250);
-})();
-
-// If the widget posts any messages, attempt styling immediately
-if (/\/support\.html$/i.test(location.pathname)) {
-    window.addEventListener('message', (ev) => {
-        try { if (typeof ev.origin === 'string' && ev.origin.includes('agents.do-ai.run')) { styleDoAIWidgetLauncher(); } } catch {}
-    });
-}
-
-// One-time coachmark bubble above chat button
-function maybeShowChatCoachmark() {
-    // Disabled
-}
-
-// Trigger coachmark after minimal delay
-// Only show/chat coachmark if chatbot allowed (support page only now)
-if (/\/support\.html$/i.test(location.pathname)) {
-    setTimeout(maybeShowChatCoachmark, 1200);
-}
 
 // Chatbot FAB initializer (works even when footer scripts don't run)
 function setupChatbotFab() {
@@ -3173,7 +2567,6 @@ function setupChatbotFab() {
         loader.setAttribute('data-starting-message', 'Hello! How can I help you today?');
         loader.setAttribute('data-logo', '/static/chatbot/icons/default-agent.svg');
         loader.addEventListener('load', () => {
-            console.log('[Chatbot] Widget script loaded');
             resolveOpenFnCache = null; // reset
         });
         loader.addEventListener('error', () => {
@@ -3263,7 +2656,6 @@ function setupChatbotFab() {
         try {
             if (typeof ev.origin === 'string' && ev.origin.includes('agents.do-ai.run')) {
                 if (ev.data && (ev.data.type || ev.data.event)) {
-                    console.log('[Chatbot] message from widget:', ev.data.type || ev.data.event);
                 }
                 resolveOpenFnCache = null;
                 // If user clicked and widget just spoke, try to open immediately
@@ -3276,7 +2668,6 @@ function setupChatbotFab() {
         } catch {}
     });
     ['doai:ready', 'doai-ready', 'DoAI:ready'].forEach(evt => window.addEventListener(evt, (e) => {
-        console.log('[Chatbot] ready event:', evt, e && e.detail);
         if (e && e.detail) readyInstance = e.detail;
         resolveOpenFnCache = null;
         if (pendingOpen) {
@@ -3302,7 +2693,6 @@ function setupChatbotFab() {
                     } catch {}
                 }
             }
-            console.log('[Chatbot] probe candidates:', candidates);
         } catch {}
         // Try posting directly to widget iframes
         try {
@@ -3362,7 +2752,6 @@ function setupChatbotFab() {
             const fab = document.getElementById('chatbot-fab');
             if (fab) fab.style.display = 'none';
             widgetStyled = true;
-            console.log('[Chatbot] Styled widget launcher to match FAB');
             return true;
         } catch (e) {
             console.warn('[Chatbot] Failed to style widget launcher', e);
@@ -3372,7 +2761,6 @@ function setupChatbotFab() {
 
     // Bind click with retries and console logs
     btn.addEventListener('click', () => {
-        console.log('[Chatbot] FAB clicked');
         hint('Opening chat…');
         pendingOpen = true;
         if (tryOpen()) { pendingOpen = false; return; }
@@ -3402,188 +2790,59 @@ function setupChatbotFab() {
     }, 300);
 }
 
-// Function to initialize profile dropdown functionality
+// Profile dropdown initialization (delegates to forceInitializeDropdowns)
 function initializeProfileDropdown() {
-    console.log('Initializing profile dropdown functionality...');
-    const profileTrigger = document.querySelector('.profile-trigger');
-    const profileDropdown = document.querySelector('.profile-dropdown');
-    
-    console.log('Profile dropdown elements found:', { profileTrigger, profileDropdown });
-    
-    if (profileTrigger && profileDropdown) {
-        console.log('Setting up profile dropdown event listeners...');
-        
-        // Clear any existing event listeners by removing and re-adding the element
-        const newProfileTrigger = profileTrigger.cloneNode(true);
-        profileTrigger.parentNode.replaceChild(newProfileTrigger, profileTrigger);
-        
-        newProfileTrigger.addEventListener('click', (e) => {
-            console.log('Profile dropdown clicked!');
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Close other dropdowns first
-            document.querySelectorAll('.nav-dropdown.open').forEach(dd => {
-                dd.classList.remove('open');
-            });
-            
-            profileDropdown.classList.toggle('open');
-            console.log('Profile dropdown classes after toggle:', profileDropdown.className);
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) {
-                profileDropdown.classList.remove('open');
-            }
-        });
-        
-        // Close dropdown with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                profileDropdown.classList.remove('open');
-            }
-        });
-        
-        console.log('Profile dropdown initialized successfully');
-    } else {
-        console.log('Profile dropdown elements not found');
-    }
+    // Handled by forceInitializeDropdowns()
 }
 
-// Function to initialize profile action buttons
+// Profile action buttons
 function initializeProfileActions() {
-    const refreshProfileBtn = document.getElementById('refresh-profile-btn');
-    if (refreshProfileBtn) {
-        refreshProfileBtn.addEventListener('click', () => {
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            if (profileDropdown) {
-                profileDropdown.classList.remove('open');
-            }
-            refreshUserProfile();
-        });
+    const closeDropdown = () => {
+        const dd = document.querySelector('.profile-dropdown');
+        if (dd) dd.classList.remove('open');
+    };
+
+    const refreshBtn = document.getElementById('refresh-profile-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => { closeDropdown(); refreshUserProfile(); });
     }
 
-    // NEW: User Portal navigation
     const userPortalBtn = document.getElementById('user-portal-btn');
     if (userPortalBtn) {
-        userPortalBtn.addEventListener('click', () => {
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            if (profileDropdown) profileDropdown.classList.remove('open');
-            window.location.href = 'user-portal.html';
-        });
+        userPortalBtn.addEventListener('click', () => { closeDropdown(); window.location.href = 'user-portal.html'; });
     }
 
-    // Sign out functionality
     const signOutBtn = document.getElementById('sign-out-btn');
     if (signOutBtn) {
-        signOutBtn.addEventListener('click', () => {
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            if (profileDropdown) {
-                profileDropdown.classList.remove('open');
-            }
-            signOut();
-        });
+        signOutBtn.addEventListener('click', () => { closeDropdown(); signOut(); });
     }
 
-    // Delete account functionality - redirect to dedicated page
     const deleteAccountBtn = document.getElementById('delete-account-btn');
-
     if (deleteAccountBtn) {
-        // Redirect to delete account page
-        deleteAccountBtn.addEventListener('click', () => {
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            if (profileDropdown) {
-                profileDropdown.classList.remove('open');
-            }
-            // Redirect to dedicated delete account page
-            window.location.href = '/delete-account.html';
-        });
-
+        deleteAccountBtn.addEventListener('click', () => { closeDropdown(); window.location.href = '/delete-account.html'; });
     }
 
-    // Settings button functionality
     const settingsBtn = document.getElementById('settings-btn');
     if (settingsBtn) {
-        console.log('Settings button found, adding click listener');
-        settingsBtn.addEventListener('click', () => {
-            console.log('Settings button clicked');
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            if (profileDropdown) {
-                profileDropdown.classList.remove('open');
+        settingsBtn.addEventListener('click', () => { closeDropdown(); window.location.href = '/settings.html'; });
+    }
+
+    // Notification bell
+    const notificationBell = document.getElementById('notification-bell');
+    if (notificationBell) {
+        notificationBell.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (e.shiftKey && typeof window.createTestNotification === 'function') {
+                window.createTestNotification();
+            } else {
+                handleNotificationClick();
             }
-            window.location.href = '/settings.html';
         });
-    } else {
-        console.log('Settings button not found during initialization');
     }
 }
 
-// Delete user account function
-async function deleteUserAccount() {
-    try {
-        const user = auth.currentUser;
-        if (!user) {
-            console.error('No user is currently signed in');
-            showMessage('Error: No user is currently signed in', 'error');
-            return;
-        }
-
-        console.log('Attempting to delete user account:', user.uid);
-        
-        // Delete user data from Firestore first
-        try {
-            // Delete user reviews
-            const reviewsRef = collection(db, 'reviews');
-            const userReviewsQuery = query(reviewsRef, where('userId', '==', user.uid));
-            const reviewsSnapshot = await getDocs(userReviewsQuery);
-            
-            const deletePromises = [];
-            reviewsSnapshot.forEach((doc) => {
-                deletePromises.push(deleteDoc(doc.ref));
-            });
-            
-            // Delete user profile data if it exists
-            const userDocRef = doc(db, 'users', user.uid);
-            deletePromises.push(deleteDoc(userDocRef));
-            
-            // Wait for all deletions to complete
-            await Promise.all(deletePromises);
-            console.log('User data deleted from Firestore');
-            
-        } catch (firestoreError) {
-            console.warn('Error deleting user data from Firestore:', firestoreError);
-            // Continue with account deletion even if Firestore cleanup fails
-        }
-
-        // Delete the user account
-        await user.delete();
-        
-        console.log('User account deleted successfully');
-        showMessage('Account deleted successfully. You have been signed out.', 'success');
-        
-        // Clear any cached user data
-        localStorage.removeItem('userProfileCache');
-        localStorage.removeItem('gamePlayPreference');
-        
-        // Redirect to home page after a short delay
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 2000);
-        
-    } catch (error) {
-        console.error('Error deleting user account:', error);
-        
-        // Handle specific error cases
-        if (error.code === 'auth/requires-recent-login') {
-            showMessage('For security reasons, please sign out and sign back in before deleting your account.', 'error');
-        } else if (error.code === 'auth/user-not-found') {
-            showMessage('User account not found.', 'error');
-        } else {
-            showMessage('Error deleting account: ' + error.message, 'error');
-        }
-    }
-}
+// Delete user account - redirects to dedicated delete-account.html page
+// (Actual deletion logic lives on the delete-account.html page)
 
 // Message display function
 function showMessage(message, type) {
@@ -3772,7 +3031,6 @@ window.saveSettings = function() {
                 setTimeout(() => {
                     deleteConfirmationInput.focus();
                     deleteConfirmationInput.click(); // Also try clicking to ensure focus
-                    console.log('Delete confirmation input should now be focused and ready for input');
                 }, 100);
             }
         });
@@ -3802,18 +3060,15 @@ window.saveSettings = function() {
         
         // Add click handler to ensure input is focusable
         deleteConfirmationInput?.addEventListener('click', () => {
-            console.log('Delete confirmation input clicked');
             deleteConfirmationInput.focus();
         });
         
         // Add focus event for debugging
         deleteConfirmationInput?.addEventListener('focus', () => {
-            console.log('Delete confirmation input focused');
         });
         
         // Add keydown event for debugging
         deleteConfirmationInput?.addEventListener('keydown', (e) => {
-            console.log('Key pressed in delete confirmation input:', e.key);
         });
         
         // Confirm deletion
@@ -4004,95 +3259,19 @@ if (!document.querySelector('#fadeOutKeyframes')) {
 
 // Load Header and Footer
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, starting header/footer loading...');
     
     // Load header (defer to idle when available to reduce TBT)
-    const loadHeader = () => fetch('/components/header.html?v=' + Date.now())
+    const loadHeader = () => fetch('header.html?v=' + Date.now())
         .then(response => {
-            console.log('Header fetch response:', response.status);
             return response.text();
         })
         .then(data => {
-            console.log('Header data received, length:', data.length);
             const headerPlaceholder = document.getElementById('header-placeholder');
-            console.log('Header placeholder found:', !!headerPlaceholder);
             
             if (headerPlaceholder) {
                 headerPlaceholder.innerHTML = data;
                 
                 // Add a visual indicator that header was loaded
-                console.log('Header loaded successfully!');
-
-                // Wire notification bells immediately after header is injected
-                try {
-                    const bells = [
-                        document.getElementById('notification-bell')
-                    ].filter(Boolean);
-                    bells.forEach((bell) => {
-                        if (bell.dataset && bell.dataset.listenerAttached === '1') return;
-                        bell.addEventListener('click', (e) => {
-                            console.log('[Notifications] Header bell click captured:', bell.id || 'unknown');
-                            try { e.preventDefault(); } catch {}
-                            if (e.shiftKey && typeof window.createTestNotification === 'function') {
-                                window.createTestNotification();
-                            } else if (typeof window.handleNotificationClick === 'function') {
-                                window.handleNotificationClick();
-                            }
-                        });
-                        if (bell.dataset) bell.dataset.listenerAttached = '1';
-                    });
-                } catch (e) {
-                    console.warn('Failed to wire notification bells immediately after header load:', e);
-                }
-
-        // After header injection, try to show the Terms Updated popup once per version
-                try {
-                    const overlay = document.getElementById('terms-update-popup');
-                    if (overlay) {
-            const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
-            const seenKey = 'gr.terms.updated.seen.v' + TERMS_UPDATE_VERSION;
-                        const seen = localStorage.getItem(seenKey) === '1';
-                        if (!seen) {
-                            overlay.style.display = 'flex';
-                            const dismiss = document.getElementById('dismiss-terms-update');
-                            const accept = document.getElementById('accept-terms-update');
-                            const inlineLinks = overlay.querySelectorAll('a.popup-inline-link');
-                            const finalize = () => {
-                                try { localStorage.setItem(seenKey, '1'); } catch {}
-                                overlay.style.display = 'none';
-                                // In case any scroll lock was set elsewhere, restore it safely
-                                try {
-                                    if (overlay.dataset && 'prevOverflow' in overlay.dataset) {
-                                        document.body.style.overflow = overlay.dataset.prevOverflow || '';
-                                        delete overlay.dataset.prevOverflow;
-                                    }
-                                } catch {}
-                            };
-                            if (dismiss) {
-                                const onDismiss = (e) => {
-                                    try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-                                    try { localStorage.setItem('gr.legal.declined', '1'); } catch {}
-                                    try {
-                                        alert('You declined the Terms. This tab will be closed. If closing is blocked by your browser, you will be redirected to about:blank.');
-                                    } catch {}
-                                    try { window.close(); } catch {}
-                                    setTimeout(() => {
-                                        try { window.location.replace('about:blank'); } catch { window.location.href = 'about:blank'; }
-                                    }, 50);
-                                };
-                                dismiss.addEventListener('click', onDismiss, { once: true });
-                                dismiss.addEventListener('pointerdown', onDismiss, { once: true });
-                                dismiss.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') onDismiss(e); }, { once: true });
-                            }
-                            // Accept should acknowledge and close
-                            accept && accept.addEventListener('click', finalize, { once: true });
-                            // Inline links also acknowledge once clicked
-                            inlineLinks.forEach(a => a.addEventListener('click', () => { try { localStorage.setItem(seenKey, '1'); } catch {} }, { once: true }));
-                            overlay.addEventListener('click', (e) => { if (e.target === overlay) finalize(); }, { once: true });
-                            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finalize(); }, { once: true });
-                        }
-                    }
-                } catch (e) { /* non-fatal */ }
                 
                 // Update active nav link based on current page
                 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
@@ -4108,7 +3287,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reinitialize authentication elements after header is loaded
                 // Add a small delay to ensure DOM is fully updated
                 setTimeout(() => {
-                    console.log('Initializing auth elements...');
                     
                     // Initialize auth elements
                     if (window.firebaseAuth) {
@@ -4117,17 +3295,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             window.pendingAuthInit = null;
                         } else {
                             initializeAuthElements();
-                        }
-                        // Ensure notifications listener starts if user is already authenticated when header loads
-                        try {
-                            const existingUser = window.firebaseAuth.currentUser;
-                            if (existingUser && typeof window.startGlobalNotificationsListener === 'function') {
-                                window.startGlobalNotificationsListener().catch((err) => {
-                                    console.warn('[Notifications] Listener start after header load failed:', err);
-                                });
-                            }
-                        } catch (notifErr) {
-                            console.warn('[Notifications] Post-header listener check failed:', notifErr);
                         }
                         // Also wire Moderation menu based on current auth state (dev UIDs only)
                         try {
@@ -4156,13 +3323,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         } catch (e) { /* non-fatal */ }
                     } else {
-                        console.log('Firebase auth not ready, initializing basic auth elements...');
                         initializeAuthElements();
                     }
                     
                     // Force dropdown initialization after a bit more delay
                     setTimeout(() => {
-                        console.log('Force initializing dropdowns...');
                         forceInitializeDropdowns();
                         // After dropdowns are ready, maybe show the Portal intro popup
                         setTimeout(() => {
@@ -4186,7 +3351,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Also try to initialize dropdowns independently after a delay
     setTimeout(() => {
-        console.log('Independent dropdown initialization...');
         forceInitializeDropdowns();
         
         // Also force sign-in button if it exists
@@ -4211,7 +3375,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Force profile functions as backup
         setTimeout(() => {
-            console.log('Backup profile function setup...');
             if (window.fixProfileFunctions) {
                 window.fixProfileFunctions();
             }
@@ -4219,7 +3382,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
 
     // Load footer (defer slightly)
-    const loadFooter = () => fetch('/components/footer.html')
+    const loadFooter = () => fetch('footer.html')
         .then(response => response.text())
         .then(data => {
             const footerPlaceholder = document.getElementById('footer-placeholder');
@@ -4266,14 +3429,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to initialize authentication elements after header is loaded
 function initializeAuthElements() {
-    console.log('=== initializeAuthElements called ===');
     
     // Re-get DOM elements after header is loaded
     const signInBtn = document.getElementById('sign-in-btn');
     const signOutBtn = document.getElementById('sign-out-btn');
     const userProfile = document.getElementById('user-profile');
     
-    console.log('Auth elements found:', { signInBtn, signOutBtn, userProfile });
     
     // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
     // if (signInBtn) {
@@ -4316,12 +3477,10 @@ function initializeAuthElements() {
             
             newCloseModal.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('Close modal button clicked!');
                 
         // Get the sign-in auth overlay explicitly by id to avoid other overlays
         const authOverlay = document.getElementById('signin-modal');
                 if (authOverlay) {
-                    console.log('Auth overlay found, hiding it');
                     authOverlay.style.display = 'none';
                     document.body.style.overflow = 'auto';
                 }
@@ -4337,10 +3496,8 @@ function initializeAuthElements() {
             }
         });
         
-        console.log('Auth event listeners attached');
         
         // Re-initialize dropdown functionality
-        console.log('Calling dropdown initialization functions...');
         initializeDropdownFunctionality();
         
         // Re-initialize profile dropdown functionality
@@ -4363,15 +3520,12 @@ function initializeAuthElements() {
 
 // Function to initialize dropdown functionality
 function initializeDropdownFunctionality() {
-    console.log('Initializing dropdown functionality...');
     const dropdown = document.querySelector('.nav-dropdown');
     const trigger = dropdown?.querySelector('.dropdown-trigger');
     const menu = dropdown?.querySelector('.nav-dropdown-menu');
     
-    console.log('Dropdown elements found:', { dropdown, trigger, menu });
 
     if (dropdown && trigger && menu) {
-        console.log('Setting up "More" dropdown event listeners...');
         
         // Clear any existing event listeners by removing and re-adding the element
         const newTrigger = trigger.cloneNode(true);
@@ -4379,7 +3533,6 @@ function initializeDropdownFunctionality() {
         
         // Toggle dropdown on click
         newTrigger.addEventListener('click', function(e) {
-            console.log('More dropdown clicked!');
             e.preventDefault();
             e.stopPropagation();
             
@@ -4389,7 +3542,6 @@ function initializeDropdownFunctionality() {
             });
             
             dropdown.classList.toggle('open');
-            console.log('Dropdown classes after toggle:', dropdown.className);
         });
 
         // Global click handler for closing dropdowns
@@ -4422,108 +3574,55 @@ function initializeDropdownFunctionality() {
                 dropdown.classList.remove('open');
             });
         });
-        console.log('More dropdown initialized successfully');
     } else {
-        console.log('More dropdown elements not found');
     }
 }
 
-// Force initialize dropdowns with simplified approach
+// Force initialize dropdowns with simplified approach (single unified handler)
 function forceInitializeDropdowns() {
-    console.log('=== Force Initializing Dropdowns ===');
-    
-    // Initialize navigation dropdown
+    // Nav dropdown
     const navDropdown = document.querySelector('.nav-dropdown');
     const navTrigger = document.querySelector('.dropdown-trigger');
-    
     if (navDropdown && navTrigger) {
-        console.log('Setting up nav dropdown...');
-        
-        // Remove any existing listeners
         const newTrigger = navTrigger.cloneNode(true);
         navTrigger.parentNode.replaceChild(newTrigger, navTrigger);
-        
-        // Add click listener
-        newTrigger.addEventListener('click', function(e) {
+        newTrigger.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Nav dropdown clicked!');
-            
-            // Close other dropdowns
             document.querySelectorAll('.profile-dropdown.open').forEach(dd => dd.classList.remove('open'));
-            
-            // Toggle this dropdown
             navDropdown.classList.toggle('open');
-            console.log('Nav dropdown is now:', navDropdown.classList.contains('open') ? 'open' : 'closed');
         });
-        
-        console.log('Nav dropdown setup complete');
-    } else {
-        console.log('Nav dropdown elements not found:', { navDropdown, navTrigger });
     }
-    
-    // Initialize profile dropdown
+
+    // Profile dropdown
     const profileDropdown = document.querySelector('.profile-dropdown');
     const profileTrigger = document.querySelector('.profile-trigger');
-    
     if (profileDropdown && profileTrigger) {
-        console.log('Setting up profile dropdown...');
-        
-        // Remove any existing listeners
-        const newProfileTrigger = profileTrigger.cloneNode(true);
-        profileTrigger.parentNode.replaceChild(newProfileTrigger, profileTrigger);
-        
-        // Add click listener
-        newProfileTrigger.addEventListener('click', function(e) {
+        const newTrigger = profileTrigger.cloneNode(true);
+        profileTrigger.parentNode.replaceChild(newTrigger, profileTrigger);
+        newTrigger.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Profile dropdown clicked!');
-            
-            // Close other dropdowns
             document.querySelectorAll('.nav-dropdown.open').forEach(dd => dd.classList.remove('open'));
-            
-            // Toggle this dropdown
             profileDropdown.classList.toggle('open');
-            console.log('Profile dropdown is now:', profileDropdown.classList.contains('open') ? 'open' : 'closed');
         });
-        
-        console.log('Profile dropdown setup complete');
-    } else {
-        console.log('Profile dropdown elements not found:', { profileDropdown, profileTrigger });
     }
-    
-    // Force setup all profile functions
-    console.log('Setting up profile actions...');
+
     initializeProfileActions();
-    
-    // Add global click handler to close dropdowns
-    if (!window.globalDropdownHandlerAdded) {
-        document.addEventListener('click', function(e) {
-            const navDropdown = document.querySelector('.nav-dropdown');
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            
-            // Close nav dropdown if click is outside
-            if (navDropdown && !navDropdown.contains(e.target)) {
-                navDropdown.classList.remove('open');
-            }
-            
-            // Close profile dropdown if click is outside
-            if (profileDropdown && !profileDropdown.contains(e.target)) {
-                profileDropdown.classList.remove('open');
-            }
+
+    // Global close handler (once only)
+    if (!window._globalDropdownHandlerAdded) {
+        document.addEventListener('click', (e) => {
+            document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach(dd => {
+                if (!dd.contains(e.target)) dd.classList.remove('open');
+            });
         });
-        
-        // Add escape key handler
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach(dd => {
-                    dd.classList.remove('open');
-                });
+                document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach(dd => dd.classList.remove('open'));
             }
         });
-        
-        window.globalDropdownHandlerAdded = true;
-        console.log('Global dropdown handlers added');
+        window._globalDropdownHandlerAdded = true;
     }
 }
 
@@ -4537,140 +3636,14 @@ function maybeShowBotIntro() {
     // Disabled
 }
 
-// Test profile functions
-window.testProfileFunctions = function() {
-    console.log('=== Testing Profile Functions ===');
-    
-    const refreshBtn = document.getElementById('refresh-profile-btn');
-    const signOutBtn = document.getElementById('sign-out-btn');
-    const deleteBtn = document.getElementById('delete-account-btn');
-    
-    console.log('Profile buttons found:', {
-        refresh: !!refreshBtn,
-        signOut: !!signOutBtn,
-        delete: !!deleteBtn
-    });
-    
-    if (refreshBtn) {
-        console.log('Refresh button text:', refreshBtn.textContent.trim());
-    }
-    if (signOutBtn) {
-        console.log('Sign out button text:', signOutBtn.textContent.trim());
-    }
-    if (deleteBtn) {
-        console.log('Delete button text:', deleteBtn.textContent.trim());
-    }
-    
-    // Check if they have click listeners
-    console.log('Testing button clicks...');
-    if (refreshBtn) {
-        console.log('Refresh button click test');
-        refreshBtn.click();
-    }
-    
-    setTimeout(() => {
-        if (signOutBtn) {
-            console.log('Sign out button click test');
-            signOutBtn.click();
-        }
-    }, 1000);
-    
-    setTimeout(() => {
-        if (deleteBtn) {
-            console.log('Delete button click test');
-            deleteBtn.click();
-        }
-    }, 2000);
-};
-
-// Force setup all profile functions
-window.fixProfileFunctions = function() {
-    console.log('=== Fixing Profile Functions ===');
-    
-    // Setup refresh profile
-    const refreshBtn = document.getElementById('refresh-profile-btn');
-    if (refreshBtn) {
-        refreshBtn.onclick = function(e) {
-            e.preventDefault();
-            console.log('Refresh profile clicked');
-            const dropdown = document.querySelector('.profile-dropdown');
-            if (dropdown) dropdown.classList.remove('open');
-            if (window.refreshUserProfile) window.refreshUserProfile();
-        };
-        console.log('Refresh profile function setup');
-    }
-    
-    // Setup sign out
-    const signOutBtn = document.getElementById('sign-out-btn');
-    if (signOutBtn) {
-        signOutBtn.onclick = function(e) {
-            e.preventDefault();
-            console.log('Sign out clicked');
-            const dropdown = document.querySelector('.profile-dropdown');
-            if (dropdown) dropdown.classList.remove('open');
-            if (window.firebaseAuth) {
-                window.firebaseAuth.signOut().then(() => {
-                    console.log('Signed out successfully');
-                    location.reload();
-                }).catch(error => {
-                    console.error('Sign out error:', error);
-                });
-            }
-        };
-        console.log('Sign out function setup');
-    }
-    
-    // Setup delete account
-    const deleteBtn = document.getElementById('delete-account-btn');
-    if (deleteBtn) {
-        deleteBtn.onclick = function(e) {
-            e.preventDefault();
-            console.log('Delete account clicked');
-            const dropdown = document.querySelector('.profile-dropdown');
-            if (dropdown) dropdown.classList.remove('open');
-            
-            const modal = document.getElementById('delete-account-modal');
-            if (modal) {
-                modal.style.display = 'flex';
-                console.log('Delete account modal opened');
-            } else {
-                console.log('Delete account modal not found');
-            }
-        };
-        console.log('Delete account function setup');
-    }
-    
-    // Notification Bell Functionality
-    const notificationBells = [
-        document.getElementById('notification-bell')
-    ].filter(Boolean);
-
-    notificationBells.forEach((bell) => {
-        bell.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (e.shiftKey && typeof window.createTestNotification === 'function') {
-                // Hidden dev shortcut: Shift+Click to create a test notification
-                window.createTestNotification();
-            } else {
-                handleNotificationClick();
-            }
-        });
-    });
-};
-
 // Notification Bell Functions
 function handleNotificationClick() {
-    console.log('Notification bell clicked -> opening popup');
     // Clear notification count
     updateNotificationCount(0);
     
     // Show notifications popup
     showNotificationsPopup();
 }
-
-// Expose for header-injected click wiring
-window.handleNotificationClick = handleNotificationClick;
-window.showNotificationsPopup = showNotificationsPopup;
 
 async function showNotificationsPopup() {
     const auth = window.firebaseAuth;
@@ -4692,42 +3665,21 @@ async function showNotificationsPopup() {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'notifications-popup-modal';
-        modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100000; align-items: center; justify-content: center; animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);';
+        modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100000; align-items: center; justify-content: center;';
         modal.innerHTML = `
-            <div style="background: rgba(10, 10, 20, 0.95); border: 2px solid var(--primary-cyan); border-radius: 20px; max-width: 650px; width: 92%; max-height: 85vh; overflow: hidden; box-shadow: 0 0 60px rgba(0,255,249,0.4), 0 20px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); position: relative; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
-                <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent); animation: scanline 3s infinite;"></div>
-                <div style="padding: 32px 36px 28px; border-bottom: 1px solid rgba(0,255,249,0.25); display: flex; align-items: center; justify-content: space-between; position: relative;">
-                    <h2 style="color: var(--primary-cyan); margin: 0; font-size: 2.2rem; font-weight: 800; display: flex; align-items: center; gap: 14px; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(0,255,249,0.4);">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="filter: drop-shadow(0 0 8px rgba(0,255,249,0.6));">
-                            <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7A7,7 0 0,1 20,14V16A1,1 0 0,0 21,17H22V19H2V17H3A1,1 0 0,0 4,16V14A7,7 0 0,1 11,7V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M9,21A3,3 0 0,0 12,24A3,3 0 0,0 15,21H9Z"/>
+            <div style="background: linear-gradient(135deg, rgba(10,10,30,0.98), rgba(20,10,30,0.98)); border: 2px solid var(--primary-cyan); border-radius: 16px; max-width: 600px; width: 90%; max-height: 80vh; overflow: hidden; box-shadow: 0 0 40px rgba(0,255,249,0.3); position: relative;">
+                <div style="padding: 25px 30px; border-bottom: 1px solid rgba(0,255,249,0.2); display: flex; align-items: center; justify-content: space-between;">
+                    <h2 style="color: var(--primary-cyan); margin: 0; font-size: 1.8rem; display: flex; align-items: center; gap: 12px;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
                         Notifications
                     </h2>
-                    <button id="close-notifications-popup" style="background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 300;">&times;</button>
+                    <button id="close-notifications-popup" style="background: none; border: none; color: rgba(255,255,255,0.7); font-size: 2rem; cursor: pointer; line-height: 1; padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.3s ease;">&times;</button>
                 </div>
-                <div id="notifications-popup-list" style="padding: 24px 36px 32px; overflow-y: auto; max-height: calc(85vh - 130px);"></div>
+                <div id="notifications-popup-list" style="padding: 20px 30px; overflow-y: auto; max-height: calc(80vh - 100px);"></div>
             </div>
-            <style>
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                @keyframes slideUp {
-                    from { transform: translateY(30px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
-                }
-                @keyframes scanline {
-                    0%, 100% { transform: translateX(-100%); }
-                    50% { transform: translateX(100%); }
-                }
-                #close-notifications-popup:hover {
-                    background: rgba(255,0,128,0.15) !important;
-                    border-color: var(--primary-magenta) !important;
-                    color: var(--primary-magenta) !important;
-                    transform: scale(1.05);
-                    box-shadow: 0 0 20px rgba(255,0,128,0.3);
-                }
-            </style>
         `;
         document.body.appendChild(modal);
         
@@ -4759,7 +3711,6 @@ async function showNotificationsPopup() {
     list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">Loading notifications...</p>';
     
     try {
-        console.log('[Notifications Popup] Loading for user:', user.uid);
         const { collection, query, where, orderBy, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         
         const notificationsRef = collection(db, 'notifications');
@@ -4769,62 +3720,46 @@ async function showNotificationsPopup() {
             orderBy('createdAt', 'desc')
         );
         
-        console.log('[Notifications Popup] Querying Firestore...');
         const snapshot = await getDocs(q);
-        console.log('[Notifications Popup] Found', snapshot.size, 'notifications');
-        
         const notifications = [];
         snapshot.forEach(doc => {
-            const data = doc.data();
-            console.log('[Notifications Popup] Notification:', doc.id, data);
-            notifications.push({ id: doc.id, ...data });
+            notifications.push({ id: doc.id, ...doc.data() });
         });
         
         list.innerHTML = '';
         
         if (notifications.length === 0) {
-            list.innerHTML = '<div style="text-align: center; padding: 60px 30px;"><svg viewBox="0 0 24 24" width="64" height="64" style="fill: rgba(0,255,249,0.2); margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(0,255,249,0.15));"><path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7A7,7 0 0,1 20,14V16A1,1 0 0,0 21,17H22V19H2V17H3A1,1 0 0,0 4,16V14A7,7 0 0,1 11,7V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M9,21A3,3 0 0,0 12,24A3,3 0 0,0 15,21H9Z"/></svg><p style="color: rgba(255,255,255,0.4); font-size: 1.1rem; font-weight: 600; margin: 0; letter-spacing: 0.5px;">No notifications yet</p><p style="color: rgba(255,255,255,0.25); font-size: 0.9rem; margin: 12px 0 0; font-weight: 400;">You\'re all caught up!</p></div>';
+            list.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">No notifications yet</p>';
         } else {
             notifications.forEach(notif => {
                 const item = document.createElement('div');
                 item.style.cssText = `
-                    background: ${notif.read ? 'rgba(255,255,255,0.02)' : 'rgba(0,255,249,0.08)'};
-                    border: 1.5px solid ${notif.read ? 'rgba(0,255,249,0.15)' : 'rgba(0,255,249,0.4)'};
-                    border-radius: 14px;
-                    padding: 22px 24px;
-                    margin-bottom: 16px;
+                    background: ${notif.read ? 'rgba(0,255,249,0.05)' : 'rgba(0,255,249,0.12)'};
+                    border: 1px solid ${notif.read ? 'rgba(0,255,249,0.2)' : 'var(--primary-cyan)'};
+                    border-radius: 10px;
+                    padding: 18px;
+                    margin-bottom: 15px;
                     cursor: ${notif.read ? 'default' : 'pointer'};
-                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                    position: relative;
-                    overflow: hidden;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    ${notif.read ? '' : 'box-shadow: 0 4px 20px rgba(0,255,249,0.15);'}
+                    transition: all 0.3s ease;
                 `;
                 
                 const time = notif.createdAt?.toDate ? notif.createdAt.toDate().toLocaleString() : 'Just now';
-                const unreadDot = notif.read ? '' : '<div style="position: absolute; top: 22px; right: 24px; width: 10px; height: 10px; background: var(--primary-cyan); border-radius: 50%; box-shadow: 0 0 12px var(--primary-cyan), 0 0 20px rgba(0,255,249,0.4);"></div>';
                 
                 item.innerHTML = `
-                    ${unreadDot}
-                    <div style="color: ${notif.read ? 'rgba(255,255,255,0.9)' : 'var(--primary-cyan)'}; font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.2px; ${notif.read ? '' : 'text-shadow: 0 0 10px rgba(0,255,249,0.3);'}">${notif.title || 'Notification'}</div>
-                    <div style="color: rgba(255,255,255,0.8); font-size: 1rem; line-height: 1.7; margin-bottom: 12px; font-weight: 400;">${notif.message || ''}</div>
-                    <div style="color: rgba(255,255,255,0.4); font-size: 0.88rem; font-weight: 600; letter-spacing: 0.3px;">${time}</div>
+                    <div style="color: var(--primary-cyan); font-size: 1.1rem; font-weight: 600; margin-bottom: 8px;">${notif.title || 'Notification'}</div>
+                    <div style="color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px;">${notif.message || ''}</div>
+                    <div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">${time}</div>
                 `;
                 
                 // Mark as read when clicked
                 if (!notif.read) {
                     item.onmouseenter = () => {
-                        item.style.background = 'rgba(0,255,249,0.14)';
-                        item.style.borderColor = 'var(--primary-cyan)';
-                        item.style.transform = 'translateX(4px)';
-                        item.style.boxShadow = '0 8px 32px rgba(0,255,249,0.25), -4px 0 0 var(--primary-cyan)';
+                        item.style.background = 'rgba(0,255,249,0.15)';
+                        item.style.borderColor = 'rgba(0,255,249,0.6)';
                     };
                     item.onmouseleave = () => {
-                        item.style.background = 'rgba(0,255,249,0.08)';
-                        item.style.borderColor = 'rgba(0,255,249,0.4)';
-                        item.style.transform = 'translateX(0)';
-                        item.style.boxShadow = '0 4px 20px rgba(0,255,249,0.15)';
+                        item.style.background = 'rgba(0,255,249,0.12)';
+                        item.style.borderColor = 'var(--primary-cyan)';
                     };
                     
                     item.onclick = async () => {
@@ -4852,70 +3787,47 @@ async function showNotificationsPopup() {
             });
         }
     } catch (error) {
-        console.error('[Notifications Popup] Error loading notifications:', error);
-        console.error('[Notifications Popup] Error details:', error.message, error.code);
-        list.innerHTML = `<p style="text-align: center; color: rgba(255,100,100,0.8); padding: 30px;">Error loading notifications: ${error.message || 'Unknown error'}<br><small>Check console for details</small></p>`;
+        console.error('Error loading notifications:', error);
+        list.innerHTML = '<p style="text-align: center; color: rgba(255,100,100,0.8); padding: 30px;">Error loading notifications. Please try again later.</p>';
     }
 }
 
 function updateNotificationCount(count) {
-    console.log('🔔🔔🔔 UPDATE NOTIFICATION COUNT 🔔🔔🔔');
-    console.log('Count:', count);
-    console.log('Badge enabled:', GR_SETTINGS.notificationsBadgeEnabled);
-
     const badgeEnabled = GR_SETTINGS.notificationsBadgeEnabled !== false;
-    
+
     // Update notification count in dropdown menu
     const notificationCountElement = document.getElementById('notification-count');
     const notificationCountInline = document.getElementById('notification-count-inline');
     const notificationCountTrigger = document.getElementById('notification-count-trigger');
-    console.log('Dropdown element found:', !!notificationCountElement);
     if (notificationCountElement) {
-        if ((count > 0) || badgeEnabled) {
+        if (count > 0) {
             notificationCountElement.textContent = count > 99 ? '99+' : count.toString();
             notificationCountElement.style.display = 'flex';
-            console.log('✅ Dropdown badge SHOWN with count:', count);
         } else {
             notificationCountElement.style.display = 'none';
-            console.log('❌ Dropdown badge HIDDEN');
         }
     }
     if (notificationCountInline) {
         const inlineText = count > 99 ? '99+' : Math.max(count, 0).toString();
         notificationCountInline.textContent = inlineText;
-        if ((count > 0) || badgeEnabled) {
-            notificationCountInline.style.display = 'inline-flex';
-        } else {
-            notificationCountInline.style.display = 'none';
-        }
+        notificationCountInline.style.display = (count > 0) ? 'inline-flex' : 'none';
     }
-
     if (notificationCountTrigger) {
         const triggerText = count > 99 ? '99+' : Math.max(count, 0).toString();
         notificationCountTrigger.textContent = triggerText;
-        if ((count > 0) || badgeEnabled) {
-            notificationCountTrigger.style.display = 'inline-flex';
-        } else {
-            notificationCountTrigger.style.display = 'none';
-        }
+        notificationCountTrigger.style.display = (count > 0) ? 'inline-flex' : 'none';
     }
     
     // Update notification count badge on profile trigger
     const notificationCountBadge = document.getElementById('notification-count-badge');
-    console.log('Profile badge element found:', !!notificationCountBadge);
     if (notificationCountBadge) {
         if ((count > 0) || badgeEnabled) {
             notificationCountBadge.textContent = count > 99 ? '99+' : count.toString();
             notificationCountBadge.style.display = 'flex';
-            console.log('✅ Profile badge SHOWN with count:', count);
         } else {
             notificationCountBadge.style.display = 'none';
-            console.log('❌ Profile badge HIDDEN');
         }
-    } else {
-        console.log('⚠️ Profile badge element NOT FOUND IN DOM');
     }
-
 }
 
 // Example function to simulate adding notifications (for testing)
@@ -4928,7 +3840,6 @@ function addNotification() {
 document.addEventListener('DOMContentLoaded', function() {
     // Debug: Check if notification bell exists
     const notificationBell = document.getElementById('notification-bell');
-    console.log('Notification bell found:', !!notificationBell);
 
     // Badges hidden by default - only shown when actual notifications exist
     // const inlineBadge = document.getElementById('notification-count-inline');
@@ -4950,32 +3861,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (ENABLE_TEST_BADGE) {
         setTimeout(() => {
             updateNotificationCount(1);
-            console.log('Test notification count set to 1');
         }, 1000);
     }
     
-    // Notifications listener is started automatically in auth state handler
-    // No need to call it here - it will be called when user signs in
-    
-    // You can call updateNotificationCount here with actual notification data
-    // For demo purposes, uncomment the line below to show a notification count:
-    // updateNotificationCount(3);
-    
     // Initialize Mobile Navigation
     initializeMobileNavigation();
-});
-
-// Global click delegation fallback for notification bells (header or floating)
-document.addEventListener('click', (e) => {
-    const bell = e.target && e.target.closest && e.target.closest('#notification-bell');
-    if (!bell) return;
-    console.log('[Notifications] Delegated click captured:', bell.id || 'unknown');
-    try { e.preventDefault(); } catch {}
-    if (e.shiftKey && typeof window.createTestNotification === 'function') {
-        window.createTestNotification();
-    } else if (typeof window.handleNotificationClick === 'function') {
-        window.handleNotificationClick();
-    }
 });
 
 // Mobile Menu Toggle Functionality
@@ -4985,13 +3875,9 @@ function initializeMobileNavigation() {
     let isMenuOpen = false;
 
     // Debug logging
-    console.log('Initializing mobile navigation...');
-    console.log('Mobile toggle button:', mobileMenuToggle);
-    console.log('Nav links:', navLinks);
 
     function toggleMobileMenu() {
         isMenuOpen = !isMenuOpen;
-        console.log('Toggling mobile menu. Open:', isMenuOpen);
         
         if (mobileMenuToggle) {
             mobileMenuToggle.classList.toggle('active', isMenuOpen);
@@ -5019,7 +3905,6 @@ function initializeMobileNavigation() {
                 navLinks.classList.remove('active');
             }
             document.body.style.overflow = '';
-            console.log('Mobile menu closed');
         }
     }
 
@@ -5040,7 +3925,6 @@ function initializeMobileNavigation() {
     // Mobile menu toggle click handler
     if (mobileMenuToggle) {
         mobileMenuToggle.addEventListener('click', function(e) {
-            console.log('Mobile menu button clicked!');
             e.preventDefault();
             e.stopPropagation();
             toggleMobileMenu();
@@ -5048,13 +3932,11 @@ function initializeMobileNavigation() {
         
         // Also add touch event for better mobile support
         mobileMenuToggle.addEventListener('touchend', function(e) {
-            console.log('Mobile menu button touched!');
             e.preventDefault();
             e.stopPropagation();
             toggleMobileMenu();
         });
         
-        console.log('Mobile menu toggle event listeners added');
     } else {
         console.warn('Mobile menu toggle button not found!');
     }
@@ -5133,5 +4015,4 @@ function initializeMobileNavigation() {
         });
     }
     
-    console.log('Mobile navigation initialization complete');
 }

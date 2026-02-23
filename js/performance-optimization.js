@@ -84,7 +84,6 @@
         // Observe all lazy images
         observeLazyImages();
 
-        console.log('[Perf] Lazy loading initialized');
     }
 
     function observeLazyImages() {
@@ -202,7 +201,6 @@
             document.head.appendChild(link);
         });
 
-        console.log(`[Perf] Preloaded ${config.criticalImages.length} critical images`);
     }
 
     // ==================== RESPONSIVE IMAGES ====================
@@ -245,7 +243,6 @@
         const quality = getConnectionQuality();
         
         if (quality === 'low') {
-            console.log('[Perf] Low connection detected, adjusting image quality');
             
             // Add global CSS to reduce image quality
             const style = document.createElement('style');
@@ -258,7 +255,6 @@
             document.head.appendChild(style);
         }
 
-        console.log(`[Perf] Connection quality: ${quality}`);
     }
 
     // ==================== DECODE ASYNC FOR BETTER PAINT ====================
@@ -311,7 +307,6 @@
             subtree: true
         });
 
-        console.log('[Perf] Watching for dynamically added images');
     }
 
     function processNewImage(img) {
@@ -370,12 +365,6 @@
             
             // Update the report display if still visible
             console.group('[Perf] Image Optimization Report (Updated)');
-            console.log(`Total images: ${report.total}`);
-            console.log(`Lazy loaded: ${report.lazyLoaded} (${(report.lazyLoaded/report.total*100).toFixed(1)}%)`);
-            console.log(`Missing alt text: ${report.withoutAlt}`);
-            console.log(`Missing dimensions: ${report.withoutDimensions}`);
-            console.log(`Large images (>1920px): ${report.largeImages}`);
-            console.log(`External images: ${report.externalImages}`);
             console.groupEnd();
         };
         
@@ -387,12 +376,6 @@
 
         // Return report immediately with pending data
         console.group('[Perf] Image Optimization Report');
-        console.log(`Total images: ${report.total}`);
-        console.log(`Lazy loaded: ${report.lazyLoaded} (${(report.lazyLoaded/report.total*100).toFixed(1)}%)`);
-        console.log(`Missing alt text: ${report.withoutAlt}`);
-        console.log(`Missing dimensions: ${report.withoutDimensions}`);
-        console.log(`Large images (>1920px): ${report.largeImages} (checking...)`);
-        console.log(`External images: ${report.externalImages}`);
         console.groupEnd();
 
         return report;
@@ -410,11 +393,9 @@
     }
 
     async function initAll() {
-        console.log('[Perf] Initializing performance optimizations...');
 
         // Check WebP support first
         await checkWebPSupport();
-        console.log(`[Perf] WebP support: ${webpSupport ? 'Yes' : 'No'}`);
 
         preloadCriticalImages();
         adjustImageQuality();
@@ -431,7 +412,6 @@
             });
         }
 
-        console.log('[Perf] ✅ Performance optimizations initialized');
     }
 
     // Expose API

@@ -4,7 +4,6 @@ let firebaseReady = false;
 // Wait for Firebase to be ready
 window.addEventListener('firebaseReady', function() {
     firebaseReady = true;
-    console.log('Firebase is ready');
 });
 
 // Glitch text effects
@@ -96,21 +95,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Sign in form submission
     signinForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        console.log('Sign in form submitted');
         
         if (!firebaseReady) {
-            console.log('Firebase not ready');
             showMessage('FIREBASE LOADING...', 'info');
             return;
         }
         
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        console.log('Attempting to sign in with:', email);
         
         try {
             const userCredential = await window.firebaseSignInWithEmailAndPassword(window.firebaseAuth, email, password);
-            console.log('User signed in:', userCredential.user);
                   // Show success message with glitch effect
             showMessage('ACCESS GRANTED', 'success');
         
@@ -129,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
     signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        console.log('Create account form submitted'); // Debug log
+         // Debug log
         
         if (!firebaseReady) {
             showMessage('FIREBASE LOADING...', 'info');
@@ -140,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('signup-password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
         
-        console.log('Form values:', { email, password: password ? 'set' : 'empty', confirmPassword: confirmPassword ? 'set' : 'empty' }); // Debug log
+         // Debug log
         
         if (password !== confirmPassword) {
             showMessage('PASSWORDS DO NOT MATCH', 'error');
@@ -153,9 +148,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
-            console.log('Attempting to create user...'); // Debug log
+             // Debug log
             const userCredential = await window.firebaseCreateUserWithEmailAndPassword(window.firebaseAuth, email, password);
-            console.log('User created:', userCredential.user);
             
             showMessage('ACCOUNT CREATED SUCCESSFULLY', 'success');
             
@@ -187,7 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const result = await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
-            console.log('Google sign in successful:', result.user);
             
             showMessage('GOOGLE ACCESS GRANTED', 'success');
             
@@ -208,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const result = await window.firebaseSignInWithPopup(window.firebaseAuth, window.githubProvider);
-            console.log('GitHub sign in successful:', result.user);
             
             showMessage('GITHUB ACCESS GRANTED', 'success');
             

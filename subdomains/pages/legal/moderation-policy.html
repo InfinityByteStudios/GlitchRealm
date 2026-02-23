@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Moderation Policy - GlitchRealm</title>
+    <meta name="description" content="GlitchRealm's content moderation policy for games, reviews, community posts, and user-generated content.">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .effective-date {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .policy-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: rgba(0, 255, 249, 0.8);
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .policy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+        }
+        
+        .policy-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+            padding: 0;
+        }
+        
+        .policy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.75rem;
+        }
+        
+        .highlight {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .policy-section a {
+            color: var(--primary-cyan);
+            text-decoration: underline;
+        }
+        
+        .policy-section a:hover {
+            color: rgba(0, 255, 249, 0.8);
+        }
+
+        .warning-box {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.4);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-box {
+            background: rgba(0, 255, 249, 0.05);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin: 1.5rem 0;
+        }
+    </style>
+    
+    <script type="module" src="js/firebase-core.js"></script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+    
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Content Moderation Policy">Content Moderation Policy</span>
+                </h1>
+                <p class="page-subtitle">How We Maintain Platform Quality and Safety</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <a href="legal.html" style="display: inline-block; color: var(--primary-cyan); text-decoration: none; margin-bottom: 20px; font-size: 0.9em;">
+                ← Back to Legal Hub
+            </a>
+            <div style="background: rgba(0, 255, 249, 0.05); border: 1px solid rgba(0, 255, 249, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                <p style="margin: 0; color: rgba(255, 255, 255, 0.85);"> For legal definitions, <a href="legal-definitions.html" style="color: var(--primary-cyan); text-decoration: none; font-weight: 600;">click here</a></p>
+            </div>
+            <div class="policy-header">
+                <p class="effective-date">Effective Date: January 27, 2026</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>1. Overview</h2>
+                <p>GlitchRealm is committed to maintaining a safe, inclusive, and high-quality gaming platform. This Content Moderation Policy outlines how we review, approve, and moderate user-generated content including game submissions, reviews, community posts, and user profiles.</p>
+                <p>Our moderation efforts aim to:</p>
+                <ul>
+                    <li>Ensure all content complies with our <a href="terms-of-service.html">Terms of Service</a> and <a href="code-of-conduct.html">Code of Conduct</a></li>
+                    <li>Protect users from harmful, illegal, or inappropriate content</li>
+                    <li>Maintain platform quality and user trust</li>
+                    <li>Support creators while enforcing community standards</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>2. What We Moderate</h2>
+                
+                <h3>2.1 Game Submissions</h3>
+                <p>All game submissions undergo review before publication. We check for:</p>
+                <ul>
+                    <li><strong>Content Compliance:</strong> No prohibited content (see Section 4)</li>
+                    <li><strong>Technical Functionality:</strong> Game must load and be playable</li>
+                    <li><strong>Accuracy:</strong> Titles, descriptions, and screenshots must accurately represent the game</li>
+                    <li><strong>Intellectual Property:</strong> No copyright or trademark infringement</li>
+                    <li><strong>Quality Standards:</strong> Games must meet minimum quality thresholds</li>
+                </ul>
+                <p>See our <a href="submission-policy.html">Game Submission Policy</a> for detailed approval criteria.</p>
+
+                <h3>2.2 Reviews and Ratings</h3>
+                <p>User reviews are moderated to prevent:</p>
+                <ul>
+                    <li>Spam, bot-generated, or fake reviews</li>
+                    <li>Harassment, personal attacks, or hate speech</li>
+                    <li>Off-topic content or external links</li>
+                    <li>Review manipulation or vote brigading</li>
+                    <li>Profanity or inappropriate language</li>
+                </ul>
+
+                <h3>2.3 Community Posts and Comments</h3>
+                <p>Community discussions, forum posts, and comments must follow our Code of Conduct. Moderated content includes:</p>
+                <ul>
+                    <li>Threatening, abusive, or harassing messages</li>
+                    <li>Spam, advertisements, or self-promotion</li>
+                    <li>Doxxing or sharing private information</li>
+                    <li>Impersonation of others</li>
+                    <li>Misinformation or scams</li>
+                </ul>
+
+                <h3>2.4 User Profiles and Avatars</h3>
+                <p>Profile information, usernames, and avatars must be appropriate and not contain:</p>
+                <ul>
+                    <li>Offensive, hateful, or explicit imagery</li>
+                    <li>Impersonation of GlitchRealm staff or other users</li>
+                    <li>Copyrighted material used without permission</li>
+                    <li>Contact information or external links (in usernames)</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>3. Moderation Process</h2>
+
+                <h3>3.1 Automated Filtering</h3>
+                <p>We use automated systems to detect:</p>
+                <ul>
+                    <li>Profanity and hate speech patterns</li>
+                    <li>Spam and duplicate content</li>
+                    <li>Malicious links or scripts</li>
+                    <li>Known copyrighted content</li>
+                </ul>
+                <p>Automated flags are reviewed by human moderators for final decisions.</p>
+
+                <h3>3.2 Human Review</h3>
+                <p>Our moderation team manually reviews:</p>
+                <ul>
+                    <li>All game submissions before approval</li>
+                    <li>Flagged content and user reports</li>
+                    <li>Appeals and disputed decisions</li>
+                    <li>High-impact content (featured games, promoted posts)</li>
+                </ul>
+
+                <h3>3.3 User Reporting</h3>
+                <p>Users can report inappropriate content using the "Report" button available on games, reviews, and community posts. Reports should include:</p>
+                <ul>
+                    <li>Clear description of the violation</li>
+                    <li>Specific policy being violated</li>
+                    <li>Screenshots or evidence (if applicable)</li>
+                </ul>
+                <p>False or malicious reports may result in account penalties.</p>
+
+                <div class="info-box">
+                    <p><strong>Response Time:</strong> We aim to review reported content within 24-48 hours. Game submissions are typically reviewed within 3-5 business days.</p>
+                </div>
+            </div>
+
+            <div class="policy-section">
+                <h2>4. Prohibited Content</h2>
+                <p>The following types of content are strictly prohibited on GlitchRealm:</p>
+
+                <h3>4.1 Illegal Content</h3>
+                <ul>
+                    <li>Child sexual abuse material (CSAM)</li>
+                    <li>Content promoting terrorism or violent extremism</li>
+                    <li>Sale or distribution of illegal goods/services</li>
+                    <li>Pirated or stolen content</li>
+                    <li>Content violating export control or sanctions laws</li>
+                </ul>
+
+                <h3>4.2 Harmful or Dangerous Content</h3>
+                <ul>
+                    <li>Instructions for self-harm or suicide</li>
+                    <li>Promotion of eating disorders</li>
+                    <li>Dangerous challenges or stunts</li>
+                    <li>Instructions for creating weapons or explosives</li>
+                </ul>
+
+                <h3>4.3 Hate Speech and Harassment</h3>
+                <ul>
+                    <li>Content targeting individuals based on race, ethnicity, religion, gender, sexual orientation, disability, or other protected characteristics</li>
+                    <li>Threats, doxxing, or coordinated harassment</li>
+                    <li>Glorification of violence against groups or individuals</li>
+                </ul>
+
+                <h3>4.4 Sexual and Adult Content</h3>
+                <ul>
+                    <li>Pornography or sexually explicit material</li>
+                    <li>Non-consensual intimate imagery</li>
+                    <li>Sexual content involving minors (real or depicted)</li>
+                    <li>Sexualized violence or exploitation</li>
+                </ul>
+                <p><em>Note:</em> Artistic nudity, educational content, and age-appropriate romantic themes may be allowed with proper content warnings.</p>
+
+                <h3>4.5 Deceptive or Malicious Content</h3>
+                <ul>
+                    <li>Malware, viruses, or phishing attempts</li>
+                    <li>Scams or fraudulent schemes</li>
+                    <li>Impersonation or identity theft</li>
+                    <li>Fake engagement (bots, paid reviews, vote manipulation)</li>
+                    <li>Misleading metadata or clickbait</li>
+                </ul>
+
+                <h3>4.6 Spam and Low-Quality Content</h3>
+                <ul>
+                    <li>Mass-produced or template-based games with minimal effort</li>
+                    <li>Duplicate submissions or plagiarized content</li>
+                    <li>Broken, unplayable, or non-functional games</li>
+                    <li>Excessive advertising or promotional content</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>5. Enforcement Actions</h2>
+                <p>Violations may result in one or more of the following actions:</p>
+
+                <h3>5.1 Content Removal</h3>
+                <ul>
+                    <li>Immediate removal of prohibited content</li>
+                    <li>Deletion of reviews, comments, or posts</li>
+                    <li>De-listing of games (removed from public view)</li>
+                </ul>
+
+                <h3>5.2 Account Warnings</h3>
+                <ul>
+                    <li>First-time minor violations receive a written warning</li>
+                    <li>Warning message sent to user email</li>
+                    <li>No impact on account standing if compliance improves</li>
+                </ul>
+
+                <h3>5.3 Temporary Restrictions</h3>
+                <ul>
+                    <li>Temporary ban on submitting new games (7-30 days)</li>
+                    <li>Commenting or review privileges suspended</li>
+                    <li>Cooldown period for re-submission after rejection</li>
+                </ul>
+
+                <h3>5.4 Account Suspension or Termination</h3>
+                <ul>
+                    <li>Repeated violations or severe breaches</li>
+                    <li>Illegal content, harassment, or malicious behavior</li>
+                    <li>Circumventing moderation systems</li>
+                    <li>Suspension: Temporary (30-90 days) with possible reinstatement</li>
+                    <li>Termination: Permanent ban, all content removed</li>
+                </ul>
+
+                <h3>5.5 Badge Revocation</h3>
+                <ul>
+                    <li>Verified creator badges revoked for policy violations</li>
+                    <li>Special badges (beta tester, contributor) removed</li>
+                </ul>
+
+                <div class="warning-box">
+                    <p><strong>Zero Tolerance:</strong> Illegal content (CSAM, terrorism, etc.) results in immediate account termination and reporting to law enforcement.</p>
+                </div>
+            </div>
+
+            <div class="policy-section">
+                <h2>6. Appeals Process</h2>
+                <p>If you believe content was moderated in error, you may appeal the decision:</p>
+
+                <h3>How to Appeal</h3>
+                <ol>
+                    <li>Email <a href="mailto:support@glitchrealm.ca">support@glitchrealm.ca</a> with subject line "Moderation Appeal"</li>
+                    <li>Include your account email, content ID, and reason for appeal</li>
+                    <li>Provide any evidence supporting your case</li>
+                    <li>Appeals are reviewed within 5-7 business days</li>
+                </ol>
+
+                <h3>Appeal Outcomes</h3>
+                <ul>
+                    <li><strong>Upheld:</strong> Content remains removed/restricted</li>
+                    <li><strong>Overturned:</strong> Content restored, warning removed</li>
+                    <li><strong>Partial:</strong> Content edited to comply, penalty reduced</li>
+                </ul>
+
+                <p>Appeal decisions are final. Repeated frivolous appeals may result in loss of appeal privileges.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>7. Transparency Reports</h2>
+                <p>We are committed to transparency in our moderation practices. GlitchRealm publishes quarterly transparency reports including:</p>
+                <ul>
+                    <li>Number of content removals by category</li>
+                    <li>Account actions taken (warnings, suspensions, bans)</li>
+                    <li>User reports received and response times</li>
+                    <li>Appeals filed and outcomes</li>
+                    <li>Government requests for content removal (if any)</li>
+                </ul>
+                <p>Reports are available on our <a href="about.html">About page</a>.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>8. Moderator Guidelines</h2>
+                <p>Our moderation team follows strict guidelines:</p>
+                <ul>
+                    <li><strong>Consistency:</strong> Apply rules uniformly across all users</li>
+                    <li><strong>Context:</strong> Consider intent, cultural differences, and context</li>
+                    <li><strong>Fairness:</strong> No bias based on user status or popularity</li>
+                    <li><strong>Confidentiality:</strong> User data and reports kept private</li>
+                    <li><strong>Education:</strong> Explain violations and help users improve</li>
+                </ul>
+                <p>Moderators must recuse themselves from cases involving personal conflicts of interest.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>9. Special Considerations</h2>
+
+                <h3>9.1 Age-Appropriate Content</h3>
+                <p>GlitchRealm is intended for users 13+. Content must be appropriate for teenage audiences. Mature themes (violence, language, suggestive content) require content warnings.</p>
+
+                <h3>9.2 Cultural and Regional Differences</h3>
+                <p>We recognize cultural differences in acceptable content. However, content must comply with:</p>
+                <ul>
+                    <li>Canadian laws (our jurisdiction)</li>
+                    <li>International human rights standards</li>
+                    <li>Our platform-wide Code of Conduct</li>
+                </ul>
+
+                <h3>9.3 Parody and Satire</h3>
+                <p>Parody, satire, and commentary are allowed if clearly labeled and not used to harass or spread misinformation.</p>
+
+                <h3>9.4 Educational and Newsworthy Content</h3>
+                <p>Educational content, historical references, or news discussions about sensitive topics may be allowed with proper context and warnings.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>10. Developer Responsibilities</h2>
+                <p>Game developers are responsible for:</p>
+                <ul>
+                    <li>Moderating user-generated content within their games (if applicable)</li>
+                    <li>Responding to reports about their submitted games</li>
+                    <li>Updating or removing games that violate policies</li>
+                    <li>Providing accurate content warnings and age ratings</li>
+                    <li>Monitoring and addressing player feedback</li>
+                </ul>
+                <p>Failure to moderate game-specific content may result in game removal or developer account penalties.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>11. Updates to This Policy</h2>
+                <p>We may update this Moderation Policy to reflect:</p>
+                <ul>
+                    <li>Changes in laws or regulations</li>
+                    <li>New platform features or content types</li>
+                    <li>Evolving community standards</li>
+                    <li>Feedback from users and creators</li>
+                </ul>
+                <p>Material changes will be announced via email and platform notifications 30 days before taking effect.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>12. Contact Us</h2>
+                <p>For questions about content moderation:</p>
+                <ul>
+                    <li><strong>General Inquiries:</strong> <a href="mailto:support@glitchrealm.ca">support@glitchrealm.ca</a></li>
+                    <li><strong>Report Content:</strong> Use the "Report" button on content or email <a href="mailto:support@glitchrealm.ca">support@glitchrealm.ca</a></li>
+                    <li><strong>Developer Support:</strong> <a href="mailto:developers@glitchrealm.ca">developers@glitchrealm.ca</a></li>
+                    <li><strong>Legal Issues:</strong> <a href="mailto:legal@glitchrealm.ca">legal@glitchrealm.ca</a></li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <p style="margin: 0; color: rgba(255, 255, 255, 0.85);"><strong>Related Policies:</strong></p>
+                <ul style="margin: 0.5rem 0 0 1rem;">
+                    <li><a href="terms-of-service.html">Terms of Service</a></li>
+                    <li><a href="code-of-conduct.html">Community Code of Conduct</a></li>
+                    <li><a href="developer-agreement.html">Developer Agreement</a></li>
+                    <li><a href="submission-policy.html">Game Submission Policy</a></li>
+                    <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        fetch('header.html').then(r => r.text()).then(html => {
+            document.getElementById('header-placeholder').innerHTML = html;
+        });
+        fetch('footer.html').then(r => r.text()).then(html => {
+            document.getElementById('footer-placeholder').innerHTML = html;
+        });
+    </script>
+</body>
+</html>

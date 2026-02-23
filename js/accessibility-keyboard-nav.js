@@ -57,7 +57,6 @@
         });
 
         document.body.insertBefore(skipLink, document.body.firstChild);
-        console.log('[A11y] Skip link added');
     }
 
     /**
@@ -77,7 +76,6 @@
                 if (!mainContent.hasAttribute('role')) {
                     mainContent.setAttribute('role', 'main');
                 }
-                console.log('[A11y] Main content ID added');
             }
         }
     }
@@ -167,7 +165,6 @@
             });
         }
 
-        console.log('[A11y] Navigation keyboard controls initialized');
     }
 
     function toggleDropdown(dropdown, trigger, menu, forceState) {
@@ -270,7 +267,6 @@
             });
         });
 
-        console.log('[A11y] Profile dropdown keyboard navigation initialized');
     }
 
     // ==================== MODAL FOCUS MANAGEMENT ====================
@@ -322,7 +318,6 @@
             });
         });
 
-        console.log('[A11y] Modal focus traps initialized');
     }
 
     function setupFocusTrap(modal) {
@@ -386,7 +381,6 @@
         });
 
         if (gameCards.length > 0) {
-            console.log(`[A11y] ${gameCards.length} game cards made keyboard accessible`);
         }
     }
 
@@ -441,7 +435,6 @@
             });
         });
 
-        console.log('[A11y] Keyboard shortcuts enabled (press ? for help)');
     }
 
     function showKeyboardShortcutsHelp() {
@@ -482,7 +475,6 @@ General:
             gameCardsContainer.setAttribute('aria-busy', 'false');
         }
 
-        console.log('[A11y] ARIA live regions initialized');
     }
 
     // ==================== FOCUS VISIBLE POLYFILL ====================
@@ -561,7 +553,6 @@ General:
         document.addEventListener('focus', onFocus, true);
         document.addEventListener('blur', onBlur, true);
 
-        console.log('[A11y] Focus-visible polyfill active');
     }
 
     // ==================== INITIALIZATION ====================
@@ -576,7 +567,6 @@ General:
     }
 
     function initAll() {
-        console.log('[A11y] Initializing accessibility & keyboard navigation...');
         
         addSkipLink();
         ensureMainContentId();
@@ -588,7 +578,6 @@ General:
         initAriaLiveRegions();
         initFocusVisible();
 
-        console.log('[A11y] ✅ Accessibility features initialized successfully');
     }
 
     // Auto-initialize

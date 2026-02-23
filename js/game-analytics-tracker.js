@@ -31,7 +31,6 @@ class GameAnalyticsTracker {
     }
     
     setupTracking() {
-        console.log('[Analytics] Game analytics tracker initialized');
         
         // Track page visibility changes
         document.addEventListener('visibilitychange', () => {
@@ -53,7 +52,6 @@ class GameAnalyticsTracker {
     // Track when a user starts playing a game
     async trackGamePlay(gameId, gameName, gameUrl = null) {
         if (!window.firebaseAuth?.currentUser) {
-            console.log('[Analytics] No authenticated user, skipping play tracking');
             return;
         }
         
@@ -80,7 +78,6 @@ class GameAnalyticsTracker {
             // Update game analytics
             await this.updateGameAnalytics(gameId, 'play');
             
-            console.log('[Analytics] Game play tracked:', gameId);
             
             // Track analytics event
             this.trackEvent('game_play_start', {
@@ -188,7 +185,6 @@ class GameAnalyticsTracker {
             );
             
             await Promise.all(promises);
-            console.log(`[Analytics] Flushed ${eventsToFlush.length} events`);
             
         } catch (error) {
             console.error('[Analytics] Error flushing events:', error);
@@ -344,5 +340,3 @@ window.trackAnalyticsEvent = function(eventName, eventData = {}) {
         window.gameAnalyticsTracker.trackEvent(eventName, eventData);
     }
 };
-
-console.log('[Analytics] Game analytics tracker loaded');

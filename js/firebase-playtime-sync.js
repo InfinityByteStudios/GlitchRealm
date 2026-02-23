@@ -18,23 +18,19 @@ function syncLocalStorageData() {
         // Check for localStorage data
         const localData = localStorage.getItem('glitchrealm_playtime_data');
         if (!localData) {
-            console.log('No localStorage playtime data found');
             return Promise.resolve(null);
         }
         
         const playtimeData = JSON.parse(localData);
         if (!playtimeData.needsSync) {
-            console.log('LocalStorage data already synced');
             return Promise.resolve(null);
         }
         
         const gamesToSync = Object.values(playtimeData.games).filter(game => game.needsSync);
         if (gamesToSync.length === 0) {
-            console.log('No games need syncing from localStorage');
             return Promise.resolve(null);
         }
         
-        console.log(`Syncing ${gamesToSync.length} games from localStorage to Firestore`);
         
         const batch = window.firestoreBatch(db);
         const globalDocRef = window.firestoreDoc(db, 'playtime', userId);
@@ -83,7 +79,6 @@ function syncLocalStorageData() {
                 return batch.commit();
             })
             .then(() => {
-                console.log('✅ Successfully synced localStorage data to Firestore');
                 
                 // Mark localStorage data as synced
                 playtimeData.needsSync = false;
@@ -130,7 +125,6 @@ function syncPlaytimeData() {
         const { user, db } = validateFirebaseEnvironment();
         const userId = user.uid;
 
-        console.log('Starting playtime data synchronization...');
 
         // Batch Firestore reads more efficiently - get both documents in parallel
         const globalDocRef = window.firestoreDoc(db, 'playtime', userId);
@@ -143,7 +137,6 @@ function syncPlaytimeData() {
             .then(([globalDoc, gamesSnapshot]) => {
                 // Early return if no data exists at all
                 if (!globalDoc.exists() && gamesSnapshot.empty) {
-                    console.log('No playtime data found - nothing to sync.');
                     return null;
                 }
                 const globalData = globalDoc.exists() ? globalDoc.data() : { games: {} };
@@ -151,7 +144,6 @@ function syncPlaytimeData() {
 
                 // Early return if global document exists but has no games and no individual docs
                 if (Object.keys(globalGames).length === 0 && gamesSnapshot.empty) {
-                    console.log('No game data found - nothing to sync.');
                     return null;
                 }
 
@@ -226,14 +218,11 @@ function syncPlaytimeData() {
 
                     return batch.commit();
                 } else {
-                    console.log('No synchronization needed - all data is already in sync.');
                     return null;
                 }
             })
             .then(result => {
                 if (result !== null) {
-                    console.log('✅ Playtime data has been synchronized successfully');
-                    console.log('🔄 Refresh the page to see the updated playtime data');
                 }
                 return result;
             })
@@ -261,7 +250,6 @@ function rebuildPlaytimeData() {
         const { user, db } = validateFirebaseEnvironment();
         const userId = user.uid;
 
-        console.log('Starting complete playtime data rebuild...');
 
         // Batch all Firestore reads efficiently - reduce redundant snapshot queries
         const promises = [
@@ -284,7 +272,6 @@ function rebuildPlaytimeData() {
             .then(([globalDocSnap, legacyDocsSnap, gameDocsSnap]) => {
                 // Early return if no data exists anywhere
                 if (!globalDocSnap.exists() && legacyDocsSnap.empty && gameDocsSnap.empty) {
-                    console.log('No playtime data found anywhere - nothing to rebuild.');
                     return null;
                 }
 
@@ -380,8 +367,6 @@ function rebuildPlaytimeData() {
             })
             .then((result) => {
                 if (result !== null) {
-                    console.log('✅ Playtime data structure has been completely rebuilt');
-                    console.log('🔄 Refresh the page to see the updated playtime data');
                 }
                 return result;
             })
@@ -406,15 +391,3 @@ function rebuildPlaytimeData() {
 }
 
 // Usage instructions
-console.log('🔄 Firebase Playtime Sync Utility');
-console.log('--------------------------------');
-console.log('1. To synchronize playtime data: syncPlaytimeData()');
-console.log('   This will update the global document based on individual game documents');
-console.log('');
-console.log('2. For a complete rebuild: rebuildPlaytimeData()');
-console.log('   This will consolidate all playtime data from all possible locations');
-console.log('   and ensure the correct data structure is in place');
-console.log('');
-console.log('3. To sync localStorage data: syncLocalStorageData()');
-console.log('   This will sync any unsynced data from localStorage to Firestore');
-console.log('--------------------------------');

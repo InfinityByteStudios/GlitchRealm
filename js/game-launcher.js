@@ -35,7 +35,6 @@ class GameLauncher {
     
     // Initialize the launcher
     init() {
-        console.log('Initializing GlitchRealm Game Launcher');
         
         // Find all game launch buttons
         const launchButtons = document.querySelectorAll('[data-game-launch]');
@@ -60,7 +59,6 @@ class GameLauncher {
             return;
         }
         
-        console.log(`Launching game: ${game.name}`);
         
         // Check if user is logged in before launching
         const auth = window.firebaseAuth;
@@ -80,7 +78,6 @@ class GameLauncher {
             detail: { gameId: game.id, gameName: game.name }
         });
         window.dispatchEvent(gameStartEvent);
-        console.log(`Game start event triggered for ${game.name}`);
         
         // Open the game
         const gameUrl = `${window.location.origin}/${game.path}`;
@@ -94,7 +91,6 @@ class GameLauncher {
                     detail: { gameId: game.id, gameName: game.name }
                 });
                 window.dispatchEvent(gameEndEvent);
-                console.log(`Game end event triggered for ${game.name}`);
             });
             
             // Alternative approach using focus check
@@ -105,7 +101,6 @@ class GameLauncher {
                         detail: { gameId: game.id, gameName: game.name }
                     });
                     window.dispatchEvent(gameEndEvent);
-                    console.log(`Game end event triggered for ${game.name} (window closed)`);
                 }
             }, 1000);
         }

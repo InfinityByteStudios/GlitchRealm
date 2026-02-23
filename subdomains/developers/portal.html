@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Portal - GlitchRealm</title>
+    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="../../js/auth-redirect-handler.js"></script>
+    <script type="module" src="../../js/firebase-core.js"></script>
+    <script type="module" src="../../js/header-avatar-integration.js"></script>
+    
+    <style>
+        .portal-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .portal-intro {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .portal-intro p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .portal-card {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .portal-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 255, 249, 0.2);
+            border-color: var(--primary-cyan);
+            background: rgba(10, 10, 10, 0.8);
+        }
+        
+        .portal-card__icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 255, 249, 0.1);
+            border-radius: 8px;
+        }
+        
+        .portal-card__icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--primary-cyan);
+        }
+        
+        .portal-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .portal-card p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.6);
+            flex-grow: 1;
+        }
+        
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-cyan);
+            font-family: 'Orbitron', monospace;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .resources-section {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(0, 255, 249, 0.3);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .resources-section h2 {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .resource-list {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .resource-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(0, 255, 249, 0.05);
+            border-left: 3px solid var(--primary-cyan);
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .resource-item:hover {
+            background: rgba(0, 255, 249, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .resource-item span {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .resource-item::before {
+            content: '→';
+            color: var(--primary-cyan);
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Developer Portal">Developer Portal</span>
+                </h1>
+                <p class="page-subtitle">Your hub for game development on GlitchRealm</p>
+            </div>
+        </section>
+
+        <div class="portal-container">
+            <div class="portal-intro">
+                <p>Welcome to the GlitchRealm Developer Portal. Access tools, documentation, and resources to build and manage your games.</p>
+            </div>
+
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="gamesCount">--</div>
+                    <div class="stat-label">Your Games</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPlays">--</div>
+                    <div class="stat-label">Total Plays</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgRating">--</div>
+                    <div class="stat-label">Avg Rating</div>
+                </div>
+            </div>
+
+            <div class="portal-grid">
+                <a href="submit-game.html" class="portal-card">
+                    <div class="portal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h3>Submit New Game</h3>
+                    <p>Upload your game to the GlitchRealm platform and reach thousands of players.</p>
+                </a>
+
+                <a href="manage.html" class="portal-card">
+                    <div class="portal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </div>
+                    <h3>Manage Games</h3>
+                    <p>Edit game details, update screenshots, and manage your published games.</p>
+                </a>
+
+                <a href="analytics.html" class="portal-card">
+                    <div class="portal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </div>
+                    <h3>Analytics</h3>
+                    <p>View detailed analytics, playtime stats, and user engagement metrics.</p>
+                </a>
+
+                <a href="index.html" class="portal-card">
+                    <div class="portal-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <h3>API Documentation</h3>
+                    <p>Integrate GlitchRealm services into your games with our REST API.</p>
+                </a>
+            </div>
+
+            <div class="resources-section">
+                <h2>Developer Resources</h2>
+                <div class="resource-list">
+                    <a href="../../js/playtime-tracker.js" class="resource-item" download>
+                        <span>Playtime Tracker SDK (JavaScript)</span>
+                    </a>
+                    <a href="../../js/game-analytics-tracker.js" class="resource-item" download>
+                        <span>Analytics SDK (JavaScript)</span>
+                    </a>
+                    <a href="https://github.com/InfinityByteStudios/GlitchRealm" target="_blank" rel="noopener noreferrer" class="resource-item">
+                        <span>GitHub Repository & Examples</span>
+                    </a>
+                    <a href="../../community.html" class="resource-item">
+                        <span>Developer Community Forum</span>
+                    </a>
+                    <a href="../../contact.html" class="resource-item">
+                        <span>Contact Support</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+
+    <script src="../../js/script.js" defer></script>
+    <script type="module">
+        // Wait for Firebase to load
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                if (window.firebaseApp && window.firebaseAuth && window.firebaseFirestore) {
+                    resolve();
+                } else {
+                    const checkInterval = setInterval(() => {
+                        if (window.firebaseApp && window.firebaseAuth && window.firebaseFirestore) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 100);
+                }
+            });
+        }
+        
+        waitForFirebase().then(async () => {
+            const auth = window.firebaseAuth;
+            const db = window.firebaseFirestore;
+            const { collection, query, where, getDocs } = window.firestoreImports;
+            
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    document.getElementById('gamesCount').textContent = '--';
+                    document.getElementById('totalPlays').textContent = '--';
+                    document.getElementById('avgRating').textContent = '--';
+                    return;
+                }
+                
+                try {
+                    // Get user's games
+                    const gamesRef = collection(db, 'game_submissions');
+                    const q = query(gamesRef, where('ownerId', '==', user.uid));
+                    const snapshot = await getDocs(q);
+                    
+                    document.getElementById('gamesCount').textContent = snapshot.size;
+                    
+                    // Calculate total plays and average rating
+                    let totalPlays = 0;
+                    let totalRating = 0;
+                    let ratingCount = 0;
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Playtime would need to be aggregated from playtime collection
+                        // For now showing game count
+                        if (data.rating) {
+                            totalRating += data.rating;
+                            ratingCount++;
+                        }
+                    });
+                    
+                    document.getElementById('totalPlays').textContent = '--'; // Requires aggregation
+                    document.getElementById('avgRating').textContent = ratingCount > 0 
+                        ? (totalRating / ratingCount).toFixed(1) 
+                        : '--';
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

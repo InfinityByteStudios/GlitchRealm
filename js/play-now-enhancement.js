@@ -160,11 +160,9 @@
         const playNowBtn = document.querySelector('.hero-buttons .btn-primary.glitch-btn');
         
         if (!playNowBtn) {
-            console.log('[PlayNow] Button not found, skipping enhancement');
             return;
         }
 
-        console.log('[PlayNow] Enhancing button with micro-interactions...');
 
         // Add shine overlay
         addShineOverlay(playNowBtn);
@@ -220,7 +218,6 @@
             }
         });
 
-        console.log('[PlayNow] ✅ Button enhancement complete');
     }
 
     // ==================== AUTO-INITIALIZE ====================

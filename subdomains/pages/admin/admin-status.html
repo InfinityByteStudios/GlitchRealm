@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Status Admin - GlitchRealm</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .admin-container { max-width:700px; margin:80px auto; padding:30px; background:linear-gradient(135deg,#0b1822,#071017); border:1px solid rgba(0,255,249,0.2); border-radius:16px; }
+    .admin-container h1 { color:#00f5ff; margin:0 0 24px; font-size:1.8rem; }
+    .status-form { display:flex; flex-direction:column; gap:18px; }
+    .form-group { display:flex; flex-direction:column; gap:8px; }
+    .form-group label { font-size:.85rem; font-weight:600; color:#7edcf0; text-transform:uppercase; letter-spacing:.5px; }
+    .form-group select, .form-group input, .form-group textarea { background:#08131b; border:1px solid #12313d; border-radius:8px; padding:12px; color:#d7e5e8; font-family:inherit; font-size:.9rem; }
+    .form-group textarea { resize:vertical; min-height:100px; }
+    .form-group select:focus, .form-group input:focus, .form-group textarea:focus { outline:2px solid #00e3ff; outline-offset:2px; }
+    .btn-update { background:linear-gradient(135deg,#00fff9,#008cff); border:none; padding:12px 24px; border-radius:8px; color:#000; font-weight:700; font-size:.9rem; cursor:pointer; text-transform:uppercase; letter-spacing:.8px; }
+    .btn-update:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,255,249,0.3); }
+    .auth-required { background:rgba(255,100,100,0.1); border:1px solid rgba(255,100,100,0.3); padding:14px; border-radius:8px; color:#ff6666; margin-bottom:20px; }
+    .success-msg { background:rgba(0,255,100,0.1); border:1px solid rgba(0,255,100,0.3); padding:14px; border-radius:8px; color:#00ff66; margin-top:16px; display:none; }
+    .error-msg { background:rgba(255,100,100,0.1); border:1px solid rgba(255,100,100,0.3); padding:14px; border-radius:8px; color:#ff6666; margin-top:16px; display:none; }
+    .preview { margin-top:20px; padding:14px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.9),rgba(7,16,23,0.95)); border:1px solid rgba(0,255,249,0.2); border-radius:12px; display:flex; align-items:center; gap:12px; }
+    .preview-indicator { width:10px; height:10px; border-radius:50%; }
+  </style>
+</head>
+<body>
+  <div class="background-animation"></div>
+  
+  <div class="admin-container">
+    <h1>System Status Management</h1>
+    
+    <div id="auth-check" class="auth-required">
+      Checking authorization...
+    </div>
+    
+    <div id="admin-panel" style="display:none;">
+      <form class="status-form" id="status-form">
+        <div class="form-group">
+          <label for="status-select">System Status</label>
+          <select id="status-select" required>
+            <option value="operational">✅ Operational - Visit status.glitchrealm.ca for live updates</option>
+            <option value="degraded">⚠️ Degraded - Visit status.glitchrealm.ca for live updates</option>
+            <option value="down">❌ Down - Visit status.glitchrealm.ca for live updates</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="status-message">Status Message</label>
+          <input type="text" id="status-message" placeholder="e.g., All Systems Operational" maxlength="100" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="status-description">Description (Optional)</label>
+          <textarea id="status-description" placeholder="This status is staff-updated. For automated uptime monitoring, visit status.glitchrealm.ca&#10;&#10;Provide details about what's affected, expected resolution time, etc."></textarea>
+          <small style="font-size:.75rem; opacity:.7;">Only visible if you add text here. Users can click the 'i' icon to view.</small>
+        </div>
+        
+        <button type="submit" class="btn-update">Update Status</button>
+      </form>
+      
+      <div class="success-msg" id="success-msg">Status updated successfully!</div>
+      <div class="error-msg" id="error-msg">Error updating status. Please try again.</div>
+      
+      <div class="preview">
+        <div class="preview-indicator" id="preview-indicator" style="background:#00ff00; box-shadow:0 0 10px #00ff00;"></div>
+        <div style="flex:1;">
+          <div style="font-weight:700; font-size:.9rem; color:#fff;">Preview: <span id="preview-text">All Systems Operational</span></div>
+          <div id="preview-description" style="display:none; margin-top:8px; font-size:.8rem; color:#b8d4d8; padding-top:8px; border-top:1px solid rgba(0,255,249,0.15);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+    import { glitchRealmFirebaseConfig } from './js/firebase-config-glitchrealm.js';
+
+    const app = initializeApp(glitchRealmFirebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Authorized developer UIDs
+    const ADMIN_UIDS = [
+      '6iZDTXC78aVwX22qrY43BOxDRLt1',
+      'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
+      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+    ];
+
+    const authCheck = document.getElementById('auth-check');
+    const adminPanel = document.getElementById('admin-panel');
+    const statusForm = document.getElementById('status-form');
+    const statusSelect = document.getElementById('status-select');
+    const statusMessage = document.getElementById('status-message');
+    const statusDescriptionInput = document.getElementById('status-description');
+    const successMsg = document.getElementById('success-msg');
+    const errorMsg = document.getElementById('error-msg');
+    const previewIndicator = document.getElementById('preview-indicator');
+    const previewText = document.getElementById('preview-text');
+    const previewDescription = document.getElementById('preview-description');
+
+    // Check authorization
+    onAuthStateChanged(auth, async (user) => {
+      if (user && ADMIN_UIDS.includes(user.uid)) {
+        authCheck.style.display = 'none';
+        adminPanel.style.display = 'block';
+        loadCurrentStatus();
+      } else {
+        authCheck.textContent = user ? 'Access Denied: You are not authorized to access this page.' : 'Please sign in with an authorized developer account.';
+        authCheck.style.background = 'rgba(255,100,100,0.1)';
+        authCheck.style.borderColor = 'rgba(255,100,100,0.3)';
+        authCheck.style.color = '#ff6666';
+      }
+    });
+
+    // Load current status
+    async function loadCurrentStatus() {
+      try {
+        const statusDoc = await getDoc(doc(db, 'system', 'status'));
+        if (statusDoc.exists()) {
+          const data = statusDoc.data();
+          statusSelect.value = data.status || 'operational';
+          statusMessage.value = data.message || 'All Systems Operational';
+          statusDescriptionInput.value = data.description || '';
+          updatePreview();
+        }
+      } catch (error) {
+        console.error('Error loading status:', error);
+      }
+    }
+
+    // Update preview
+    function updatePreview() {
+      const status = statusSelect.value;
+      const message = statusMessage.value || 'All Systems Operational';
+      const description = statusDescriptionInput.value;
+
+      previewText.textContent = message;
+
+      if (status === 'operational') {
+        previewIndicator.style.background = '#00ff00';
+        previewIndicator.style.boxShadow = '0 0 10px #00ff00';
+      } else if (status === 'degraded') {
+        previewIndicator.style.background = '#ffaa00';
+        previewIndicator.style.boxShadow = '0 0 10px #ffaa00';
+      } else if (status === 'down') {
+        previewIndicator.style.background = '#ff0000';
+        previewIndicator.style.boxShadow = '0 0 10px #ff0000';
+      }
+
+      if (description && description.trim()) {
+        previewDescription.textContent = description;
+        previewDescription.style.display = 'block';
+      } else {
+        previewDescription.style.display = 'none';
+      }
+    }
+
+    // Live preview updates
+    statusSelect.addEventListener('change', updatePreview);
+    statusMessage.addEventListener('input', updatePreview);
+    statusDescriptionInput.addEventListener('input', updatePreview);
+
+    // Form submission
+    statusForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      successMsg.style.display = 'none';
+      errorMsg.style.display = 'none';
+
+      try {
+        await setDoc(doc(db, 'system', 'status'), {
+          status: statusSelect.value,
+          message: statusMessage.value,
+          description: statusDescriptionInput.value,
+          updatedAt: new Date().toISOString(),
+          updatedBy: auth.currentUser.uid
+        });
+
+        successMsg.style.display = 'block';
+        setTimeout(() => { successMsg.style.display = 'none'; }, 5000);
+      } catch (error) {
+        console.error('Error updating status:', error);
+        errorMsg.textContent = `Error: ${error.message}`;
+        errorMsg.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

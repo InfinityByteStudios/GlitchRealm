@@ -630,8 +630,6 @@ exports.exchangeAuthToken = functions.https.onCall({ cors: true }, async (reques
 	// The actual data is in request.data
 	const data = request.data;
 	
-	console.log('[exchangeAuthToken] Received request, data type:', typeof data, 'has idToken:', !!data?.idToken);
-	console.log('[exchangeAuthToken] Request auth context:', request.auth ? `uid: ${request.auth.uid}` : 'unauthenticated');
 	
 	const { idToken } = data || {};
 	
@@ -640,7 +638,6 @@ exports.exchangeAuthToken = functions.https.onCall({ cors: true }, async (reques
 		throw new functions.https.HttpsError('invalid-argument', 'ID token is required and must be a string');
 	}
 	
-	console.log('[exchangeAuthToken] Processing idToken of length:', idToken.length);
 	
 	try {
 		// Verify the ID token from the auth subdomain
@@ -648,12 +645,10 @@ exports.exchangeAuthToken = functions.https.onCall({ cors: true }, async (reques
 		const decodedToken = await admin.auth().verifyIdToken(idToken, false);
 		const uid = decodedToken.uid;
 		
-		console.log('[exchangeAuthToken] Verified ID token for user:', uid);
 		
 		// Create a custom token for this user that can be used on the main domain
 		const customToken = await admin.auth().createCustomToken(uid);
 		
-		console.log('[exchangeAuthToken] Created custom token for user:', uid);
 		
 		return { customToken };
 	} catch (error) {
@@ -842,7 +837,6 @@ exports.onUserVerified = onDocumentWritten('verified_users/{userId}', async (eve
 	const isNowVerified = after?.verified === true;
 	
 	if (!wasVerified && isNowVerified) {
-		console.log(`[onUserVerified] User ${userId} just got verified!`);
 		
 		try {
 			// Create notification in notifications collection
@@ -857,7 +851,6 @@ exports.onUserVerified = onDocumentWritten('verified_users/{userId}', async (eve
 			};
 			
 			await db.collection('notifications').add(notificationData);
-			console.log(`[onUserVerified] Created notification for user ${userId}`);
 		} catch (error) {
 			console.error('[onUserVerified] Error creating notification:', error);
 		}
@@ -875,7 +868,6 @@ exports.onWriterVerified = onDocumentWritten('verified_writers/{userId}', async 
 	const isNowVerified = after?.verified === true;
 	
 	if (!wasVerified && isNowVerified) {
-		console.log(`[onWriterVerified] Writer ${userId} just got verified!`);
 		
 		try {
 			// Create notification
@@ -890,7 +882,6 @@ exports.onWriterVerified = onDocumentWritten('verified_writers/{userId}', async 
 			};
 			
 			await db.collection('notifications').add(notificationData);
-			console.log(`[onWriterVerified] Created notification for writer ${userId}`);
 		} catch (error) {
 			console.error('[onWriterVerified] Error creating notification:', error);
 		}

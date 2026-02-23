@@ -25,11 +25,9 @@ let avatarFileInput = null;
 export function initializeAvatarUpload() {
     // Only enable upload on user portal page
     if (!window.location.pathname.includes('user-portal')) {
-        console.log('Avatar upload disabled - not on user portal page');
         return;
     }
     
-    console.log('Initializing avatar upload on User Portal...');
     
     // Create hidden file input for avatar selection
     avatarFileInput = document.createElement('input');
@@ -184,7 +182,7 @@ async function uploadAvatar(file) {
         const avatarUrl = await uploadAvatarComplete(
             file,
             currentUser.uid,
-            (progress) => console.log('Upload progress:', progress)
+            (progress) => {}
         );
         
         // Reload profile
@@ -233,25 +231,19 @@ function updateAvatarDisplay() {
  * Only shown on user portal page
  */
 export function addRevertAvatarButton() {
-    console.log('addRevertAvatarButton called');
-    console.log('Current pathname:', window.location.pathname);
     
     // Only add button on user portal page
     if (!window.location.pathname.includes('user-portal')) {
-        console.log('Not on user portal page, skipping button');
         return;
     }
     
     // Find the Profile Picture section first
     const profilePictureSection = document.querySelector('.portal-section');
-    console.log('Profile Picture section found:', !!profilePictureSection);
     
     let revertContainer = profilePictureSection ? profilePictureSection.querySelector('.revert-avatar-container') : null;
-    console.log('Revert container found:', !!revertContainer);
     
     // If container doesn't exist, create it in the Profile Picture section
     if (!revertContainer && profilePictureSection) {
-        console.log('Creating revert container');
         revertContainer = document.createElement('div');
         revertContainer.className = 'revert-avatar-container';
         revertContainer.style.textAlign = 'center';
@@ -263,7 +255,6 @@ export function addRevertAvatarButton() {
     if (!revertContainer) {
         const profileActions = document.querySelector('.profile-actions');
         if (!profileActions) {
-            console.log('No container found for revert button');
             return;
         }
         revertContainer = profileActions;
@@ -271,11 +262,9 @@ export function addRevertAvatarButton() {
     
     // Check if button already exists
     if (document.getElementById('revert-avatar-btn')) {
-        console.log('Revert button already exists');
         return;
     }
     
-    console.log('Creating revert button');
     
     const revertBtn = document.createElement('button');
     revertBtn.id = 'revert-avatar-btn';
@@ -377,20 +366,15 @@ Note: You can only see this button when you have a custom avatar uploaded.`;
 function toggleRevertButton() {
     const revertBtn = document.getElementById('revert-avatar-btn');
     if (!revertBtn) {
-        console.log('Revert button not found in DOM');
         return;
     }
     
-    console.log('Toggle revert button - Profile:', currentProfile);
-    console.log('Has custom_photo_url:', currentProfile?.custom_photo_url);
-    console.log('Has avatar_storage_path:', currentProfile?.avatar_storage_path);
     
     // Always show the button
     revertBtn.style.display = 'flex';
     revertBtn.style.opacity = '1';
     revertBtn.disabled = false;
     
-    console.log('Revert button is now visible');
 }
 
 /**
@@ -400,7 +384,6 @@ function showAuthMessage(message, type) {
     if (typeof window.showAuthMessage === 'function') {
         window.showAuthMessage(message, type);
     } else {
-        console.log(`[${type}] ${message}`);
     }
 }
 

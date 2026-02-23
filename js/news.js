@@ -1,4 +1,4 @@
-import { SUPABASE_CONFIG } from '../supabase-config.js';
+import { SUPABASE_CONFIG } from './supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/+esm';
 import { redirectToAuth, onAuthChange } from './auth-sync.js';
 
@@ -58,10 +58,8 @@ const verifiedWritersCache = new Map();
 async function checkVerifiedWriter(uid) {
   if (!uid) return false;
   
-  console.log(`[checkVerifiedWriter] Checking UID: ${uid}, Is in DEV_UIDS: ${DEV_UIDS.has(uid)}`);
   
   if (DEV_UIDS.has(uid)) {
-    console.log(`[checkVerifiedWriter] UID ${uid} is a developer - returning true`);
     verifiedWritersCache.set(uid, true);
     return true;
   }
@@ -73,7 +71,6 @@ async function checkVerifiedWriter(uid) {
   try {
     const writerDoc = await getDoc(doc(db, 'verified_writers', uid));
     const isVerified = writerDoc.exists() && writerDoc.data()?.verified === true;
-    console.log(`[checkVerifiedWriter] Firestore check for ${uid}: exists=${writerDoc.exists()}, verified=${isVerified}`);
     verifiedWritersCache.set(uid, isVerified);
     return isVerified;
   } catch (err) {
@@ -166,7 +163,6 @@ function articleCardHTML(a){
   
   // Debug logging
   if (a.authorUid) {
-    console.log(`[Badge Debug] Article: ${a.title}, Author: ${a.authorUsername}, UID: ${a.authorUid}, Verified: ${isVerified}, Cache has: ${verifiedWritersCache.has(a.authorUid)}`);
   }
   
   // Add verified writer badge if applicable

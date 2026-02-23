@@ -76,9 +76,7 @@ const cacheDevStatus = (user) => {
 
 // Lightweight logger that no-ops in production except errors
 const logger = {
-  log: (...args) => {
-    if (isDev()) console.log(...args);
-  },
+  log: () => {},
   warn: (...args) => {
     if (isDev()) console.warn(...args);
   },
@@ -96,9 +94,7 @@ const logger = {
     if (isDev()) console.debug(...args);
   },
   // Conditional logging - only logs if condition is true AND in dev mode
-  logIf: (condition, ...args) => {
-    if (condition && isDev()) console.log(...args);
-  },
+  logIf: () => {},
   // Performance-aware logging - uses performance.now() for timing
   time: (label) => {
     if (isDev()) console.time(label);

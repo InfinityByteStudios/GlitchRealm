@@ -17,7 +17,6 @@ const createPlaytimeCollectionAndIndex = async () => {
       return;
     }
     
-    console.log('Connected to Firestore');
     
     // Get current user
     const currentUser = firebaseAuth.currentUser;
@@ -28,7 +27,6 @@ const createPlaytimeCollectionAndIndex = async () => {
     }
     
     const userId = currentUser.uid;
-    console.log(`Creating playtime data for user: ${userId}`);
     
     // Sample game data
     const games = [
@@ -53,7 +51,6 @@ const createPlaytimeCollectionAndIndex = async () => {
     ];
     
     // Create playtime collection
-    console.log('Creating playtime collection...');
     
     for (const game of games) {
       const docRef = firestoreDoc(firestore, 'playtime', `${userId}_${game.gameId}`);
@@ -66,18 +63,15 @@ const createPlaytimeCollectionAndIndex = async () => {
           iconUrl: game.iconUrl,
           lastUpdated: new Date()
         });
-        console.log(`Created playtime record for ${game.gameName}`);
       } catch (error) {
         console.error(`Error creating playtime for ${game.gameName}:`, error);
       }
     }
     
-    console.log('✅ Playtime collection created successfully!');
     
     // Create an index by performing a simpler query - we'll just look for 
     // all playtime entries for the current user which should trigger
     // the index creation if needed
-    console.log('Querying playtime data...');
     
     try {
       const playtimeRef = firestoreCollection(firestore, 'playtime');
@@ -90,29 +84,15 @@ const createPlaytimeCollectionAndIndex = async () => {
       });
       
       if (docs.length > 0) {
-        console.log(`Found ${docs.length} playtime records for user`);
         docs.forEach(doc => {
-          console.log(`Game: ${doc.gameName}, Hours: ${doc.hours}`);
         });
       } else {
-        console.log('No playtime records found. Something went wrong.');
       }
     } catch (error) {
       console.error('Error querying playtime data:', error);
     }
     
     // Instructions for manually creating the index
-    console.log('\n--- INDEX CREATION INSTRUCTIONS ---');
-    console.log('To create the composite index in Firebase console:');
-    console.log('1. Go to Firebase console → Firestore Database → Indexes tab');
-    console.log('2. Click "Add Index"');
-    console.log('3. Collection ID: playtime');
-    console.log('4. Fields to index:');
-    console.log('   - userId (Ascending)');
-    console.log('   - hours (Descending)');
-    console.log('5. Query scope: Collection');
-    console.log('6. Click "Create Index"');
-    console.log('-------------------------------');
     
   } catch (error) {
     console.error('Error creating playtime collection and index:', error);
@@ -121,7 +101,6 @@ const createPlaytimeCollectionAndIndex = async () => {
 
 // Run the function
 createPlaytimeCollectionAndIndex().then(() => {
-  console.log('Operation completed');
 }).catch(err => {
   console.error('Operation failed:', err);
 });

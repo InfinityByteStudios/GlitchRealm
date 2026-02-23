@@ -352,7 +352,6 @@
               createdAt: vmod.serverTimestamp()
             });
             
-            console.log('Writer notification created for user:', wvid);
             
             alert('✓ Writer verified successfully!');
           } else if (reject) {
@@ -535,7 +534,6 @@
                   createdAt: serverTimestamp()
                 });
                 
-                console.log('Notification created for user:', uid);
               } else if (deny) {
                 await updateDoc(doc(db, 'verification_requests', uid), {
                   status: 'denied',
@@ -650,22 +648,17 @@
 
   document.addEventListener('DOMContentLoaded', function(){
     // Auto-open behavior not needed here; this is the destination page
-    console.log('[Moderation] DOMContentLoaded fired');
-    console.log('[Moderation] window.firebaseAuth:', window.firebaseAuth);
     
     // Wait for Firebase to be ready and auth state to be restored
     const waitForAuth = () => {
       return new Promise((resolve) => {
         if (auth && auth.currentUser) {
-          console.log('[Moderation] Auth already ready with user:', auth.currentUser.uid);
           resolve(auth);
           return;
         }
         
         if (auth) {
-          console.log('[Moderation] Auth exists, waiting for state restoration...');
           const unsubscribe = auth.onAuthStateChanged((u) => {
-            console.log('[Moderation] Auth state restored:', u ? `User ${u.uid}` : 'No user');
             unsubscribe();
             resolve(auth);
           });
@@ -675,11 +668,9 @@
             if (window.firebaseAuth) {
               const retryAuth = window.firebaseAuth;
               if (retryAuth.currentUser) {
-                console.log('[Moderation] Auth ready on retry with user:', retryAuth.currentUser.uid);
                 resolve(retryAuth);
               } else {
                 const unsubscribe = retryAuth.onAuthStateChanged((u) => {
-                  console.log('[Moderation] Auth state restored on retry:', u ? `User ${u.uid}` : 'No user');
                   unsubscribe();
                   resolve(retryAuth);
                 });
@@ -704,7 +695,6 @@
       
       // Now set up the actual auth state listener
       authInstance.onAuthStateChanged((u) => {
-        console.log('[Moderation] Auth state changed:', u ? `User ${u.uid}` : 'No user');
         if (!u) {
           accessEl.textContent = 'Please sign in to access moderation.';
           renderEmpty('');
@@ -926,8 +916,6 @@
           throw new Error('Not signed in');
         }
         
-        console.log('Current user UID:', user.uid);
-        console.log('Authorized UIDs:', DEVELOPER_UIDS);
         
         if (!DEVELOPER_UIDS.includes(user.uid)) {
           throw new Error('Unauthorized - Your UID is not in the developer list');
@@ -949,7 +937,6 @@
           statusData.description = descValue;
         }
         
-        console.log('Sending status data:', statusData);
         
         await db.collection('system').doc('status').set(statusData);
 

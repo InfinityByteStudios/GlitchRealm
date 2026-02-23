@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GlitchRealm – Signing you in…</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0a0a0a; color:#fff; display:grid; place-items:center; height:100svh; margin:0 }
+    .card { background:#111; border:1px solid #222; border-radius:14px; padding:28px 22px; max-width:520px; width:92%; box-shadow:0 10px 30px rgba(0,0,0,.4) }
+    h1 { font-size:20px; margin:0 0 8px }
+    p { margin:6px 0; color:#9ca3af }
+    .muted { font-size:12px; color:#6b7280 }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Finishing sign-in…</h1>
+    <p>Please wait a moment while we complete your login.</p>
+    <p class="muted" id="status">Preparing…</p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, signInWithCredential, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, GithubAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    const setStatus = (t) => { const el = document.getElementById('status'); if (el) el.textContent = t; };
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ',
+      authDomain: 'shared-sign-in.firebaseapp.com',
+      projectId: 'shared-sign-in',
+      storageBucket: 'shared-sign-in.appspot.com',
+      messagingSenderId: '332039027753',
+      appId: '1:332039027753:web:aa7c6877d543bb90363038',
+      measurementId: 'G-KK5XVVLMVN'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    await setPersistence(auth, browserLocalPersistence).catch(()=>{});
+    
+    // Import signInWithPopup for OAuth popup handling
+    const { signInWithPopup } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+
+    // Determine where to redirect after sign-in
+    function getRedirectUrl() {
+      // Check hash for return parameter FIRST (passed from auth page)
+      const params = new URLSearchParams(location.hash.slice(1));
+      const returnParam = params.get('return');
+      if (returnParam) {
+        console.log('[Auth Bridge] Return URL from hash:', returnParam);
+        return decodeURIComponent(returnParam);
+      }
+      
+      // Check URL search params as fallback
+      const searchParams = new URLSearchParams(location.search);
+      const redirectParam = searchParams.get('redirect');
+      if (redirectParam) {
+        console.log('[Auth Bridge] Return URL from search params:', redirectParam);
+        return decodeURIComponent(redirectParam);
+      }
+      
+      // Check sessionStorage (won't work cross-domain but try anyway)
+      try {
+        const savedReturn = sessionStorage.getItem('gr.returnTo');
+        if (savedReturn) {
+          console.log('[Auth Bridge] Return URL from sessionStorage:', savedReturn);
+          sessionStorage.removeItem('gr.returnTo'); // Clean up
+          return savedReturn;
+        }
+      } catch (e) {}
+      
+      // Check localStorage as additional fallback
+      try {
+        const localReturn = localStorage.getItem('gr.returnTo');
+        if (localReturn) {
+          console.log('[Auth Bridge] Return URL from localStorage:', localReturn);
+          localStorage.removeItem('gr.returnTo'); // Clean up
+          return localReturn;
+        }
+      } catch (e) {}
+      
+      // Default to home page
+      console.log('[Auth Bridge] No return URL found, using /');
+      return '/';
+    }
+
+    async function handleHashSignIn() {
+      // Parse tokens from hash fragment: #provider=google&access_token=...&id_token=...
+      const params = new URLSearchParams(location.hash.slice(1));
+      const provider = params.get('provider');
+      if (!provider) {
+        console.log('[Auth Bridge] No provider found in hash, skipping OAuth flow');
+        return false;
+      }
+      const accessToken = params.get('access_token') || '';
+      const idToken = params.get('id_token') || '';
+
+      console.log('[Auth Bridge] Hash params:', { provider, hasAccessToken: !!accessToken, hasIdToken: !!idToken });
+
+      try {
+        setStatus('Verifying credentials…');
+        console.log('[Auth Bridge] Starting OAuth sign-in with provider:', provider);
+        
+        // Handle OAuth popup requests (from auth subdomain redirecting here)
+        if (provider === 'google_oauth_popup') {
+          console.log('[Auth Bridge] Performing Google OAuth popup on main domain...');
+          setStatus('Connecting to Google...');
+          
+          const googleProvider = new GoogleAuthProvider();
+          await signInWithPopup(auth, googleProvider);
+          
+          console.log('[Auth Bridge] ✓ Google sign-in successful on main domain');
+          setStatus('Sign-in complete! Redirecting...');
+          
+          const redirectUrl = getRedirectUrl();
+          setTimeout(() => location.replace(redirectUrl), 1000);
+          return true;
+        }
+        
+        if (provider === 'github_oauth_popup') {
+          console.log('[Auth Bridge] Performing GitHub OAuth popup on main domain...');
+          setStatus('Connecting to GitHub...');
+          
+          const githubProvider = new GithubAuthProvider();
+          await signInWithPopup(auth, githubProvider);
+          
+          console.log('[Auth Bridge] ✓ GitHub sign-in successful on main domain');
+          setStatus('Sign-in complete! Redirecting...');
+          
+          const redirectUrl = getRedirectUrl();
+          setTimeout(() => location.replace(redirectUrl), 1000);
+          return true;
+        }
+        
+        if (provider === 'google_firebase') {
+          // Re-authenticate on main domain using Firebase ID token from auth subdomain
+          const token = params.get('token');
+          
+          console.log('[Auth Bridge] Token from params:', token ? `${token.substring(0, 20)}... (length: ${token.length})` : 'NULL');
+          
+          if (!token) {
+            throw new Error('Firebase ID token is missing');
+          }
+          console.log('[Auth Bridge] Signing in with Firebase ID token from auth subdomain');
+          setStatus('Transferring authentication…');
+          
+          // Since the user is already signed in on auth.glitchrealm.ca,
+          // we need to sign in on glitchrealm.ca using the same Firebase account
+          // We'll use signInWithCustomToken approach via Cloud Function
+          
+          // Call the Cloud Function directly via HTTP to avoid authentication requirement
+          console.log('[Auth Bridge] Calling exchangeAuthToken with idToken length:', token.length);
+          
+          const response = await fetch('https://us-central1-shared-sign-in.cloudfunctions.net/exchangeAuthToken', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ data: { idToken: token } })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`Cloud Function error: ${errorData.error?.message || response.statusText}`);
+          }
+          
+          const result = await response.json();
+          
+          if (!result.result?.customToken) {
+            throw new Error('Failed to get custom token from server');
+          }
+          
+          console.log('[Auth Bridge] Got custom token, signing in on main domain...');
+          
+          // Import signInWithCustomToken
+          const { signInWithCustomToken } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+          
+          // Sign in with the custom token
+          await signInWithCustomToken(auth, result.result.customToken);
+          console.log('[Auth Bridge] ✓ Firebase sign-in successful on main domain');
+        } else if (provider === 'google_oauth') {
+          // Legacy OAuth flow (keeping for backwards compatibility)
+          const token = params.get('token');
+          
+          if (!token) {
+            throw new Error('Google OAuth token is missing');
+          }
+          console.log('[Auth Bridge] Signing in with Google OAuth token');
+          setStatus('Authenticating with Google…');
+          
+          const cred = GoogleAuthProvider.credential(null, token);
+          await signInWithCredential(auth, cred);
+          console.log('[Auth Bridge] ✓ Google OAuth sign-in successful');
+        } else if (provider === 'github_firebase') {
+          // Re-authenticate on main domain using Firebase ID token from auth subdomain
+          const token = params.get('token');
+          
+          if (!token) {
+            throw new Error('Firebase ID token is missing');
+          }
+          console.log('[Auth Bridge] Signing in with Firebase ID token from auth subdomain (GitHub)');
+          setStatus('Transferring authentication…');
+          
+          // Call the Cloud Function directly via HTTP to avoid authentication requirement
+          console.log('[Auth Bridge] Calling exchangeAuthToken with idToken length:', token.length);
+          
+          const response = await fetch('https://us-central1-shared-sign-in.cloudfunctions.net/exchangeAuthToken', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ data: { idToken: token } })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`Cloud Function error: ${errorData.error?.message || response.statusText}`);
+          }
+          
+          const result = await response.json();
+          
+          if (!result.result?.customToken) {
+            throw new Error('Failed to get custom token from server');
+          }
+          
+          console.log('[Auth Bridge] Got custom token, signing in on main domain...');
+          
+          // Import signInWithCustomToken
+          const { signInWithCustomToken } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+          
+          // Sign in with the custom token
+          await signInWithCustomToken(auth, result.result.customToken);
+          console.log('[Auth Bridge] ✓ Firebase sign-in successful on main domain (GitHub)');
+        } else if (provider === 'github_oauth') {
+          // Legacy OAuth flow (keeping for backwards compatibility)
+          const token = params.get('token');
+          if (!token) {
+            throw new Error('GitHub OAuth token is missing');
+          }
+          console.log('[Auth Bridge] Signing in with GitHub OAuth token...');
+          setStatus('Authenticating with GitHub…');
+          
+          const cred = GithubAuthProvider.credential(token);
+          await signInWithCredential(auth, cred);
+          console.log('[Auth Bridge] ✓ GitHub OAuth sign-in successful');
+        } else if (provider === 'anonymous') {
+          // Handle anonymous/guest sign-in
+          setStatus('Signing in as guest…');
+          console.log('[Auth Bridge] Starting anonymous sign-in');
+          await signInAnonymously(auth);
+          console.log('[Auth Bridge] ✓ Anonymous sign-in successful');
+        } else {
+          throw new Error('Unsupported provider: ' + provider);
+        }
+
+        setStatus('Signed in. Redirecting…');
+        const redirectUrl = getRedirectUrl();
+        console.log('[Auth Bridge] ✓ Sign-in complete - navigating to', redirectUrl);
+        
+        // Small delay to ensure auth state is fully synced
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        history.replaceState({}, document.title, location.pathname);
+        location.replace(redirectUrl);
+      } catch (e) {
+        console.error('[Auth Bridge] ✗ Sign-in failed:', e);
+        console.error('[Auth Bridge] Error details:', e.code, e.message);
+        setStatus('Could not complete sign-in. Error: ' + (e.code || e.message));
+      }
+      return true;
+    }
+
+    // Also support password sign-in via postMessage from auth subdomain
+    async function handlePasswordMessage(event) {
+      try {
+        const allowedOrigin = 'https://auth.glitchrealm.ca';
+        if (event.origin !== allowedOrigin) return; // ignore other origins
+        const data = event.data || {};
+        if (data && data.type === 'passwordSignIn') {
+          setStatus('Signing in securely…');
+          console.log('[Auth Bridge] Starting password sign-in for:', data.email);
+          
+          await signInWithEmailAndPassword(auth, data.email, data.password);
+          console.log('[Auth Bridge] ✓ Password sign-in successful');
+          
+          setStatus('Signed in. Redirecting…');
+          event.source?.postMessage({ type: 'signedIn' }, allowedOrigin);
+          console.log('[Auth Bridge] ✓ Redirect successful - navigating to', getRedirectUrl());
+          location.replace(getRedirectUrl());
+        }
+      } catch (e) {
+        console.error('[Auth Bridge] ✗ Password sign-in failed:', e);
+        event.source?.postMessage({ type: 'error', message: e.message }, event.origin);
+        setStatus('Could not complete sign-in.');
+      }
+    }
+
+    window.addEventListener('message', handlePasswordMessage);
+
+    // Auto-run hash-based sign-in if present
+    await handleHashSignIn();
+  </script>
+</body>
+</html>

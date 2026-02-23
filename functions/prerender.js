@@ -26,7 +26,6 @@ export default async (request, context) => {
     const firestoreResponse = await fetch(firestoreUrl);
     
     if (!firestoreResponse.ok) {
-      console.log(`Game ${gameId} not found in Firestore`);
       return; // Let the original page handle not found
     }
 

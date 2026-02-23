@@ -69,12 +69,10 @@
 
         // Monitor network status
         window.addEventListener('online', () => {
-            console.log('[Network] Connection restored');
             showToast(true);
         });
 
         window.addEventListener('offline', () => {
-            console.log('[Network] Connection lost');
             showToast(false);
         });
 

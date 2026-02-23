@@ -16,8 +16,16 @@
   Cache-Control: public, max-age=86400
   X-Content-Type-Options: nosniff
 
+/js/*
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
 # CSS files - medium cache
 /*.css
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/css/*
   Cache-Control: public, max-age=86400
   X-Content-Type-Options: nosniff
 
@@ -28,6 +36,13 @@
 
 # HTML files - no cache for dynamic content
 /*.html
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# HTML files in pages/ subdirectories (organized structure)
+/pages/**/*.html
   Cache-Control: public, max-age=0, must-revalidate
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff

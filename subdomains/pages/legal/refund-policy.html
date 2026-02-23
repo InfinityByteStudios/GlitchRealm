@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Policy - GlitchRealm Games</title>
+    <meta name="description" content="GlitchRealm's refund and payment policy. Learn about refunds, payment processing, and dispute resolution for in-game purchases.">
+    <meta name="keywords" content="GlitchRealm, refund policy, payments, in-game purchases, payment disputes">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <style>
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .effective-date {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .policy-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: rgba(0, 255, 249, 0.8);
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .policy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+        }
+        
+        .policy-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+            padding: 0;
+        }
+        
+        .policy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.75rem;
+        }
+        
+        .highlight {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .policy-section a {
+            color: var(--primary-cyan);
+            text-decoration: underline;
+        }
+        
+        .policy-section a:hover {
+            color: rgba(0, 255, 249, 0.8);
+        }
+    </style>
+    
+    <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+    <script type="module" src="js/firebase-core.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.appspot.com",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+        
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
+        const analytics = getAnalytics(app);
+        
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+    </script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Refund Policy">Refund Policy</span>
+                </h1>
+                <p class="page-subtitle">Payment and Refund Terms</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <a href="legal.html" style="display: inline-block; color: var(--primary-cyan); text-decoration: none; margin-bottom: 20px; font-size: 0.9em;">
+                ← Back to Legal Hub
+            </a>
+            <div style="background: rgba(0, 255, 249, 0.05); border: 1px solid rgba(0, 255, 249, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                <p style="margin: 0; color: rgba(255, 255, 255, 0.85);"> For legal definitions, <a href="legal-definitions.html" style="color: var(--primary-cyan); text-decoration: none; font-weight: 600;">click here</a></p>
+            </div>
+            <div class="policy-header">
+                <p class="effective-date">Last updated: January 24, 2026</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>1. Overview</h2>
+                <p>GlitchRealm is currently a <span class="highlight">free-to-play platform</span>. This Refund Policy outlines future payment and refund procedures if paid features, premium content, or in-game purchases are introduced.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>2. Current Service Model</h2>
+                <p>As of the effective date of this policy, GlitchRealm offers:</p>
+                <ul>
+                    <li><span class="highlight">Free access</span> to all games, features, and community tools</li>
+                    <li><span class="highlight">No subscription fees</span> or mandatory payments</li>
+                    <li><span class="highlight">Voluntary donations</span> accepted via <a href="donate.html">Donation Page</a> (non-refundable; see <a href="donation-policy.html">Donation Policy</a>)</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>3. Future Paid Features</h2>
+                <p>If GlitchRealm introduces paid features, they may include:</p>
+                <ul>
+                    <li>Premium game downloads or exclusive content</li>
+                    <li>Subscription tiers with enhanced features (ad-free experience, cloud saves, early access)</li>
+                    <li>In-game purchases (cosmetics, DLC, expansions)</li>
+                    <li>Developer tools or verified creator badges (paid verification)</li>
+                    <li>Merchandise, physical goods, or branded items</li>
+                </ul>
+                <p>This Refund Policy will apply to all paid transactions once implemented.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>4. Refund Eligibility</h2>
+                <p>Refunds will be considered under the following conditions:</p>
+                
+                <h3>Eligible for Refund</h3>
+                <ul>
+                    <li><span class="highlight">Technical Issues:</span> Product is broken, unusable, or fails to work as described</li>
+                    <li><span class="highlight">Duplicate Charges:</span> You were charged multiple times for the same purchase</li>
+                    <li><span class="highlight">Unauthorized Charges:</span> Payment was made without your consent (fraud, account compromise)</li>
+                    <li><span class="highlight">Non-Delivery:</span> Purchased content was not delivered to your account within 48 hours</li>
+                    <li><span class="highlight">Cancellation Within 14 Days:</span> Subscription or purchase made within 14 days (Canadian and EU consumer rights)</li>
+                </ul>
+                
+                <h3>NOT Eligible for Refund</h3>
+                <ul>
+                    <li>Voluntary donations (see <a href="donation-policy.html">Donation Policy</a>)</li>
+                    <li>Digital content already downloaded or accessed</li>
+                    <li>Purchases made more than 30 days ago (except where legally required)</li>
+                    <li>Refunds requested due to buyer's remorse, change of mind, or dissatisfaction with gameplay</li>
+                    <li>Purchases made using third-party payment processors (refunds subject to their policies)</li>
+                    <li>Account termination due to Terms of Service violations</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>5. Refund Request Process</h2>
+                <p>To request a refund, follow these steps:</p>
+                <ol style="margin: 1rem 0 1rem 1.5rem; padding: 0;">
+                    <li><span class="highlight">Contact Support:</span> Email <a href="mailto:refunds@glitchrealm.ca">refunds@glitchrealm.ca</a> with your request</li>
+                    <li><span class="highlight">Provide Details:</span> Include order ID, payment method, purchase date, and reason for refund</li>
+                    <li><span class="highlight">Await Review:</span> Refund requests will be reviewed within 5-7 business days</li>
+                    <li><span class="highlight">Receive Decision:</span> You will receive an email confirming approval or denial</li>
+                    <li><span class="highlight">Processing Time:</span> Approved refunds will be processed within 7-14 business days</li>
+                </ol>
+            </div>
+
+            <div class="policy-section">
+                <h2>6. Refund Processing</h2>
+                <p>Refunds will be issued to the original payment method:</p>
+                <ul>
+                    <li><span class="highlight">Credit/Debit Cards:</span> Refunds appear within 5-10 business days (subject to bank processing times)</li>
+                    <li><span class="highlight">PayPal/Digital Wallets:</span> Refunds appear within 3-5 business days</li>
+                    <li><span class="highlight">Cryptocurrency:</span> Refunds may not be available due to blockchain irreversibility (reviewed case-by-case)</li>
+                    <li><span class="highlight">Gift Cards/Store Credit:</span> Refunds issued as account credit only (non-transferable)</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>7. Subscription Cancellations</h2>
+                <p>If subscription services are introduced:</p>
+                <ul>
+                    <li><span class="highlight">Cancellation:</span> You may cancel your subscription at any time from your account settings</li>
+                    <li><span class="highlight">Access:</span> You retain access to premium features until the end of the current billing period</li>
+                    <li><span class="highlight">No Prorated Refunds:</span> Cancellations do not entitle you to a prorated refund for unused time</li>
+                    <li><span class="highlight">Auto-Renewal:</span> Subscriptions auto-renew unless canceled at least 24 hours before the renewal date</li>
+                    <li><span class="highlight">Free Trials:</span> If you cancel during a free trial, no charges will be applied</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>8. Payment Processors</h2>
+                <p>GlitchRealm may use third-party payment processors (e.g., Stripe, PayPal, Square). These processors have their own refund policies and terms:</p>
+                <ul>
+                    <li><a href="https://stripe.com/refund-policy" target="_blank" rel="noopener noreferrer">Stripe Refund Policy</a></li>
+                    <li><a href="https://www.paypal.com/ca/webapps/mpp/ua/useragreement-full" target="_blank" rel="noopener noreferrer">PayPal User Agreement</a></li>
+                </ul>
+                <p>GlitchRealm is not responsible for refund denials or delays caused by third-party processors.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>9. Chargebacks and Disputes</h2>
+                <p>If you file a chargeback or payment dispute with your bank/card issuer:</p>
+                <ul>
+                    <li>Your account may be suspended or terminated pending investigation</li>
+                    <li>Access to purchased content may be revoked</li>
+                    <li>GlitchRealm may dispute the chargeback if the purchase was legitimate</li>
+                    <li>Fraudulent chargebacks may result in permanent account bans</li>
+                </ul>
+                <p><span class="highlight">Please contact us directly before filing a chargeback</span> to resolve the issue amicably.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>10. Consumer Rights</h2>
+                <p>This Refund Policy does not override your statutory consumer rights under Canadian, EU, or other applicable laws. If you are located in a jurisdiction with stronger consumer protections, those rights apply.</p>
+                <ul>
+                    <li><span class="highlight">Canada:</span> Consumer protection laws vary by province (e.g., Alberta Consumer Protection Act)</li>
+                    <li><span class="highlight">EU/EEA:</span> 14-day withdrawal period for digital content (unless you waive this right by downloading/accessing content)</li>
+                    <li><span class="highlight">California:</span> California Consumer Privacy Act (CCPA) rights apply</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>11. Changes to This Policy</h2>
+                <p>GlitchRealm may update this Refund Policy at any time. Changes will be posted on this page with an updated "Last updated" date. Continued use of paid features after changes constitutes acceptance.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>12. Contact Information</h2>
+                <p>Questions about refunds or payments? Contact us at:</p>
+                <ul>
+                    <li><span class="highlight">Refund Requests:</span> <a href="mailto:refunds@glitchrealm.ca">refunds@glitchrealm.ca</a></li>
+                    <li><span class="highlight">Payment Support:</span> <a href="mailto:support@glitchrealm.ca">support@glitchrealm.ca</a></li>
+                    <li><span class="highlight">Legal Contact:</span> <a href="legal-contact.html">Legal Notices & Contact Information</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="js/header-avatar-integration.js"></script>
+    <script>
+        // Load header and footer
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-placeholder').innerHTML = data;
+            });
+
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            });
+    </script>
+</body>
+</html>

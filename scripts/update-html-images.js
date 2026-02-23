@@ -11,7 +11,6 @@ class HTMLImageUpdater {
   }
 
   async run() {
-    console.log('🔄 Starting HTML image reference updates...');
     
     try {
       // Load optimization report to get image mappings
@@ -23,8 +22,6 @@ class HTMLImageUpdater {
       // Generate update report
       await this.generateUpdateReport();
       
-      console.log('✅ HTML image updates completed successfully!');
-      console.log(`📄 Files updated: ${this.updatedFiles.length}`);
       
     } catch (error) {
       console.error('❌ HTML update failed:', error);
@@ -51,7 +48,6 @@ class HTMLImageUpdater {
         this.imageMap.set(originalPath, optimizedPaths);
       }
       
-      console.log(`📋 Loaded mappings for ${this.imageMap.size} optimized images`);
       
     } catch (error) {
       console.error('❌ Failed to load optimization report:', error);
@@ -90,13 +86,11 @@ class HTMLImageUpdater {
     }
     
     await scanDirectory('.');
-    console.log(`📄 Found ${htmlFiles.length} HTML files to process`);
     return htmlFiles;
   }
 
   async updateHTMLFile(htmlFilePath) {
     try {
-      console.log(`🔄 Processing: ${htmlFilePath}`);
       
       let content = await fs.readFile(htmlFilePath, 'utf8');
       let hasChanges = false;
@@ -196,9 +190,7 @@ class HTMLImageUpdater {
           changes: changes.length,
           changeDetails: changes
         });
-        console.log(`✅ Updated: ${htmlFilePath} (${changes.length} images optimized)`);
       } else {
-        console.log(`ℹ️  No changes needed: ${htmlFilePath}`);
       }
       
     } catch (error) {
@@ -269,8 +261,6 @@ class HTMLImageUpdater {
     const summary = this.generateUpdateSummaryMarkdown(report);
     await fs.writeFile(summaryPath, summary);
     
-    console.log(`📋 HTML update report generated: ${reportPath}`);
-    console.log(`📋 HTML update summary generated: ${summaryPath}`);
   }
 
   generateUpdateSummaryMarkdown(report) {

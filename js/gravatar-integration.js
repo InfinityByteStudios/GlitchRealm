@@ -84,7 +84,6 @@ export async function getGravatarProfile(email) {
     
     if (!response.ok) {
       if (response.status === 404) {
-        console.log('No Gravatar profile found for user');
         return null;
       }
       throw new Error(`Gravatar API error: ${response.status}`);
@@ -158,20 +157,16 @@ export async function getBestAvatar(user, supabaseAvatarUrl = null) {
  */
 export async function enrichProfileWithGravatar(uid, email) {
   if (!uid || !email || !GRAVATAR_CONFIG.enabled) {
-    console.log('[Gravatar] Skipping enrichment:', { uid: !!uid, email: !!email, enabled: GRAVATAR_CONFIG.enabled });
     return;
   }
   
   try {
-    console.log('[Gravatar] Starting profile enrichment for:', email);
     
     const gravatarProfile = await getGravatarProfile(email);
     if (!gravatarProfile) {
-      console.log('[Gravatar] No Gravatar profile found for:', email);
       return;
     }
     
-    console.log('[Gravatar] Profile data received:', gravatarProfile);
     
     // Import Firestore functions dynamically
     const { getFirestore, doc, getDoc, setDoc, Timestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
@@ -186,7 +181,6 @@ export async function enrichProfileWithGravatar(uid, email) {
     const userSnap = await getDoc(userRef);
     const currentData = userSnap.exists() ? userSnap.data() : {};
     
-    console.log('[Gravatar] Current user data:', currentData);
     
     // Prepare enrichment data (only for empty fields)
     const enrichmentData = {};
@@ -235,9 +229,7 @@ export async function enrichProfileWithGravatar(uid, email) {
         gravatarEnrichedAt: Timestamp.now()
       }, { merge: true });
       
-      console.log('✅ [Gravatar] Profile enriched with data:', enrichmentData);
     } else {
-      console.log('[Gravatar] No new data to enrich (all fields already filled)');
     }
     
   } catch (err) {
@@ -283,17 +275,14 @@ export async function getGravatarQRCode(email, options = {}) {
  */
 export function initGravatarIntegration() {
   if (!GRAVATAR_CONFIG.enabled) {
-    console.log('[Gravatar] Integration disabled');
     return;
   }
   
-  console.log('✅ [Gravatar] Integration initialized');
   
   // Listen for auth state changes
   if (window.firebaseAuth) {
     window.firebaseAuth.onAuthStateChanged(async (user) => {
       if (user && user.email) {
-        console.log('[Gravatar] Auth state changed, user email:', user.email);
         
         try {
           // Import Firestore functions
@@ -305,21 +294,17 @@ export function initGravatarIntegration() {
             const userSnap = await getDoc(userRef);
             const userData = userSnap.exists() ? userSnap.data() : {};
             
-            console.log('[Gravatar] User document check:', { exists: userSnap.exists(), gravatarEnriched: userData.gravatarEnriched });
             
             // Only enrich if not already done
             if (!userData.gravatarEnriched) {
-              console.log('[Gravatar] Starting enrichment...');
               await enrichProfileWithGravatar(user.uid, user.email);
             } else {
-              console.log('[Gravatar] Profile already enriched, skipping');
             }
           }
         } catch (err) {
           console.error('[Gravatar] Error in auth state handler:', err);
         }
       } else {
-        console.log('[Gravatar] No email available for user');
       }
     });
   } else {
@@ -343,8 +328,6 @@ export async function testGravatarEnrichment() {
     return;
   }
   
-  console.log('[Gravatar Test] Testing enrichment for:', user.email);
-  console.log('[Gravatar Test] User UID:', user.uid);
   
   // Force enrichment even if already done
   try {
@@ -357,10 +340,8 @@ export async function testGravatarEnrichment() {
       gravatarEnriched: false
     }, { merge: true });
     
-    console.log('[Gravatar Test] Cleared enrichment flag, running enrichment...');
     await enrichProfileWithGravatar(user.uid, user.email);
     
-    console.log('[Gravatar Test] Complete! Check Firestore console for updated data.');
   } catch (err) {
     console.error('[Gravatar Test] Error:', err);
   }

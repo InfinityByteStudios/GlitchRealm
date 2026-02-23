@@ -56,12 +56,12 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
-  for = "/styles.css"
+  for = "/css/styles.css"
   [headers.values]
     Cache-Control = "public, max-age=86400"
 
 [[headers]]
-  for = "/script.js"
+  for = "/js/script.js"
   [headers.values]
     Cache-Control = "public, max-age=3600"
 
@@ -72,6 +72,11 @@
 
 [[headers]]
   for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/pages/**/*.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
@@ -180,6 +185,8 @@
   to = "https://edu.glitchrealm.ca/:splat"
   status = 200
   force = true
+
+# Note: edu/ content is in subdomains/edu/ for branch deploys
 
 # 404 page configuration
 [[redirects]]

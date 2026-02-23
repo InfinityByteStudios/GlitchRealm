@@ -61,7 +61,6 @@ async function generateSitemap() {
       .where('status', '==', 'published')
       .get();
     
-    console.log(`Found ${gamesSnapshot.size} published games`);
     
     // Add dynamic game detail pages
     gamesSnapshot.forEach(doc => {
@@ -94,8 +93,6 @@ async function generateSitemap() {
     
     // Write to file
     fs.writeFileSync('sitemap.xml', sitemapContent, 'utf8');
-    console.log('Sitemap generated successfully!');
-    console.log(`Total URLs: ${staticPages.length + gamesSnapshot.size}`);
     
     return sitemapContent;
     
@@ -119,7 +116,6 @@ function escapeXml(text) {
 if (require.main === module) {
   generateSitemap()
     .then(() => {
-      console.log('Done!');
       process.exit(0);
     })
     .catch(err => {

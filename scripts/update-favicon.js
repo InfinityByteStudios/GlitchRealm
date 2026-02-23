@@ -46,10 +46,8 @@ htmlFiles.forEach(file => {
     // Write updated content back to file
     fs.writeFileSync(filePath, lowercaseReplacement, 'utf8');
     
-    console.log(`Updated favicon in: ${file}`);
   } catch (error) {
     console.error(`Error updating ${file}: ${error.message}`);
   }
 });
 
-console.log('Favicon update complete!');

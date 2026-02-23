@@ -19,7 +19,6 @@ class GlitchRealmPlaytimeSync {
     }
     
     init() {
-        console.log('[GlitchRealmPlaytimeSync] Initializing playtime sync utility');
         
         // Check if Firebase is available
         if (typeof firebase !== 'undefined') {
@@ -30,20 +29,17 @@ class GlitchRealmPlaytimeSync {
             this.auth.onAuthStateChanged(user => {
                 this.user = user;
                 if (user) {
-                    console.log(`[GlitchRealmPlaytimeSync] User authenticated: ${user.uid}`);
                     // Sync immediately when user signs in
                     this.syncPlaytimeData();
                     // Start auto-sync
                     this.startAutoSync();
                 } else {
-                    console.log('[GlitchRealmPlaytimeSync] User signed out');
                     this.stopAutoSync();
                 }
             });
             
             // Listen for custom playtime update events
             window.addEventListener('playtimeDataUpdated', (event) => {
-                console.log('[GlitchRealmPlaytimeSync] Playtime data updated:', event.detail);
                 // Sync after a short delay to batch updates
                 setTimeout(() => this.syncPlaytimeData(), 2000);
             });
@@ -56,7 +52,6 @@ class GlitchRealmPlaytimeSync {
     startAutoSync() {
         if (this.autoSyncIntervalId) return;
         
-        console.log('[GlitchRealmPlaytimeSync] Starting auto-sync');
         this.autoSyncIntervalId = setInterval(() => {
             this.syncPlaytimeData();
         }, this.autoSyncInterval);
@@ -64,7 +59,6 @@ class GlitchRealmPlaytimeSync {
     
     stopAutoSync() {
         if (this.autoSyncIntervalId) {
-            console.log('[GlitchRealmPlaytimeSync] Stopping auto-sync');
             clearInterval(this.autoSyncIntervalId);
             this.autoSyncIntervalId = null;
         }
@@ -97,7 +91,6 @@ class GlitchRealmPlaytimeSync {
         }
         
         this.syncInProgress = true;
-        console.log(`[GlitchRealmPlaytimeSync] Syncing ${gamesToSync.length} games to Firestore`);
         
         try {
             const userId = this.user.uid;
@@ -150,7 +143,6 @@ class GlitchRealmPlaytimeSync {
                     lastPlayed: firebase.firestore.Timestamp.fromDate(new Date(game.lastPlayed))
                 };
                 
-                console.log(`[GlitchRealmPlaytimeSync] Prepared sync for ${game.gameName}: ${totalMinutes.toFixed(2)} minutes`);
             }
             
             // Update global document
@@ -163,7 +155,6 @@ class GlitchRealmPlaytimeSync {
             // Commit the batch
             await batch.commit();
             
-            console.log('[GlitchRealmPlaytimeSync] Successfully synced playtime data to Firestore');
             
             // Mark all games as synced in localStorage
             this.markAllAsSynced();
@@ -202,7 +193,6 @@ class GlitchRealmPlaytimeSync {
             });
             
             localStorage.setItem(this.storageKey, JSON.stringify(data));
-            console.log('[GlitchRealmPlaytimeSync] Marked all data as synced');
         } catch (error) {
             console.error('[GlitchRealmPlaytimeSync] Error marking as synced:', error);
         }
@@ -210,7 +200,6 @@ class GlitchRealmPlaytimeSync {
     
     // Manual sync method
     async forceSyncNow() {
-        console.log('[GlitchRealmPlaytimeSync] Force syncing now...');
         await this.syncPlaytimeData();
     }
     
@@ -238,7 +227,6 @@ class GlitchRealmPlaytimeSync {
     clearLocalData() {
         try {
             localStorage.removeItem(this.storageKey);
-            console.log('[GlitchRealmPlaytimeSync] Cleared all local playtime data');
         } catch (error) {
             console.error('[GlitchRealmPlaytimeSync] Error clearing local data:', error);
         }
@@ -267,8 +255,3 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 // Console helpers
-console.log('🔄 GlitchRealm Playtime Sync Utility loaded');
-console.log('Available methods:');
-console.log('- glitchRealmSync.forceSyncNow() - Force sync now');
-console.log('- glitchRealmSync.getSyncStatus() - Get sync status');
-console.log('- glitchRealmSync.clearLocalData() - Clear all local data (use with caution)');

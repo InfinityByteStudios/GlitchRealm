@@ -44,7 +44,6 @@ class ImageOptimizer {
   }
 
   async run() {
-    console.log('🖼️  Starting image optimization pipeline...');
     
     try {
       // Create output directory
@@ -55,16 +54,12 @@ class ImageOptimizer {
         if (await this.directoryExists(inputDir)) {
           await this.processDirectory(inputDir);
         } else {
-          console.log(`⚠️  Directory ${inputDir} not found, skipping...`);
         }
       }
       
       // Generate optimization report
       await this.generateReport();
       
-      console.log('✅ Image optimization completed successfully!');
-      console.log(`📊 Total images processed: ${this.processedImages.length}`);
-      console.log(`💾 Total size savings: ${this.formatBytes(this.totalSavings)}`);
       
     } catch (error) {
       console.error('❌ Image optimization failed:', error);
@@ -75,7 +70,6 @@ class ImageOptimizer {
   async ensureOutputDir() {
     try {
       await fs.mkdir(config.outputDir, { recursive: true });
-      console.log(`📁 Created output directory: ${config.outputDir}`);
     } catch (error) {
       if (error.code !== 'EEXIST') {
         throw error;
@@ -93,7 +87,6 @@ class ImageOptimizer {
   }
 
   async processDirectory(inputDir) {
-    console.log(`📂 Processing directory: ${inputDir}`);
     
     try {
       const files = await fs.readdir(inputDir, { recursive: true });
@@ -119,7 +112,6 @@ class ImageOptimizer {
 
   async processImage(imagePath, baseDir) {
     try {
-      console.log(`🔄 Processing: ${imagePath}`);
       
       // Get image metadata
       const image = sharp(imagePath);
@@ -131,7 +123,6 @@ class ImageOptimizer {
       let processedImage = image;
       
       if (shouldResize.needsResize) {
-        console.log(`📏 Resizing ${imagePath}: ${metadata.width}x${metadata.height} -> ${shouldResize.newWidth}x${shouldResize.newHeight}`);
         processedImage = image.resize(shouldResize.newWidth, shouldResize.newHeight, {
           fit: 'inside',
           withoutEnlargement: true
@@ -176,12 +167,10 @@ class ImageOptimizer {
       // Validate compression meets target (60-80% reduction)
       const compressionValidation = this.validateCompression(results.compressionRatio);
       if (!compressionValidation.isValid) {
-        console.log(`⚠️  ${imagePath}: ${compressionValidation.message}`);
       }
       
       this.processedImages.push(results);
       
-      console.log(`✅ Optimized: ${imagePath} (${this.formatBytes(results.savings)} saved, ${results.compressionRatio.toFixed(1)}% reduction)`);
       
     } catch (error) {
       console.error(`❌ Error processing ${imagePath}:`, error);
@@ -281,7 +270,6 @@ class ImageOptimizer {
       const avifSize = (await fs.stat(avifPath)).size;
       results.optimized.avif = { path: avifPath, size: avifSize };
     } catch (error) {
-      console.log(`⚠️  AVIF not supported for ${baseName}, skipping...`);
     }
 
     // Generate optimized fallback (JPEG/PNG)
@@ -361,8 +349,6 @@ class ImageOptimizer {
     const summary = this.generateSummaryMarkdown(report);
     await fs.writeFile(summaryPath, summary);
     
-    console.log(`📋 Report generated: ${reportPath}`);
-    console.log(`📋 Summary generated: ${summaryPath}`);
   }
 
   calculateValidationStats() {

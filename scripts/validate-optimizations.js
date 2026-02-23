@@ -23,7 +23,6 @@ class OptimizationValidator {
    * Run complete Lighthouse audit on optimized site
    */
   async runLighthouseAudit() {
-    console.log('🔍 Running Lighthouse audit...');
     
     try {
       // Check if lighthouse is available
@@ -32,7 +31,6 @@ class OptimizationValidator {
       // Run lighthouse audit with performance budget
       const lighthouseCmd = `npx lighthouse http://localhost:8080 --only-categories=performance --output=json --output-path=lighthouse-results.json --budget-path=lighthouse-budget.json`;
       
-      console.log('Running: ' + lighthouseCmd);
       execSync(lighthouseCmd, { stdio: 'inherit' });
       
       // Parse results
@@ -46,16 +44,10 @@ class OptimizationValidator {
         score: results.lhr.categories.performance.score * 100
       };
       
-      console.log('✅ Lighthouse audit completed');
-      console.log(`   Performance Score: ${this.results.lighthouse.score}/100`);
-      console.log(`   FCP: ${this.results.lighthouse.fcp}ms (target: ≤1500ms)`);
-      console.log(`   LCP: ${this.results.lighthouse.lcp}ms (target: ≤2500ms)`);
-      console.log(`   CLS: ${this.results.lighthouse.cls} (target: <0.1)`);
       
       return true;
     } catch (error) {
       this.results.errors.push(`Lighthouse audit failed: ${error.message}`);
-      console.log('❌ Lighthouse audit failed - will test manually');
       return false;
     }
   }
@@ -64,7 +56,6 @@ class OptimizationValidator {
    * Test loading state reliability across multiple page loads
    */
   async testLoadingStateReliability() {
-    console.log('🔄 Testing loading state reliability...');
     
     try {
       // Create a test HTML file to validate loading states
@@ -95,7 +86,6 @@ class OptimizationValidator {
             if (loadedResources.size === criticalResources.length) {
                 document.querySelector('.loading-indicator').style.display = 'none';
                 document.querySelector('.content').style.display = 'block';
-                console.log('✅ All critical resources loaded');
             }
         }
         
@@ -124,7 +114,6 @@ class OptimizationValidator {
         setTimeout(() => {
             if (loadedResources.size === criticalResources.length) {
                 clearTimeout(initTimeout);
-                console.log('✅ Timeout protection working correctly');
             }
         }, 500);
     </script>
@@ -140,15 +129,10 @@ class OptimizationValidator {
         timeoutProtection: true
       };
       
-      console.log('✅ Loading state test file created');
-      console.log('   - Critical elements: InfinityByte, email, GITHUB ✓');
-      console.log('   - Timeout protection implemented ✓');
-      console.log('   - Resource loading sequence defined ✓');
       
       return true;
     } catch (error) {
       this.results.errors.push(`Loading state test failed: ${error.message}`);
-      console.log('❌ Loading state test failed');
       return false;
     }
   }
@@ -157,7 +141,6 @@ class OptimizationValidator {
    * Verify no regressions in Games folder functionality
    */
   async verifyGamesFolderIntegrity() {
-    console.log('🎮 Verifying Games folder integrity...');
     
     try {
       const gamesPath = './Games';
@@ -199,15 +182,10 @@ class OptimizationValidator {
         noOptimizationFiles: true
       };
       
-      console.log('✅ Games folder integrity verified');
-      console.log(`   - Found games: ${gamesFolders.join(', ')}`);
-      console.log('   - game-playtime-tracker.js present ✓');
-      console.log('   - No optimization files in Games folder ✓');
       
       return true;
     } catch (error) {
       this.results.errors.push(`Games folder verification failed: ${error.message}`);
-      console.log('❌ Games folder verification failed');
       return false;
     }
   }
@@ -216,7 +194,6 @@ class OptimizationValidator {
    * Confirm Firestore security rules unchanged
    */
   async confirmFirestoreRulesUnchanged() {
-    console.log('🔒 Confirming Firestore security rules unchanged...');
     
     try {
       const rulesFiles = ['firestore.rules', 'database.rules.json', 'storage.rules'];
@@ -242,19 +219,15 @@ class OptimizationValidator {
             size: content.length
           };
           
-          console.log(`   - ${file}: unchanged ✓ (${content.length} bytes)`);
         } else {
-          console.log(`   - ${file}: not found (optional)`);
         }
       }
       
       this.results.firestoreRules = rulesStatus;
       
-      console.log('✅ Firestore security rules confirmed unchanged');
       return true;
     } catch (error) {
       this.results.errors.push(`Firestore rules check failed: ${error.message}`);
-      console.log('❌ Firestore rules check failed');
       return false;
     }
   }
@@ -263,7 +236,6 @@ class OptimizationValidator {
    * Run all validation tests
    */
   async runAllValidations() {
-    console.log('🚀 Starting comprehensive optimization validation...\n');
     
     const tests = [
       { name: 'Lighthouse Audit', fn: () => this.runLighthouseAudit() },
@@ -275,26 +247,17 @@ class OptimizationValidator {
     let passedTests = 0;
     
     for (const test of tests) {
-      console.log(`\n--- ${test.name} ---`);
       const result = await test.fn();
       if (result) passedTests++;
     }
     
-    console.log('\n' + '='.repeat(50));
-    console.log('📊 VALIDATION SUMMARY');
-    console.log('='.repeat(50));
-    console.log(`Tests passed: ${passedTests}/${tests.length}`);
     
     if (this.results.errors.length > 0) {
-      console.log('\n❌ ERRORS:');
-      this.results.errors.forEach(error => console.log(`   - ${error}`));
+      this.results.errors.forEach(error => {});
     }
     
     if (passedTests === tests.length) {
-      console.log('\n🎉 All optimizations validated successfully!');
-      console.log('✅ Ready for production deployment');
     } else {
-      console.log('\n⚠️  Some validations failed - review errors above');
     }
     
     return passedTests === tests.length;

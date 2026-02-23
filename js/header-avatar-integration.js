@@ -143,13 +143,11 @@ export function clearProfileCache(userId) {
  */
 export function initializeSupabaseAvatarIntegration() {
     if (!isConfigured) {
-        console.log('⚠️ Supabase avatar system not configured. See supabase-config.js and AVATAR_IMPLEMENTATION.md');
         // Still add click handlers for navigation
         setupAvatarClickHandlers();
         return;
     }
     
-    console.log('Initializing Supabase avatar integration...');
     
     // Add click handlers to avatars to navigate to user portal
     setupAvatarClickHandlers();
@@ -171,7 +169,6 @@ export function initializeSupabaseAvatarIntegration() {
                 }
             });
             
-            console.log('Supabase avatar integration active');
         }
     }, 100);
     

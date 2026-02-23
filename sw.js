@@ -6,7 +6,7 @@ const IMAGE_CACHE = `${CACHE_PREFIX}-images`;
 
 const PRECACHE_URLS = [
   '/offline.html',
-  '/styles.css',
+  '/css/styles.css',
   '/assets/Favicon and Icons/favicon.svg',
   '/assets/Favicon and Icons/favicon.ico',
   '/assets/Favicon and Icons/web-app-manifest-192x192.png'
@@ -17,17 +17,17 @@ const BMC_WIDGET_URL = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js'
 
 // Files that should NEVER be cached (always fetch fresh for auth state)
 const NEVER_CACHE = [
-  '/news/',
-  '/news/index.html',
-  '/news/publish.html',
-  '/news/news-article.html',
+  '/subdomains/news/',
+  '/subdomains/news/index.html',
+  '/subdomains/news/publish.html',
+  '/subdomains/news/news-article.html',
   '/index.html',
   '/games.html',
   '/user-portal.html',
-  '/firebase-core.js',
-  '/news/firebase-core.js',
-  '/script.js',
-  '/news/script.js',
+  '/js/firebase-core.js',
+  '/subdomains/news/firebase-core.js',
+  '/js/script.js',
+  '/subdomains/news/script.js',
   'firebase',
   'firebaseapp.com',
   'firestore.googleapis.com'
@@ -111,7 +111,7 @@ async function cacheFirst(request, cacheName = RUNTIME_CACHE) {
     if (request.destination === 'image') {
       const FALLBACK_IMAGES = [
         '/assets/Favicon and Icons/favicon.ico',
-        '/news/assets/Favicon and Icons/favicon.ico',
+        '/subdomains/news/assets/Favicon and Icons/favicon.ico',
         '/favicon.ico',
         '/assets/Favicon and Icons/favicon.svg'
       ];

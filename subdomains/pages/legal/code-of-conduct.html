@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code of Conduct - GlitchRealm Games</title>
+    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="js/auth-redirect-handler.js"></script>
+    <script type="module" src="js/firebase-core.js"></script>
+    
+    <style>
+        .policy-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .policy-header p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .policy-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .policy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+        }
+        
+        .policy-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+            padding: 0;
+        }
+        
+        .policy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.75rem;
+        }
+        
+        .highlight {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .pledge-box {
+            background: rgba(0, 255, 249, 0.05);
+            border-left: 4px solid var(--primary-cyan);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+        }
+        
+        .pledge-box p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin: 0;
+        }
+        
+        .behavior-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .behavior-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(0, 255, 249, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .behavior-card--positive {
+            border-color: rgba(0, 255, 65, 0.3);
+        }
+        
+        .behavior-card--negative {
+            border-color: rgba(255, 0, 128, 0.3);
+        }
+        
+        .behavior-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .behavior-card--positive h3 {
+            color: var(--success);
+        }
+        
+        .behavior-card--negative h3 {
+            color: var(--primary-magenta);
+        }
+        
+        .behavior-card ul {
+            margin: 0;
+            padding-left: 1.25rem;
+        }
+        
+        .enforcement-levels {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .enforcement-levels h4 {
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .enforcement-levels ul {
+            margin: 0;
+            padding-left: 1.25rem;
+        }
+        
+        .contact-box {
+            background: rgba(0, 255, 249, 0.05);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .contact-box h3 {
+            font-size: 1.2rem;
+            color: var(--primary-cyan);
+            margin-bottom: 0.75rem;
+        }
+        
+        .contact-box p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .contact-box a {
+            color: var(--primary-cyan);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .contact-box a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Code of Conduct">Code of Conduct</span>
+                </h1>
+                <p class="page-subtitle">Building a Respectful Community</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <a href="legal.html" style="display: inline-block; color: var(--primary-cyan); text-decoration: none; margin-bottom: 20px; font-size: 0.9em;">
+                ← Back to Legal Hub
+            </a>
+            <div style="background: rgba(0, 255, 249, 0.05); border: 1px solid rgba(0, 255, 249, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                <p style="margin: 0; color: rgba(255, 255, 255, 0.85);"> For legal definitions, <a href="legal-definitions.html" style="color: var(--primary-cyan); text-decoration: none; font-weight: 600;">click here</a></p>
+            </div>
+            <div class="policy-header">
+                <p>Our Code of Conduct outlines the standards and expectations for everyone who participates in the GlitchRealm community.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Our Pledge</h2>
+                <div class="pledge-box">
+                    <p>We are committed to providing a <span class="highlight">welcoming and inclusive environment</span> for everyone who participates in the GlitchRealm community, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.</p>
+                </div>
+            </div>
+
+            <div class="policy-section">
+                <h2>Our Standards</h2>
+                
+                <div class="behavior-grid">
+                    <div class="behavior-card behavior-card--positive">
+                        <h3>✅ Positive Behavior</h3>
+                        <p>We encourage community members to:</p>
+                        <ul>
+                            <li>Be respectful and considerate in your communication</li>
+                            <li>Welcome newcomers and help them get started</li>
+                            <li>Accept constructive criticism gracefully</li>
+                            <li>Focus on what is best for the community</li>
+                            <li>Show empathy towards other community members</li>
+                        </ul>
+                    </div>
+
+                    <div class="behavior-card behavior-card--negative">
+                        <h3>❌ Unacceptable Behavior</h3>
+                        <p>The following behaviors are not tolerated:</p>
+                        <ul>
+                            <li>Harassment, trolling, or discriminatory language</li>
+                            <li>Publishing others' private information without permission</li>
+                            <li>Spam, excessive self-promotion, or disruptive behavior</li>
+                            <li>Any conduct that could reasonably be considered inappropriate in a professional setting</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="policy-section">
+                <h2>Scope</h2>
+                <p>This Code of Conduct applies to <span class="highlight">all community spaces</span>, including:</p>
+                <ul>
+                    <li>Game submissions and reviews</li>
+                    <li>Community posts and discussions</li>
+                    <li>GitHub repositories and issue trackers</li>
+                    <li>Social media interactions related to GlitchRealm</li>
+                    <li>Discord server and other official communication channels</li>
+                    <li>In-game interactions and chat</li>
+                </ul>
+                <p>This Code of Conduct also applies when representing GlitchRealm in public spaces, both online and offline.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Enforcement</h2>
+                <p>We take violations of this Code of Conduct seriously. If you witness or experience unacceptable behavior:</p>
+                
+                <div class="enforcement-levels">
+                    <h4>Reporting Violations</h4>
+                    <ul>
+                        <li>Report incidents to the development team via email or in-platform reporting tools</li>
+                        <li>All complaints will be reviewed and investigated <span class="highlight">promptly and fairly</span></li>
+                        <li>The development team is obligated to maintain <span class="highlight">confidentiality</span> with regard to the reporter</li>
+                        <li>You will receive a response acknowledging your report</li>
+                    </ul>
+                </div>
+
+                <div class="enforcement-levels">
+                    <h4>Consequences</h4>
+                    <p>Community members who violate this Code of Conduct may face temporary or permanent consequences as determined by the development team, including:</p>
+                    <ul>
+                        <li><span class="highlight">Warning</span> — A private, written warning with clarity about the violation</li>
+                        <li><span class="highlight">Temporary Suspension</span> — Temporary ban from community interactions and services</li>
+                        <li><span class="highlight">Permanent Ban</span> — Permanent removal from the platform and all community spaces</li>
+                    </ul>
+                </div>
+
+                <p>The severity of the consequence will be determined based on the nature and severity of the violation, as well as any prior history of violations.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Our Responsibility</h2>
+                <p>Community moderators and the development team are responsible for:</p>
+                <ul>
+                    <li>Clarifying and enforcing our standards of acceptable behavior</li>
+                    <li>Taking appropriate and fair corrective action in response to violations</li>
+                    <li>Removing, editing, or rejecting content that violates this Code of Conduct</li>
+                    <li>Communicating reasons for moderation decisions when appropriate</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>Attribution</h2>
+                <p>This Code of Conduct is adapted from community best practices and is designed to foster a positive, creative environment for all GlitchRealm users.</p>
+                <p>We believe that by working together and holding each other accountable, we can create a thriving community where everyone feels welcome and valued.</p>
+            </div>
+
+            <div class="contact-box">
+                <h3>Report a Violation</h3>
+                <p>If you witness or experience behavior that violates this Code of Conduct, please report it:</p>
+                <ul style="list-style: none; padding: 0; margin: 1rem 0 0 0;">
+                    <li style="margin-bottom: 0.5rem;"><strong>Discord:</strong> <a href="https://discord.gg/sDPv3URjDx" target="_blank" rel="noopener noreferrer">Open a support ticket</a></li>
+                    <li style="margin-bottom: 0.5rem;"><strong>General Support:</strong> <a href="mailto:support@glitchrealm.ca">support@glitchrealm.ca</a></li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Legal Inquiries:</strong> <a href="mailto:legal@glitchrealm.ca">legal@glitchrealm.ca</a></li>
+                </ul>
+                <p>All reports are handled with confidentiality and care.</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="js/script.js" defer></script>
+</body>
+</html>

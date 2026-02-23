@@ -8,14 +8,12 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔍 GlitchRealm SEO & AdSense Pre-Deployment Validation\n');
 
 const errors = [];
 const warnings = [];
 const success = [];
 
 // Check 1: Verify critical files exist
-console.log('✓ Checking critical files...');
 const criticalFiles = [
   'game-detail.html',
   'index.html',
@@ -38,7 +36,6 @@ criticalFiles.forEach(file => {
 });
 
 // Check 2: Validate game-detail.html has semantic structure
-console.log('\n✓ Validating semantic HTML structure...');
 try {
   const gameDetailContent = fs.readFileSync('game-detail.html', 'utf8');
   
@@ -85,7 +82,6 @@ try {
 }
 
 // Check 3: Validate index.html has proper meta tags
-console.log('\n✓ Validating homepage meta tags...');
 try {
   const indexContent = fs.readFileSync('index.html', 'utf8');
   
@@ -111,7 +107,6 @@ try {
 }
 
 // Check 4: Validate robots.txt
-console.log('\n✓ Validating robots.txt...');
 try {
   const robotsContent = fs.readFileSync('robots.txt', 'utf8');
   
@@ -138,7 +133,6 @@ try {
 }
 
 // Check 5: Validate prerender edge function
-console.log('\n✓ Validating edge function...');
 try {
   const prerenderContent = fs.readFileSync('functions/prerender.js', 'utf8');
   
@@ -165,7 +159,6 @@ try {
 }
 
 // Check 6: Validate footer exists and has legal links
-console.log('\n✓ Validating footer...');
 try {
   const footerContent = fs.readFileSync('footer.html', 'utf8');
   
@@ -195,7 +188,6 @@ try {
 }
 
 // Check 7: Validate Netlify configuration
-console.log('\n✓ Validating Netlify configuration...');
 try {
   const netlifyContent = fs.readFileSync('netlify.toml', 'utf8');
   
@@ -222,40 +214,25 @@ try {
 }
 
 // Print Results
-console.log('\n' + '='.repeat(60));
-console.log('📊 VALIDATION RESULTS');
-console.log('='.repeat(60) + '\n');
 
 if (success.length > 0) {
-  console.log('✅ PASSED CHECKS:');
-  success.forEach(s => console.log(`  ${s}`));
-  console.log('');
+  success.forEach(s => {});
 }
 
 if (warnings.length > 0) {
-  console.log('⚠️  WARNINGS:');
-  warnings.forEach(w => console.log(`  ${w}`));
-  console.log('');
+  warnings.forEach(w => {});
 }
 
 if (errors.length > 0) {
-  console.log('❌ ERRORS (MUST FIX):');
-  errors.forEach(e => console.log(`  ${e}`));
-  console.log('');
+  errors.forEach(e => {});
 }
 
-console.log('='.repeat(60));
-console.log(`Total: ${success.length} passed, ${warnings.length} warnings, ${errors.length} errors`);
-console.log('='.repeat(60) + '\n');
 
 // Determine overall status
 if (errors.length > 0) {
-  console.log('❌ VALIDATION FAILED - Please fix errors before deploying\n');
   process.exit(1);
 } else if (warnings.length > 0) {
-  console.log('⚠️  VALIDATION PASSED WITH WARNINGS - Safe to deploy, but consider addressing warnings\n');
   process.exit(0);
 } else {
-  console.log('✅ VALIDATION PASSED - Ready for deployment!\n');
   process.exit(0);
 }

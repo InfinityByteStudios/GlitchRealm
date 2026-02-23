@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission & Review Policy - GlitchRealm Games</title>
+    <meta name="description" content="GlitchRealm's game submission and review process. Learn about approval criteria, status workflow, and review timelines.">
+    <meta name="keywords" content="GlitchRealm, game submission, review policy, approval process, submission guidelines">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .effective-date {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 249, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .policy-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: rgba(0, 255, 249, 0.8);
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .policy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+        }
+        
+        .policy-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+            padding: 0;
+        }
+        
+        .policy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.75rem;
+        }
+        
+        .highlight {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .policy-section a {
+            color: var(--primary-cyan);
+            text-decoration: underline;
+        }
+        
+        .policy-section a:hover {
+            color: rgba(0, 255, 249, 0.8);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+        }
+        
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            color: #ffc107;
+        }
+        
+        .status-approved {
+            background: rgba(0, 255, 65, 0.2);
+            border: 1px solid rgba(0, 255, 65, 0.5);
+            color: #00ff41;
+        }
+        
+        .status-rejected {
+            background: rgba(255, 0, 128, 0.2);
+            border: 1px solid rgba(255, 0, 128, 0.5);
+            color: #ff0080;
+        }
+    </style>
+    
+    <script type="module" src="js/firebase-core.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.appspot.com",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+        
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
+        const analytics = getAnalytics(app);
+        
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+    </script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">
+                    <span class="glitch" data-text="Submission & Review Policy">Submission & Review Policy</span>
+                </h1>
+                <p class="page-subtitle">Game Approval Process & Criteria</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <a href="legal.html" style="display: inline-block; color: var(--primary-cyan); text-decoration: none; margin-bottom: 20px; font-size: 0.9em;">
+                ← Back to Legal Hub
+            </a>
+            <div style="background: rgba(0, 255, 249, 0.05); border: 1px solid rgba(0, 255, 249, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                <p style="margin: 0; color: rgba(255, 255, 255, 0.85);"> For legal definitions, <a href="legal-definitions.html" style="color: var(--primary-cyan); text-decoration: none; font-weight: 600;">click here</a></p>
+            </div>
+            <div class="policy-header">
+                <p class="effective-date">Last updated: January 24, 2026</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>1. Overview</h2>
+                <p>This policy outlines the submission, review, and approval process for games submitted to GlitchRealm via the <a href="submit-game.html">submission form</a>. All submissions are stored in the <span class="highlight">game_submissions</span> Firestore collection and undergo manual review by GlitchRealm staff or automated checks.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>2. Submission Status Workflow</h2>
+                <p>Each submission has one of the following statuses:</p>
+                
+                <div style="margin: 1.5rem 0;">
+                    <p><span class="status-badge status-pending">Pending Review</span> Submission received; awaiting staff review (default status)</p>
+                    <p><span class="status-badge status-approved">Approved</span> Game approved and publicly visible on <a href="games.html">Games page</a></p>
+                    <p><span class="status-badge status-rejected">Rejected</span> Submission denied; developer receives email with rejection reason</p>
+                </div>
+                
+                <p>Developers can check submission status in their <a href="developer-dashboard.html">Developer Dashboard</a> or via email notifications.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>3. Required Submission Fields</h2>
+                <p>The following fields are mandatory for all submissions (enforced by Firestore rules):</p>
+                <ul>
+                    <li><span class="highlight">title:</span> Game title (2-100 characters)</li>
+                    <li><span class="highlight">description:</span> Short description (10-500 characters) displayed on game cards</li>
+                    <li><span class="highlight">extendedDescription:</span> Detailed description (50-5000 characters) shown on game detail pages</li>
+                    <li><span class="highlight">howToPlay:</span> Instructions for players (20-2000 characters)</li>
+                    <li><span class="highlight">playUrl:</span> URL where the game is hosted or played (must be valid HTTPS URL)</li>
+                    <li><span class="highlight">coverImageUrl:</span> Cover image URL (Supabase storage or external CDN; 16:9 aspect ratio recommended)</li>
+                    <li><span class="highlight">screenshots:</span> Array of at least 1 screenshot URL (max 5)</li>
+                    <li><span class="highlight">tags:</span> Array of genre/category tags (e.g., "Action", "Puzzle", "Strategy")</li>
+                    <li><span class="highlight">ownerId:</span> Firebase Auth UID of the submitter (auto-populated)</li>
+                    <li><span class="highlight">status:</span> "pending", "approved", or "rejected" (defaults to "pending")</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>4. Approval Criteria</h2>
+                <p>Submissions are evaluated based on the following criteria:</p>
+                
+                <h3>Technical Requirements</h3>
+                <ul>
+                    <li>Game must load and run without critical errors in modern browsers (Chrome, Firefox, Safari, Edge)</li>
+                    <li>No broken links, missing assets, or inaccessible URLs</li>
+                    <li>Game controls and instructions are clear and functional</li>
+                    <li>Reasonable performance (no excessive lag, crashes, or infinite loops)</li>
+                </ul>
+                
+                <h3>Content Standards</h3>
+                <ul>
+                    <li>Complies with <a href="code-of-conduct.html">Code of Conduct</a> (no hate speech, harassment, illegal content)</li>
+                    <li>No excessive violence, gore, or sexually explicit content (age-appropriate for 13+ audience)</li>
+                    <li>No malware, viruses, crypto miners, or malicious code</li>
+                    <li>No plagiarized content; all assets must be original or properly licensed</li>
+                </ul>
+                
+                <h3>Quality Standards</h3>
+                <ul>
+                    <li>Game matches the description and screenshots</li>
+                    <li>Minimum playable experience (not a broken tech demo or unfinished project)</li>
+                    <li>Clear instructions and intuitive gameplay</li>
+                    <li>Professional presentation (no spam, low-effort submissions, or clickbait)</li>
+                </ul>
+                
+                <h3>Legal Compliance</h3>
+                <ul>
+                    <li>No copyright infringement (use of copyrighted characters, music, or assets without permission)</li>
+                    <li>No trademark violations (unauthorized use of brand names or logos)</li>
+                    <li>Proper attribution for third-party libraries, assets, or collaborators</li>
+                    <li>Compliance with <a href="developer-agreement.html">Developer Agreement</a></li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>5. Review Timeline</h2>
+                <p>Expected review times:</p>
+                <ul>
+                    <li><span class="highlight">Standard Review:</span> 3-7 business days for most submissions</li>
+                    <li><span class="highlight">Fast-Track Review:</span> 1-2 business days for verified creators or resubmissions after fixes</li>
+                    <li><span class="highlight">Delayed Review:</span> Complex submissions, external hosting, or flagged content may take up to 14 business days</li>
+                </ul>
+                <p>Developers receive email notifications when the review is complete.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>6. Rejection Reasons</h2>
+                <p>Common reasons for rejection include:</p>
+                <ul>
+                    <li><span class="highlight">Broken Links:</span> Play URL or asset URLs are inaccessible or return errors</li>
+                    <li><span class="highlight">Incomplete Submission:</span> Missing required fields (description, screenshots, instructions)</li>
+                    <li><span class="highlight">Content Violations:</span> Hate speech, harassment, sexually explicit content, or illegal material</li>
+                    <li><span class="highlight">Copyright Infringement:</span> Unauthorized use of copyrighted characters, music, or assets</li>
+                    <li><span class="highlight">Technical Issues:</span> Game crashes, fails to load, or has critical bugs</li>
+                    <li><span class="highlight">Low Quality:</span> Spam, low-effort, or non-functional submissions</li>
+                    <li><span class="highlight">Duplicate Submission:</span> Game already exists on GlitchRealm under a different account</li>
+                </ul>
+                <p>Rejected submissions include a detailed reason in the email notification. Developers may resubmit after addressing the issues.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>7. Resubmission Process</h2>
+                <p>If your submission is rejected, you may resubmit after making corrections:</p>
+                <ol style="margin: 1rem 0 1rem 1.5rem; padding: 0;">
+                    <li>Review the rejection email for specific issues</li>
+                    <li>Fix the identified problems (broken links, content violations, missing fields)</li>
+                    <li>Submit a new game via the <a href="submit-game.html">submission form</a> (or edit your existing submission if available)</li>
+                    <li>Reference the original submission ID in the description (optional but helpful)</li>
+                </ol>
+                <p>Resubmissions are prioritized for fast-track review (1-2 business days).</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>8. Post-Approval Monitoring</h2>
+                <p>Approved games remain subject to ongoing moderation:</p>
+                <ul>
+                    <li>User reports for inappropriate content or broken links</li>
+                    <li>DMCA takedown notices for copyright infringement</li>
+                    <li>Community feedback and rating system (planned feature)</li>
+                </ul>
+                <p>Games may be removed from public display if they violate policies after approval. Developers will receive 48 hours' notice before removal (except for emergency takedowns).</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>9. Appeals Process</h2>
+                <p>If you believe your submission was rejected in error, you may appeal the decision:</p>
+                <ol style="margin: 1rem 0 1rem 1.5rem; padding: 0;">
+                    <li>Email <a href="mailto:developers@glitchrealm.ca">developers@glitchrealm.ca</a> with subject line "Submission Appeal"</li>
+                    <li>Include your submission ID and a detailed explanation of why the rejection was incorrect</li>
+                    <li>Provide evidence (e.g., licenses for assets, clarification of misunderstood content)</li>
+                </ol>
+                <p>Appeals are reviewed by senior staff within 5-7 business days. Final decisions are at GlitchRealm's discretion.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>10. Featured Games and Promotions</h2>
+                <p>GlitchRealm may feature select games on the homepage, social media, or newsletters. Featured games are chosen based on:</p>
+                <ul>
+                    <li>Quality, originality, and polish</li>
+                    <li>Community engagement (plays, reviews, ratings)</li>
+                    <li>Seasonal themes or special events</li>
+                    <li>Diversity of genres and styles</li>
+                </ul>
+                <p>Being featured does not guarantee additional promotion or revenue. No payment is required for featuring.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>11. Changes to This Policy</h2>
+                <p>GlitchRealm may update this Submission & Review Policy at any time. Changes will be posted on this page with an updated "Last updated" date.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>12. Contact Information</h2>
+                <p>Questions about the submission process?</p>
+                <ul>
+                    <li><span class="highlight">Submission Support:</span> <a href="mailto:developers@glitchrealm.ca">developers@glitchrealm.ca</a></li>
+                    <li><span class="highlight">Appeals:</span> <a href="mailto:developers@glitchrealm.ca">developers@glitchrealm.ca</a> (subject: "Submission Appeal")</li>
+                    <li><span class="highlight">Developer Agreement:</span> <a href="developer-agreement.html">Full Developer Agreement</a></li>
+                    <li><span class="highlight">Submit a Game:</span> <a href="submit-game.html">Game Submission Form</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="js/header-avatar-integration.js"></script>
+    <script>
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-placeholder').innerHTML = data;
+            });
+
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            });
+    </script>
+</body>
+</html>

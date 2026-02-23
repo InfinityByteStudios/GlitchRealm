@@ -37,7 +37,6 @@ class PlaytimeTracker {
     init() {
         if (this.initialized) return;
         
-        console.log(`[PlaytimeTracker] Initializing for ${this.gameName}`);
         
         // Check if Firebase is available
         if (typeof firebase !== 'undefined') {
@@ -88,7 +87,6 @@ class PlaytimeTracker {
         
         if (this.isTracking) return;
         
-        console.log(`[PlaytimeTracker] Starting playtime tracking for ${this.gameName}`);
         
         this.startTime = new Date();
         this.lastActivityTime = new Date();
@@ -106,7 +104,6 @@ class PlaytimeTracker {
     stopTracking() {
         if (!this.isTracking) return;
         
-        console.log(`[PlaytimeTracker] Stopping playtime tracking for ${this.gameName}`);
         
         // Calculate final active time
         if (this.startTime) {
@@ -158,7 +155,6 @@ class PlaytimeTracker {
             
             if (idleTime > this.idleThreshold) {
                 // User was idle, don't count this time
-                console.log(`[PlaytimeTracker] User was idle for ${idleTime/1000} seconds`);
                 this.startTime = now; // Reset start time
             } else {
                 // User was active, add this time
@@ -205,7 +201,6 @@ class PlaytimeTracker {
         // Don't sync if no time to report
         if (totalActiveMinutes < 0.01) return; // Less than 1 second
         
-        console.log(`[PlaytimeTracker] Syncing ${totalActiveMinutes.toFixed(2)} minutes for ${this.gameName}`);
         
         // Update both the global document and the game-specific document
         try {

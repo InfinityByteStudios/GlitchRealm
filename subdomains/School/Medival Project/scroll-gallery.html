@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medieval Project - Scrolling Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .gallery-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scroll-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 0;
+            animation: scrollLeft 315s linear infinite;
+        }
+
+        .scroll-wrapper.paused {
+            animation-play-state: paused;
+        }
+
+        .image-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #2c2c2c;
+        }
+
+        .image-container img {
+            height: 100vh;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 15px;
+        }
+
+        .controls button {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s;
+        }
+
+        .controls button:hover {
+            background-color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .speed-indicator {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            z-index: 100;
+        }
+
+        @keyframes scrollLeft {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-700vw);
+            }
+        }
+
+        .image-label {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="gallery-container">
+        <div class="scroll-wrapper" id="scrollWrapper">
+            <div class="image-container">
+                <img src="Assests/1.png?v=2" alt="Image 1">
+            </div>
+            <div class="image-container">
+                <img src="Assests/2.png?v=2" alt="Image 2">
+            </div>
+            <div class="image-container">
+                <img src="Assests/3.png" alt="Image 3">
+            </div>
+            <div class="image-container">
+                <img src="Assests/4.png" alt="Image 4">
+            </div>
+            <div class="image-container">
+                <img src="Assests/5.png" alt="Image 5">
+            </div>
+            <div class="image-container">
+                <img src="Assests/6.png" alt="Image 6">
+            </div>
+            <div class="image-container">
+                <img src="Assests/7.png" alt="Image 7">
+            </div>
+        </div>
+    </div>
+
+    <div class="speed-indicator" id="speedIndicator">Speed: Normal</div>
+
+    <div class="controls">
+        <button onclick="restartScroll()">Restart</button>
+        <button onclick="changeSpeed('slow')">Slow</button>
+        <button onclick="toggleScroll()">Pause</button>
+        <button onclick="changeSpeed('normal')">Normal</button>
+        <button onclick="changeSpeed('fast')">Fast</button>
+    </div>
+
+    <script>
+        const scrollWrapper = document.getElementById('scrollWrapper');
+        const speedIndicator = document.getElementById('speedIndicator');
+        let isPaused = false;
+        let currentSpeed = 'normal';
+
+        const speeds = {
+            slow: '470s',
+            normal: '315s',
+            fast: '160s'
+        };
+
+        function changeSpeed(speed) {
+            currentSpeed = speed;
+            scrollWrapper.style.animation = `scrollLeft ${speeds[speed]} linear infinite`;
+            speedIndicator.textContent = `Speed: ${speed.charAt(0).toUpperCase() + speed.slice(1)}`;
+            
+            if (isPaused) {
+                scrollWrapper.classList.add('paused');
+            }
+        }
+
+        function toggleScroll() {
+            const button = event.target;
+            if (isPaused) {
+                scrollWrapper.classList.remove('paused');
+                button.textContent = 'Pause';
+                isPaused = false;
+            } else {
+                scrollWrapper.classList.add('paused');
+                button.textContent = 'Resume';
+                isPaused = true;
+            }
+        }
+function restartScroll() {
+            scrollWrapper.style.animation = 'none';
+            setTimeout(() => {
+                scrollWrapper.style.animation = `scrollLeft ${speeds[currentSpeed]} linear infinite`;
+                if (isPaused) {
+                    scrollWrapper.classList.add('paused');
+                }
+            }, 10);
+        }
+
+        
+        // Reset animation when it completes to create infinite loop
+        scrollWrapper.addEventListener('animationiteration', () => {
+            // Animation will automatically restart
+        });
+    </script>
+</body>
+</html>

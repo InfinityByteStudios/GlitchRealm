@@ -34,7 +34,6 @@ class LocalPlaytimeTracker {
     }
     
     init() {
-        console.log(`[LocalPlaytimeTracker] Initializing for ${this.gameName}`);
         
         // Add event listeners
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
@@ -53,7 +52,6 @@ class LocalPlaytimeTracker {
     startTracking() {
         if (this.isTracking) return;
         
-        console.log(`[LocalPlaytimeTracker] Starting playtime tracking for ${this.gameName}`);
         
         this.startTime = new Date();
         this.lastActivityTime = new Date();
@@ -68,7 +66,6 @@ class LocalPlaytimeTracker {
     stopTracking() {
         if (!this.isTracking) return;
         
-        console.log(`[LocalPlaytimeTracker] Stopping playtime tracking for ${this.gameName}`);
         
         // Calculate final active time
         if (this.startTime) {
@@ -118,7 +115,6 @@ class LocalPlaytimeTracker {
             
             if (idleTime > this.idleThreshold) {
                 // User was idle, don't count this time
-                console.log(`[LocalPlaytimeTracker] User was idle for ${idleTime/1000} seconds`);
                 this.startTime = now; // Reset start time
             } else {
                 // User was active, add this time
@@ -161,7 +157,6 @@ class LocalPlaytimeTracker {
         // Don't save if no time to report
         if (totalActiveMinutes < 0.01) return; // Less than 1 second
         
-        console.log(`[LocalPlaytimeTracker] Saving ${totalActiveMinutes.toFixed(2)} minutes to localStorage`);
         
         try {
             // Get existing data

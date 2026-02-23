@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Writer Admin - GlitchRealm News</title>
+  
+  <link rel="icon" type="image/svg+xml" href="../../assets/Favicon and Icons/favicon.svg">
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  
+  <style>
+    .admin-wrap { max-width:1200px; margin:40px auto 100px; padding:0 20px; }
+    .admin-header { margin:0 0 40px; }
+    .admin-header h1 { font-family:'Orbitron'; font-size:2rem; background:linear-gradient(90deg,#00fff9,#008cff); -webkit-background-clip:text; background-clip:text; color:transparent; margin:0 0 8px; }
+    .admin-header p { color:#9fb7bd; font-size:.9rem; }
+    
+    .admin-tabs { display:flex; gap:12px; margin:0 0 30px; border-bottom:2px solid #12313d; }
+    .admin-tabs button { background:none; border:none; padding:12px 20px; font-size:.75rem; font-weight:600; letter-spacing:.6px; text-transform:uppercase; color:#7edcf0; cursor:pointer; position:relative; transition:color .2s; }
+    .admin-tabs button.active { color:#00fff9; }
+    .admin-tabs button.active::after { content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px; background:linear-gradient(90deg,#00fff9,#008cff); }
+    
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+    
+    .admin-section { background:#08131b; border:1px solid #12313d; border-radius:12px; padding:24px; margin:0 0 24px; }
+    .admin-section h2 { font-family:'Orbitron'; font-size:1.3rem; color:#00fff9; margin:0 0 18px; }
+    
+    .add-writer-form { display:grid; gap:16px; max-width:600px; }
+    .add-writer-form .field { display:flex; flex-direction:column; gap:6px; }
+    .add-writer-form label { font-size:.7rem; letter-spacing:.5px; text-transform:uppercase; color:#7edcf0; font-weight:600; }
+    .add-writer-form input, .add-writer-form textarea { background:#0a1925; border:1px solid #1a3d4d; border-radius:8px; padding:10px 12px; color:#d7e5e8; font-size:.85rem; font-family:inherit; }
+    .add-writer-form textarea { resize:vertical; min-height:80px; }
+    .add-writer-form button { background:linear-gradient(90deg,#00fff9,#008cff); border:none; border-radius:8px; padding:12px 24px; font-size:.75rem; font-weight:700; letter-spacing:.7px; color:#02141c; cursor:pointer; text-transform:uppercase; justify-self:start; }
+    .add-writer-form button:hover { filter:brightness(1.1); }
+    
+    .writers-list { display:grid; gap:12px; }
+    .writer-card { background:#0a1925; border:1px solid #1a3d4d; border-radius:10px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; transition:border-color .2s; }
+    .writer-card:hover { border-color:#2a5d6d; }
+    .writer-info { flex:1; }
+    .writer-info h3 { font-size:.9rem; color:#e6eef2; margin:0 0 4px; display:flex; align-items:center; gap:8px; }
+    .writer-info .badge { display:inline-block; background:linear-gradient(135deg,#0099ff,#00d4ff); padding:2px 7px; border-radius:8px; font-size:0.5rem; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; color:#fff; }
+    .writer-info p { font-size:.7rem; color:#7a9599; margin:0; }
+    .writer-actions { display:flex; gap:8px; }
+    .writer-actions button { background:rgba(255,80,80,0.15); border:1px solid rgba(255,80,80,0.4); color:#ff6d6d; padding:8px 14px; border-radius:8px; font-size:.65rem; font-weight:600; letter-spacing:.5px; cursor:pointer; text-transform:uppercase; }
+    .writer-actions button:hover { background:rgba(255,80,80,0.25); }
+    
+    .requests-list { display:grid; gap:12px; }
+    .request-card { background:#0a1925; border:1px solid #1a3d4d; border-radius:10px; padding:18px 20px; }
+    .request-header { display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; }
+    .request-header h3 { font-size:.9rem; color:#e6eef2; margin:0; }
+    .request-status { font-size:.6rem; padding:4px 10px; border-radius:12px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
+    .request-status.pending { background:rgba(255,180,0,0.15); border:1px solid rgba(255,180,0,0.4); color:#ffb800; }
+    .request-status.approved { background:rgba(0,255,100,0.15); border:1px solid rgba(0,255,100,0.4); color:#58ff9c; }
+    .request-status.rejected { background:rgba(255,80,80,0.15); border:1px solid rgba(255,80,80,0.4); color:#ff6d6d; }
+    .request-body { margin:0 0 14px; }
+    .request-body p { font-size:.8rem; color:#9fb7bd; margin:0 0 8px; line-height:1.5; }
+    .request-message { background:#07101a; padding:12px; border-left:3px solid #2a5d6d; border-radius:6px; font-size:.75rem; color:#b8d4d8; line-height:1.5; white-space:pre-wrap; }
+    .request-actions { display:flex; gap:8px; }
+    .request-actions button { padding:8px 16px; border-radius:8px; font-size:.65rem; font-weight:600; letter-spacing:.5px; cursor:pointer; text-transform:uppercase; border:none; }
+    .request-actions .approve { background:linear-gradient(90deg,#00ff41,#00cc33); color:#02141c; }
+    .request-actions .reject { background:rgba(255,80,80,0.15); border:1px solid rgba(255,80,80,0.4); color:#ff6d6d; }
+    .request-actions button:hover { filter:brightness(1.1); }
+    
+    .empty-state { text-align:center; padding:60px 30px; opacity:.7; }
+    .empty-state h3 { font-size:1.1rem; color:#7edcf0; margin:0 0 8px; }
+    .empty-state p { font-size:.8rem; color:#7a9599; margin:0; }
+    
+    .status-msg { font-size:.85rem; padding:14px 18px; border-radius:10px; margin:0 0 20px; display:none; font-weight:600; }
+    .status-msg.success { background:rgba(0,255,100,0.15); border:1px solid rgba(0,255,100,0.5); color:#58ff9c; }
+    .status-msg.error { background:rgba(255,80,80,0.15); border:1px solid rgba(255,80,80,0.5); color:#ff6d6d; }
+    
+    .search-box { margin:0 0 20px; }
+    .search-box input { width:100%; max-width:400px; background:#0a1925; border:1px solid #1a3d4d; border-radius:8px; padding:10px 14px; color:#d7e5e8; font-size:.85rem; }
+  </style>
+  
+  <script type="module" src="../../js/firebase-core.js"></script>
+</head>
+<body>
+  <div class="background-animation" aria-hidden="true"></div>
+  <div id="header-placeholder"></div>
+  
+  <main class="main">
+    <div class="admin-wrap">
+      <div class="admin-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+          <h1>Writer Administration</h1>
+          <p>Manage verified writers and review verification requests.</p>
+        </div>
+        <button onclick="location.reload()" class="neural-button secondary" style="padding:8px 12px; font-size:0.85rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; transition:transform 0.3s ease;">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+          <span class="button-text">Refresh</span>
+        </button>
+        <style>
+          button[onclick*="reload"]:hover svg {
+            transform: rotate(180deg);
+          }
+        </style>
+      </div>
+      
+      <div class="admin-tabs">
+        <button class="active" data-tab="writers">Verified Writers</button>
+        <button data-tab="requests">Pending Requests</button>
+        <button data-tab="add">Add Writer</button>
+      </div>
+      
+      <!-- Verified Writers Tab -->
+      <div class="tab-content active" id="writers-tab">
+        <div class="admin-section">
+          <h2>Verified Writers</h2>
+          <div class="search-box">
+            <input type="text" id="writer-search" placeholder="Search by name, email, or UID...">
+          </div>
+          <div id="status-writers" class="status-msg"></div>
+          <div class="writers-list" id="writers-list">
+            <div class="empty-state">
+              <h3>Loading...</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pending Requests Tab -->
+      <div class="tab-content" id="requests-tab">
+        <div class="admin-section">
+          <h2>Verification Requests</h2>
+          <div id="status-requests" class="status-msg"></div>
+          <div class="requests-list" id="requests-list">
+            <div class="empty-state">
+              <h3>Loading...</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add Writer Tab -->
+      <div class="tab-content" id="add-tab">
+        <div class="admin-section">
+          <h2>Add Verified Writer</h2>
+          <div id="status-add" class="status-msg"></div>
+          <form class="add-writer-form" id="add-writer-form">
+            <div class="field">
+              <label>User Email or UID</label>
+              <input type="text" id="user-identifier" placeholder="user@example.com or Firebase UID" required>
+              <small style="opacity:.6; font-size:.65rem;">Enter the user's email address or Firebase UID to verify them.</small>
+            </div>
+            <div class="field">
+              <label>Display Name (Optional)</label>
+              <input type="text" id="display-name" placeholder="Writer's display name">
+            </div>
+            <div class="field">
+              <label>Notes (Optional)</label>
+              <textarea id="notes" placeholder="Internal notes about this writer..."></textarea>
+            </div>
+            <button type="submit">Add Verified Writer</button>
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </main>
+  
+  <div id="footer-placeholder"></div>
+  <script type="module" src="admin.js"></script>
+  <script src="../../js/script.js" defer></script>
+</body>
+</html>
