@@ -246,11 +246,11 @@ service cloud.firestore {
     match /game_submissions/{id} {
       // Publicly readable
       allow read: if true;
-      // Create: TEMP relaxed for debugging — any authenticated user can create a DRAFT they own
-      // Once verified working, re-enable the validator to enforce schema.
+      // Create: Authenticated users can create a DRAFT they own (schema validated)
       allow create: if request.auth != null &&
                     request.auth.uid == request.resource.data.ownerId &&
-                    request.resource.data.status == 'draft';
+                    request.resource.data.status == 'draft' &&
+                    isValidGameSubmissionDraftCreate(request.resource.data);
       // Update:
       // - Owner may update content but cannot change status (must remain the same)
       // - Admin/Developer can update including publishing/unpublishing
@@ -314,13 +314,6 @@ service cloud.firestore {
       // Delete: Only article author (or developers) can delete their own article
       allow delete: if request.auth != null && 
                      (request.auth.uid == resource.data.authorUid || isDeveloper(request.auth.uid));
-    }
-    
-    // ================================
-    // Other Collections (Authenticated Read-Only by default)
-    // Explicit write rules must be defined per collection above.
-    match /{document=**} {
-      allow read: if request.auth != null;
     }
     
     // ================================
@@ -442,9 +435,11 @@ service cloud.firestore {
     function isAdmin(userId) {
       return (request.auth != null && request.auth.token.admin == true) ||
              userId in [
-               'admin-uid-1',
-               'admin-uid-2',
-               'replace-with-your-admin-uid'
+               '6iZDTXC78aVwX22qrY43BOxDRLt1',
+               'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+               'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+               '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+               'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
              ];
     }
     
@@ -893,11 +888,12 @@ service cloud.firestore {
       
       // Developers can create notifications (for moderation actions)
       // Cloud Functions can also create notifications
-      allow create: if isDeveloper() || 
+      allow create: if (request.auth != null && isDeveloper(request.auth.uid)) || 
+                       (request.auth != null &&
                        request.resource.data.userId is string &&
                        request.resource.data.title is string &&
                        request.resource.data.message is string &&
-                       request.resource.data.read is bool;
+                       request.resource.data.read is bool);
       
       // Users can delete their own notifications
       allow delete: if request.auth != null && 

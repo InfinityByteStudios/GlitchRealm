@@ -73,6 +73,17 @@ function showMessage(message, type = 'info') {
     }
 }
 
+// Validate redirect URL to prevent open-redirect attacks
+function isSafeRedirectUrl(url) {
+    if (!url) return false;
+    if (url.startsWith('/') && !url.startsWith('//')) return true;
+    if (url.startsWith('../')) return true;
+    try {
+        const parsed = new URL(url, window.location.origin);
+        return parsed.hostname === 'glitchrealm.ca' || parsed.hostname.endsWith('.glitchrealm.ca');
+    } catch { return false; }
+}
+
 // Redirect helpers
 function getReturnUrl() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -91,8 +102,7 @@ function getReturnUrl() {
         }
     }
     
-    if (!returnTo) {
-        // Fallback to parent directory
+    if (!returnTo || !isSafeRedirectUrl(returnTo)) {
         return '../index.html';
     }
     
@@ -123,8 +133,10 @@ try {
     const redirect = params.get('redirect');
     if (redirect) {
         const decodedRedirect = decodeURIComponent(redirect);
-        sessionStorage.setItem('gr.returnTo', decodedRedirect);
-        localStorage.setItem('gr.returnTo', decodedRedirect); // Backup
+        if (isSafeRedirectUrl(decodedRedirect)) {
+            sessionStorage.setItem('gr.returnTo', decodedRedirect);
+            localStorage.setItem('gr.returnTo', decodedRedirect); // Backup
+        }
     }
 } catch {}
 

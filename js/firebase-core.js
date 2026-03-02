@@ -93,21 +93,25 @@
       });
       
       
-      // Initialize Gravatar integration (async, non-blocking)
-      import('./gravatar-integration.js')
-        .then((gravatarModule) => {
-          // Expose Gravatar functions globally for testing/debugging
-          window.GravatarAPI = gravatarModule;
-          window.testGravatarEnrichment = gravatarModule.testGravatarEnrichment;
-          window.getGravatarProfile = gravatarModule.getGravatarProfile;
-          window.getGravatarAvatarUrl = gravatarModule.getGravatarAvatarUrl;
-          
-          // Initialize the integration
-          gravatarModule.initGravatarIntegration();
-        })
-        .catch(err => {
-          console.warn('[Firebase Core] Gravatar integration failed to load:', err);
-        });
+      // Initialize Gravatar integration (deferred to idle time, non-blocking)
+      const loadGravatar = () => {
+        import('./gravatar-integration.js')
+          .then((gravatarModule) => {
+            window.GravatarAPI = gravatarModule;
+            window.testGravatarEnrichment = gravatarModule.testGravatarEnrichment;
+            window.getGravatarProfile = gravatarModule.getGravatarProfile;
+            window.getGravatarAvatarUrl = gravatarModule.getGravatarAvatarUrl;
+            gravatarModule.initGravatarIntegration();
+          })
+          .catch(err => {
+            console.warn('[Firebase Core] Gravatar integration failed to load:', err);
+          });
+      };
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadGravatar, { timeout: 5000 });
+      } else {
+        setTimeout(loadGravatar, 2000);
+      }
       
     } catch(e){ 
       console.warn('[Firebase Core] Init failed:', e); 

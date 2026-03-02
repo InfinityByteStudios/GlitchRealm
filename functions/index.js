@@ -118,9 +118,26 @@ function requireMod(req, res, next) {
 	next();
 }
 
+// CORS origin whitelist – allows glitchrealm.ca and subdomains, plus localhost for dev
+const ALLOWED_ORIGINS = [
+	'https://glitchrealm.ca',
+	'https://www.glitchrealm.ca',
+	'https://auth.glitchrealm.ca',
+	'https://news.glitchrealm.ca',
+	'https://edu.glitchrealm.ca',
+	'http://localhost:8888',
+	'http://localhost:3000'
+];
+function corsOriginCheck(origin, callback) {
+	if (!origin) return callback(null, true);
+	if (ALLOWED_ORIGINS.includes(origin) || /^https:\/\/[a-z0-9-]+\.glitchrealm\.ca$/.test(origin)) {
+		return callback(null, true);
+	}
+	callback(new Error('Not allowed by CORS'));
+}
+
 const api = express();
-// Allow all origins during development; tighten as needed. Enable credentials for cookie-based auth in the future.
-api.use(cors({ origin: true, credentials: true }));
+api.use(cors({ origin: corsOriginCheck, credentials: true }));
 api.use(express.json());
 api.use(decodeAuth);
 
@@ -685,7 +702,7 @@ async function verifyApiKey(req, res, next) {
 		const isVerified = DEV_UIDS.has(userId);
 		if (!isVerified) {
 			const verifiedDoc = await db.collection('verified_users').doc(userId).get();
-			if (!verifiedDoc.exists()) {
+			if (!verifiedDoc.exists) {
 				return res.status(403).json({ error: 'API key belongs to non-verified user' });
 			}
 		}
@@ -707,7 +724,7 @@ async function verifyApiKey(req, res, next) {
 
 // API: Record playtime
 const apiApp = express();
-apiApp.use(cors({ origin: true }));
+apiApp.use(cors({ origin: corsOriginCheck }));
 apiApp.use(express.json());
 
 apiApp.post('/playtime', verifyApiKey, async (req, res) => {
@@ -824,7 +841,7 @@ apiApp.get('/leaderboard/:gameId', verifyApiKey, async (req, res) => {
 	}
 });
 
-exports.api = functions.https.onRequest(apiApp);
+exports.playtimeApi = functions.https.onRequest(apiApp);
 
 // Firestore trigger: Notify user when they get verified (v2 syntax)
 exports.onUserVerified = onDocumentWritten('verified_users/{userId}', async (event) => {

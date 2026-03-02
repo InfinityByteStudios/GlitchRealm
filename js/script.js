@@ -60,14 +60,6 @@ async function loadSupabaseAvatarIfAvailable(userId) {
     }
 }
 
-// --- Global helpers: define early so they're callable from the console anytime ---
-;(function(){
-    // Accessor for the Terms Update version used in localStorage keys
-    function getTermsUpdateVersion() {
-        return (typeof window.GR_TERMS_UPDATE_VERSION !== 'undefined' && window.GR_TERMS_UPDATE_VERSION) ? window.GR_TERMS_UPDATE_VERSION : '2025-09-05';
-    }
-})();
-
 // Auth message display function - must be available early
 function showAuthMessage(message, type) {
     // Remove existing messages
@@ -126,29 +118,6 @@ function showAuthMessage(message, type) {
         }
     }, 4000);
 }
-
-// Dev helper: log auth state changes so we can see if persistence is working
-(function(){
-    function attachLogger(){
-        try{
-            if(window.firebaseAuth && typeof window.firebaseAuth.onAuthStateChanged === 'function'){
-                window.firebaseAuth.onAuthStateChanged(user => {
-                    console.info('GlitchRealm: auth state changed ->', user);
-                });
-                return true;
-            }
-        }catch(e){console.warn('Auth logger attach failed', e);} 
-        return false;
-    }
-
-    if(!attachLogger()){
-        // poll briefly for auth to become available (e.g., module loads later)
-        let attempts = 0;
-        const id = setInterval(()=>{
-            if(attachLogger() || ++attempts > 20) clearInterval(id);
-        }, 200);
-    }
-})();
 
 // Check for password change success notification
 function checkPasswordChangeSuccess() {
@@ -357,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Redirect to auth (local folder or subdomain)
                 if (isDev) {
-                    const authUrl = `/auth/?return=${encodeURIComponent(returnUrl)}`;
+                    const authUrl = `/subdomains/auth/?return=${encodeURIComponent(returnUrl)}`;
                     window.location.href = authUrl;
                 } else {
                     const authUrl = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
@@ -369,9 +338,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    // Set up immediately and after a delay for dynamically loaded headers
+    // Set up immediately (may not exist yet if header loads dynamically)
     setupSignInButton();
-    setTimeout(setupSignInButton, 1000);
+    // Expose globally so header-load callback can call it immediately
+    window._setupSignInButton = setupSignInButton;
     
     // IMMEDIATELY restore UI from cached auth state if available
     try {
@@ -890,18 +860,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Expose
             window.openEditSubmissionModal = open;
             window.closeEditSubmissionModal = close;
-            // Debug helper to check ownership quickly from console
-            window.debugSubmissionOwnership = async function(gameId){
-                try {
-                    await ensureFirestoreLight();
-                    const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', String(gameId));
-                    const snap = await window.firestoreGetDoc(dref);
-                    if (!snap.exists()) { return; }
-                    const data = snap.data();
-                    const ownerId = data?.ownerId || '(none)';
-
-                } catch (e) { /* silently handle */ }
-            };
         })();
     const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
 
@@ -1358,39 +1316,6 @@ function initializeBasicModal() {
     const signInBtn = document.getElementById('sign-in-btn');
     const signInModal = document.getElementById('signin-modal');
     const closeModal = document.getElementById('close-modal');
-      // Initialize Google button text helper function
-    function initializeGoogleButtonText() {
-        const googleButtonText = document.getElementById('google-button-text');
-        const githubButtonText = document.getElementById('github-button-text');
-        const activeTab = document.querySelector('.auth-tab.active');
-        if (googleButtonText && activeTab) {
-            const tabType = activeTab.getAttribute('data-tab');
-            if (tabType === 'signin') {
-                googleButtonText.textContent = 'Sign in with Google';
-            } else if (tabType === 'signup') {
-                googleButtonText.textContent = 'Sign up with Google';
-            }
-        }
-        if (githubButtonText && activeTab) {
-            const tabType = activeTab.getAttribute('data-tab');
-            if (tabType === 'signin') {
-                githubButtonText.textContent = 'Sign in with GitHub';
-            } else if (tabType === 'signup') {
-                githubButtonText.textContent = 'Sign up with GitHub';
-            }
-        }
-    }
-      // Sign-in button now redirects to auth.glitchrealm.ca (no JavaScript needed)
-    // signInBtn?.addEventListener('click', (e) => {
-    //     e.preventDefault();
-    //     if (signInModal) {
-    //         signInModal.style.display = 'flex';
-    //         document.body.style.overflow = 'hidden';
-    //         
-    //         // Initialize Google button text based on active tab
-    //         initializeGoogleButtonText();
-    //     }
-    // });
 
     if (closeModal) {
         // Remove all previous click listeners to avoid duplicate/conflicting handlers
@@ -2059,29 +1984,6 @@ async function initializeAuth() {
         window.detachNotificationsListener = detachNotificationsListener;
         window.startGlobalNotificationsListener = startGlobalNotificationsListener;
 
-        // Create a test notification for the current user
-        async function createTestNotification() {
-            try {
-                const db = await ensureFirestore();
-                const notifRef = window.firestoreCollection(db, 'notifications');
-                await window.firestoreAddDoc(notifRef, {
-                    title: 'Test Notification',
-                    body: 'This is a test notification from Dev.',
-                    read: false,
-                    createdAt: window.firestoreServerTimestamp(),
-                    type: 'test',
-                    priority: 'normal'
-                });
-                showAuthMessage('Test notification created.', 'success');
-            } catch (e) {
-                console.error('Failed to create test notification:', e);
-                showAuthMessage('Failed to create test notification.', 'error');
-            }
-        }
-
-        // Expose for console use
-        window.createTestNotification = createTestNotification;
-
     // Profile picture monitoring - listen for profile changes via auth reload
     // Instead of polling every 2 seconds, check on visibility change (more efficient)
     function setupProfilePictureMonitoring(auth) {
@@ -2465,53 +2367,7 @@ window.addEventListener('message', (event) => {
     }
 });
 
-// CSS Animations added via JavaScript
-const animationStyle = document.createElement('style');
-animationStyle.textContent = `
-    @keyframes glitchOverlay {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.8; }
-    }
-    
-    .ripple {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.6);
-        transform: scale(0);
-        animation: rippleEffect 0.6s linear;
-        pointer-events: none;
-    }
-    
-    @keyframes rippleEffect {
-        to {
-            transform: scale(4);
-            opacity: 0;
-        }
-    }
-    
-    @keyframes messageSlideIn {
-        from {
-            opacity: 0;
-            transform: translateX(100px) scale(0.8);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-        }
-    }
-    
-    @keyframes messageSlideOut {
-        from {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100px) scale(0.8);
-        }
-    }
-`;
-document.head.appendChild(animationStyle);
+// CSS Animations are now in styles.css (glitchOverlay, rippleEffect, messageSlideIn/Out, fadeOut)
 
 // Global Settings
 const GR_SETTINGS = {
@@ -2538,9 +2394,8 @@ function applySettings() {
     else root.classList.remove('gr-reduce-motion');
 }
 
-// Initial settings load
+// Initial settings load (safe to call before DOMContentLoaded — only touches documentElement)
 try { loadSettings(); } catch (e) {}
-document.addEventListener('DOMContentLoaded', () => { try { loadSettings(); } catch (e) {} });
 
 
 // Chatbot FAB initializer (works even when footer scripts don't run)
@@ -2790,11 +2645,6 @@ function setupChatbotFab() {
     }, 300);
 }
 
-// Profile dropdown initialization (delegates to forceInitializeDropdowns)
-function initializeProfileDropdown() {
-    // Handled by forceInitializeDropdowns()
-}
-
 // Profile action buttons
 function initializeProfileActions() {
     const closeDropdown = () => {
@@ -2832,326 +2682,13 @@ function initializeProfileActions() {
     if (notificationBell) {
         notificationBell.addEventListener('click', (e) => {
             e.preventDefault();
-            if (e.shiftKey && typeof window.createTestNotification === 'function') {
-                window.createTestNotification();
-            } else {
-                handleNotificationClick();
-            }
+            handleNotificationClick();
         });
     }
 }
 
 // Delete user account - redirects to dedicated delete-account.html page
 // (Actual deletion logic lives on the delete-account.html page)
-
-// Message display function
-function showMessage(message, type) {
-    // Create or get existing message element
-    let messageElement = document.getElementById('auth-message');
-    if (!messageElement) {
-        messageElement = document.createElement('div');
-        messageElement.id = 'auth-message';
-        messageElement.className = 'auth-message';
-        document.body.appendChild(messageElement);
-    }
-
-    // Set message content and type
-    messageElement.textContent = message;
-    messageElement.className = `auth-message ${type}`;
-    messageElement.style.display = 'block';
-
-    // Auto hide after 5 seconds
-    setTimeout(() => {
-        messageElement.style.display = 'none';
-    }, 5000);
-}
-
-function showSettingsModal() {
-    // Remove any existing settings modal
-    const existingModal = document.getElementById('settingsModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    // Create settings modal
-    const settingsModal = document.createElement('div');
-    settingsModal.className = 'auth-overlay';
-    settingsModal.innerHTML = `
-        <div class="auth-panel settings-panel">
-            <div class="auth-header">
-                <div class="auth-logo">
-                    <span class="glitch-constant" data-text="SETTINGS">SETTINGS</span>
-                </div>
-                <button class="auth-close" onclick="closeSettingsModal()">
-                    <span class="close-icon">×</span>
-                </button>
-            </div>
-            
-            <div class="auth-content">
-                <div class="settings-content">
-                    <div class="form-title">
-                        <span class="glitch-small" data-text="GENERAL">GENERAL</span>
-                    </div>
-                    <div class="settings-section">
-                        <h4>Game Launch Preference</h4>
-                        <div class="setting-item"><label class="setting-label"><input type="radio" name="gamePreference" value="ask" ${!localStorage.getItem('gamePlayPreference') ? 'checked' : ''}><span class="radio-custom"></span>Always ask (show modal)</label></div>
-                        <div class="setting-item"><label class="setting-label"><input type="radio" name="gamePreference" value="local" ${localStorage.getItem('gamePlayPreference') === 'local' ? 'checked' : ''}><span class="radio-custom"></span>Always play in GlitchRealm</label></div>
-                        <div class="setting-item"><label class="setting-label"><input type="radio" name="gamePreference" value="external" ${localStorage.getItem('gamePlayPreference') === 'external' ? 'checked' : ''}><span class="radio-custom"></span>Always open external site</label></div>
-                    </div>
-
-                    <div class="form-title" style="margin-top:18px;">
-                        <span class="glitch-small" data-text="ACCESSIBILITY">ACCESSIBILITY</span>
-                    </div>
-                    <div class="settings-section">
-                        <div class="setting-item">
-                            <label class="setting-label">
-                                <input type="checkbox" id="setting-reduce-motion" ${GR_SETTINGS.reduceMotion ? 'checked' : ''}>
-                                <span class="radio-custom"></span>
-                                Reduce motion effects (less parallax/animation)
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-title" style="margin-top:18px;">
-                        <span class="glitch-small" data-text="NOTIFICATIONS">NOTIFICATIONS</span>
-                    </div>
-                    <div class="settings-section">
-                        <div class="setting-item">
-                            <label class="setting-label">
-                                <input type="checkbox" id="setting-notifications-badge" ${GR_SETTINGS.notificationsBadgeEnabled ? 'checked' : ''}>
-                                <span class="radio-custom"></span>
-                                Show unread count badge on bell/profile
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-title" style="margin-top:18px;">
-                        <span class="glitch-small" data-text="PORTAL">PORTAL</span>
-                    </div>
-                    <div class="settings-section">
-                        <div class="setting-item">
-                            <label class="setting-label">
-                                <input type="checkbox" id="setting-portal-auto" ${GR_SETTINGS.portalAutoOpenOnSignIn ? 'checked' : ''}>
-                                <span class="radio-custom"></span>
-                                Open User Portal automatically after sign-in
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="settings-actions">
-                        <button class="neural-button secondary" onclick="closeSettingsModal()">Cancel</button>
-                        <button class="neural-button primary" onclick="saveSettings()">Save Settings</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="auth-bg-effect"></div>
-            <div class="auth-scanlines"></div>
-        </div>
-    `;
-    
-    settingsModal.id = 'settingsModal';
-    document.body.appendChild(settingsModal);
-    settingsModal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-window.closeSettingsModal = function() {
-    const modal = document.getElementById('settingsModal');
-    if (modal) {
-        modal.remove();
-    }
-    document.body.style.overflow = 'auto';
-};
-
-window.saveSettings = function() {
-    const selectedPreference = document.querySelector('input[name="gamePreference"]:checked');
-    if (selectedPreference) {
-        if (selectedPreference.value === 'ask') localStorage.removeItem('gamePlayPreference');
-        else localStorage.setItem('gamePlayPreference', selectedPreference.value);
-    }
-
-    // New toggles
-    const reduceMotion = document.getElementById('setting-reduce-motion')?.checked;
-    const badgeEnabled = document.getElementById('setting-notifications-badge')?.checked;
-    const portalAuto = document.getElementById('setting-portal-auto')?.checked;
-
-    try {
-        localStorage.setItem('gr.settings.accessibility.reduceMotion', reduceMotion ? '1' : '0');
-        localStorage.setItem('gr.settings.notifications.badgeEnabled', badgeEnabled ? '1' : '0');
-        localStorage.setItem('gr.settings.portal.autoOpenOnSignIn', portalAuto ? '1' : '0');
-    } catch (e) {}
-
-    GR_SETTINGS.reduceMotion = !!reduceMotion;
-    GR_SETTINGS.notificationsBadgeEnabled = !!badgeEnabled;
-    GR_SETTINGS.portalAutoOpenOnSignIn = !!portalAuto;
-    applySettings();
-    if (!GR_SETTINGS.notificationsBadgeEnabled) {
-        // Hide any visible badges immediately
-        const notificationCountElement = document.getElementById('notification-count');
-        const notificationCountBadge = document.getElementById('notification-count-badge');
-        if (notificationCountElement) notificationCountElement.style.display = 'none';
-        if (notificationCountBadge) notificationCountBadge.style.display = 'none';
-    }
-
-    // Confirmation toast
-    const message = document.createElement('div');
-    message.className = 'settings-saved-message';
-    message.textContent = 'Settings saved!';
-    message.style.cssText = `
-        position: fixed; top: 20px; right: 20px;
-        background: linear-gradient(45deg, #00fff9, #ff0080);
-        color: #0a0a0a; padding: 12px 18px; border-radius: 8px;
-        font-weight: bold; z-index: 10000; animation: messageSlideIn 0.3s ease;
-    `;
-    document.body.appendChild(message);
-    setTimeout(() => { message.style.animation = 'messageSlideOut 0.3s ease'; setTimeout(() => message.remove(), 300); }, 1400);
-    closeSettingsModal();
-};
-
-// Delete account functionality
-    const deleteAccountBtn = document.getElementById('delete-account-btn');
-    const deleteAccountModal = document.getElementById('delete-account-modal');
-    const cancelDeleteBtn = document.getElementById('cancel-delete');
-    const confirmDeleteBtn = document.getElementById('confirm-delete');
-    const deleteConfirmationInput = document.getElementById('delete-confirmation-input');
-
-    if (deleteAccountBtn && deleteAccountModal) {
-        // Open delete account modal
-        deleteAccountBtn.addEventListener('click', () => {
-            profileDropdown.classList.remove('open');
-            deleteAccountModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';            if (deleteConfirmationInput) {
-                deleteConfirmationInput.value = '';
-                deleteConfirmationInput.disabled = false; // Ensure it's enabled
-                deleteConfirmationInput.readOnly = false; // Ensure it's not read-only
-                deleteConfirmationInput.style.pointerEvents = 'auto'; // Ensure pointer events
-                
-                // Add a small delay to ensure modal is fully rendered
-                setTimeout(() => {
-                    deleteConfirmationInput.focus();
-                    deleteConfirmationInput.click(); // Also try clicking to ensure focus
-                }, 100);
-            }
-        });
-
-        // Cancel deletion
-        cancelDeleteBtn?.addEventListener('click', () => {
-            deleteAccountModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('Account termination cancelled.', 'info');
-        });
-
-        // Close modal when clicking outside of it
-        deleteAccountModal.addEventListener('click', (e) => {
-            if (e.target === deleteAccountModal) {
-                deleteAccountModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                showAuthMessage('Account termination cancelled.', 'info');
-            }
-        });
-
-        // Handle confirmation input
-        deleteConfirmationInput?.addEventListener('input', () => {
-            if (confirmDeleteBtn) {
-                confirmDeleteBtn.disabled = deleteConfirmationInput.value !== 'DELETE MY ACCOUNT';
-            }
-        });
-        
-        // Add click handler to ensure input is focusable
-        deleteConfirmationInput?.addEventListener('click', () => {
-            deleteConfirmationInput.focus();
-        });
-        
-        // Add focus event for debugging
-        deleteConfirmationInput?.addEventListener('focus', () => {
-        });
-        
-        // Add keydown event for debugging
-        deleteConfirmationInput?.addEventListener('keydown', (e) => {
-        });
-        
-        // Confirm deletion
-        confirmDeleteBtn?.addEventListener('click', async () => {
-            if (deleteConfirmationInput?.value !== 'DELETE MY ACCOUNT') {
-                return;
-            }
-
-            try {
-                showAuthLoading(confirmDeleteBtn, 'TERMINATING...');
-                deleteConfirmationInput.disabled = true;
-                cancelDeleteBtn.disabled = true;
-                  const user = window.firebaseAuth.currentUser;
-                if (!user) {
-                    throw new Error('No active account found');
-                }
-
-                // Start deletion process
-                showAuthMessage('Initiating account deletion...', 'info');
-                
-                // Delete the user from Firebase
-                await window.deleteUser(user);
-                
-                // Clear any local data
-                localStorage.removeItem('lastSignInTime');
-                sessionStorage.clear();
-                
-                // Close modal and show success
-                deleteAccountModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                showAuthMessage('Neural link successfully terminated. All traces removed.', 'success');
-                  } catch (error) {
-                console.error('Account deletion error:', error);
-                
-                if (error.code === 'auth/requires-recent-login') {
-                    // Close the delete modal first
-                    deleteAccountModal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                    
-                    showAuthMessage('Security protocol: Recent neural sync required for account termination. Please sign in again to continue.', 'error');
-                    
-                    // Automatically sign out the user so they can sign back in
-                    try {
-                        await window.firebaseAuth.signOut();
-                        // Clear any stored data
-                        localStorage.removeItem('lastSignInTime');
-                        sessionStorage.clear();
-                        
-                        // Redirect to sign in page after a brief delay
-                        setTimeout(() => {
-                            try { sessionStorage.setItem('gr.returnTo', window.location.href); } catch {}
-                            window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}&message=${encodeURIComponent('Please sign in again to delete your account')}&type=info`;
-                        }, 2000);
-                    } catch (signOutError) {
-                        console.error('Sign out error:', signOutError);
-                        // Still redirect to sign in page
-                        setTimeout(() => {
-                            try { sessionStorage.setItem('gr.returnTo', window.location.href); } catch {}
-                            window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}&message=${encodeURIComponent('Please sign in again to delete your account')}&type=info`;
-                        }, 2000);
-                    }
-                    return; // Exit early since we're redirecting
-                } else if (error.code === 'auth/network-request-failed') {
-                    showAuthMessage('Connection interrupted. Check your network connection and try again.', 'error');
-                } else if (error.code === 'auth/internal-error') {
-                    showAuthMessage('Internal system error. Please try again in a few moments.', 'error');
-                } else {
-                    showAuthMessage('Account deletion failed: ' + getErrorMessage(error.code), 'error');
-                }
-                
-                deleteConfirmationInput.disabled = false;
-                cancelDeleteBtn.disabled = false;
-            } finally {
-                hideAuthLoading(confirmDeleteBtn, 'DELETE ACCOUNT');
-            }
-        });        // Handle Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && deleteAccountModal.style.display === 'flex') {
-                deleteAccountModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                showAuthMessage('Account termination cancelled.', 'info');
-            }        });
-    }
 
 // Terms Agreement Popup Functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -3240,38 +2777,43 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Add fadeOut animation to CSS if not already present
-if (!document.querySelector('#fadeOutKeyframes')) {
-    const style = document.createElement('style');
-    style.id = 'fadeOutKeyframes';
-    style.textContent = `
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-}
+// fadeOut animation is now in styles.css
 
 // Load Header and Footer
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Load header (defer to idle when available to reduce TBT)
-    const loadHeader = () => fetch('components/header.html?v=' + Date.now())
-        .then(response => {
-            return response.text();
-        })
+    // Load header IMMEDIATELY — it's above-the-fold critical content.
+    // The <link rel="preload" as="fetch" href="components/header.html?v=2"> in <head>
+    // ensures the browser starts fetching even before this script runs.
+    const HEADER_VERSION = '2';
+    const loadHeader = () => fetch('components/header.html?v=' + HEADER_VERSION)
+        .then(response => response.text())
         .then(data => {
             const headerPlaceholder = document.getElementById('header-placeholder');
             
             if (headerPlaceholder) {
                 headerPlaceholder.innerHTML = data;
                 
-                // Add a visual indicator that header was loaded
+                // After injecting header via innerHTML, inline <script> tags don't auto-execute.
+                // Re-run any script tags (e.g., sign-in button setup) safely.
+                try {
+                    const headerScripts = headerPlaceholder.querySelectorAll('script');
+                    headerScripts.forEach(orig => {
+                        if (orig.dataset.executed === '1') return;
+                        const clone = document.createElement('script');
+                        for (const attr of orig.attributes) {
+                            if (attr.name === 'id' && document.getElementById(attr.value)) continue;
+                            clone.setAttribute(attr.name, attr.value);
+                        }
+                        clone.dataset.fromHeader = '1';
+                        if (!orig.src) clone.textContent = orig.textContent || '';
+                        document.body.appendChild(clone);
+                        orig.dataset.executed = '1';
+                    });
+                } catch (e) { console.warn('Header script execution issue:', e); }
+                
+                // Also call setupSignInButton immediately in case inline script didn't set listener
+                if (window._setupSignInButton) window._setupSignInButton();
                 
                 // Update active nav link based on current page
                 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
@@ -3284,104 +2826,57 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
                 
-                // Reinitialize authentication elements after header is loaded
-                // Add a small delay to ensure DOM is fully updated
-                setTimeout(() => {
-                    
-                    // Initialize auth elements
-                    if (window.firebaseAuth) {
-                        if (window.pendingAuthInit) {
-                            window.pendingAuthInit();
-                            window.pendingAuthInit = null;
-                        } else {
-                            initializeAuthElements();
-                        }
-                        // Also wire Moderation menu based on current auth state (dev UIDs only)
-                        try {
-                            const user = window.firebaseAuth.currentUser;
-                            const moderationMenuBtn = document.getElementById('moderation-menu-btn');
-                            if (moderationMenuBtn) {
-                                const DEV_UIDS = new Set([
-                                    '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                                    'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-                                    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                                    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                                    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-                                ]);
-                                const newBtn = moderationMenuBtn.cloneNode(true);
-                                moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
-                                const show = !!(user && DEV_UIDS.has(user.uid));
-                                if (show) {
-                                    newBtn.style.display = 'flex';
-                                    newBtn.addEventListener('click', (e) => {
-                                        e.preventDefault();
-                                        window.location.href = 'moderation.html';
-                                    });
-                                } else {
-                                    newBtn.remove();
-                                }
-                            }
-                        } catch (e) { /* non-fatal */ }
+                // Initialize auth elements immediately — innerHTML is synchronous,
+                // no setTimeout needed since DOM is already updated at this point.
+                if (window.firebaseAuth) {
+                    if (window.pendingAuthInit) {
+                        window.pendingAuthInit();
+                        window.pendingAuthInit = null;
                     } else {
                         initializeAuthElements();
                     }
-                    
-                    // Force dropdown initialization after a bit more delay
-                    setTimeout(() => {
-                        forceInitializeDropdowns();
-                        // After dropdowns are ready, maybe show the Portal intro popup
-                        setTimeout(() => {
-                            maybeShowPortalIntro();
-                            // Also introduce the GlitchRealm Bot (shows only once and only on home/portal)
-                            setTimeout(() => { try { maybeShowBotIntro(); } catch (e) { console.warn('Bot intro failed:', e); } }, 500);
-                        }, 300);
-                    }, 200);
-                }, 100);
+                    // Wire Moderation menu based on current auth state (dev UIDs only)
+                    try {
+                        const user = window.firebaseAuth.currentUser;
+                        const moderationMenuBtn = document.getElementById('moderation-menu-btn');
+                        if (moderationMenuBtn) {
+                            const DEV_UIDS = new Set([
+                                '6iZDTXC78aVwX22qrY43BOxDRLt1',
+                                'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+                                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+                                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+                                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+                            ]);
+                            const newBtn = moderationMenuBtn.cloneNode(true);
+                            moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
+                            const show = !!(user && DEV_UIDS.has(user.uid));
+                            if (show) {
+                                newBtn.style.display = 'flex';
+                                newBtn.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    window.location.href = 'moderation.html';
+                                });
+                            } else {
+                                newBtn.remove();
+                            }
+                        }
+                    } catch (e) { /* non-fatal */ }
+                } else {
+                    initializeAuthElements();
+                }
+                
+                // Initialize dropdowns immediately
+                forceInitializeDropdowns();
             }
         })
         .catch(error => {
             console.error('Error loading header:', error);
         });
 
-    if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => loadHeader());
-    } else {
-        setTimeout(loadHeader, 0);
-    }
+    // Start header fetch immediately — no requestIdleCallback delay
+    loadHeader();
 
-    // Also try to initialize dropdowns independently after a delay
-    setTimeout(() => {
-        forceInitializeDropdowns();
-        
-        // Also force sign-in button if it exists
-        // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
-        // const signInBtn = document.getElementById('sign-in-btn');
-        // const signInModal = document.getElementById('signin-modal');
-        // if (signInBtn) {
-        //     signInBtn.onclick = function(e) {
-        //         e.preventDefault();
-        //         console.log('Sign in clicked (backup handler)');
-        //         const overlay = document.getElementById('signin-modal');
-        //         if (overlay) {
-        //             overlay.style.display = 'flex';
-        //             document.body.style.overflow = 'hidden';
-        //         } else {
-        //             const currentUrl = window.location.href;
-        //             try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
-        //             window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
-        //         }
-        //     };
-        // }
-        
-        // Force profile functions as backup
-        setTimeout(() => {
-            if (window.fixProfileFunctions) {
-                window.fixProfileFunctions();
-            }
-        }, 200);
-    }, 500);
-
-    // Load footer (defer slightly)
+    // Load footer (defer to idle — it's below the fold)
     const loadFooter = () => fetch('components/footer.html')
         .then(response => response.text())
         .then(data => {
@@ -3393,20 +2888,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     const footerScripts = footerPlaceholder.querySelectorAll('script');
                     footerScripts.forEach(orig => {
-                        // Skip if already executed
                         if (orig.dataset.executed === '1') return;
                         const clone = document.createElement('script');
-                        // Copy attributes
                         for (const attr of orig.attributes) {
-                            // Avoid duplicate IDs colliding (e.g., chatbot loader) by keeping the same id only if not already in DOM
                             if (attr.name === 'id' && document.getElementById(attr.value)) continue;
                             clone.setAttribute(attr.name, attr.value);
                         }
-                        // Mark provenance
                         clone.dataset.fromFooter = '1';
-                        // Inline script content
                         if (!orig.src) clone.textContent = orig.textContent || '';
-                        // Append to body to execute
                         document.body.appendChild(clone);
                         orig.dataset.executed = '1';
                     });
@@ -3435,40 +2924,6 @@ function initializeAuthElements() {
     const signOutBtn = document.getElementById('sign-out-btn');
     const userProfile = document.getElementById('user-profile');
     
-    
-    // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
-    // if (signInBtn) {
-    //     console.log('Setting up sign-in modal event listeners...');
-    //     
-    //     // Remove existing listeners by cloning buttons
-    //     const newSignInBtn = signInBtn.cloneNode(true);
-    //     signInBtn.parentNode.replaceChild(newSignInBtn, signInBtn);
-    //     
-    //     // Add event listener to the sign-in button
-    //     newSignInBtn.addEventListener('click', function(e) {
-    //         e.preventDefault();
-    //         console.log('Sign in button clicked!');
-    //
-    //         // If the centralized header modal exists, open it inline
-    //         const authOverlay = document.getElementById('signin-modal');
-    //         if (authOverlay) {
-    //             console.log('Opening centralized sign-in modal');
-    //             authOverlay.style.display = 'flex';
-    //             document.body.style.overflow = 'hidden';
-    //             return;
-    //         }
-    //
-    //         // Fallback: navigate to the standalone Sign In page with redirect parameter
-    //         const currentUrl = window.location.href;
-    //         try { sessionStorage.setItem('gr.returnTo', currentUrl); } catch {}
-    //         const target = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
-    //         console.log('Modal not found, redirecting to standalone sign-in:', target);
-    //         window.location.href = target;
-    //     });
-    //     
-    //     console.log('Auth event listeners attached');
-    // }
-        
     // Find and handle close modal button (specific to sign-in modal)
     const closeModal = document.querySelector('#close-modal');
         if (closeModal) {
@@ -3499,9 +2954,6 @@ function initializeAuthElements() {
         
         // Re-initialize dropdown functionality
         initializeDropdownFunctionality();
-        
-        // Re-initialize profile dropdown functionality
-        initializeProfileDropdown();
         
         // Profile picture upload now handled by portal-avatar-integration.js (Supabase)
         // Old initializeProfilePictureUpload() and initializeCropModal() removed
@@ -3624,16 +3076,6 @@ function forceInitializeDropdowns() {
         });
         window._globalDropdownHandlerAdded = true;
     }
-}
-
-// One-time intro popup for GlitchRealm Portal
-function maybeShowPortalIntro() {
-    // Disabled
-}
-
-// One-time intro popup for GlitchRealm Bot (appears on Home or User Portal)
-function maybeShowBotIntro() {
-    // Disabled
 }
 
 // Notification Bell Functions
@@ -3830,40 +3272,8 @@ function updateNotificationCount(count) {
     }
 }
 
-// Example function to simulate adding notifications (for testing)
-function addNotification() {
-    const currentCount = parseInt(document.getElementById('notification-count')?.textContent || '0');
-    updateNotificationCount(currentCount + 1);
-}
-
 // Auto-initialize notification bell when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Debug: Check if notification bell exists
-    const notificationBell = document.getElementById('notification-bell');
-
-    // Badges hidden by default - only shown when actual notifications exist
-    // const inlineBadge = document.getElementById('notification-count-inline');
-    // if (inlineBadge && GR_SETTINGS.notificationsBadgeEnabled) {
-    //     inlineBadge.textContent = '0';
-    //     inlineBadge.style.display = 'inline-flex';
-    // }
-
-    // Trigger badge hidden by default - only shown when actual notifications exist
-    // const triggerBadge = document.getElementById('notification-count-trigger');
-    // if (triggerBadge && GR_SETTINGS.notificationsBadgeEnabled) {
-    //     triggerBadge.textContent = '0';
-    //     triggerBadge.style.display = 'inline-flex';
-    // }
-    
-    // For testing purposes only, you can simulate a notification count.
-    // This is disabled by default to avoid overriding real Firestore counts.
-    const ENABLE_TEST_BADGE = false;
-    if (ENABLE_TEST_BADGE) {
-        setTimeout(() => {
-            updateNotificationCount(1);
-        }, 1000);
-    }
-    
     // Initialize Mobile Navigation
     initializeMobileNavigation();
 });

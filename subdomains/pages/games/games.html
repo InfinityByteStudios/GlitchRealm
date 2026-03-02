@@ -3495,8 +3495,8 @@
             
             card.innerHTML = `
                 <div class="card-image">
-                    <img src="${cover}" 
-                         srcset="${encodeURI(cover)} 320w, ${encodeURI(cover)} 640w, ${encodeURI(cover)} 960w" 
+                    <img src="${escapeHtml(cover)}" 
+                         srcset="${escapeHtml(cover)} 320w, ${escapeHtml(cover)} 640w, ${escapeHtml(cover)} 960w" 
                          sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px"
                          alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
                     <div class="card-overlay"></div>
@@ -3513,17 +3513,35 @@
                     <h3 class="card-title">${title}</h3>
                     <p class="card-description">${desc || 'No description provided.'}</p>
                     <p class="card-developer">Made by <strong>${ownerUsername}</strong>
-                        <button class="review-btn" onclick="openReviewModal('${id}','${title.replace(/'/g, "&#39;")}')">⭐ Review</button>
+                        <button class="review-btn" data-review-id="${escapeHtml(id)}" data-review-title="${escapeHtml(doc.title || 'Untitled')}">⭐ Review</button>
                         <span class="rating-display" data-game-id="${id}"><span class="no-rating">N/A (0)</span></span>
                     </p>
                     <div class="card-tags">
                         ${tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
                     </div>
                     ${ playUrl
-                        ? `<button onclick="window.open('${playUrl.replace(/'/g, "&#39;")}', '_blank')" class="btn btn-primary card-btn">Play Now</button>`
+                        ? `<button class="btn btn-primary card-btn play-now-btn" data-play-url="${escapeHtml(playUrl)}">Play Now</button>`
                         : `<button class="btn btn-disabled card-btn" disabled>Play link pending</button>`
                     }
                 </div>`;
+
+            // Bind event listeners (avoid inline onclick to prevent XSS)
+            const playBtn = card.querySelector('.play-now-btn');
+            if (playBtn) {
+                playBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.open(playBtn.dataset.playUrl, '_blank');
+                });
+            }
+            const reviewBtn = card.querySelector('.review-btn');
+            if (reviewBtn) {
+                reviewBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof openReviewModal === 'function') {
+                        openReviewModal(reviewBtn.dataset.reviewId, reviewBtn.dataset.reviewTitle);
+                    }
+                });
+            }
             return card;
         }
 

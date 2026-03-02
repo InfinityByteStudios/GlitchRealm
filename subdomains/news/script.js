@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Redirect to auth (local folder or subdomain)
                 if (isDev) {
-                    const authUrl = `/auth/?return=${encodeURIComponent(returnUrl)}`;
+                    const authUrl = `/subdomains/auth/?return=${encodeURIComponent(returnUrl)}`;
                     window.location.href = authUrl;
                 } else {
                     const authUrl = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;

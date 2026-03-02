@@ -33,9 +33,7 @@
     <meta name="twitter:description" content="Explore GlitchRealm's cyberpunk gaming universe. Play free HTML5 indie games and join our community.">
     <meta name="twitter:image" content="https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png">
     
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Cache-Control" content="public, max-age=0, must-revalidate">
     
     <!-- PWA Manifest & Theming -->
     <link rel="manifest" href="manifest.json">
@@ -52,320 +50,34 @@
     <link rel="preload" as="style" href="css/styles.css">
     <link rel="stylesheet" href="css/styles.css">
     
-    <!-- Preload LCP image (lazy load actual src) -->
-    <link rel="preload" as="image" href="assets/game logos/ByteSurge.webp" type="image/webp">
+    <!-- Preload LCP image -->
+    <link rel="preload" as="image" href="assets/game logos/ByteSurge.webp" type="image/webp" fetchpriority="high">
     
     <!-- Fonts - Async Load -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
     </noscript>
-    <style>
-        /* Force proper styling for profile dropdown */
-        .user-profile {
-            position: relative !important;
-        }
-
-        .profile-dropdown {
-            position: relative !important;
-        }
-
-        .profile-trigger {
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.5rem !important;
-            background: rgba(0, 255, 249, 0.1) !important;
-            border: 1px solid var(--primary-cyan) !important;
-            border-radius: 8px !important;
-            padding: 0.5rem 0.75rem !important;
-            color: var(--white) !important;
-            font-family: 'Rajdhani', sans-serif !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-        }
-
-        .profile-trigger:hover {
-            background: rgba(0, 255, 249, 0.2) !important;
-            box-shadow: 0 0 15px rgba(0, 255, 249, 0.3) !important;
-        }
-
-        .user-avatar {
-            width: 32px !important;
-            height: 32px !important;
-            border-radius: 50% !important;
-            border: 2px solid var(--primary-cyan) !important;
-            object-fit: cover !important;
-        }
-
-        /* Avatar upload overlay styles */
-        .user-avatar-container {
-            position: relative !important;
-            display: inline-block !important;
-        }
-
-        .avatar-upload-overlay {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: rgba(0, 0, 0, 0.4) !important;
-            backdrop-filter: blur(4px) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            opacity: 0 !important;
-            transition: opacity 0.3s ease !important;
-            cursor: pointer !important;
-            z-index: 10 !important;
-        }
-
-        .user-avatar-container:hover .avatar-upload-overlay {
-            opacity: 0 !important;
-        }
-
-        /* Only show upload overlay when dropdown is open */
-        .profile-dropdown.active .user-avatar-container:hover .avatar-upload-overlay {
-            opacity: 1 !important;
-        }
-
-        .upload-icon {
-            font-size: 14px !important;
-            color: rgba(255, 255, 255, 0.9) !important;
-            text-shadow: 0 0 10px rgba(0, 255, 249, 0.5) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
-        .upload-icon svg {
-            width: 16px !important;
-            height: 16px !important;
-            fill: currentColor !important;
-        }
-
-        .user-avatar-large-container {
-            position: relative !important;
-            display: inline-block !important;
-        }
-
-        .avatar-upload-overlay-large {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: rgba(0, 0, 0, 0.5) !important;
-            backdrop-filter: blur(6px) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            opacity: 0 !important;
-            transition: opacity 0.3s ease !important;
-            cursor: pointer !important;
-            z-index: 10 !important;
-        }
-
-        .user-avatar-large-container:hover .avatar-upload-overlay-large {
-            opacity: 0 !important;
-        }
-
-        /* Only show large upload overlay when dropdown is open */
-        .profile-dropdown.active .user-avatar-large-container:hover .avatar-upload-overlay-large {
-            opacity: 1 !important;
-        }
-
-        .upload-icon-large {
-            font-size: 24px !important;
-            color: rgba(255, 255, 255, 0.9) !important;
-            text-shadow: 0 0 15px rgba(0, 255, 249, 0.7) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
-        .upload-icon-large svg {
-            width: 28px !important;
-            height: 28px !important;
-            fill: currentColor !important;
-        }
-
-        .user-name {
-            font-size: 0.9rem !important;
-            max-width: 120px !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-        }
-
-        .dropdown-arrow {
-            font-size: 0.8rem !important;
-            color: var(--primary-cyan) !important;
-            transition: transform 0.3s ease !important;
-        }
-
-        .profile-dropdown.open .dropdown-arrow {
-            transform: rotate(180deg) !important;
-        }
-
-        .profile-menu {
-            position: absolute !important;
-            top: 100% !important;
-            right: 0 !important;
-            background: linear-gradient(135deg, #0a1629 0%, #041018 100%) !important;
-            border: 2px solid var(--primary-cyan) !important;
-            border-radius: 12px !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 249, 0.3) !important;
-            min-width: 280px !important;
-            max-height: 400px !important;
-            overflow-y: auto !important;
-            z-index: 10000 !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-            transform: translateY(-10px) scale(0.95) !important;
-            transition: all 0.3s ease !important;
-            margin-top: 0.5rem !important;
-        }
-
-        .profile-dropdown.open .profile-menu {
-            opacity: 1 !important;
-            visibility: visible !important;
-            transform: translateY(0) scale(1) !important;
-        }
-
-        .profile-info {
-            padding: 1.5rem !important;
-            border-bottom: 1px solid rgba(0, 255, 249, 0.2) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 1rem !important;
-        }
-
-        .user-avatar-large {
-            width: 60px !important;
-            height: 60px !important;
-            border-radius: 50% !important;
-            border: 3px solid var(--primary-cyan) !important;
-            object-fit: cover !important;
-        }
-
-        .profile-details {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 0.25rem !important;
-        }
-
-        .user-display-name {
-            font-size: 1.1rem !important;
-            font-weight: 700 !important;
-            color: var(--white) !important;
-        }
-
-        .user-email {
-            font-size: 0.85rem !important;
-            color: var(--primary-cyan) !important;
-            opacity: 0.8 !important;
-        }
-
-        .user-provider {
-            font-size: 0.75rem !important;
-            color: var(--primary-magenta) !important;
-            text-transform: uppercase !important;
-            font-weight: 600 !important;
-        }
-
-        .profile-actions {
-            padding: 1rem !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 0.5rem !important;
-        }
-
-        .profile-action-btn {
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.75rem !important;
-            padding: 0.75rem 1rem !important;
-            background: rgba(0, 0, 0, 0.3) !important;
-            border: 1px solid rgba(0, 255, 249, 0.3) !important;
-            border-radius: 8px !important;
-            color: var(--white) !important;
-            font-family: 'Rajdhani', sans-serif !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            width: 100% !important;
-            text-align: left !important;
-            white-space: nowrap !important;
-            overflow: visible !important;
-        }
-
-        .profile-action-btn:hover {
-            background: rgba(0, 255, 249, 0.1) !important;
-            border-color: var(--primary-cyan) !important;
-            box-shadow: 0 0 10px rgba(0, 255, 249, 0.2) !important;
-        }
-
-        /* Ensure sign out button text is visible */
-        .profile-action-btn.sign-out {
-            color: var(--white) !important;
-        }
-
-        /* More specific rule for sign out button text */
-        #sign-out-btn,
-        #sign-out-btn *:not(.action-icon):not(.icon-svg):not(path) {
-            color: var(--white) !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-
-        .profile-action-btn.delete-account {
-            border-color: rgba(255, 0, 128, 0.5) !important;
-            color: var(--primary-magenta) !important;
-        }
-
-        .profile-action-btn.delete-account:hover {
-            background: rgba(255, 0, 128, 0.1) !important;
-            border-color: var(--primary-magenta) !important;
-            box-shadow: 0 0 10px rgba(255, 0, 128, 0.2) !important;
-        }
-
-        .action-icon {
-            font-size: 1.2rem !important;
-        }
-    </style>
     
-    <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
+    <!-- Preload header HTML so it's cached before script.js requests it -->
+    <link rel="preload" as="fetch" href="components/header.html?v=2" crossorigin="anonymous">
+    
+    <!-- Profile dropdown overrides are now in styles.css -->
+    
+    <!-- Unified Firebase core (loads app+auth+firestore once, sets local persistence) -->
     <script type="module" src="js/firebase-core.js"></script>
-    <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
+    <!-- Lazy-load Analytics only when browser is idle -->
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
-            authDomain: "shared-sign-in.firebaseapp.com",
-            projectId: "shared-sign-in",
-            storageBucket: "shared-sign-in.appspot.com",
-            messagingSenderId: "332039027753",
-            appId: "1:332039027753:web:aa7c6877d543bb90363038",
-            measurementId: "G-KK5XVVLMVN"
+        const loadAnalytics = () => {
+            import('https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js').then(({ getAnalytics }) => {
+                if (window.firebaseApp) getAnalytics(window.firebaseApp);
+            }).catch(() => {});
         };
-        
-        const app = window.firebaseApp || initializeApp(firebaseConfig);
-        const auth = window.firebaseAuth || getAuth(app);
-    // Explicitly target the default bucket using gs:// URL
-    const storage = window.firebaseStorage || getStorage(app, 'gs://shared-sign-in.appspot.com');
-        const analytics = getAnalytics(app);
-        
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-        window.firebaseStorage = storage;
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadAnalytics, { timeout: 5000 });
+        } else {
+            setTimeout(loadAnalytics, 3000);
+        }
     </script>
     
     <!-- Accessibility & Performance Enhancements -->
@@ -532,16 +244,24 @@
     </div>
     </main>
 
-    <!-- Critical: Firebase Auth (load immediately) -->
-    <script src="js/firebase-core.js"></script>
-    
     <!-- Load newest game from Firestore -->
     <script type="module">
-        // Wait for Firebase to be initialized
+        // Wait for Firebase to be initialized (promise-based, no polling)
+        function waitForFirebase(maxWait = 8000) {
+            if (window.firebaseApp) return Promise.resolve();
+            return new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error('Firebase init timeout')), maxWait);
+                const check = setInterval(() => {
+                    if (window.firebaseApp) { clearInterval(check); clearTimeout(timeout); resolve(); }
+                }, 50);
+            });
+        }
+
         async function loadNewestGame() {
-            // Wait for firebaseApp to be available
-            if (!window.firebaseApp) {
-                setTimeout(loadNewestGame, 100);
+            try {
+                await waitForFirebase();
+            } catch {
+                document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
                 return;
             }
             
@@ -632,57 +352,24 @@
         }
     </script>
     
-    <!-- Glitch Effect Settings Modal -->
-    <div id="glitchSettingsModal" class="glitch-settings-overlay">
-        <div class="glitch-settings-modal">
-            <div class="glitch-settings-header">
-                <h2>⚡ Glitch Effect Settings</h2>
-                <button class="glitch-close-btn" onclick="closeGlitchSettings()">&times;</button>
-            </div>
-            <div class="glitch-settings-body">
-                <div class="glitch-preview-section">
-                    <h3>Preview</h3>
-                    <div class="glitch-preview-text">
-                        <span class="glitch glitch-preview" data-text="GlitchRealm">GlitchRealm</span>
-                    </div>
-                </div>
-                <div class="glitch-options-section">
-                    <h3>Animation Speed</h3>
-                    <div class="glitch-radio-group">
-                        <label class="glitch-radio-label">
-                            <input type="radio" name="glitchSpeed" value="stopped" />
-                            <span class="glitch-radio-custom"></span>
-                            <span class="glitch-radio-text">Stopped (No Animation)</span>
-                        </label>
-                        <label class="glitch-radio-label">
-                            <input type="radio" name="glitchSpeed" value="slow" />
-                            <span class="glitch-radio-custom"></span>
-                            <span class="glitch-radio-text">Slow</span>
-                        </label>
-                        <label class="glitch-radio-label">
-                            <input type="radio" name="glitchSpeed" value="fast" checked />
-                            <span class="glitch-radio-custom"></span>
-                            <span class="glitch-radio-text">Fast (Default)</span>
-                        </label>
-                    </div>
-                </div>
-                <button class="glitch-save-btn" onclick="saveGlitchSettings()">Save Settings</button>
-            </div>
-        </div>
-    </div>
+    <!-- Glitch Settings Modal is provided by header.html -->
 
     <!-- Ads removed: moved to /ads.html -->
 
     <!-- Deferred: Non-critical scripts -->
-    <script src="js/image-loader.js" defer></script>
     <script src="js/script.js" defer></script>
     <script src="js/glitch-settings.js" defer></script>
-    <script type="module" src="js/header-avatar-integration.js"></script>
+    <!-- Supabase avatar integration — deferred to idle since it loads the Supabase SDK -->
+    <script type="module">
+        const loadAvatarIntegration = () => import('./js/header-avatar-integration.js').catch(() => {});
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadAvatarIntegration, { timeout: 4000 });
+        } else {
+            setTimeout(loadAvatarIntegration, 2000);
+        }
+    </script>
     
     <!-- Lazy: Game launcher (only load on interaction) -->
     <script src="js/game-launcher-lazy.js" defer></script>
-    
-    <!-- Very Low Priority: Icons and widgets -->
-        <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
     </body>
     </html>

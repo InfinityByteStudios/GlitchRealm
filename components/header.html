@@ -33,7 +33,7 @@
             (function() {
                 const signInBtn = document.getElementById('sign-in-btn');
                 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.');
-                const authUrl = isDev ? '/auth/' : 'https://auth.glitchrealm.ca/';
+                const authUrl = isDev ? '/subdomains/auth/' : 'https://auth.glitchrealm.ca/';
                 
                 // Set href as fallback
                 signInBtn.href = authUrl;
@@ -43,7 +43,7 @@
                     e.preventDefault();
                     const returnUrl = window.location.href;
                     sessionStorage.setItem('gr.returnTo', returnUrl);
-                    const redirectUrl = isDev ? `/auth/?return=${encodeURIComponent(returnUrl)}` : `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
+                    const redirectUrl = isDev ? `/subdomains/auth/?return=${encodeURIComponent(returnUrl)}` : `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
                     window.location.href = redirectUrl;
                 });
                 signInBtn.dataset.listenerAttached = 'true';
