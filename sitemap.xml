@@ -1,109 +1,220 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Core Pages -->
   <url>
     <loc>https://glitchrealm.ca/</loc>
     <priority>1.00</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games.html</loc>
+    <loc>https://glitchrealm.ca/games</loc>
     <priority>0.80</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/about.html</loc>
-    <priority>0.60</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://glitchrealm.ca/community.html</loc>
+    <loc>https://glitchrealm.ca/community</loc>
     <priority>0.70</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/privacy-policy.html</loc>
+    <loc>https://glitchrealm.ca/news</loc>
+    <priority>0.70</priority>
+    <changefreq>daily</changefreq>
+  </url>
+
+  <!-- Info Pages -->
+  <url>
+    <loc>https://glitchrealm.ca/about</loc>
+    <priority>0.60</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/our-goal</loc>
+    <priority>0.60</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/projects</loc>
+    <priority>0.55</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/credits</loc>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/contact</loc>
+    <priority>0.50</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/support</loc>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/donate</loc>
+    <priority>0.50</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/newsletter</loc>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/ads</loc>
+    <priority>0.30</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+
+  <!-- Games -->
+  <url>
+    <loc>https://glitchrealm.ca/submit-game</loc>
+    <priority>0.50</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/community-games</loc>
+    <priority>0.55</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Account -->
+  <url>
+    <loc>https://glitchrealm.ca/user-portal</loc>
+    <priority>0.60</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/settings</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+
+  <!-- Auth -->
+  <url>
+    <loc>https://glitchrealm.ca/forgot-password</loc>
+    <priority>0.30</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/reset-password</loc>
+    <priority>0.30</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/delete-account</loc>
+    <priority>0.20</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://glitchrealm.ca/legal</loc>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/terms-of-service</loc>
+    <priority>0.40</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/privacy-policy</loc>
     <priority>0.40</priority>
     <changefreq>yearly</changefreq>
     <lastmod>2025-12-27</lastmod>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/legal.html</loc>
-    <priority>0.50</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://glitchrealm.ca/donation-policy.html</loc>
+    <loc>https://glitchrealm.ca/cookie-policy</loc>
     <priority>0.40</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/code-of-conduct.html</loc>
+    <loc>https://glitchrealm.ca/eula</loc>
+    <priority>0.35</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/code-of-conduct</loc>
     <priority>0.40</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/legal-information.html</loc>
-    <priority>0.40</priority>
+    <loc>https://glitchrealm.ca/donation-policy</loc>
+    <priority>0.35</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/brand-protection.html</loc>
-    <priority>0.40</priority>
+    <loc>https://glitchrealm.ca/legal-information</loc>
+    <priority>0.35</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/contact.html</loc>
-    <priority>0.40</priority>
+    <loc>https://glitchrealm.ca/brand-protection</loc>
+    <priority>0.35</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/submit-game.html</loc>
-    <priority>0.40</priority>
+    <loc>https://glitchrealm.ca/accessibility-statement</loc>
+    <priority>0.35</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/credits.html</loc>
-    <priority>0.50</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://glitchrealm.ca/terms-of-service.html</loc>
-    <priority>0.40</priority>
+    <loc>https://glitchrealm.ca/coppa</loc>
+    <priority>0.35</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/reset-password.html</loc>
-    <priority>0.40</priority>
+    <loc>https://glitchrealm.ca/copyright-dmca</loc>
+    <priority>0.35</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/forgot-password.html</loc>
-    <priority>0.40</priority>
+    <loc>https://glitchrealm.ca/developer-agreement</loc>
+    <priority>0.35</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/user-portal.html</loc>
-    <priority>0.60</priority>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://glitchrealm.ca/delete-account.html</loc>
+    <loc>https://glitchrealm.ca/dpa</loc>
     <priority>0.30</priority>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/support.html</loc>
-    <priority>0.50</priority>
-    <changefreq>monthly</changefreq>
+    <loc>https://glitchrealm.ca/external-platforms</loc>
+    <priority>0.30</priority>
+    <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/projects.html</loc>
-    <priority>0.55</priority>
-    <changefreq>monthly</changefreq>
+    <loc>https://glitchrealm.ca/ip-notice</loc>
+    <priority>0.30</priority>
+    <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/newsletter.html</loc>
-    <priority>0.50</priority>
-    <changefreq>monthly</changefreq>
+    <loc>https://glitchrealm.ca/legal-contact</loc>
+    <priority>0.30</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/legal-definitions</loc>
+    <priority>0.30</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/moderation-policy</loc>
+    <priority>0.35</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/refund-policy</loc>
+    <priority>0.35</priority>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/submission-policy</loc>
+    <priority>0.35</priority>
+    <changefreq>yearly</changefreq>
   </url>
 </urlset>

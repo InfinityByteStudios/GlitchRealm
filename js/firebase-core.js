@@ -1,12 +1,21 @@
 // Unified Firebase bootstrap for all pages
 // Loads Firebase App/Auth once, ensures local persistence, and exposes globals.
 // Include this file before any page-specific scripts that rely on window.firebaseAuth.
+// Other scripts should await window.firebaseReady before using Firebase globals.
 
 (function(){
   if (window.firebaseApp && window.firebaseAuth) {
-    // Already initialized on this page
+    // Already initialized on this page – resolve immediately
+    if (!window.firebaseReady) {
+      window.firebaseReady = Promise.resolve();
+    }
     return;
   }
+
+  // Create the promise + resolver immediately so consumers can await it
+  // even before init() completes
+  let _resolveFirebaseReady;
+  window.firebaseReady = new Promise((resolve) => { _resolveFirebaseReady = resolve; });
   const APP_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   const AUTH_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
   const config = {
@@ -59,6 +68,10 @@
       window.firestoreOnSnapshot = firestoreMod.onSnapshot;
       window.firestoreServerTimestamp = firestoreMod.serverTimestamp;
       
+      // Signal that Firebase core is initialized and all globals are set
+      _resolveFirebaseReady();
+      window.dispatchEvent(new Event('firebaseCoreReady'));
+
       // Set up early auth state listener to ensure state is available ASAP
       onAuthStateChanged(auth, (user) => {
         if (user) {

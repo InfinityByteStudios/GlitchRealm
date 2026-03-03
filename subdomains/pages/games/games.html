@@ -25,6 +25,9 @@
     <link rel="preload" as="image" href="/assets/Game Logos/CodeRunner Logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games Library - Play Free Cyberpunk Browser Games | GlitchRealm</title>
+    <!-- Self-hosted fonts (preloaded for instant rendering) -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
     <meta name="description" content="Browse GlitchRealm's extensive library of cyberpunk-themed browser games. Play indie titles including ByteSurge, CodeRunner, ByteWars and community submissions.">
     <meta name="keywords" content="browser games library, HTML5 games, indie games collection, play online games, cyberpunk games">
     <meta name="robots" content="index, follow, max-image-preview:large">
@@ -46,9 +49,9 @@
     
     <link rel="stylesheet" href="css/styles.css">
     <!-- Async Google Fonts (non-render-blocking) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    
     <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap">
+        
     </noscript>
     <!-- Async devicon CSS (non-critical) -->
     <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css" onload="this.onload=null;this.rel='stylesheet'">
@@ -56,10 +59,10 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.css">
     </noscript>
     <!-- Performance: preconnect to critical third-parties -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    
+    
+    
+    
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="//www.gstatic.com">
             <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
@@ -106,11 +109,11 @@
         window.deleteUser = deleteUser;
         
         // Load initial rating displays after Firebase is ready
-        setTimeout(() => {
+        (window.firebaseReady || Promise.resolve()).then(() => {
             if (typeof updateAllRatingDisplays === 'function') {
                 updateAllRatingDisplays();
             }
-        }, 2000);
+        });
     </script>
     <script>
     // Performance optimizations: Hoist patterns and utilities to module scope
@@ -237,6 +240,8 @@
             try{
                 const cta = document.getElementById('verified-submit-cta');
                 if(!cta) return;
+                // Wait for Firebase globals before checking
+                await (window.firebaseReady || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true })));
                 if(!window.firebaseAuth || !window.firebaseFirestore){ return; }
                 const user = window.firebaseAuth.currentUser;
                 if(!user){ return; }
@@ -250,8 +255,8 @@
                 if(isVerified){ cta.style.display = 'block'; }
             }catch(e){ logger.warn('CTA verification check failed:', e); }
         }
-        // Run once Firebase likely initialized
-        window.addEventListener('DOMContentLoaded', ()=> setTimeout(checkAndShowCTA, 1200));
+        // Run once Firebase is initialized
+        window.addEventListener('DOMContentLoaded', ()=> checkAndShowCTA());
         // Also react to auth state changes if available
         if (window.firebaseAuth && typeof window.firebaseAuth.onAuthStateChanged === 'function'){
             window.firebaseAuth.onAuthStateChanged(()=> setTimeout(checkAndShowCTA, 600));
@@ -3548,9 +3553,11 @@
         function startRealtimePublishedIntoMainGrid(){
             (async function init(){
                 try{
+                    // Wait for Firebase core to finish initializing all globals
+                    await (window.firebaseReady || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true })));
                     if(!window.firebaseFirestore || !window.firestoreCollection || !window.firestoreWhere){
-                        logger.log('[games grid] Firestore not ready – retrying...');
-                        return setTimeout(startRealtimePublishedIntoMainGrid, 600);
+                        logger.log('[games grid] Firestore not ready after firebaseReady – aborting');
+                        return;
                     }
                     const container = document.querySelector('.game-cards');
                     if(!container) return;
@@ -3622,7 +3629,7 @@
             })();
         }
 
-        window.addEventListener('DOMContentLoaded', () => setTimeout(startRealtimePublishedIntoMainGrid, 800));
+        window.addEventListener('DOMContentLoaded', () => startRealtimePublishedIntoMainGrid());
     })();
     </script>
 

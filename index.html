@@ -7,13 +7,14 @@
     
     <!-- Critical Resource Hints - Load First -->
     <link rel="preconnect" href="https://www.gstatic.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="//identitytoolkit.googleapis.com">
     <link rel="dns-prefetch" href="//firestore.googleapis.com">
     <link rel="dns-prefetch" href="//cdnjs.buymeacoffee.com">
     
     <title>GlitchRealm - Cyberpunk Browser Gaming Platform | Play Free Indie Games</title>
+    <!-- Self-hosted fonts (preloaded for instant rendering) -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
     <meta name="description" content="Explore GlitchRealm's cyberpunk gaming universe. Play free HTML5 indie games, track your playtime, submit your creations, and join our vibrant gaming community.">
     <meta name="keywords" content="browser games, HTML5 games, indie games, cyberpunk games, free online games, game platform">
     <meta name="robots" content="index, follow, max-image-preview:large">
@@ -52,12 +53,6 @@
     
     <!-- Preload LCP image -->
     <link rel="preload" as="image" href="assets/game logos/ByteSurge.webp" type="image/webp" fetchpriority="high">
-    
-    <!-- Fonts - Async Load -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
-    </noscript>
     
     <!-- Preload header HTML so it's cached before script.js requests it -->
     <link rel="preload" as="fetch" href="components/header.html?v=2" crossorigin="anonymous">
@@ -247,19 +242,9 @@
     <!-- Load newest game from Firestore -->
     <script type="module">
         // Wait for Firebase to be initialized (promise-based, no polling)
-        function waitForFirebase(maxWait = 8000) {
-            if (window.firebaseApp) return Promise.resolve();
-            return new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('Firebase init timeout')), maxWait);
-                const check = setInterval(() => {
-                    if (window.firebaseApp) { clearInterval(check); clearTimeout(timeout); resolve(); }
-                }, 50);
-            });
-        }
-
         async function loadNewestGame() {
             try {
-                await waitForFirebase();
+                await (window.firebaseReady || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true })));
             } catch {
                 document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
                 return;
@@ -371,5 +356,7 @@
     
     <!-- Lazy: Game launcher (only load on interaction) -->
     <script src="js/game-launcher-lazy.js" defer></script>
+    <!-- Cookie Consent Banner -->
+    <script src="js/cookie-consent.js" defer></script>
     </body>
     </html>
