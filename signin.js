@@ -1,11 +1,35 @@
 // Auth subdomain sign-in logic
-// Uses globals exposed by inline Firebase module in index.html
 
-let firebaseReady = !!window.firebaseAuth;
+const FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/10.7.1/';
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ',
+  authDomain: 'shared-sign-in.firebaseapp.com',
+  projectId: 'shared-sign-in',
+  storageBucket: 'shared-sign-in.appspot.com',
+  messagingSenderId: '332039027753',
+  appId: '1:332039027753:web:aa7c6877d543bb90363038'
+};
 
-window.addEventListener('firebaseReady', () => {
-  firebaseReady = true;
-});
+// Initialize Firebase on-demand (avoids depending on the inline module timing)
+async function getFirebaseAuth() {
+  // Reuse if already initialized by the inline module
+  if (window.firebaseAuth) return window.firebaseAuth;
+  try {
+    const [{ initializeApp, getApps }, { getAuth, setPersistence, browserLocalPersistence }] = await Promise.all([
+      import(FIREBASE_CDN + 'firebase-app.js'),
+      import(FIREBASE_CDN + 'firebase-auth.js')
+    ]);
+    const app = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+    const auth = getAuth(app);
+    await setPersistence(auth, browserLocalPersistence).catch(() => {});
+    window.firebaseAuth = auth;
+    return auth;
+  } catch (err) {
+    console.error('[Auth] Firebase load error:', err);
+    showMessage('Failed to load authentication. Check your connection and try again.', 'error');
+    return null;
+  }
+}
 
 function showMessage(msg, type = 'info') {
   const el = document.getElementById('authMessage');
@@ -65,7 +89,6 @@ function getReturnUrl() {
 
 function redirectHome() {
   const returnUrl = getReturnUrl();
-  console.log('[Auth] Redirecting to:', returnUrl);
   window.location.replace(returnUrl);
 }
 
@@ -163,15 +186,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Email/password sign up – create on auth subdomain then sign in on main domain
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!firebaseReady) return showMessage('Loading auth…', 'info');
+    const auth = await getFirebaseAuth();
+    if (!auth) return;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const confirm = document.getElementById('confirm-password').value;
     if (password !== confirm) return showMessage('Passwords do not match', 'error');
     if (password.length < 6) return showMessage('Password too short', 'error');
     try {
-      const cred = await window.firebaseCreateUserWithEmailAndPassword(window.firebaseAuth, email, password);
-      console.log('[Auth] Account created successfully, user:', cred.user.email || cred.user.uid);
+      const { createUserWithEmailAndPassword } = await import(FIREBASE_CDN + 'firebase-auth.js');
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
       showMessage('Account created! Redirecting...', 'success');
       
       // Get the user's ID token (same approach as Google/GitHub)
@@ -183,16 +207,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      console.log('[Auth] Got Firebase ID token, transferring to main domain...');
       
       // Get the return URL from sessionStorage (saved when page loaded)
       const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
-      console.log('[Auth] Will return to:', returnTo);
       
       // Pass the Firebase ID token to bridge (same as Google/GitHub flow)
       const bridgeUrl = new URL(getBridgeUrl());
       bridgeUrl.hash = `provider=google_firebase&token=${encodeURIComponent(idToken)}&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge with Firebase ID token...');
       
       location.replace(bridgeUrl.toString());
     } catch (err) {
@@ -206,20 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const githubBtn = document.getElementById('github-signin');
 
   googleBtn?.addEventListener('click', async () => {
-    if (!firebaseReady) return showMessage('Loading auth…', 'info');
+    // No Firebase needed — just redirect to bridge which handles OAuth popup
     try {
-      console.log('[Auth] Starting Google sign-in via main domain...');
-      showMessage('Connecting to Google...', 'info');
-      
-      // Get the return URL from sessionStorage (saved when page loaded)
-      const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
-      console.log('[Auth] Will return to:', returnTo);
-      
-      // Redirect to bridge immediately - it will handle the OAuth popup on the main domain
+      showMessage('Redirecting to Google sign-in…', 'info');
+      const returnTo = sessionStorage.getItem('gr.returnTo') || getReturnUrl();
       const bridgeUrl = new URL(getBridgeUrl());
       bridgeUrl.hash = `provider=google_oauth_popup&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge for OAuth popup...');
-      
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error('[Auth] Google sign-in error:', err);
@@ -228,20 +241,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   githubBtn?.addEventListener('click', async () => {
-    if (!firebaseReady) return showMessage('Loading auth…', 'info');
+    // No Firebase needed — just redirect to bridge which handles OAuth popup
     try {
-      console.log('[Auth] Starting GitHub sign-in via main domain...');
-      showMessage('Connecting to GitHub...', 'info');
-      
-      // Get the return URL from sessionStorage (saved when page loaded)
-      const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
-      console.log('[Auth] Will return to:', returnTo);
-      
-      // Redirect to bridge immediately - it will handle the OAuth popup on the main domain
+      showMessage('Redirecting to GitHub sign-in…', 'info');
+      const returnTo = sessionStorage.getItem('gr.returnTo') || getReturnUrl();
       const bridgeUrl = new URL(getBridgeUrl());
       bridgeUrl.hash = `provider=github_oauth_popup&return=${encodeURIComponent(returnTo)}`;
-      console.log('[Auth] Redirecting to bridge for OAuth popup...');
-      
       location.replace(bridgeUrl.toString());
     } catch (err) {
       console.error('[Auth] GitHub sign-in error:', err);
@@ -264,20 +269,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (guestBtn) {
     guestBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      if (!firebaseReady) return showMessage('Loading auth…', 'info');
-      
       try {
-        // Import signInAnonymously
-        const { signInAnonymously } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-        
-        showMessage('Signing in as guest...', 'info');
-        
-        // Sign in anonymously on auth subdomain
-        await signInAnonymously(window.firebaseAuth);
+        showMessage('Signing in as guest…', 'info');
+        const auth = await getFirebaseAuth();
+        if (!auth) return;
+        const { signInAnonymously } = await import(FIREBASE_CDN + 'firebase-auth.js');
+        await signInAnonymously(auth);
         
         // Get the return URL from sessionStorage (saved when page loaded)
         const returnTo = sessionStorage.getItem('gr.returnTo') || '/';
-        console.log('[Auth] Return URL to pass to bridge:', returnTo);
         
         // For anonymous sign-in, pass the return URL
         const bridgeUrl = new URL(getBridgeUrl());
