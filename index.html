@@ -17,12 +17,17 @@
         (function(){
             var l = document.createElement('link');
             l.rel = 'stylesheet';
-            var host = location.hostname || '';
-            if (host === 'admin.glitchrealm.ca' || host.endsWith('.admin.glitchrealm.ca') || host.startsWith('admin.')) {
-                l.href = '/admin.css';
-            } else {
-                l.href = '/subdomains/admin/admin.css';
-            }
+            // Try subdomain-friendly path first, fall back to folder path
+            var primary = '/admin.css';
+            var fallback = '/subdomains/admin/admin.css';
+            l.href = primary;
+            l.onerror = function(){
+                if (l.href.indexOf(fallback) === -1) l.href = fallback;
+            };
+            // In case the server returns 200 but wrong content-type, probe with fetch and fallback on 404
+            fetch(primary, { method: 'HEAD' }).then(function(res){
+                if (!res.ok) l.href = fallback;
+            }).catch(function(){ l.href = fallback; });
             document.head.appendChild(l);
         })();
     </script>
@@ -455,13 +460,16 @@
         (function(){
             var s = document.createElement('script');
             s.defer = true;
-            var host = location.hostname || '';
-            if (host === 'admin.glitchrealm.ca' || host.endsWith('.admin.glitchrealm.ca') || host.startsWith('admin.')) {
-                s.src = '/admin.js';
-            } else {
-                s.src = '/subdomains/admin/admin.js';
-            }
-            document.body.appendChild(s);
+            var primary = '/admin.js';
+            var fallback = '/subdomains/admin/admin.js';
+            s.src = primary;
+            s.onerror = function(){
+                if (s.src.indexOf(fallback) === -1) s.src = fallback;
+            };
+            // Probe primary path with HEAD; if missing, switch to fallback before appending
+            fetch(primary, { method: 'HEAD' }).then(function(res){
+                if (!res.ok) s.src = fallback;
+            }).catch(function(){ s.src = fallback; }).finally(function(){ document.body.appendChild(s); });
         })();
     </script>
 </body>
