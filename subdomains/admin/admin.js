@@ -955,7 +955,9 @@ async function loadMaintenance() {
         document.getElementById('maint-bypass').value = (d.allowedPaths || []).filter(p => p !== '/maintenance.html').join(', ');
         if (d.expiresAt) {
             const dt = d.expiresAt.toDate ? d.expiresAt.toDate() : new Date(d.expiresAt);
-            document.getElementById('maint-expires').value = dt.toISOString().slice(0, 16);
+            const pad = n => String(n).padStart(2, '0');
+            document.getElementById('maint-expires').value =
+                `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
         } else {
             document.getElementById('maint-expires').value = '';
         }
