@@ -31,6 +31,7 @@ async function init() {
 function handleLogin(e) {
     e.preventDefault();
     const uidInput = document.getElementById('login-uid').value.trim();
+    const password = (document.getElementById('login-password') && document.getElementById('login-password').value) || '';
     const errorEl = document.getElementById('login-error');
 
     errorEl.style.display = 'none';
@@ -41,17 +42,68 @@ function handleLogin(e) {
         return;
     }
 
-    // UID valid — grant access
-    currentUser = { uid: uidInput };
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('access-denied').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'flex';
+    // Require a password so we can create a Firebase auth session (needed for Firestore permissions)
+    if (!password) {
+        errorEl.textContent = 'Please enter your password.';
+        errorEl.style.display = 'block';
+        return;
+    }
 
-    document.getElementById('admin-name').textContent = 'Admin';
-    document.getElementById('admin-avatar').textContent = 'A';
+    (async () => {
+        try {
+            // Ensure Firebase helpers are ready
+            await waitForFirebase();
 
-    setupNavigation();
-    loadDashboard();
+            // Lookup the user's email from the users collection (doc id = uid)
+            const userDocSnap = await window.firestoreGetDoc(docRef('users', uidInput));
+            if (!userDocSnap || !userDocSnap.exists()) {
+                errorEl.textContent = 'User record not found.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const userData = userDocSnap.data();
+            const email = userData && (userData.email || userData.emailAddress || userData.email_address);
+            if (!email) {
+                errorEl.textContent = 'No email associated with this UID.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Import signInWithEmailAndPassword dynamically (Firebase auth helper)
+            const authMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { signInWithEmailAndPassword, signOut } = authMod;
+
+            // Attempt sign-in to establish Firebase auth session
+            await signInWithEmailAndPassword(window.firebaseAuth, email, password);
+
+            // Ensure current user is the expected admin
+            const activeUser = window.currentFirebaseUser || (window.firebaseAuth && window.firebaseAuth.currentUser);
+            if (!activeUser || !DEV_UIDS.has(activeUser.uid)) {
+                // Unexpected: sign-in succeeded but user isn't in DEV_UIDS
+                try { await signOut(window.firebaseAuth); } catch(e){}
+                errorEl.textContent = 'Signed in but not authorized as admin.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Authenticated and authorized — show admin UI
+            currentUser = { uid: activeUser.uid, email: activeUser.email };
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('access-denied').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'flex';
+            document.getElementById('admin-name').textContent = activeUser.displayName || 'Admin';
+            document.getElementById('admin-avatar').textContent = (activeUser.displayName || 'A').charAt(0).toUpperCase();
+
+            setupNavigation();
+            loadDashboard();
+
+        } catch (err) {
+            console.error('Login error:', err);
+            errorEl.textContent = err && err.message ? err.message : 'Authentication failed.';
+            errorEl.style.display = 'block';
+        }
+    })();
 }
 
 // ================================================================
