@@ -20,6 +20,7 @@
     }
 
     await waitForFirebase();
+    console.info('[Site Banners] firebase ready, initializing banner loader');
 
     // Get Firestore instance
     let db, collection, query, where, getDocs, orderBy, Timestamp;
@@ -51,90 +52,133 @@
             collection(db, 'site_banners'),
             where('active', '==', true)
         );
-        const snap = await getDocs(q);
 
-        if (snap.empty) return;
-
-        const now = new Date();
-        const banners = [];
-
-        snap.forEach(doc => {
-            const data = doc.data();
-            // Skip expired banners
-            if (data.expiresAt) {
-                const expires = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt);
-                if (expires <= now) return;
-            }
-            // Skip banners the user already dismissed (stored in localStorage)
-            const dismissedKey = 'gr_banner_' + doc.id;
-            if (data.dismissible && localStorage.getItem(dismissedKey)) return;
-
-            banners.push({ id: doc.id, ...data });
-        });
-
-        if (banners.length === 0) return;
-
-        // Inject banner CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            #gr-banner-container{position:fixed;top:0;left:0;width:100%;z-index:1001}
-            .gr-site-banner{position:relative;width:100%;padding:10px 40px 10px 16px;font-family:Rajdhani,-apple-system,BlinkMacSystemFont,sans-serif;font-size:.88rem;font-weight:600;text-align:center;animation:grBannerSlide .3s ease}
-            .gr-site-banner a{color:inherit;text-decoration:underline;margin-left:6px}
-            .gr-site-banner a:hover{opacity:.85}
-            .gr-site-banner .gr-banner-close{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:inherit;font-size:1.2rem;cursor:pointer;opacity:.7;padding:4px 8px;line-height:1}
-            .gr-site-banner .gr-banner-close:hover{opacity:1}
-            .gr-banner-info{background:rgba(0,212,255,0.12);border-bottom:1px solid rgba(0,212,255,0.3);color:#00d4ff}
-            .gr-banner-warning{background:rgba(255,184,0,0.12);border-bottom:1px solid rgba(255,184,0,0.3);color:#ffb800}
-            .gr-banner-error{background:rgba(255,71,87,0.12);border-bottom:1px solid rgba(255,71,87,0.3);color:#ff4757}
-            .gr-banner-success{background:rgba(0,255,65,0.08);border-bottom:1px solid rgba(0,255,65,0.3);color:#00ff41}
-            @keyframes grBannerSlide{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
-        `;
-        document.head.appendChild(style);
-
-        // Create a fixed container for all banners
-        const container = document.createElement('div');
-        container.id = 'gr-banner-container';
-
-        banners.forEach(b => {
-            const el = document.createElement('div');
-            el.className = `gr-site-banner gr-banner-${b.type || 'info'}`;
-            el.setAttribute('role', 'alert');
-
-            let inner = escapeText(b.message);
-            if (b.linkUrl && b.linkText) {
-                inner += ` <a href="${escapeAttr(b.linkUrl)}" target="_blank" rel="noopener">${escapeText(b.linkText)}</a>`;
-            }
-
-            if (b.dismissible) {
-                inner += `<button class="gr-banner-close" aria-label="Dismiss" data-id="${b.id}">&times;</button>`;
-            }
-
-            el.innerHTML = inner;
-            container.appendChild(el);
-        });
-
-        // Insert fixed container at very top of body
-        document.body.insertBefore(container, document.body.firstChild);
-
-        // Push the fixed nav down by the banner container height
-        function adjustNavTop() {
-            const h = container.offsetHeight;
-            const nav = document.querySelector('.nav, nav, header.nav');
-            if (nav) nav.style.top = h + 'px';
+        // Prefer global onSnapshot if available (set by firebase-core), otherwise use modular onSnapshot
+        const onSnapshotFn = window.firestoreOnSnapshot || mod.onSnapshot;
+        if (!onSnapshotFn) {
+            // Fallback to one-time fetch if realtime isn't available
+            const snap = await getDocs(q);
+            console.info('[Site Banners] realtime onSnapshot unavailable, performed one-time fetch, docs=', snap.size);
+            renderSnapshot(snap);
+            return;
         }
 
-        // Run after paint so offsetHeight is accurate
-        requestAnimationFrame(adjustNavTop);
-
-        // Dismiss handlers
-        document.querySelectorAll('.gr-banner-close').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const id = this.dataset.id;
-                localStorage.setItem('gr_banner_' + id, '1');
-                this.parentElement.remove();
-                requestAnimationFrame(adjustNavTop);
-            });
+        // Keep a live subscription so banners update immediately when admins change them
+        const unsubscribe = onSnapshotFn(q, (snap) => {
+            console.info('[Site Banners] received snapshot, docs=', snap.size);
+            renderSnapshot(snap);
+        }, (err) => {
+            console.warn('[Site Banners] onSnapshot error:', err);
         });
+
+        // Save unsubscribe for debugging if needed
+        window.__gr_banner_unsubscribe = unsubscribe;
+
+        // Render helper used for both snapshot and one-time fetch
+        function renderSnapshot(snap) {
+                if (!snap || snap.empty) { console.info('[Site Banners] snapshot empty - clearing banners'); removeBannerContainer(); return; }
+
+                const now = new Date();
+                const banners = [];
+                let skipped = 0;
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    // Provide debug info per doc
+                    console.debug('[Site Banners] doc', doc.id, data);
+
+                    // Skip expired banners
+                    if (data.expiresAt) {
+                        const expires = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt);
+                        if (expires <= now) { console.info('[Site Banners] skipping expired banner', doc.id, expires); skipped++; return; }
+                    }
+                    // Skip banners the user already dismissed (stored in localStorage)
+                    const dismissedKey = 'gr_banner_' + doc.id;
+                    if (data.dismissible && localStorage.getItem(dismissedKey)) { console.info('[Site Banners] skipping dismissed banner', doc.id); skipped++; return; }
+
+                    banners.push({ id: doc.id, ...data });
+                });
+
+                if (banners.length === 0) { console.info('[Site Banners] no active banners after filtering (skipped=', skipped,')'); removeBannerContainer(); return; }
+                console.info('[Site Banners] rendering', banners.length, 'banners (skipped=', skipped,')');
+
+            // Inject banner CSS if not present
+            let style = document.getElementById('gr-banner-style');
+            if (!style) {
+                style = document.createElement('style');
+                style.id = 'gr-banner-style';
+                style.textContent = `
+            #gr-banner-container{position:fixed;top:0;left:0;width:100%;z-index:1001}
+            .gr-site-banner{position:relative;width:100%;padding:10px 40px 10px 16px;font-family:Rajdhani,-apple-system,BlinkMacSystemFont,sans-serif;font-size:.88rem;font-weight:700;text-align:center;animation:grBannerSlide .3s ease}
+            .gr-site-banner a{color:inherit;text-decoration:underline;margin-left:6px}
+            .gr-site-banner a:hover{opacity:.95}
+            .gr-site-banner .gr-banner-close{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:inherit;font-size:1.2rem;cursor:pointer;opacity:.9;padding:4px 8px;line-height:1}
+            .gr-site-banner .gr-banner-close:hover{opacity:1}
+            /* Opaque solid backgrounds for strong visibility */
+            .gr-banner-info{background:#00d4ff;color:#00121a;border-bottom:1px solid rgba(0,0,0,0.08)}
+            .gr-banner-warning{background:#ffb800;color:#111;border-bottom:1px solid rgba(0,0,0,0.08)}
+            .gr-banner-error{background:#ff4757;color:#fff;border-bottom:1px solid rgba(0,0,0,0.08)}
+            .gr-banner-success{background:#00ff41;color:#062006;border-bottom:1px solid rgba(0,0,0,0.08)}
+            @keyframes grBannerSlide{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+        `;
+                document.head.appendChild(style);
+            }
+
+            // Create or update fixed container for all banners
+            let container = document.getElementById('gr-banner-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'gr-banner-container';
+                document.body.insertBefore(container, document.body.firstChild);
+            }
+
+            // Clear existing children and repopulate
+            container.innerHTML = '';
+            banners.forEach(b => {
+                const el = document.createElement('div');
+                el.className = `gr-site-banner gr-banner-${b.type || 'info'}`;
+                el.setAttribute('role', 'alert');
+
+                let inner = escapeText(b.message);
+                if (b.linkUrl && b.linkText) {
+                    inner += ` <a href="${escapeAttr(b.linkUrl)}" target="_blank" rel="noopener">${escapeText(b.linkText)}</a>`;
+                }
+
+                if (b.dismissible) {
+                    inner += `<button class="gr-banner-close" aria-label="Dismiss" data-id="${b.id}">&times;</button>`;
+                }
+
+                el.innerHTML = inner;
+                container.appendChild(el);
+            });
+
+            // Push the fixed nav down by the banner container height
+            function adjustNavTop() {
+                const h = container.offsetHeight;
+                const nav = document.querySelector('.nav, nav, header.nav');
+                if (nav) nav.style.top = h + 'px';
+            }
+
+            // Run after paint so offsetHeight is accurate
+            requestAnimationFrame(adjustNavTop);
+
+            // Dismiss handlers
+            container.querySelectorAll('.gr-banner-close').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    localStorage.setItem('gr_banner_' + id, '1');
+                    this.parentElement.remove();
+                    requestAnimationFrame(adjustNavTop);
+                });
+            });
+        }
+
+        function removeBannerContainer() {
+            const existing = document.getElementById('gr-banner-container');
+            if (existing) existing.remove();
+            const nav = document.querySelector('.nav, nav, header.nav');
+            if (nav) nav.style.top = '';
+        }
     } catch (e) {
         console.warn('[Site Banners] Failed to load banners:', e);
     }
