@@ -55,19 +55,34 @@ function handleLogin(e) {
             await waitForFirebase();
 
             // Lookup the user's email from the users collection (doc id = uid)
-            const userDocSnap = await window.firestoreGetDoc(docRef('users', uidInput));
-            if (!userDocSnap || !userDocSnap.exists()) {
-                errorEl.textContent = 'User record not found.';
-                errorEl.style.display = 'block';
-                return;
+            let email = null;
+            try {
+                const userDocSnap = await window.firestoreGetDoc(docRef('users', uidInput));
+                if (userDocSnap && userDocSnap.exists && userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    email = userData && (userData.email || userData.emailAddress || userData.email_address);
+                } else {
+                    // Not found — we'll fallback to asking for email
+                    email = null;
+                }
+            } catch (lookupErr) {
+                // Firestore read may be blocked by security rules if unauthenticated.
+                // Fall back to asking the admin for their email so we can sign in.
+                console.warn('UID lookup failed (may be permission issue), falling back to email input', lookupErr);
+                email = null;
             }
 
-            const userData = userDocSnap.data();
-            const email = userData && (userData.email || userData.emailAddress || userData.email_address);
+            // If we couldn't derive email from UID, require the email input from the user
             if (!email) {
-                errorEl.textContent = 'No email associated with this UID.';
-                errorEl.style.display = 'block';
-                return;
+                // Reveal email input field in the login form
+                try { document.getElementById('login-email-field').style.display = 'block'; } catch(e){}
+                const providedEmail = (document.getElementById('login-email') && document.getElementById('login-email').value.trim()) || '';
+                if (!providedEmail) {
+                    errorEl.textContent = 'Unable to look up email for this UID. Please enter the admin email below and try again.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                email = providedEmail;
             }
 
             // Import signInWithEmailAndPassword dynamically (Firebase auth helper)
