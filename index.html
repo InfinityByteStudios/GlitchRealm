@@ -188,6 +188,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                     Reports
                 </button>
+                <button class="nav-item" data-section="maintenance">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                    Maintenance
+                </button>
                 <button class="nav-item" data-section="database">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
                     Database
@@ -411,6 +415,51 @@
                     </div>
                 </div>
                 <div id="reports-list" class="items-list"><div class="loading-placeholder">Loading...</div></div>
+            </section>
+
+            <!-- Section: Maintenance Mode -->
+            <section id="sec-maintenance" class="content-section">
+                <div class="banner-creator">
+                    <h3>Site Maintenance Mode</h3>
+                    <p class="subtle-text">When enabled, all non-admin visitors will be redirected to a maintenance page with your custom message.</p>
+
+                    <div style="display:flex;align-items:center;gap:14px;margin:18px 0;">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;">
+                            <input type="checkbox" id="maint-enabled" style="width:18px;height:18px;accent-color:var(--accent,#00fff9);">
+                            Enabled
+                        </label>
+                        <span id="maint-badge" style="padding:3px 10px;border-radius:4px;font-size:.8rem;font-weight:700;"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="maint-title">Title</label>
+                            <input type="text" id="maint-title" placeholder="e.g. Scheduled Maintenance" maxlength="120">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="maint-message">Message</label>
+                            <textarea id="maint-message" rows="4" maxlength="2000" placeholder="The message visitors will see on the maintenance page"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row two-col">
+                        <div class="form-field">
+                            <label for="maint-expires">Expected End (optional)</label>
+                            <input type="datetime-local" id="maint-expires">
+                        </div>
+                        <div class="form-field">
+                            <label for="maint-bypass">Bypass Paths (comma-separated)</label>
+                            <input type="text" id="maint-bypass" placeholder="/admin, /developer-dashboard">
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:12px;margin-top:8px;align-items:center;">
+                        <button class="btn-primary" id="maint-save-btn">Save</button>
+                        <button class="btn-secondary" id="maint-clear-btn">Disable &amp; Clear</button>
+                        <span id="maint-status" style="font-size:.9rem;"></span>
+                    </div>
+                </div>
             </section>
 
             <!-- Section: Database Browser -->

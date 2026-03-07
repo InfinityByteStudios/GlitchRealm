@@ -231,6 +231,7 @@ function loadSection(name) {
         case 'community': loadCommunity(); break;
         case 'banners': loadBanners(); break;
         case 'reports': loadReports(); break;
+        case 'maintenance': loadMaintenance(); break;
     }
 }
 
@@ -934,6 +935,100 @@ window.deleteItem = async function(collectionName, id, name) {
         showToast('Delete failed: ' + err.message, 'error');
     }
 };
+
+// ================================================================
+// MAINTENANCE MODE
+// ================================================================
+async function loadMaintenance() {
+    const badge = document.getElementById('maint-badge');
+    try {
+        const snap = await window.firestoreGetDoc(window.firestoreDoc(db(), 'site_config', 'maintenance'));
+        if (!snap.exists()) {
+            badge.textContent = 'NOT SET';
+            badge.style.background = '#333'; badge.style.color = '#888';
+            return;
+        }
+        const d = snap.data();
+        document.getElementById('maint-enabled').checked = !!d.enabled;
+        document.getElementById('maint-title').value = d.title || '';
+        document.getElementById('maint-message').value = d.message || '';
+        document.getElementById('maint-bypass').value = (d.allowedPaths || []).filter(p => p !== '/maintenance.html').join(', ');
+        if (d.expiresAt) {
+            const dt = d.expiresAt.toDate ? d.expiresAt.toDate() : new Date(d.expiresAt);
+            document.getElementById('maint-expires').value = dt.toISOString().slice(0, 16);
+        } else {
+            document.getElementById('maint-expires').value = '';
+        }
+        if (d.enabled) {
+            badge.textContent = 'ACTIVE'; badge.style.background = '#ff4757'; badge.style.color = '#fff';
+        } else {
+            badge.textContent = 'OFF'; badge.style.background = '#1a3a1a'; badge.style.color = '#00ff41';
+        }
+    } catch (err) {
+        showToast('Failed to load maintenance settings', 'error');
+    }
+}
+
+document.getElementById('maint-save-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('maint-status');
+    statusEl.textContent = 'Saving...';
+    statusEl.style.color = '';
+
+    const enabled = document.getElementById('maint-enabled').checked;
+    const title = document.getElementById('maint-title').value.trim();
+    const message = document.getElementById('maint-message').value.trim();
+    const expiresVal = document.getElementById('maint-expires').value;
+    const bypassPaths = document.getElementById('maint-bypass').value.split(',').map(s => s.trim()).filter(Boolean);
+
+    const payload = {
+        enabled,
+        title: title || 'Under Maintenance',
+        message: message || 'We are performing scheduled maintenance. Please check back shortly.',
+        allowedPaths: ['/maintenance.html', ...bypassPaths],
+        allowedUids: Array.from(DEV_UIDS),
+        updatedAt: window.firestoreServerTimestamp(),
+        updatedBy: currentUser ? currentUser.uid : null
+    };
+
+    if (expiresVal) {
+        payload.expiresAt = new Date(expiresVal);
+    } else {
+        try {
+            const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            payload.expiresAt = mod.deleteField();
+        } catch (e) { payload.expiresAt = null; }
+    }
+
+    try {
+        await window.firestoreSetDoc(window.firestoreDoc(db(), 'site_config', 'maintenance'), payload, { merge: true });
+        showToast(enabled ? 'Maintenance mode ENABLED' : 'Maintenance settings saved', enabled ? 'error' : 'success');
+        statusEl.textContent = '';
+        loadMaintenance();
+    } catch (err) {
+        showToast('Save failed: ' + err.message, 'error');
+        statusEl.textContent = 'Save failed.';
+        statusEl.style.color = '#ff4757';
+    }
+});
+
+document.getElementById('maint-clear-btn').addEventListener('click', async () => {
+    try {
+        await window.firestoreSetDoc(window.firestoreDoc(db(), 'site_config', 'maintenance'), {
+            enabled: false,
+            updatedAt: window.firestoreServerTimestamp(),
+            updatedBy: currentUser ? currentUser.uid : null
+        }, { merge: true });
+        document.getElementById('maint-enabled').checked = false;
+        document.getElementById('maint-title').value = '';
+        document.getElementById('maint-message').value = '';
+        document.getElementById('maint-expires').value = '';
+        document.getElementById('maint-bypass').value = '';
+        showToast('Maintenance mode disabled', 'success');
+        loadMaintenance();
+    } catch (err) {
+        showToast('Failed to disable: ' + err.message, 'error');
+    }
+});
 
 // ================================================================
 // BOOT
