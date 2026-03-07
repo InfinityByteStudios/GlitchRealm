@@ -63,7 +63,44 @@
             font-family: 'Rajdhani', sans-serif;
             font-size: 0.95rem;
             color: var(--primary-magenta, #ff0080);
+            margin: 0 0 12px;
+        }
+
+        .countdown-wrap {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
             margin: 0 0 32px;
+        }
+
+        .countdown-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 62px;
+        }
+
+        .countdown-box .cd-num {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-cyan, #00fff9);
+            background: rgba(0, 255, 249, 0.06);
+            border: 1px solid rgba(0, 255, 249, 0.15);
+            border-radius: 6px;
+            padding: 8px 12px;
+            min-width: 56px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .countdown-box .cd-label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #6b8a8e;
+            margin-top: 6px;
         }
 
         .maintenance-home-link {
@@ -116,6 +153,12 @@
             Please check back shortly.
         </p>
         <p class="maintenance-eta" id="m-eta"></p>
+        <div class="countdown-wrap" id="m-countdown" style="display:none;">
+            <div class="countdown-box"><span class="cd-num" id="cd-d">00</span><span class="cd-label">Days</span></div>
+            <div class="countdown-box"><span class="cd-num" id="cd-h">00</span><span class="cd-label">Hours</span></div>
+            <div class="countdown-box"><span class="cd-num" id="cd-m">00</span><span class="cd-label">Min</span></div>
+            <div class="countdown-box"><span class="cd-num" id="cd-s">00</span><span class="cd-label">Sec</span></div>
+        </div>
         <a href="/" class="maintenance-home-link">Try Again</a>
     </main>
 
@@ -150,11 +193,39 @@
                         : new Date(data.expiresAt);
                     document.getElementById('m-eta').textContent =
                         'Expected back: ' + dt.toLocaleString();
+                    startCountdown(dt);
                 }
             } catch (e) {
                 console.warn('[Maintenance Page] Could not load details:', e);
             }
         }
+        function startCountdown(target) {
+            const wrap = document.getElementById('m-countdown');
+            const dEl = document.getElementById('cd-d');
+            const hEl = document.getElementById('cd-h');
+            const mEl = document.getElementById('cd-m');
+            const sEl = document.getElementById('cd-s');
+            wrap.style.display = 'flex';
+
+            function tick() {
+                const diff = target - Date.now();
+                if (diff <= 0) {
+                    dEl.textContent = '00'; hEl.textContent = '00';
+                    mEl.textContent = '00'; sEl.textContent = '00';
+                    document.getElementById('m-eta').textContent = 'Maintenance should be complete — refreshing…';
+                    setTimeout(() => { window.location.href = '/'; }, 3000);
+                    return;
+                }
+                const s = Math.floor(diff / 1000);
+                dEl.textContent = String(Math.floor(s / 86400)).padStart(2, '0');
+                hEl.textContent = String(Math.floor((s % 86400) / 3600)).padStart(2, '0');
+                mEl.textContent = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+                sEl.textContent = String(s % 60).padStart(2, '0');
+                requestAnimationFrame(() => setTimeout(tick, 1000));
+            }
+            tick();
+        }
+
         loadMaintenanceInfo();
     </script>
 </body>
