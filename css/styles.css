@@ -1474,6 +1474,7 @@ html {
 /* Hero Section */
 .hero {
     padding: 4rem 0;
+    padding-top: calc(4rem + 80px);
     text-align: center;
     background: linear-gradient(135deg, rgba(0, 255, 249, 0.1), rgba(255, 0, 128, 0.1));
 }

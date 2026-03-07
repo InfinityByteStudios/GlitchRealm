@@ -6,27 +6,27 @@
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-# Game assets - long cache with immutable
+# Game assets - revalidate to pick up game updates
 /Games/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: no-cache
   X-Content-Type-Options: nosniff
 
-# JavaScript files - medium cache
+# JavaScript files - always revalidate
 /*.js
-  Cache-Control: public, max-age=86400
+  Cache-Control: no-cache
   X-Content-Type-Options: nosniff
 
 /js/*
-  Cache-Control: public, max-age=86400
+  Cache-Control: no-cache
   X-Content-Type-Options: nosniff
 
-# CSS files - medium cache
+# CSS files - always revalidate
 /*.css
-  Cache-Control: public, max-age=86400
+  Cache-Control: no-cache
   X-Content-Type-Options: nosniff
 
 /css/*
-  Cache-Control: public, max-age=86400
+  Cache-Control: no-cache
   X-Content-Type-Options: nosniff
 
 # Service worker - no cache

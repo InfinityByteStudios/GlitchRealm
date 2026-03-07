@@ -31,6 +31,7 @@ async function init() {
 function handleLogin(e) {
     e.preventDefault();
     const uidInput = document.getElementById('login-uid').value.trim();
+    const password = (document.getElementById('login-password') && document.getElementById('login-password').value) || '';
     const errorEl = document.getElementById('login-error');
 
     errorEl.style.display = 'none';
@@ -41,17 +42,83 @@ function handleLogin(e) {
         return;
     }
 
-    // UID valid — grant access
-    currentUser = { uid: uidInput };
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('access-denied').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'flex';
+    // Require a password so we can create a Firebase auth session (needed for Firestore permissions)
+    if (!password) {
+        errorEl.textContent = 'Please enter your password.';
+        errorEl.style.display = 'block';
+        return;
+    }
 
-    document.getElementById('admin-name').textContent = 'Admin';
-    document.getElementById('admin-avatar').textContent = 'A';
+    (async () => {
+        try {
+            // Ensure Firebase helpers are ready
+            await waitForFirebase();
 
-    setupNavigation();
-    loadDashboard();
+            // Lookup the user's email from the users collection (doc id = uid)
+            let email = null;
+            try {
+                const userDocSnap = await window.firestoreGetDoc(docRef('users', uidInput));
+                if (userDocSnap && userDocSnap.exists && userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    email = userData && (userData.email || userData.emailAddress || userData.email_address);
+                } else {
+                    // Not found — we'll fallback to asking for email
+                    email = null;
+                }
+            } catch (lookupErr) {
+                // Firestore read may be blocked by security rules if unauthenticated.
+                // Fall back to asking the admin for their email so we can sign in.
+                console.warn('UID lookup failed (may be permission issue), falling back to email input', lookupErr);
+                email = null;
+            }
+
+            // If we couldn't derive email from UID, require the email input from the user
+            if (!email) {
+                // Reveal email input field in the login form
+                try { document.getElementById('login-email-field').style.display = 'block'; } catch(e){}
+                const providedEmail = (document.getElementById('login-email') && document.getElementById('login-email').value.trim()) || '';
+                if (!providedEmail) {
+                    errorEl.textContent = 'Unable to look up email for this UID. Please enter the admin email below and try again.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                email = providedEmail;
+            }
+
+            // Import signInWithEmailAndPassword dynamically (Firebase auth helper)
+            const authMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { signInWithEmailAndPassword, signOut } = authMod;
+
+            // Attempt sign-in to establish Firebase auth session
+            await signInWithEmailAndPassword(window.firebaseAuth, email, password);
+
+            // Ensure current user is the expected admin
+            const activeUser = window.currentFirebaseUser || (window.firebaseAuth && window.firebaseAuth.currentUser);
+            if (!activeUser || !DEV_UIDS.has(activeUser.uid)) {
+                // Unexpected: sign-in succeeded but user isn't in DEV_UIDS
+                try { await signOut(window.firebaseAuth); } catch(e){}
+                errorEl.textContent = 'Signed in but not authorized as admin.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Authenticated and authorized — show admin UI
+            currentUser = { uid: activeUser.uid, email: activeUser.email };
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('access-denied').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'flex';
+            document.getElementById('admin-name').textContent = activeUser.displayName || 'Admin';
+            document.getElementById('admin-avatar').textContent = (activeUser.displayName || 'A').charAt(0).toUpperCase();
+
+            setupNavigation();
+            loadDashboard();
+
+        } catch (err) {
+            console.error('Login error:', err);
+            errorEl.textContent = err && err.message ? err.message : 'Authentication failed.';
+            errorEl.style.display = 'block';
+        }
+    })();
 }
 
 // ================================================================

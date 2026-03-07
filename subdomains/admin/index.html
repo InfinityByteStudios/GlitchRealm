@@ -13,7 +13,24 @@
     <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
     <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
-    <link rel="stylesheet" href="/subdomains/admin/admin.css">
+    <script>
+        (function(){
+            var l = document.createElement('link');
+            l.rel = 'stylesheet';
+            // Try subdomain-friendly path first, fall back to folder path
+            var primary = '/admin.css';
+            var fallback = '/subdomains/admin/admin.css';
+            l.href = primary;
+            l.onerror = function(){
+                if (l.href.indexOf(fallback) === -1) l.href = fallback;
+            };
+            // In case the server returns 200 but wrong content-type, probe with fetch and fallback on 404
+            fetch(primary, { method: 'HEAD' }).then(function(res){
+                if (!res.ok) l.href = fallback;
+            }).catch(function(){ l.href = fallback; });
+            document.head.appendChild(l);
+        })();
+    </script>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -75,6 +92,14 @@
                 <div class="login-field">
                     <label for="login-uid">Admin UID</label>
                     <input type="text" id="login-uid" placeholder="Paste your Firebase UID" required spellcheck="false" autocomplete="off">
+                </div>
+                <div class="login-field">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Your account password" required autocomplete="new-password">
+                </div>
+                <div class="login-field" id="login-email-field" style="display:none;">
+                    <label for="login-email">Email (if UID lookup fails)</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
                 </div>
                 <div id="login-error" class="login-error" style="display:none;"></div>
                 <button type="submit" class="login-btn" id="login-btn">Authenticate</button>
@@ -439,6 +464,21 @@
         </main>
     </div>
 
-    <script src="/subdomains/admin/admin.js" defer></script>
+    <script>
+        (function(){
+            var s = document.createElement('script');
+            s.defer = true;
+            var primary = '/admin.js';
+            var fallback = '/subdomains/admin/admin.js';
+            s.src = primary;
+            s.onerror = function(){
+                if (s.src.indexOf(fallback) === -1) s.src = fallback;
+            };
+            // Probe primary path with HEAD; if missing, switch to fallback before appending
+            fetch(primary, { method: 'HEAD' }).then(function(res){
+                if (!res.ok) s.src = fallback;
+            }).catch(function(){ s.src = fallback; }).finally(function(){ document.body.appendChild(s); });
+        })();
+    </script>
 </body>
 </html>

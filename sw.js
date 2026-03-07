@@ -1,5 +1,5 @@
 /* GlitchRealm Service Worker - Advanced Optimizations */
-const CACHE_PREFIX = 'gr-v9'; // v9: Fixed caching — scripts now network-first
+const CACHE_PREFIX = 'gr-v11'; // v11: Fix SW intercepting Firebase CDN + auth bridge hang
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 const IMAGE_CACHE = `${CACHE_PREFIX}-images`;
@@ -15,8 +15,8 @@ const PRECACHE_URLS = [
 // External resources we want to cache-fast-path (opaque responses ok)
 const BMC_WIDGET_URL = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js';
 
-// Files that should NEVER be cached (always fetch fresh for auth state)
-const NEVER_CACHE = [
+// Same-origin paths that should NEVER be cached (always fetch fresh)
+const NEVER_CACHE_PATHS = [
   '/subdomains/news/',
   '/subdomains/news/index.html',
   '/subdomains/news/publish.html',
@@ -31,19 +31,18 @@ const NEVER_CACHE = [
   '/js/portal-auth.js',
   '/js/signin.js',
   '/js/auth-redirect-handler.js',
-  '/auth-bridge',
-  'firebase',
-  'firebaseapp.com',
-  'firestore.googleapis.com'
+  '/auth-bridge'
 ];
 
+// Only applied to same-origin requests (cross-origin handled separately)
 function shouldNeverCache(url) {
-  const urlStr = url.toString();
-  return NEVER_CACHE.some(pattern => 
-    urlStr.includes(pattern) || 
-    urlStr.endsWith('.html') ||
-    urlStr.includes('firebase')
-  );
+  const pathname = url.pathname;
+  // Never cache HTML pages
+  if (pathname.endsWith('.html')) return true;
+  // Never cache same-origin firebase scripts (e.g. /js/firebase-core.js)
+  if (pathname.includes('firebase')) return true;
+  // Never cache specific paths
+  return NEVER_CACHE_PATHS.some(pattern => pathname.includes(pattern));
 }
 
 self.addEventListener('install', (event) => {
@@ -70,7 +69,7 @@ self.addEventListener('activate', (event) => {
 async function staleWhileRevalidate(request, cacheName = RUNTIME_CACHE) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
-  const networkPromise = fetch(request).then((response) => {
+  const networkPromise = fetch(request, { cache: 'no-cache' }).then((response) => {
     if (response && response.status === 200 && request.method === 'GET') {
       cache.put(request, response.clone());
     }
@@ -122,7 +121,7 @@ async function networkFirst(request, cacheName = RUNTIME_CACHE, timeout = 3000) 
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    const response = await fetch(request, { signal: controller.signal });
+    const response = await fetch(request, { signal: controller.signal, cache: 'no-cache' });
     clearTimeout(timeoutId);
     if (response && response.status === 200) cache.put(request, response.clone());
     return response;
@@ -140,13 +139,8 @@ self.addEventListener('fetch', (event) => {
   // Bypass non-GET requests
   if (request.method !== 'GET') return;
 
-  // NEVER cache auth-sensitive or HTML files
-  if (shouldNeverCache(url)) {
-    event.respondWith(
-      fetch(request).catch(() => caches.match('/offline.html'))
-    );
-    return;
-  }
+  // --- Cross-origin handling FIRST (before shouldNeverCache) ---
+  // This ensures Firebase CDN (gstatic.com/firebasejs/...) is NOT intercepted
 
   // Cache Google Fonts aggressively (cross-origin allowed)
   if (url.origin === 'https://fonts.gstatic.com') {
@@ -185,8 +179,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Only handle same-origin for the rest
+  // All other cross-origin requests: let the browser handle natively
+  // (Firebase CDN, Firebase APIs, etc. pass through untouched)
   if (url.origin !== self.location.origin) return;
+
+  // --- Same-origin handling ---
+
+  // NEVER cache auth-sensitive or HTML files
+  if (shouldNeverCache(url)) {
+    event.respondWith(
+      fetch(request, { cache: 'no-cache' }).catch(() => caches.match('/offline.html'))
+    );
+    return;
+  }
 
   // HTML/navigation: Network-first with fallback to offline page (don't cache HTML)
   // Handle both `request.destination === 'document'` and navigation-mode requests
@@ -196,7 +201,7 @@ self.addEventListener('fetch', (event) => {
         try {
           // Use navigation preload if available (safe await even if undefined)
           const preload = await (event.preloadResponse || Promise.resolve(null));
-          const response = preload || await fetch(request);
+          const response = preload || await fetch(request, { cache: 'no-cache' });
           // DO NOT cache HTML responses - always fetch fresh for auth state
           return response;
         } catch (e) {
