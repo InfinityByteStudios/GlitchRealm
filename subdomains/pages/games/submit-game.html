@@ -139,6 +139,108 @@
   /* Cover preview styles */
   #submissionCoverPreviewWrap { display:none; margin-top:10px; width:100%; max-width:680px; aspect-ratio:16/9; border:1px solid rgba(255,255,255,.08); border-radius:10px; overflow:hidden; background:#0a0d14; box-shadow:0 2px 10px rgba(0,0,0,.35); }
   #submissionCoverPreview { width:100%; height:100%; object-fit:cover; display:block; background:#000; }
+
+  /* ── Live Card Preview ── */
+  .live-preview-section { margin-top: 18px; }
+  .live-preview-header {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Orbitron', monospace; font-size: .7rem;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(0,255,249,.75); margin-bottom: 14px;
+  }
+  .live-preview-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #00ff41; box-shadow: 0 0 8px rgba(0,255,65,.6);
+    animation: previewDotPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes previewDotPulse {
+    0%,100% { opacity:1; box-shadow: 0 0 8px rgba(0,255,65,.6); }
+    50% { opacity:.5; box-shadow: 0 0 4px rgba(0,255,65,.3); }
+  }
+  .live-preview-card-wrap {
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  /* Game card styles (replicated from games page) */
+  .preview-game-card {
+    background: #1a1a1a; border: 1px solid #2a2a2a;
+    border-radius: 8px; overflow: hidden;
+    transition: all 0.3s ease; position: relative;
+  }
+  .preview-game-card:hover {
+    transform: translateY(-6px);
+    border-color: #00fff9;
+    box-shadow: 0 10px 30px rgba(0,255,249,.25);
+  }
+  .preview-game-card .pv-card-image {
+    height: 200px; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
+  }
+  .preview-game-card .pv-card-image img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .preview-game-card .pv-card-overlay {
+    position: absolute; top:0; left:0; width:100%; height:100%;
+    background: linear-gradient(135deg, rgba(0,255,249,.1), rgba(255,0,128,.1));
+    opacity: 0; transition: opacity .3s ease;
+  }
+  .preview-game-card:hover .pv-card-overlay { opacity: 1; }
+  .preview-game-card .pv-card-content { padding: 1.5rem; }
+  .preview-game-card .pv-card-title {
+    font-family: 'Orbitron', monospace; font-size: 1.3rem;
+    color: #00fff9; margin-bottom: .5rem;
+    word-break: break-word;
+  }
+  .preview-game-card .pv-card-description {
+    color: #ccc; margin-bottom: 1rem; line-height: 1.5;
+    font-size: .95rem; word-break: break-word;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .preview-game-card .pv-card-tags {
+    display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .preview-game-card .pv-tag {
+    background: #2a2a2a; color: #00fff9;
+    padding: .25rem .5rem; font-size: .8rem;
+    border-radius: 4px; border: 1px solid #3a3a3a;
+  }
+  .preview-game-card .pv-badge {
+    position: absolute; top: 10px; left: 10px;
+    color: #fff; padding: .25rem .75rem;
+    font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px;
+    border-radius: 12px; border: 1px solid #00fff9;
+    z-index: 10; font-family: 'Orbitron', monospace;
+    animation: badgePulse 3.5s ease-in-out infinite;
+  }
+  @keyframes badgePulse {
+    0%,100% { transform: scale(1); box-shadow: 0 0 2px #ff0080; }
+    50% { transform: scale(1.005); box-shadow: 0 0 4px #ff0080; }
+  }
+  .preview-game-card .pv-badge.new { background: linear-gradient(45deg, #ff073a, #ff0080); }
+  .preview-game-card .pv-badge.updated { background: linear-gradient(45deg, #00fff9, #8a2be2); }
+  .preview-game-card .pv-badge.beta { background: linear-gradient(45deg, #ff073a, #ff0080); }
+  .preview-game-card .pv-play-btn {
+    width: 100%; text-align: center;
+    font-family: 'Orbitron', monospace; letter-spacing: .75px;
+    font-size: .7rem; padding: 12px 22px; border-radius: 10px;
+    cursor: default; border: 1px solid #00fff9;
+    background: linear-gradient(135deg, rgba(0,255,249,.15), rgba(0,140,255,.15));
+    color: #fff; text-transform: uppercase; font-weight: 700; opacity: .55;
+  }
+  .preview-game-card .pv-card-developer {
+    color: #ff0080; font-size: .9rem; margin-bottom: 1.5rem; font-style: italic;
+  }
+  .preview-game-card .pv-card-developer strong { color: #00fff9; font-weight: 600; }
+  .preview-game-card .pv-placeholder-img {
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    font-size: 2.5rem; color: rgba(0,255,249,.3);
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  }
+  @media (max-width:480px) {
+    .live-preview-card-wrap { max-width: 100%; }
+    .preview-game-card .pv-card-image { height: 160px; }
+  }
   
   /* Success Page Styles */
   .success-card {
@@ -398,6 +500,32 @@
             <option value="beta">BETA</option>
           </select>
         </div>
+
+        <!-- Live Card Preview -->
+        <div class="live-preview-section">
+          <div class="live-preview-header">
+            <span class="live-preview-dot"></span>
+            <span>Live Card Preview</span>
+          </div>
+          <div class="live-preview-card-wrap">
+            <div class="preview-game-card" id="livePreviewCard">
+              <div class="pv-card-image">
+                <div class="pv-placeholder-img" id="previewPlaceholder">🎮</div>
+                <img id="previewCardImage" src="" alt="Cover Preview" style="display:none;">
+                <div class="pv-card-overlay"></div>
+                <div class="pv-badge" id="previewCardBadge" style="display:none;"></div>
+              </div>
+              <div class="pv-card-content">
+                <h3 class="pv-card-title" id="previewCardTitle">Your Game Title</h3>
+                <p class="pv-card-description" id="previewCardDesc">Your game description will appear here...</p>
+                <p class="pv-card-developer">Made by <strong id="previewCardDev">You</strong></p>
+                <div class="pv-card-tags" id="previewCardTags"></div>
+                <button class="pv-play-btn" disabled>Play Now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="next-btn-container">
           <button type="button" id="proceedToExtended" class="btn-next">Next: Extended Details</button>
         </div>
@@ -1073,6 +1201,7 @@
         } else {
           clearPreview();
         }
+        updateLivePreview();
       });
       urlInput?.addEventListener('input', ()=>{
         const val = urlInput.value.trim();
@@ -1081,8 +1210,92 @@
         } else {
           if(!fileInput?.files?.length) clearPreview();
         }
+        updateLivePreview();
       });
-      form.addEventListener('reset', clearPreview);
+      form.addEventListener('reset', ()=>{ clearPreview(); updateLivePreview(); });
+
+      // ── Live Card Preview Logic ──
+      const pvTitle = $('previewCardTitle');
+      const pvDesc = $('previewCardDesc');
+      const pvImage = $('previewCardImage');
+      const pvPlaceholder = $('previewPlaceholder');
+      const pvBadge = $('previewCardBadge');
+      const pvTags = $('previewCardTags');
+      const pvDev = $('previewCardDev');
+      const titleInput = $('submissionTitle');
+      const descInput = $('submissionDescription');
+      const badgeSelect = $('submissionBadge');
+      const tagInputs = [$('tag1'), $('tag2'), $('tag3')];
+
+      // Set developer name from auth when available
+      function setPreviewDev(){
+        const auth = window.firebaseAuth;
+        const user = auth?.currentUser;
+        if(user && pvDev){
+          pvDev.textContent = user.displayName || user.email?.split('@')[0] || 'You';
+        }
+      }
+      // Try immediately and also when auth state changes
+      setPreviewDev();
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js').then(m => {
+        if(window.firebaseAuth) m.onAuthStateChanged(window.firebaseAuth, setPreviewDev);
+      }).catch(()=>{});
+
+      function escapePreview(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+      function updateLivePreview(){
+        // Title
+        if(pvTitle){
+          const t = titleInput?.value.trim();
+          pvTitle.textContent = t || 'Your Game Title';
+        }
+        // Description
+        if(pvDesc){
+          const d = descInput?.value.trim();
+          pvDesc.textContent = d ? d.slice(0, 180) : 'Your game description will appear here...';
+        }
+        // Cover image
+        if(pvImage && pvPlaceholder){
+          const hasFile = fileInput?.files?.length > 0;
+          const hasUrl = /^https?:\/\//i.test(urlInput?.value.trim() || '');
+          if(hasFile){
+            pvImage.src = URL.createObjectURL(fileInput.files[0]);
+            pvImage.style.display = 'block';
+            pvPlaceholder.style.display = 'none';
+          } else if(hasUrl){
+            pvImage.src = urlInput.value.trim();
+            pvImage.style.display = 'block';
+            pvPlaceholder.style.display = 'none';
+          } else {
+            pvImage.style.display = 'none';
+            pvPlaceholder.style.display = 'flex';
+          }
+        }
+        // Badge
+        if(pvBadge){
+          const b = badgeSelect?.value;
+          if(b && ['new','updated','beta'].includes(b)){
+            pvBadge.textContent = b.toUpperCase();
+            pvBadge.className = 'pv-badge ' + b;
+            pvBadge.style.display = '';
+          } else {
+            pvBadge.style.display = 'none';
+          }
+        }
+        // Tags
+        if(pvTags){
+          const tags = tagInputs.map(i => i?.value.trim()).filter(Boolean);
+          pvTags.innerHTML = tags.map(t => '<span class="pv-tag">' + escapePreview(t) + '</span>').join('');
+        }
+      }
+
+      // Attach input listeners for live updates
+      titleInput?.addEventListener('input', updateLivePreview);
+      descInput?.addEventListener('input', updateLivePreview);
+      badgeSelect?.addEventListener('change', updateLivePreview);
+      tagInputs.forEach(i => i?.addEventListener('input', updateLivePreview));
+      // Initialize preview with any pre-filled data (edit mode)
+      updateLivePreview();
       form.addEventListener('submit', async (e)=>{
         e.preventDefault(); 
         

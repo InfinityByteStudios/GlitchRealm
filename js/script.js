@@ -3,8 +3,10 @@
 // Register Service Worker for offline support
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
             .then(function(registration) {
+                // Check for updates on every page load
+                registration.update();
             })
             .catch(function(error) {
             });

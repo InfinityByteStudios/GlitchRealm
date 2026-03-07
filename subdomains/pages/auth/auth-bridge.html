@@ -10,6 +10,25 @@
     h1 { font-size:20px; margin:0 0 8px }
     p { margin:6px 0; color:#9ca3af }
     .muted { font-size:12px; color:#6b7280 }
+    .oauth-prompt { display:none; margin-top:18px; text-align:center; animation: fadeIn .3s ease }
+    .oauth-prompt.visible { display:block }
+    .oauth-prompt p { font-size:14px; color:#9ca3af; margin-bottom:14px }
+    .oauth-btn { display:inline-flex; align-items:center; gap:10px; padding:12px 28px; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; transition: transform .1s, box-shadow .15s }
+    .oauth-btn:hover { transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,255,249,.25) }
+    .oauth-btn:active { transform:translateY(0) }
+    .oauth-btn.google { background:#fff; color:#333 }
+    .oauth-btn.github { background:#24292f; color:#fff }
+    .oauth-btn img { width:20px; height:20px }
+    .trouble-box { display:none; margin-top:16px; padding:14px 16px; background:#1a1a2e; border:1px solid #ff008055; border-radius:10px; }
+    .trouble-box.visible { display:block; animation: fadeIn .3s ease }
+    .trouble-box h2 { font-size:15px; margin:0 0 8px; color:#ff0080 }
+    .trouble-box ul { margin:6px 0 10px; padding-left:18px; font-size:13px; color:#9ca3af; line-height:1.6 }
+    .trouble-box ul li strong { color:#fff }
+    .trouble-btn { display:inline-block; padding:8px 18px; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; margin-right:8px; margin-top:4px; transition: opacity .15s }
+    .trouble-btn:hover { opacity:.85 }
+    .btn-refresh { background:#00fff9; color:#0a0a0a }
+    .btn-back { background:#333; color:#fff }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:translateY(0) } }
   </style>
 </head>
 <body>
@@ -17,6 +36,28 @@
     <h1>Finishing sign-in…</h1>
     <p>Please wait a moment while we complete your login.</p>
     <p class="muted" id="status">Preparing…</p>
+    <!-- OAuth click-through prompt (shown for popup-based flows so browser allows the popup) -->
+    <div class="oauth-prompt" id="oauthPrompt">
+      <p>Click below to open the sign-in window:</p>
+      <button class="oauth-btn google" id="oauthGoogleBtn" style="display:none">
+        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google">
+        Continue with Google
+      </button>
+      <button class="oauth-btn github" id="oauthGithubBtn" style="display:none">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" style="filter:invert(1)">
+        Continue with GitHub
+      </button>
+    </div>
+    <div class="trouble-box" id="trouble">
+      <h2>Having trouble?</h2>
+      <ul>
+        <li>Your browser may have <strong>blocked the sign-in popup</strong>. Check for a popup-blocked icon in your address bar and allow popups for this site.</li>
+        <li>If the page seems stuck, try a <strong>hard refresh</strong> (<kbd>Ctrl + Shift + R</kbd>).</li>
+        <li>Make sure your browser isn't blocking third-party cookies.</li>
+      </ul>
+      <button class="trouble-btn btn-refresh" onclick="location.reload(true)">Hard Refresh</button>
+      <button class="trouble-btn btn-back" onclick="history.back()">Go Back</button>
+    </div>
   </div>
 
   <script type="module">
@@ -24,6 +65,7 @@
     import { getAuth, signInWithCredential, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, GithubAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
     const setStatus = (t) => { const el = document.getElementById('status'); if (el) el.textContent = t; };
+    const showTrouble = () => { const box = document.getElementById('trouble'); if (box) box.classList.add('visible'); };
 
     const firebaseConfig = {
       apiKey: 'AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ',
@@ -115,34 +157,57 @@
         console.log('[Auth Bridge] Starting OAuth sign-in with provider:', provider);
         
         // Handle OAuth popup requests (from auth subdomain redirecting here)
-        if (provider === 'google_oauth_popup') {
-          console.log('[Auth Bridge] Performing Google OAuth popup on main domain...');
-          setStatus('Connecting to Google...');
+        // These MUST be triggered by a user click — browsers block auto-opened popups
+        if (provider === 'google_oauth_popup' || provider === 'github_oauth_popup') {
+          const isGoogle = provider === 'google_oauth_popup';
+          const label = isGoogle ? 'Google' : 'GitHub';
+          console.log(`[Auth Bridge] ${label} OAuth popup requested — showing click-through button`);
+          setStatus(`Click the button below to sign in with ${label}.`);
           
-          const googleProvider = new GoogleAuthProvider();
-          await signInWithPopup(auth, googleProvider);
+          // Show the correct button
+          const prompt = document.getElementById('oauthPrompt');
+          const googleBtn = document.getElementById('oauthGoogleBtn');
+          const githubBtn = document.getElementById('oauthGithubBtn');
+          if (prompt) prompt.classList.add('visible');
+          if (isGoogle && googleBtn) googleBtn.style.display = 'inline-flex';
+          if (!isGoogle && githubBtn) githubBtn.style.display = 'inline-flex';
           
-          console.log('[Auth Bridge] ✓ Google sign-in successful on main domain');
-          setStatus('Sign-in complete! Redirecting...');
+          // The actual signInWithPopup happens on button click (user gesture = popup allowed)
+          const btnToUse = isGoogle ? googleBtn : githubBtn;
+          if (btnToUse) {
+            btnToUse.addEventListener('click', async () => {
+              btnToUse.disabled = true;
+              btnToUse.style.opacity = '0.6';
+              setStatus(`Connecting to ${label}...`);
+              
+              const authProvider = isGoogle ? new GoogleAuthProvider() : new GithubAuthProvider();
+              try {
+                await signInWithPopup(auth, authProvider);
+                console.log(`[Auth Bridge] ${label} sign-in successful on main domain`);
+                setStatus('Sign-in complete! Redirecting...');
+                if (prompt) prompt.classList.remove('visible');
+                
+                const redirectUrl = getRedirectUrl();
+                setTimeout(() => location.replace(redirectUrl), 800);
+              } catch (popupErr) {
+                console.error(`[Auth Bridge] ${label} popup error:`, popupErr.code, popupErr.message);
+                btnToUse.disabled = false;
+                btnToUse.style.opacity = '1';
+                
+                if (popupErr.code === 'auth/popup-blocked') {
+                  setStatus('Popup was blocked by your browser. Please allow popups and try again.');
+                  showTrouble();
+                } else if (popupErr.code === 'auth/popup-closed-by-user' || popupErr.code === 'auth/cancelled-popup-request') {
+                  setStatus(`Popup closed. Click the button to try again.`);
+                } else {
+                  setStatus('Sign-in failed: ' + (popupErr.code || popupErr.message));
+                  showTrouble();
+                }
+              }
+            }, { once: false });
+          }
           
-          const redirectUrl = getRedirectUrl();
-          setTimeout(() => location.replace(redirectUrl), 1000);
-          return true;
-        }
-        
-        if (provider === 'github_oauth_popup') {
-          console.log('[Auth Bridge] Performing GitHub OAuth popup on main domain...');
-          setStatus('Connecting to GitHub...');
-          
-          const githubProvider = new GithubAuthProvider();
-          await signInWithPopup(auth, githubProvider);
-          
-          console.log('[Auth Bridge] ✓ GitHub sign-in successful on main domain');
-          setStatus('Sign-in complete! Redirecting...');
-          
-          const redirectUrl = getRedirectUrl();
-          setTimeout(() => location.replace(redirectUrl), 1000);
-          return true;
+          return true; // Handled — waiting for user click
         }
         
         if (provider === 'google_firebase') {
@@ -279,6 +344,7 @@
         console.error('[Auth Bridge] ✗ Sign-in failed:', e);
         console.error('[Auth Bridge] Error details:', e.code, e.message);
         setStatus('Could not complete sign-in. Error: ' + (e.code || e.message));
+        showTrouble();
       }
       return true;
     }
@@ -310,8 +376,30 @@
 
     window.addEventListener('message', handlePasswordMessage);
 
+    // Show trouble-shooting box if still stuck after 5 seconds
+    const troubleTimer = setTimeout(() => {
+      const statusEl = document.getElementById('status');
+      const currentText = statusEl ? statusEl.textContent : '';
+      // Only show if we haven't successfully signed in
+      if (currentText !== 'Sign-in complete! Redirecting...' && currentText !== 'Signed in. Redirecting…') {
+        const box = document.getElementById('trouble');
+        if (box) box.classList.add('visible');
+      }
+    }, 5000);
+
     // Auto-run hash-based sign-in if present
-    await handleHashSignIn();
+    const signInHandled = await handleHashSignIn();
+
+    // If no hash sign-in was triggered and status is still "Preparing…", show help immediately
+    if (!signInHandled) {
+      const statusEl = document.getElementById('status');
+      if (statusEl && statusEl.textContent === 'Preparing…') {
+        statusEl.textContent = 'No sign-in data found.';
+        const box = document.getElementById('trouble');
+        if (box) box.classList.add('visible');
+        clearTimeout(troubleTimer);
+      }
+    }
   </script>
 </body>
 </html>

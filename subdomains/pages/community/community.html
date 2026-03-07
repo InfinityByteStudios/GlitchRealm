@@ -470,7 +470,7 @@
                 if ('serviceWorker' in navigator) {
                     const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
                     if (!isLocal) {
-                        try { navigator.serviceWorker.register('/sw.js'); } catch(e){}
+                        try { navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(r => r.update()); } catch(e){}
                     }
                 }
                 // Default lazy-loading for images not explicitly opted out

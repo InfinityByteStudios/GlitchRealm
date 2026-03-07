@@ -2,7 +2,7 @@
   "name": "GlitchRealm Games",
   "short_name": "GlitchRealm",
   "description": "Cyberpunk gaming hub: play, track, and explore the Digital Realm.",
-  "start_url": "/index.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#030a14",

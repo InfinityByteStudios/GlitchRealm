@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Control Panel - GlitchRealm</title>
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="/subdomains/admin/admin.css">
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import {
+            getFirestore, collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc,
+            query, where, orderBy, limit, serverTimestamp, onSnapshot, Timestamp, writeBatch
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ",
+            authDomain: "shared-sign-in.firebaseapp.com",
+            projectId: "shared-sign-in",
+            storageBucket: "shared-sign-in.appspot.com",
+            messagingSenderId: "332039027753",
+            appId: "1:332039027753:web:aa7c6877d543bb90363038",
+            measurementId: "G-KK5XVVLMVN"
+        };
+
+        const app = window.firebaseApp || initializeApp(firebaseConfig);
+        const auth = window.firebaseAuth || getAuth(app);
+        const db = getFirestore(app);
+
+        setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+        // Expose globally for admin.js
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firestoreCollection = collection;
+        window.firestoreDoc = doc;
+        window.firestoreGetDocs = getDocs;
+        window.firestoreGetDoc = getDoc;
+        window.firestoreSetDoc = setDoc;
+        window.firestoreUpdateDoc = updateDoc;
+        window.firestoreDeleteDoc = deleteDoc;
+        window.firestoreQuery = query;
+        window.firestoreWhere = where;
+        window.firestoreOrderBy = orderBy;
+        window.firestoreLimit = limit;
+        window.firestoreServerTimestamp = serverTimestamp;
+        window.firestoreOnSnapshot = onSnapshot;
+        window.firestoreTimestamp = Timestamp;
+        window.firestoreWriteBatch = writeBatch;
+        window.dispatchEvent(new Event('firebaseReady'));
+    </script>
+</head>
+<body>
+    <div class="admin-bg"></div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-card">
+            <div class="login-brand">
+                <h1>GlitchRealm</h1>
+                <span>Admin Access</span>
+            </div>
+            <form id="login-form" class="login-form" autocomplete="off" onsubmit="return handleLoginInline(event)">
+                <div class="login-field">
+                    <label for="login-uid">Admin UID</label>
+                    <input type="text" id="login-uid" placeholder="Paste your Firebase UID" required spellcheck="false" autocomplete="off">
+                </div>
+                <div id="login-error" class="login-error" style="display:none;"></div>
+                <button type="submit" class="login-btn" id="login-btn">Authenticate</button>
+            </form>
+            <a href="/" class="login-back">← Back to GlitchRealm</a>
+        </div>
+    </div>
+
+    <!-- Inline login handler — guaranteed to run before any module loads -->
+    <script>
+        function handleLoginInline(e) {
+            e.preventDefault();
+            var DEV_UIDS = [
+                '6iZDTXC78aVwX22qrY43BOxDRLt1',
+                'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+            ];
+            var uid = document.getElementById('login-uid').value.trim();
+            var errorEl = document.getElementById('login-error');
+            errorEl.style.display = 'none';
+
+            if (DEV_UIDS.indexOf(uid) === -1) {
+                errorEl.textContent = 'Invalid admin UID.';
+                errorEl.style.display = 'block';
+                return false;
+            }
+
+            // Valid — pass to admin.js handleLogin or do it directly
+            if (typeof handleLogin === 'function') {
+                handleLogin(e);
+            } else {
+                // Fallback: grant access directly
+                window.__adminUid = uid;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('access-denied').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'flex';
+                document.getElementById('admin-name').textContent = 'Admin';
+                document.getElementById('admin-avatar').textContent = 'A';
+            }
+            return false;
+        }
+    </script>
+
+    <!-- Access Denied -->
+    <div id="access-denied" class="access-denied" style="display:none;">
+        <div class="denied-card">
+            <div class="denied-icon">⛔</div>
+            <h1>Access Denied</h1>
+            <p>You must be an administrator to access this panel.</p>
+            <a href="/" class="btn-back">← Back to GlitchRealm</a>
+        </div>
+    </div>
+
+    <!-- Main Admin Panel -->
+    <div id="admin-panel" class="admin-panel" style="display:none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h1 class="brand-text">GlitchRealm</h1>
+                <span class="brand-sub">Admin Panel</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-section="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </button>
+                <button class="nav-item" data-section="games">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 12h4m2 0h4M6 12a6 6 0 1112 0 6 6 0 01-12 0z"/><circle cx="8" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg>
+                    Game Submissions
+                </button>
+                <button class="nav-item" data-section="news">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h10"/></svg>
+                    News Articles
+                </button>
+                <button class="nav-item" data-section="community">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                    Community Posts
+                </button>
+                <button class="nav-item" data-section="banners">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Site Banners
+                </button>
+                <button class="nav-item" data-section="reports">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    Reports
+                </button>
+                <button class="nav-item" data-section="database">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                    Database
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="admin-user">
+                    <div class="admin-avatar" id="admin-avatar">A</div>
+                    <div class="admin-info">
+                        <span id="admin-name">Admin</span>
+                        <span class="admin-role">Developer</span>
+                    </div>
+                </div>
+                <a href="/" class="sidebar-link">← Back to Site</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle sidebar">
+                    <span></span><span></span><span></span>
+                </button>
+                <h2 id="section-title" class="section-title">Dashboard</h2>
+                <div class="topbar-actions">
+                    <button class="topbar-btn" id="refresh-btn" title="Refresh data">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Toast Notification -->
+            <div id="toast" class="toast"></div>
+
+            <!-- Section: Dashboard -->
+            <section id="sec-dashboard" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon games-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01M8 12H6m4-2v4m6-2h2"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-games">-</span>
+                            <span class="stat-label">Game Submissions</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon news-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h10"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-news">-</span>
+                            <span class="stat-label">News Articles</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon community-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-community">-</span>
+                            <span class="stat-label">Community Posts</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon reports-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-reports">-</span>
+                            <span class="stat-label">Open Reports</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon banners-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-banners">-</span>
+                            <span class="stat-label">Active Banners</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-recent">
+                    <div class="recent-panel">
+                        <h3>Pending Game Approvals</h3>
+                        <div id="dash-pending-games" class="recent-list"><div class="loading-placeholder">Loading...</div></div>
+                    </div>
+                    <div class="recent-panel">
+                        <h3>Recent Reports</h3>
+                        <div id="dash-recent-reports" class="recent-list"><div class="loading-placeholder">Loading...</div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Game Submissions -->
+            <section id="sec-games" class="content-section">
+                <div class="section-controls">
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="games-filter">
+                            <option value="all">All</option>
+                            <option value="draft" selected>Draft (Pending)</option>
+                            <option value="published">Published</option>
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <input type="text" id="games-search" placeholder="Search games...">
+                    </div>
+                </div>
+                <div id="games-list" class="items-grid"><div class="loading-placeholder">Loading...</div></div>
+            </section>
+
+            <!-- Section: News Articles -->
+            <section id="sec-news" class="content-section">
+                <div class="section-controls">
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="news-filter">
+                            <option value="all">All</option>
+                            <option value="draft">Drafts</option>
+                            <option value="published">Published</option>
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <input type="text" id="news-search" placeholder="Search articles...">
+                    </div>
+                </div>
+                <div id="news-list" class="items-grid"><div class="loading-placeholder">Loading...</div></div>
+            </section>
+
+            <!-- Section: Community Posts -->
+            <section id="sec-community" class="content-section">
+                <div class="section-controls">
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="community-filter">
+                            <option value="all">All</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <input type="text" id="community-search" placeholder="Search posts...">
+                    </div>
+                </div>
+                <div id="community-list" class="items-grid"><div class="loading-placeholder">Loading...</div></div>
+            </section>
+
+            <!-- Section: Banners -->
+            <section id="sec-banners" class="content-section">
+                <div class="banner-creator">
+                    <h3>Create Site-Wide Banner</h3>
+                    <p class="subtle-text">Banners appear at the top of every page across the entire site.</p>
+                    <form id="banner-form" class="banner-form">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="banner-message">Message</label>
+                                <input type="text" id="banner-message" placeholder="e.g. Scheduled maintenance tonight at 11 PM EST" maxlength="200" required>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-field">
+                                <label for="banner-type">Type</label>
+                                <select id="banner-type">
+                                    <option value="info">Info (Cyan)</option>
+                                    <option value="warning">Warning (Yellow)</option>
+                                    <option value="error">Error (Red)</option>
+                                    <option value="success">Success (Green)</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="banner-link">Link URL (optional)</label>
+                                <input type="url" id="banner-link" placeholder="https://...">
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-field">
+                                <label for="banner-link-text">Link Text (optional)</label>
+                                <input type="text" id="banner-link-text" placeholder="Learn more" maxlength="50">
+                            </div>
+                            <div class="form-field">
+                                <label for="banner-expires">Expires</label>
+                                <input type="datetime-local" id="banner-expires">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="banner-dismissible" checked>
+                                Users can dismiss this banner
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary">Publish Banner</button>
+                    </form>
+                </div>
+                <div class="divider"></div>
+                <h3>Active Banners</h3>
+                <div id="banners-list" class="items-list"><div class="loading-placeholder">Loading...</div></div>
+            </section>
+
+            <!-- Section: Reports -->
+            <section id="sec-reports" class="content-section">
+                <div class="section-controls">
+                    <div class="filter-group">
+                        <label>Type:</label>
+                        <select id="reports-type-filter">
+                            <option value="all">All</option>
+                            <option value="game">Game Reports</option>
+                            <option value="community">Community Reports</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="reports-status-filter">
+                            <option value="open" selected>Open</option>
+                            <option value="all">All</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="reports-list" class="items-list"><div class="loading-placeholder">Loading...</div></div>
+            </section>
+
+            <!-- Section: Database Browser -->
+            <section id="sec-database" class="content-section">
+                <div class="section-controls">
+                    <div class="filter-group">
+                        <label>Collection:</label>
+                        <select id="db-collection">
+                            <option value="">Select a collection...</option>
+                            <option value="game_submissions">game_submissions</option>
+                            <option value="news_articles">news_articles</option>
+                            <option value="community_posts">community_posts</option>
+                            <option value="reviews">reviews</option>
+                            <option value="verified_users">verified_users</option>
+                            <option value="verified_writers">verified_writers</option>
+                            <option value="verification_requests">verification_requests</option>
+                            <option value="site_banners">site_banners</option>
+                            <option value="notifications">notifications</option>
+                        </select>
+                    </div>
+                    <button class="btn-secondary" id="db-load-btn">Load Collection</button>
+                </div>
+                <div id="db-results" class="db-results"><div class="loading-placeholder">Select a collection and click "Load Collection"</div></div>
+
+                <!-- Document Editor Modal -->
+                <div id="doc-editor-modal" class="modal-overlay" style="display:none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="doc-editor-title">Edit Document</h3>
+                            <button class="modal-close" id="doc-editor-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-field">
+                                <label>Document ID</label>
+                                <input type="text" id="doc-editor-id" readonly>
+                            </div>
+                            <div class="form-field">
+                                <label>JSON Data</label>
+                                <textarea id="doc-editor-json" rows="16" spellcheck="false"></textarea>
+                            </div>
+                            <p class="subtle-text">Edit the JSON above carefully. Timestamps are shown as strings and will be kept as-is unless changed.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-danger" id="doc-editor-delete">Delete Document</button>
+                            <button class="btn-secondary" id="doc-editor-cancel">Cancel</button>
+                            <button class="btn-primary" id="doc-editor-save">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/subdomains/admin/admin.js" defer></script>
+</body>
+</html>

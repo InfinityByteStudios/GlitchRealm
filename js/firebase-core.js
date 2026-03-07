@@ -72,6 +72,13 @@
       _resolveFirebaseReady();
       window.dispatchEvent(new Event('firebaseCoreReady'));
 
+      // Auto-load site banners on every page with Firebase
+      if (!document.querySelector('script[src*="site-banners"]')) {
+        const s = document.createElement('script');
+        s.src = '/js/site-banners.js';
+        document.head.appendChild(s);
+      }
+
       // Set up early auth state listener to ensure state is available ASAP
       onAuthStateChanged(auth, (user) => {
         if (user) {

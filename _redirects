@@ -12,6 +12,9 @@
 # Portal subdomain rewrite - serve the User Portal for portal.glitchrealm.ca
 https://portal.glitchrealm.ca/*  /subdomains/pages/account/user-portal.html  200
 
+# Admin subdomain - serve the Admin Control Panel
+https://admin.glitchrealm.ca/*   /subdomains/admin/:splat  200
+
 # Developers subdomain - serve the Developer API page
 https://developers.glitchrealm.ca/*  /subdomains/developers/:splat  200
 
@@ -86,6 +89,7 @@ https://developers.glitchrealm.ca/*  /subdomains/developers/:splat  200
 /admin-verify-writer                    /subdomains/pages/admin/admin-verify-writer.html   200
 /moderation.html                        /subdomains/pages/admin/moderation.html   200
 /moderation                             /subdomains/pages/admin/moderation.html   200
+/admin-console                          /subdomains/admin/index.html   200
 
 # =============================================================================
 # URL-preserving rewrites - pages/auth/

@@ -745,6 +745,19 @@ service cloud.firestore {
              (!data.keys().hasAny(['description']) || (data.description is string && data.description.size() <= 1000));
     }
 
+    // Validate site banner creation
+    function isValidSiteBanner(data) {
+      return data.keys().hasAll(['message','type','active','dismissible','createdBy']) &&
+             data.message is string && data.message.size() > 0 && data.message.size() <= 200 &&
+             data.type in ['info','warning','error','success'] &&
+             data.active is bool &&
+             data.dismissible is bool &&
+             data.createdBy is string && data.createdBy.size() > 0 &&
+             (!data.keys().hasAny(['linkUrl']) || (data.linkUrl is string && data.linkUrl.size() <= 500)) &&
+             (!data.keys().hasAny(['linkText']) || (data.linkText is string && data.linkText.size() <= 50)) &&
+             (!data.keys().hasAny(['expiresAt']) || data.expiresAt is timestamp);
+    }
+
     // Validate news article creation
     function isValidNewsArticle(data) {
       return data.keys().hasAll(['title','summary','content','authorUid','createdAt','updatedAt','draft']) &&
@@ -898,6 +911,27 @@ service cloud.firestore {
       // Users can delete their own notifications
       allow delete: if request.auth != null && 
                        resource.data.userId == request.auth.uid;
+    }
+
+    // ================================
+    // Site Banners (public announcements)
+    // ================================
+    match /site_banners/{bannerId} {
+      // Anyone can read active banners (no auth required for display)
+      allow read: if true;
+
+      // Only developers can create banners
+      allow create: if request.auth != null &&
+                       isDeveloper(request.auth.uid) &&
+                       isValidSiteBanner(request.resource.data);
+
+      // Only developers can update banners (activate/deactivate)
+      allow update: if request.auth != null &&
+                       isDeveloper(request.auth.uid);
+
+      // Only developers can delete banners
+      allow delete: if request.auth != null &&
+                       isDeveloper(request.auth.uid);
     }
   }
 }

