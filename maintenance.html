@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance - GlitchRealm</title>
+
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/Favicon and Icons/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+
+    <!-- Self-hosted fonts -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
+
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: var(--dark-bg, #0a0a0a);
+            overflow: hidden;
+        }
+
+        .maintenance-wrapper {
+            text-align: center;
+            max-width: 700px;
+            padding: 48px 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .maintenance-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .maintenance-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.2rem;
+            color: var(--primary-cyan, #00fff9);
+            margin: 0 0 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .maintenance-message {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.15rem;
+            color: #b8d4d8;
+            line-height: 1.7;
+            margin: 0 0 24px;
+        }
+
+        .maintenance-eta {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            color: var(--primary-magenta, #ff0080);
+            margin: 0 0 32px;
+        }
+
+        .maintenance-home-link {
+            display: inline-block;
+            padding: 12px 28px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.85rem;
+            color: var(--dark-bg, #0a0a0a);
+            background: var(--primary-cyan, #00fff9);
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: opacity 0.2s;
+        }
+
+        .maintenance-home-link:hover {
+            opacity: 0.85;
+        }
+
+        /* Scanline overlay */
+        .maintenance-wrapper::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 249, 0.015) 2px,
+                rgba(0, 255, 249, 0.015) 4px
+            );
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <main class="maintenance-wrapper" role="main">
+        <div class="maintenance-icon" aria-hidden="true">⚙️</div>
+        <h1 class="maintenance-title" id="m-title">Under Maintenance</h1>
+        <p class="maintenance-message" id="m-message">
+            We're performing scheduled maintenance to improve GlitchRealm.<br>
+            Please check back shortly.
+        </p>
+        <p class="maintenance-eta" id="m-eta"></p>
+        <a href="/" class="maintenance-home-link">Try Again</a>
+    </main>
+
+    <!-- Firebase (needed to read the live maintenance doc) -->
+    <script type="module" src="/js/firebase-core.js"></script>
+
+    <script type="module">
+        // Fetch the maintenance doc and update page content dynamically
+        async function loadMaintenanceInfo() {
+            if (window.firebaseReady) await window.firebaseReady;
+            const db = window.firebaseFirestore;
+            if (!db) return;
+
+            try {
+                const { doc, getDoc } = await import(
+                    'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
+                );
+                const snap = await getDoc(doc(db, 'site_config', 'maintenance'));
+                if (!snap.exists()) return;
+
+                const data = snap.data();
+
+                if (data.title) {
+                    document.getElementById('m-title').textContent = data.title;
+                }
+                if (data.message) {
+                    document.getElementById('m-message').textContent = data.message;
+                }
+                if (data.expiresAt) {
+                    const dt = data.expiresAt.toDate
+                        ? data.expiresAt.toDate()
+                        : new Date(data.expiresAt);
+                    document.getElementById('m-eta').textContent =
+                        'Expected back: ' + dt.toLocaleString();
+                }
+            } catch (e) {
+                console.warn('[Maintenance Page] Could not load details:', e);
+            }
+        }
+        loadMaintenanceInfo();
+    </script>
+</body>
+</html>

@@ -4132,7 +4132,9 @@ body {
     width: 20px;
     height: 20px;
     object-fit: contain;
-    transition: all 0.3s ease;
+    image-rendering: -webkit-optimize-contrast;
+    transform: translateZ(0);
+    transition: filter 0.3s ease;
 }
 
 .netlify-link:hover .netlify-logo {
@@ -5763,4 +5765,32 @@ body {
 .footer .netlify-logo {
     vertical-align: middle;
     margin-right: 0.3rem;
+}
+
+.footer-divider {
+    color: rgba(255, 255, 255, 0.2);
+    margin: 0 4px;
+}
+
+.opensource-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.4);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.opensource-link:hover {
+    color: var(--primary-cyan);
+    transform: translateY(-1px);
+}
+
+.opensource-link .github-logo {
+    transition: all 0.3s ease;
+}
+
+.opensource-link:hover .github-logo {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 249, 0.3));
 }

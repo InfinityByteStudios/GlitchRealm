@@ -914,6 +914,16 @@ service cloud.firestore {
     }
 
     // ================================
+    // Site Config (maintenance mode, etc.)
+    // ================================
+    match /site_config/{configId} {
+      // Anyone can read (maintenance-check.js needs unauthenticated read)
+      allow read: if true;
+      // Only developers/admins can write
+      allow write: if request.auth != null && isDeveloper(request.auth.uid);
+    }
+
+    // ================================
     // Site Banners (public announcements)
     // ================================
     match /site_banners/{bannerId} {
