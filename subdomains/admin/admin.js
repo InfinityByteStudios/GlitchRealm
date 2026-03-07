@@ -971,6 +971,51 @@ async function loadMaintenance() {
     }
 }
 
+// Convert a local 'YYYY-MM-DDTHH:mm' wall time in an IANA time zone to a UTC Date
+function findEpochForLocal(localIso, timeZone) {
+    const [date, time] = (localIso || '').split('T');
+    if (!date || !time) return null;
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, minute] = time.split(':').map(Number);
+    const desired = { year, month, day, hour, minute };
+
+    const fmt = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    const getParts = (epoch) => {
+        const parts = fmt.formatToParts(new Date(epoch));
+        const map = {};
+        for (const p of parts) map[p.type] = p.value;
+        return {
+            year: Number(map.year),
+            month: Number(map.month),
+            day: Number(map.day),
+            hour: Number(map.hour),
+            minute: Number(map.minute)
+        };
+    };
+
+    // Search window: the day range ±24h to safely cover DST transitions
+    const dayStartUtc = Date.UTC(year, month - 1, day, 0, 0);
+    let lo = dayStartUtc - 24 * 3600 * 1000;
+    let hi = dayStartUtc + 24 * 3600 * 1000 + 23 * 60 * 1000;
+
+    while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        const p = getParts(mid);
+        const cmp = (p.year - desired.year) || (p.month - desired.month) || (p.day - desired.day) || (p.hour - desired.hour) || (p.minute - desired.minute);
+        if (cmp === 0) return new Date(mid);
+        if (cmp < 0) lo = mid + 60000; else hi = mid - 60000;
+    }
+    return null;
+}
+
 document.getElementById('maint-save-btn').addEventListener('click', async () => {
     const statusEl = document.getElementById('maint-status');
     statusEl.textContent = 'Saving...';
@@ -993,7 +1038,19 @@ document.getElementById('maint-save-btn').addEventListener('click', async () => 
     };
 
     if (expiresVal) {
-        payload.expiresAt = new Date(expiresVal);
+        // Interpret the input as Calgary time (America/Edmonton) and convert to UTC
+        try {
+            const tz = 'America/Edmonton';
+            const zoned = findEpochForLocal(expiresVal, tz);
+            if (zoned) {
+                payload.expiresAt = zoned;
+            } else {
+                // fallback: treat as local
+                payload.expiresAt = new Date(expiresVal);
+            }
+        } catch (e) {
+            payload.expiresAt = new Date(expiresVal);
+        }
     } else {
         try {
             const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
