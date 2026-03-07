@@ -13,7 +13,19 @@
     <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
     <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
-    <link rel="stylesheet" href="/subdomains/admin/admin.css">
+    <script>
+        (function(){
+            var l = document.createElement('link');
+            l.rel = 'stylesheet';
+            var host = location.hostname || '';
+            if (host === 'admin.glitchrealm.ca' || host.endsWith('.admin.glitchrealm.ca') || host.startsWith('admin.')) {
+                l.href = '/admin.css';
+            } else {
+                l.href = '/subdomains/admin/admin.css';
+            }
+            document.head.appendChild(l);
+        })();
+    </script>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -439,6 +451,18 @@
         </main>
     </div>
 
-    <script src="/subdomains/admin/admin.js" defer></script>
+    <script>
+        (function(){
+            var s = document.createElement('script');
+            s.defer = true;
+            var host = location.hostname || '';
+            if (host === 'admin.glitchrealm.ca' || host.endsWith('.admin.glitchrealm.ca') || host.startsWith('admin.')) {
+                s.src = '/admin.js';
+            } else {
+                s.src = '/subdomains/admin/admin.js';
+            }
+            document.body.appendChild(s);
+        })();
+    </script>
 </body>
 </html>
