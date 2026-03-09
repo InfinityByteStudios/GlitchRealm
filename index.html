@@ -192,6 +192,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
                     Maintenance
                 </button>
+                <button class="nav-item" data-section="effects">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.09 3.41L16 4l-1.41 2.91L18 8l-3.41 1.09L16 12l-2.91-1.41L12 14l-1.09-3.41L8 12l1.41-2.91L6 8l3.41-1.09L8 4l2.91 1.41z"/><path d="M5 17l.5 1.5L7 19l-1.5.5L5 21l-.5-1.5L3 19l1.5-.5z"/><path d="M19 17l.5 1.5L21 19l-1.5.5L19 21l-.5-1.5L17 19l1.5-.5z"/></svg>
+                    Effects
+                </button>
                 <button class="nav-item" data-section="database">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
                     Database
@@ -458,6 +462,67 @@
                         <button class="btn-primary" id="maint-save-btn">Save</button>
                         <button class="btn-secondary" id="maint-clear-btn">Disable &amp; Clear</button>
                         <span id="maint-status" style="font-size:.9rem;"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Seasonal Effects -->
+            <section id="sec-effects" class="content-section">
+                <div class="banner-creator">
+                    <h3>Seasonal Effects</h3>
+                    <p class="subtle-text">Manage falling particle effects across the site. Default presets have suggested dates you can override. Add custom effects with any emoji.</p>
+
+                    <!-- Default Presets -->
+                    <h4 style="margin:20px 0 10px;color:var(--primary-cyan,#00fff9);font-size:.95rem;">Default Presets</h4>
+                    <div id="effects-presets"></div>
+
+                    <!-- Custom Effects -->
+                    <h4 style="margin:24px 0 10px;color:var(--primary-cyan,#00fff9);font-size:.95rem;">Custom Effects</h4>
+                    <div id="effects-custom-list"></div>
+
+                    <!-- Add Custom -->
+                    <div style="margin-top:16px;padding:16px;background:rgba(0,255,249,0.03);border:1px solid rgba(0,255,249,0.1);border-radius:8px;">
+                        <h4 style="margin:0 0 12px;font-size:.9rem;">Add Custom Effect</h4>
+                        <div class="form-row two-col">
+                            <div class="form-field">
+                                <label for="fx-custom-name">Name</label>
+                                <input type="text" id="fx-custom-name" placeholder="e.g. Spring Vibes" maxlength="60">
+                            </div>
+                            <div class="form-field">
+                                <label for="fx-custom-emoji">Emoji / Symbol</label>
+                                <input type="text" id="fx-custom-emoji" placeholder="e.g. 🌸 or ⭐" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-field">
+                                <label for="fx-custom-start">Start Date/Time (Calgary)</label>
+                                <input type="datetime-local" id="fx-custom-start">
+                            </div>
+                            <div class="form-field">
+                                <label for="fx-custom-end">End Date/Time (Calgary)</label>
+                                <input type="datetime-local" id="fx-custom-end">
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-field">
+                                <label for="fx-custom-intensity">Intensity</label>
+                                <select id="fx-custom-intensity">
+                                    <option value="low">Low (~15 particles)</option>
+                                    <option value="medium" selected>Medium (~30 particles)</option>
+                                    <option value="high">High (~50 particles)</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="fx-custom-color">Color (optional)</label>
+                                <input type="color" id="fx-custom-color" value="#ffffff">
+                            </div>
+                        </div>
+                        <button class="btn-primary" id="fx-add-custom-btn" style="margin-top:8px;">Add Effect</button>
+                    </div>
+
+                    <div style="display:flex;gap:12px;margin-top:20px;align-items:center;">
+                        <button class="btn-primary" id="fx-save-btn">Save All Effects</button>
+                        <span id="fx-status" style="font-size:.9rem;"></span>
                     </div>
                 </div>
             </section>
