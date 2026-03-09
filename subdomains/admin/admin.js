@@ -167,7 +167,8 @@ function setupNavigation() {
         community: 'Community Posts',
         banners: 'Site Banners',
         reports: 'Reports',
-        database: 'Database Browser'
+        database: 'Database Browser',
+        effects: 'Seasonal Effects'
     };
 
     navItems.forEach(item => {
@@ -232,6 +233,7 @@ function loadSection(name) {
         case 'banners': loadBanners(); break;
         case 'reports': loadReports(); break;
         case 'maintenance': loadMaintenance(); break;
+        case 'effects': loadEffects(); break;
     }
 }
 
@@ -1086,6 +1088,214 @@ document.getElementById('maint-clear-btn').addEventListener('click', async () =>
         loadMaintenance();
     } catch (err) {
         showToast('Failed to disable: ' + err.message, 'error');
+    }
+});
+
+// ================================================================
+// SEASONAL EFFECTS
+// ================================================================
+const FX_PRESETS = [
+    { id: 'canada-day',   name: 'Canada Day',     emoji: '🍁', defaultStart: '07-01T00:00', defaultEnd: '07-02T23:59', color: '#ff0000', intensity: 'medium' },
+    { id: 'christmas',    name: 'Christmas',       emoji: '❄️', defaultStart: '12-20T00:00', defaultEnd: '12-26T23:59', color: '#ffffff', intensity: 'medium' },
+    { id: 'halloween',    name: 'Halloween',       emoji: '🎃', defaultStart: '10-28T00:00', defaultEnd: '11-01T02:00', color: '#ff8c00', intensity: 'medium' },
+    { id: 'valentines',   name: "Valentine's Day", emoji: '❤️', defaultStart: '02-13T00:00', defaultEnd: '02-15T23:59', color: '#ff1493', intensity: 'low'    },
+    { id: 'new-year',     name: "New Year's",      emoji: '🎆', defaultStart: '12-31T20:00', defaultEnd: '01-01T23:59', color: '#ffd700', intensity: 'high'   },
+    { id: 'st-patricks',  name: "St. Patrick's",   emoji: '☘️', defaultStart: '03-17T00:00', defaultEnd: '03-18T23:59', color: '#00c853', intensity: 'medium' }
+];
+
+let effectsState = { presets: {}, custom: [] };
+
+function fxLocalToStr(dt) {
+    if (!dt) return '';
+    const d = dt.toDate ? dt.toDate() : new Date(dt);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function currentYear() { return new Date().getFullYear(); }
+
+function defaultDatetime(mmddTime, yearOffset) {
+    const y = currentYear() + (yearOffset || 0);
+    return `${y}-${mmddTime}`;
+}
+
+async function loadEffects() {
+    try {
+        const snap = await window.firestoreGetDoc(window.firestoreDoc(db(), 'site_config', 'seasonal_effects'));
+        if (snap.exists()) {
+            const d = snap.data();
+            effectsState.presets = d.presets || {};
+            effectsState.custom = d.custom || [];
+        } else {
+            effectsState = { presets: {}, custom: [] };
+        }
+    } catch (err) {
+        effectsState = { presets: {}, custom: [] };
+    }
+    renderPresets();
+    renderCustomEffects();
+}
+
+function renderPresets() {
+    const container = document.getElementById('effects-presets');
+    container.innerHTML = FX_PRESETS.map(p => {
+        const saved = effectsState.presets[p.id] || {};
+        const enabled = saved.enabled || false;
+        const startVal = saved.startAt ? fxLocalToStr(saved.startAt) : defaultDatetime(p.defaultStart);
+        const endVal = saved.endAt ? fxLocalToStr(saved.endAt) : defaultDatetime(p.defaultEnd, p.id === 'new-year' ? 1 : 0);
+        const intensity = saved.intensity || p.intensity;
+        const emoji = saved.emoji || p.emoji;
+        const color = saved.color || p.color;
+
+        return `
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;margin-bottom:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:6px;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:170px;font-weight:700;">
+                <input type="checkbox" class="fx-preset-enabled" data-id="${p.id}" ${enabled ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent,#00fff9);">
+                <span style="font-size:1.2rem;">${emoji}</span> ${escapeHTML(p.name)}
+            </label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0;">
+                <input type="datetime-local" class="fx-preset-start" data-id="${p.id}" value="${startVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
+                <span style="color:#666;align-self:center;">→</span>
+                <input type="datetime-local" class="fx-preset-end" data-id="${p.id}" value="${endVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
+                <select class="fx-preset-intensity" data-id="${p.id}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
+                    <option value="low" ${intensity==='low'?'selected':''}>Low</option>
+                    <option value="medium" ${intensity==='medium'?'selected':''}>Medium</option>
+                    <option value="high" ${intensity==='high'?'selected':''}>High</option>
+                </select>
+                <input type="text" class="fx-preset-emoji" data-id="${p.id}" value="${emoji}" maxlength="4" style="width:40px;text-align:center;padding:4px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:1.1rem;" title="Change emoji">
+                <input type="color" class="fx-preset-color" data-id="${p.id}" value="${color}" style="width:32px;height:28px;padding:0;border:1px solid #333;border-radius:4px;background:#111;cursor:pointer;" title="Particle color">
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderCustomEffects() {
+    const container = document.getElementById('effects-custom-list');
+    if (effectsState.custom.length === 0) {
+        container.innerHTML = '<p style="color:#666;font-size:.85rem;">No custom effects yet.</p>';
+        return;
+    }
+    container.innerHTML = effectsState.custom.map((c, i) => {
+        const startVal = c.startAt ? fxLocalToStr(c.startAt) : '';
+        const endVal = c.endAt ? fxLocalToStr(c.endAt) : '';
+        return `
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;margin-bottom:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:6px;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:170px;font-weight:700;">
+                <input type="checkbox" class="fx-custom-enabled" data-idx="${i}" ${c.enabled ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent,#00fff9);">
+                <span style="font-size:1.2rem;">${c.emoji || '✨'}</span> ${escapeHTML(c.name || 'Untitled')}
+            </label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0;align-items:center;">
+                <input type="datetime-local" class="fx-custom-start" data-idx="${i}" value="${startVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
+                <span style="color:#666;">→</span>
+                <input type="datetime-local" class="fx-custom-end" data-idx="${i}" value="${endVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
+                <select class="fx-custom-intensity" data-idx="${i}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
+                    <option value="low" ${c.intensity==='low'?'selected':''}>Low</option>
+                    <option value="medium" ${c.intensity==='medium'?'selected':''}>Medium</option>
+                    <option value="high" ${c.intensity==='high'?'selected':''}>High</option>
+                </select>
+                <input type="text" class="fx-custom-emoji-edit" data-idx="${i}" value="${c.emoji || '✨'}" maxlength="4" style="width:40px;text-align:center;padding:4px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:1.1rem;">
+                <input type="color" class="fx-custom-color-edit" data-idx="${i}" value="${c.color || '#ffffff'}" style="width:32px;height:28px;padding:0;border:1px solid #333;border-radius:4px;background:#111;cursor:pointer;">
+                <button class="btn-danger btn-sm" onclick="removeCustomEffect(${i})">✕</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// Add custom effect to local state
+document.getElementById('fx-add-custom-btn').addEventListener('click', () => {
+    const name = document.getElementById('fx-custom-name').value.trim();
+    const emoji = document.getElementById('fx-custom-emoji').value.trim();
+    const startVal = document.getElementById('fx-custom-start').value;
+    const endVal = document.getElementById('fx-custom-end').value;
+    const intensity = document.getElementById('fx-custom-intensity').value;
+    const color = document.getElementById('fx-custom-color').value;
+
+    if (!name) return showToast('Give the effect a name', 'error');
+    if (!emoji) return showToast('Pick an emoji or symbol', 'error');
+    if (!startVal || !endVal) return showToast('Set start and end dates', 'error');
+
+    const tz = 'America/Edmonton';
+    effectsState.custom.push({
+        name,
+        emoji,
+        enabled: true,
+        startAt: findEpochForLocal(startVal, tz) || new Date(startVal),
+        endAt: findEpochForLocal(endVal, tz) || new Date(endVal),
+        intensity,
+        color
+    });
+
+    document.getElementById('fx-custom-name').value = '';
+    document.getElementById('fx-custom-emoji').value = '';
+    document.getElementById('fx-custom-start').value = '';
+    document.getElementById('fx-custom-end').value = '';
+    renderCustomEffects();
+    showToast('Effect added — click Save All to persist', 'info');
+});
+
+window.removeCustomEffect = function(idx) {
+    effectsState.custom.splice(idx, 1);
+    renderCustomEffects();
+    showToast('Effect removed — click Save All to persist', 'info');
+};
+
+// Save all effects to Firestore
+document.getElementById('fx-save-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('fx-status');
+    statusEl.textContent = 'Saving...';
+    statusEl.style.color = '';
+
+    const tz = 'America/Edmonton';
+    const presets = {};
+
+    FX_PRESETS.forEach(p => {
+        const el = (cls) => document.querySelector(`.${cls}[data-id="${p.id}"]`);
+        const enabled = el('fx-preset-enabled')?.checked || false;
+        const startVal = el('fx-preset-start')?.value || '';
+        const endVal = el('fx-preset-end')?.value || '';
+        const intensity = el('fx-preset-intensity')?.value || p.intensity;
+        const emoji = el('fx-preset-emoji')?.value || p.emoji;
+        const color = el('fx-preset-color')?.value || p.color;
+
+        presets[p.id] = {
+            enabled,
+            emoji,
+            color,
+            intensity,
+            startAt: startVal ? (findEpochForLocal(startVal, tz) || new Date(startVal)) : null,
+            endAt: endVal ? (findEpochForLocal(endVal, tz) || new Date(endVal)) : null
+        };
+    });
+
+    // Update custom effects from current DOM state
+    effectsState.custom.forEach((c, i) => {
+        const el = (cls) => document.querySelector(`.${cls}[data-idx="${i}"]`);
+        c.enabled = el('fx-custom-enabled')?.checked ?? c.enabled;
+        const sv = el('fx-custom-start')?.value;
+        const ev = el('fx-custom-end')?.value;
+        if (sv) c.startAt = findEpochForLocal(sv, tz) || new Date(sv);
+        if (ev) c.endAt = findEpochForLocal(ev, tz) || new Date(ev);
+        c.intensity = el('fx-custom-intensity')?.value || c.intensity;
+        c.emoji = el('fx-custom-emoji-edit')?.value || c.emoji;
+        c.color = el('fx-custom-color-edit')?.value || c.color;
+    });
+
+    const payload = {
+        presets,
+        custom: effectsState.custom,
+        updatedAt: window.firestoreServerTimestamp(),
+        updatedBy: currentUser ? currentUser.uid : null
+    };
+
+    try {
+        await window.firestoreSetDoc(window.firestoreDoc(db(), 'site_config', 'seasonal_effects'), payload);
+        showToast('Seasonal effects saved!', 'success');
+        statusEl.textContent = '';
+        loadEffects();
+    } catch (err) {
+        showToast('Save failed: ' + err.message, 'error');
+        statusEl.textContent = 'Save failed.';
+        statusEl.style.color = '#ff4757';
     }
 });
 
