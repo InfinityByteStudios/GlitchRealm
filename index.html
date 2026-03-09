@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="monetag" content="db9dde504613de24fc3c9441de937154">
+    
+    <!-- Critical Resource Hints - Load First -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="dns-prefetch" href="//identitytoolkit.googleapis.com">
+    <link rel="dns-prefetch" href="//firestore.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.buymeacoffee.com">
+    
+    <title>GlitchRealm - Cyberpunk Browser Gaming Platform | Play Free Indie Games</title>
+    <!-- Self-hosted fonts (preloaded for instant rendering) -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
+    <meta name="description" content="Explore GlitchRealm's cyberpunk gaming universe. Play free HTML5 indie games, track your playtime, submit your creations, and join our vibrant gaming community.">
+    <meta name="keywords" content="browser games, HTML5 games, indie games, cyberpunk games, free online games, game platform">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="https://glitchrealm.ca/">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://glitchrealm.ca/">
+    <meta property="og:title" content="GlitchRealm - Cyberpunk Browser Gaming Platform">
+    <meta property="og:description" content="Explore GlitchRealm's cyberpunk gaming universe. Play free HTML5 indie games, track your playtime, and join our community.">
+    <meta property="og:image" content="https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png">
+    <meta property="og:site_name" content="GlitchRealm">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="GlitchRealm News" href="https://news.glitchrealm.ca/feed">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="GlitchRealm - Cyberpunk Browser Gaming Platform">
+    <meta name="twitter:description" content="Explore GlitchRealm's cyberpunk gaming universe. Play free HTML5 indie games and join our community.">
+    <meta name="twitter:image" content="https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png">
+    
+    <meta http-equiv="Cache-Control" content="public, max-age=0, must-revalidate">
+    
+    <!-- PWA Manifest & Theming -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00fff9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Favicons - Optimized -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    
+    <!-- Preload Critical CSS -->
+    <link rel="preload" as="style" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Preload LCP image -->
+    <link rel="preload" as="image" href="assets/game logos/ByteSurge.webp" type="image/webp" fetchpriority="high">
+    
+    <!-- Preload header HTML so it's cached before script.js requests it -->
+    <link rel="preload" as="fetch" href="components/header.html?v=2" crossorigin="anonymous">
+    
+    <!-- Profile dropdown overrides are now in styles.css -->
+    
+    <!-- Unified Firebase core (loads app+auth+firestore once, sets local persistence) -->
+    <script type="module" src="js/firebase-core.js"></script>
+    <!-- Lazy-load Analytics only when browser is idle -->
+    <script type="module">
+        const loadAnalytics = () => {
+            import('https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js').then(({ getAnalytics }) => {
+                if (window.firebaseApp) getAnalytics(window.firebaseApp);
+            }).catch(() => {});
+        };
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadAnalytics, { timeout: 5000 });
+        } else {
+            setTimeout(loadAnalytics, 3000);
+        }
+    </script>
+    
+    <!-- Accessibility & Performance Enhancements -->
+    <link rel="stylesheet" href="css/accessibility-performance.css">
+    <link rel="stylesheet" href="css/play-now-enhancement.css">
+    <script src="js/dev-config.js" defer></script>
+    <script src="js/performance-optimization.js" defer></script>
+    <script src="js/accessibility-keyboard-nav.js" defer></script>
+    <script src="js/play-now-enhancement.js" defer></script>
+</head>
+<body>
+    <div class="background-animation" aria-hidden="true"></div>
+    
+    <div id="header-placeholder"></div>
+
+    <main id="main-content" role="main">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="glitch" data-text="Welcome to the">Welcome to the</span><br>
+                    <span class="glitch-large" data-text="DIGITAL REALM">DIGITAL REALM</span>
+                </h1>
+                <p class="hero-tagline">Experience next-generation gaming in a cyberpunk universe</p>
+                <div class="hero-buttons">
+                    <a href="games.html" class="btn btn-primary glitch-btn">Play Now</a>
+                    <a href="about.html" class="btn btn-secondary">Learn More</a>
+                </div>
+            </div>
+        </section>
+        <section class="featured-game">
+            <div class="container">
+                <h2 class="section-title">Newest Game</h2>                
+                <div class="featured-card" id="newest-game-card">
+                    <div class="featured-image" id="newest-game-image">
+                        <div class="game-badge new">NEW</div>
+                    </div>                    
+                    <div class="featured-info" id="newest-game-info">                        
+                        <h3>Loading...</h3>
+                        <p>Fetching the newest game from the database...</p>
+                        <p class="featured-developer">Made by <strong>...</strong></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Sign In Modal is now provided by header.html -->
+
+    <script>
+        (function(){
+            function maybeRegisterCommunityIntro(){
+                // If global popup scheduler is active, don’t auto-show here.
+                if (window && window.GR_POPUP_SCHEDULER_ACTIVE) return;
+                try {
+                    const key = 'gr.community.intro.v1';
+                    if (localStorage.getItem(key)) return;
+                    const el = document.getElementById('community-intro');
+                    if (!el) return;
+                    // Fallback behavior if scheduler isn’t present: show once.
+                    el.style.display = 'flex';
+                    const close = document.getElementById('community-intro-close');
+                    const dismiss = document.getElementById('community-intro-dismiss');
+                    const open = document.getElementById('community-intro-open');
+                    function hide(){ el.style.display = 'none'; }
+                    close && close.addEventListener('click', hide);
+                    dismiss && dismiss.addEventListener('click', hide);
+                    el.addEventListener('click', (e) => { if (e.target === el) hide(); });
+                    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+                    const setSeen = () => { try { localStorage.setItem(key, '1'); } catch(e){} };
+                    dismiss && dismiss.addEventListener('click', setSeen);
+                    close && close.addEventListener('click', setSeen);
+                    open && open.addEventListener('click', setSeen);
+                } catch (e) {}
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', maybeRegisterCommunityIntro);
+            else maybeRegisterCommunityIntro();
+        })();
+    </script>
+    <!-- Delete Account Confirmation Modal -->
+    <div id="delete-account-modal" class="auth-overlay" style="display: none;">
+        <div class="auth-panel danger">
+            <div class="auth-header warning">
+                <div class="auth-logo">
+                        <span class="glitch-constant" data-text="⚠ ACCOUNT DELETION ⚠">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
+                        </svg>
+                            ACCOUNT DELETION 
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="auth-content">
+                <div class="warning-message">
+                    <p class="warning-text">This action will permanently delete your account and all associated data.</p>
+                    <p class="danger-text">This operation cannot be undone.</p>
+                </div>
+                
+                <div class="confirmation-input">
+                    <div class="input-container danger">
+                        <div class="input-label">Type "DELETE MY ACCOUNT" to confirm:</div>
+                        <input type="text" id="delete-confirmation-input" class="neural-input danger" placeholder="DELETE MY ACCOUNT">
+                        <div class="input-line danger"></div>
+                    </div>
+                </div>
+                
+                <div class="warning-actions">
+                    <button id="cancel-delete" class="neural-button secondary">
+                        <span class="button-text">CANCEL ACCOUNT DELETION</span>
+                        <div class="button-glow"></div>
+                    </button>
+                    <button id="confirm-delete" class="neural-button danger">
+                        <span class="button-text">DELETE ACCOUNT</span>
+                        <div class="button-glow danger"></div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="auth-bg-effect warning"></div>
+            <div class="auth-scanlines warning"></div>        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <div id="auth-message" class="auth-message" style="display: none;"></div>
+    <div id="auth-loading" class="auth-loading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <span>Connecting...</span>
+    </div>
+
+    <!-- Hidden file input for profile picture upload -->
+    <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;">
+
+    <!-- Profile Picture Crop Modal -->
+    <div id="crop-modal" class="crop-modal" style="display: none;">
+        <div class="crop-modal-content">
+            <div class="crop-modal-header">
+                <h3>Crop Profile Picture</h3>
+                <button class="crop-modal-close" id="crop-modal-close">&times;</button>
+            </div>
+            <div class="crop-container">
+                <div class="crop-preview-container">
+                    <img id="crop-image" class="crop-image" src="" alt="Crop Preview" loading="lazy" decoding="async">
+                    <div class="crop-overlay">
+                        <div class="crop-circle"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="crop-controls">
+                <div class="zoom-control">
+                    <label>Zoom:</label>
+                    <input type="range" id="zoom-slider" min="1" max="3" step="0.1" value="1">
+                </div>
+                <div class="crop-actions">
+                    <button id="crop-cancel" class="crop-btn crop-cancel">Cancel</button>
+                    <button id="crop-confirm" class="crop-btn crop-confirm">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load newest game from Firestore -->
+    <script type="module">
+        // Wait for Firebase to be initialized (promise-based, no polling)
+        async function loadNewestGame() {
+            try {
+                await (window.firebaseReady || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true })));
+            } catch {
+                document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
+                return;
+            }
+            
+            try {
+                const { getFirestore, collection, query, where, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const db = getFirestore(window.firebaseApp);
+                
+                // Query for the newest published game
+                const gamesQuery = query(
+                    collection(db, 'game_submissions'),
+                    where('status', '==', 'published'),
+                    orderBy('createdAt', 'desc'),
+                    limit(1)
+                );
+                
+                const snapshot = await getDocs(gamesQuery);
+                
+                if (snapshot.empty) {
+                    document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
+                    return;
+                }
+                
+                const gameDoc = snapshot.docs[0];
+                const game = gameDoc.data();
+                const gameId = gameDoc.id;
+                
+                // Update the featured card
+                const imageDiv = document.getElementById('newest-game-image');
+                const infoDiv = document.getElementById('newest-game-info');
+                const cardDiv = document.getElementById('newest-game-card');
+                
+                // Set background image
+                if (game.coverImageUrl) {
+                    imageDiv.style.backgroundImage = `url('${game.coverImageUrl}')`;
+                    imageDiv.style.backgroundSize = 'cover';
+                    imageDiv.style.backgroundPosition = 'center';
+                }
+                
+                // Update info
+                const ownerDisplay = game.ownerUsername || 'Community Creator';
+                const detailUrl = `game-detail.html?id=${gameId}`;
+                
+                infoDiv.innerHTML = `
+                    <h3>${game.title || 'Untitled Game'}</h3>
+                    <p>${game.description || 'No description available.'}</p>
+                    <p class="featured-developer">Made by <strong>${ownerDisplay}</strong></p>
+                    <a href="${detailUrl}" class="play-btn" style="margin-top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; text-decoration: none; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-cyan); border: 1px solid var(--primary-cyan); border-radius: 9px; transition: all 0.2s ease;">
+                        <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" style="flex-shrink: 0;">
+                            <polygon points="0,0 10,6 0,12"/>
+                        </svg>
+                        <span>Play Now</span>
+                    </a>
+                `;
+                
+                // Add hover effect via JavaScript
+                const playBtn = infoDiv.querySelector('.play-btn');
+                
+                playBtn.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = 'var(--primary-cyan)';
+                    this.style.color = '#0a0a0a';
+                });
+                
+                playBtn.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = 'transparent';
+                    this.style.color = 'var(--primary-cyan)';
+                });
+                
+                // Make card clickable
+                cardDiv.style.cursor = 'pointer';
+                cardDiv.addEventListener('click', (e) => {
+                    // Don't navigate if clicking the button
+                    if (!e.target.closest('.neural-button')) {
+                        window.location.href = `game-detail.html?id=${gameId}`;
+                    }
+                });
+                
+            } catch (err) {
+                console.error('Error loading newest game:', err);
+                document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
+            }
+        }
+        
+        // Start loading when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadNewestGame);
+        } else {
+            loadNewestGame();
+        }
+    </script>
+    
+    <!-- Glitch Settings Modal is provided by header.html -->
+
+    <!-- Ads removed: moved to /ads.html -->
+
+    <!-- Deferred: Non-critical scripts -->
+    <script src="js/script.js" defer></script>
+    <script src="js/glitch-settings.js" defer></script>
+    <!-- Supabase avatar integration — deferred to idle since it loads the Supabase SDK -->
+    <script type="module">
+        const loadAvatarIntegration = () => import('./js/header-avatar-integration.js').catch(() => {});
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadAvatarIntegration, { timeout: 4000 });
+        } else {
+            setTimeout(loadAvatarIntegration, 2000);
+        }
+    </script>
+    
+    <!-- Lazy: Game launcher (only load on interaction) -->
+    <script src="js/game-launcher-lazy.js" defer></script>
+    <!-- Cookie Consent Banner -->
+    <script src="js/cookie-consent.js" defer></script>
+    <!-- Site-wide Admin Banners -->
+    <script src="js/site-banners.js" defer></script>
+    </body>
+    </html>
