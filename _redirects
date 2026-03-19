@@ -9,6 +9,15 @@
 /header.html    /components/header.html   200
 /footer.html    /components/footer.html   200
 
+# Ensure Netlify Functions are reachable on all subdomains
+https://admin.glitchrealm.ca/.netlify/functions/*       https://glitchrealm.ca/.netlify/functions/:splat   200
+https://developers.glitchrealm.ca/.netlify/functions/*  https://glitchrealm.ca/.netlify/functions/:splat   200
+https://portal.glitchrealm.ca/.netlify/functions/*      https://glitchrealm.ca/.netlify/functions/:splat   200
+https://auth.glitchrealm.ca/.netlify/functions/*        https://glitchrealm.ca/.netlify/functions/:splat   200
+https://edu.glitchrealm.ca/.netlify/functions/*         https://glitchrealm.ca/.netlify/functions/:splat   200
+https://help.glitchrealm.ca/.netlify/functions/*        https://glitchrealm.ca/.netlify/functions/:splat   200
+https://news.glitchrealm.ca/.netlify/functions/*        https://glitchrealm.ca/.netlify/functions/:splat   200
+
 # Portal subdomain rewrite - serve the User Portal for portal.glitchrealm.ca
 https://portal.glitchrealm.ca/*  /subdomains/pages/account/user-portal.html  200
 

@@ -82,13 +82,7 @@
     const db = getFirestore(app);
 
     // Authorized developer UIDs
-    const ADMIN_UIDS = [
-      '6iZDTXC78aVwX22qrY43BOxDRLt1',
-      'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-    ];
+    const ADMIN_UIDS = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
 
     const authCheck = document.getElementById('auth-check');
     const adminPanel = document.getElementById('admin-panel');

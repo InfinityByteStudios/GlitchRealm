@@ -5,13 +5,7 @@
   let isAdmin = false;
   let isMod = false; // admins or developer UIDs can access moderation panel
   // Use centralized dev config if available, fallback to hardcoded
-  const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || new Set([
-      '6iZDTXC78aVwX22qrY43BOxDRLt1',
-      'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-  ]);
+  const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
   const logger = window.GlitchRealmDev?.logger || console;
 
   // Role UIDs (keep in sync with firestore.rules isDeveloper + extend for artists as needed)
@@ -1563,13 +1557,7 @@
       if (!auth || !auth.currentUser) return;
       const uid = auth.currentUser.uid;
       // Only open if user is admin or dev (UI already gates, this is defense-in-depth)
-      const isDev = new Set([
-        '6iZDTXC78aVwX22qrY43BOxDRLt1',
-        'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-        'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-        '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-        'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-      ]).has(uid);
+      const isDev = (window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set()).has(uid);
       let isAdmin = false;
       try { const t = await auth.currentUser.getIdTokenResult(); isAdmin = !!t.claims?.admin; } catch(e){}
       if (!isDev && !isAdmin) return;

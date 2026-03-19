@@ -801,13 +801,7 @@
       const auth = getAuth(window.firebaseApp);
 
       // Developer UIDs
-    const DEV_UIDS = new Set([
-      '6iZDTXC78aVwX22qrY43BOxDRLt1',
-      'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-    ]);
+    const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
 
     // Get game ID from URL
     const urlParams = new URLSearchParams(window.location.search);

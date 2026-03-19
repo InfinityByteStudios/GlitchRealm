@@ -4,13 +4,33 @@ import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/
 const db = getFirestore(window.firebaseApp);
 const auth = getAuth(window.firebaseApp);
 
-const DEV_UIDS = [
-  '6iZDTXC78aVwX22qrY43BOxDRLt1',
-  'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-];
+let DEV_UIDS = [];
+
+async function loadAdminUids() {
+  try {
+    const endpoints = [
+      '/.netlify/functions/admin-uids',
+      'https://glitchrealm.ca/.netlify/functions/admin-uids'
+    ];
+    let data = null;
+
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint, { credentials: 'omit' });
+        if (!res.ok) continue;
+        data = await res.json();
+        break;
+      } catch (e) {
+        // Try next endpoint
+      }
+    }
+
+    if (!data) throw new Error('Failed to load admin UIDs');
+    DEV_UIDS = Array.isArray(data?.uids) ? data.uids.map(v => String(v || '').trim()).filter(Boolean) : [];
+  } catch (e) {
+    DEV_UIDS = [];
+  }
+}
 
 // Check if user is admin/dev
 function isAdmin(uid) {
@@ -335,6 +355,7 @@ function formatDate(ts) {
 // Initialize on auth state change
 onAuthStateChanged(auth, async (user) => {
   try {
+    await loadAdminUids();
     requireAdmin(user);
     
     // Load initial data

@@ -228,13 +228,7 @@
         // DOM_REFS caching system moved to community.js where it's actually needed
 
         // Use centralized dev config if available, fallback to hardcoded
-        const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || new Set([
-            '6iZDTXC78aVwX22qrY43BOxDRLt1',
-            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-        ]);
+        const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
         const logger = window.GlitchRealmDev?.logger || console;
         async function checkAndShowCTA(){
             try{
@@ -2736,13 +2730,7 @@
         function computePrivilege() {
             const isAuthed = !!(window.firebaseAuth && window.firebaseAuth.currentUser);
             const currentUid = isAuthed ? window.firebaseAuth.currentUser.uid : null;
-            const developerUIDs = [
-                '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-            ];
+            const developerUIDs = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
             const adminUIDs = [
                 'admin-uid-1',
                 'admin-uid-2',
@@ -2937,13 +2925,7 @@
                 const reviewsRef = window.firestoreCollection(window.firebaseFirestore, 'reviews');
                 const isAuthed = !!(window.firebaseAuth && window.firebaseAuth.currentUser);
                 const currentUid = isAuthed ? window.firebaseAuth.currentUser.uid : null;
-                const developerUIDs = [
-                    '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                    'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-                    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-                ];
+                const developerUIDs = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
                 const adminUIDs = [
                     'admin-uid-1',
                     'admin-uid-2',
@@ -3127,13 +3109,7 @@
             });
             
             // Special user UIDs
-            const developerUIDs = [
-                '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-            ];
+            const developerUIDs = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
             
             const artistUIDs = [
                 'yFtl1s7jOeSAL78yJPORchAgjE93',
@@ -3258,13 +3234,7 @@
                 return '';
             }
             
-            const developerUIDs = [
-                '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-            ];
+            const developerUIDs = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
             
             let repliesHTML = '<div class="review-replies">';
             
@@ -3306,13 +3276,7 @@
             }
             
             const currentUserId = window.firebaseAuth.currentUser.uid;
-            const developerUIDs = [
-                '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-            ];
+            const developerUIDs = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
             
             if (developerUIDs.includes(currentUserId)) {
                 return `

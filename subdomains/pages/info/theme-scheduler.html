@@ -418,13 +418,7 @@
         import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        const DEV_UIDS = new Set([
-            '6iZDTXC78aVwX22qrY43BOxDRLt1',
-            'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-            'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-            '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-            'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-        ]);
+        const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
 
         const firebaseConfig = {
             apiKey: "AIzaSyCR2qT5dVHP7p2cFpCEevOfPJiUIbjKemo",

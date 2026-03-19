@@ -20,13 +20,12 @@ const db = admin.firestore();
 const storage = admin.storage();
 
 // Helpers
-const DEV_UIDS = new Set([
-  "6iZDTXC78aVwX22qrY43BOxDRLt1",
-  "YR3c4TBw09aK7yYxd7vo0AmI6iG3",
-  "g14MPDZzUzR9ELP7TD6IZgk3nzx2",
-  "4oGjihtDjRPYI0LsTDhpXaQAJjk1",
-  "ZEkqLM6rNTZv1Sun0QWcKYOIbon1",
-]);
+const DEV_UIDS = new Set(
+  (process.env.GLITCHREALM_ADMIN_UIDS || "")
+    .split(",")
+    .map((uid) => uid.trim())
+    .filter(Boolean),
+);
 
 function isAdmin(context) {
   return Boolean(context.auth?.token?.admin) || false;

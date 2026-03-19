@@ -7,6 +7,8 @@
   # Firebase API keys are public by design and secured by Firestore rules
   # These are client-side keys, not server secrets
   SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyBu6Z3s66aDXeHQ3yxGW5O-VDUIv9cA8fM,AIzaSyCo5hr7ULHLL_0UAAst74g8ePZxkB7OHFQ,AIzaSyCR2qT5dVHP7p2cFpCEevOfPJiUIbjKemo"
+  # Comma-separated admin/developer UIDs consumed by Netlify/Functions and admin tooling
+  GLITCHREALM_ADMIN_UIDS = ""
   
 # Netlify Observability - Request-level traces and logs
 [dev]

@@ -1728,13 +1728,7 @@ async function initializeAuth() {
             if (notificationBell) notificationBell.style.display = 'flex';
             // Toggle Moderation menu visibility for dev UIDs only
             try {
-                const DEV_UIDS = new Set([
-                    '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                    'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-                    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-                ]);
+                const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
                 if (moderationMenuBtn) {
                     const newBtn = moderationMenuBtn.cloneNode(true);
                     moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
@@ -2842,13 +2836,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const user = window.firebaseAuth.currentUser;
                         const moderationMenuBtn = document.getElementById('moderation-menu-btn');
                         if (moderationMenuBtn) {
-                            const DEV_UIDS = new Set([
-                                '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                                'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-                                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-                            ]);
+                            const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
                             const newBtn = moderationMenuBtn.cloneNode(true);
                             moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
                             const show = !!(user && DEV_UIDS.has(user.uid));

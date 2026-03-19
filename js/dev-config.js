@@ -18,14 +18,61 @@
  * 5. Error handling: Catches and logs errors, defaults to false
  */
 
-// Developer UIDs - centralized to avoid duplication across files
-const DEV_UIDS = new Set([
-  '6iZDTXC78aVwX22qrY43BOxDRLt1',
-  'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-]);
+// Developer UIDs - loaded at runtime from Netlify environment-backed function
+const DEV_UIDS = new Set();
+
+function hydrateDevUidsFromCache() {
+  try {
+    const raw = localStorage.getItem('glitchRealm_admin_uids');
+    if (!raw) return;
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return;
+    DEV_UIDS.clear();
+    list.map(v => String(v || '').trim()).filter(Boolean).forEach(uid => DEV_UIDS.add(uid));
+  } catch (e) {
+    // ignore cache parse errors
+  }
+}
+
+async function loadDevUids() {
+  try {
+    const endpoints = [
+      '/.netlify/functions/admin-uids',
+      'https://glitchrealm.ca/.netlify/functions/admin-uids'
+    ];
+    let data = null;
+
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint, { credentials: 'omit' });
+        if (!res.ok) continue;
+        data = await res.json();
+        break;
+      } catch (e) {
+        // Try next endpoint
+      }
+    }
+
+    if (!data) throw new Error('Unable to load admin UIDs');
+    const list = Array.isArray(data?.uids) ? data.uids.map(v => String(v || '').trim()).filter(Boolean) : [];
+    DEV_UIDS.clear();
+    list.forEach(uid => DEV_UIDS.add(uid));
+
+    try {
+      localStorage.setItem('glitchRealm_admin_uids', JSON.stringify(list));
+    } catch (e) {
+      // ignore localStorage write errors
+    }
+
+    if (typeof window !== 'undefined' && window.GlitchRealmDev) {
+      window.GlitchRealmDev.DEV_UIDS = DEV_UIDS;
+    }
+  } catch (error) {
+    // keep whatever we already have (cache or empty)
+  }
+}
+
+hydrateDevUidsFromCache();
 
 // Check if current user is a developer with fallback mechanisms
 const isDev = () => {
@@ -702,6 +749,9 @@ if (typeof window !== 'undefined') {
   } else {
     loadingStateManager.init();
   }
+
+  // Refresh developer UID list from env-backed endpoint.
+  loadDevUids();
 }
 
 

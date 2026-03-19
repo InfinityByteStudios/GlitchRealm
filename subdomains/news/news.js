@@ -31,26 +31,14 @@ let db;
 const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
 // Developer / editor UIDs allowed to publish
-const EDITOR_UIDS = [
-  '6iZDTXC78aVwX22qrY43BOxDRLt1',
-  'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-];
+const EDITOR_UIDS = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
 
 // Collection refs - initialized after Firebase is ready
 let ARTICLES_COL;
 let TAGS_COL;
 
 // Developer UIDs
-const DEV_UIDS = new Set([
-  '6iZDTXC78aVwX22qrY43BOxDRLt1',
-  'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-]);
+const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
 
 // Cache verified writer status
 const verifiedWritersCache = new Map();

@@ -144,7 +144,7 @@
     }
 
     function setToggleLabel(visible) {
-        const emoji = activeEffects[0]?.emoji || '✨';
+        const emoji = getEffectEmojis(activeEffects[0])[0] || '✨';
         if (visible) {
             toggleBtn.innerHTML = `${emoji} <span>Hide effects</span>`;
             toggleBtn.setAttribute('aria-label', 'Hide seasonal effects');
@@ -152,6 +152,16 @@
             toggleBtn.innerHTML = `${emoji} <span>Replay effects</span>`;
             toggleBtn.setAttribute('aria-label', 'Replay seasonal effects');
         }
+    }
+
+    function getEffectEmojis(cfg) {
+        if (!cfg) return ['✨'];
+        if (Array.isArray(cfg.emojis)) {
+            const clean = cfg.emojis.map(v => String(v || '').trim()).filter(Boolean);
+            if (clean.length) return clean;
+        }
+        if (cfg.emoji) return [cfg.emoji];
+        return ['✨'];
     }
 
     function runEffects() {
@@ -174,12 +184,12 @@
 
     function spawnParticles(cfg) {
         const count = INTENSITY_MAP[cfg.intensity] || 30;
-        const emoji = cfg.emoji || '✨';
+        const emojis = getEffectEmojis(cfg);
 
         for (let i = 0; i < count; i++) {
             const el = document.createElement('span');
             el.className = 'gr-fx-particle';
-            el.textContent = emoji;
+            el.textContent = emojis[Math.floor(Math.random() * emojis.length)] || '✨';
 
             const size = 12 + Math.random() * 16;
             const left = Math.random() * 100;

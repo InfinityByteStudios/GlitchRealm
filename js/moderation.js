@@ -377,13 +377,7 @@
   async function ensureReportsListener(){
     if (!auth || !auth.currentUser) return;
     const uid = auth.currentUser.uid;
-    const DEV_UIDS = new Set([
-      '6iZDTXC78aVwX22qrY43BOxDRLt1',
-      'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-      'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-      '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-      'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-    ]);
+    const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
 
     // Dev-only access for moderation page
     let allow = DEV_UIDS.has(uid);
@@ -720,13 +714,7 @@
   const previewText = document.getElementById('preview-text');
   const previewDescription = document.getElementById('preview-description');
 
-  const DEVELOPER_UIDS = [
-    '6iZDTXC78aVwX22qrY43BOxDRLt1',
-    'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-  ];
+  const DEVELOPER_UIDS = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
 
   // Initialize separate Firebase app for GlitchRealm Firestore
   let glitchRealmApp = null;
