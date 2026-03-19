@@ -110,20 +110,42 @@
 
     <!-- Inline login handler — guaranteed to run before any module loads -->
     <script>
+        (function() {
+            async function loadAdminUids() {
+                if (window.__ADMIN_UIDS__ instanceof Set) return window.__ADMIN_UIDS__;
+                try {
+                    const res = await fetch('/.netlify/functions/admin-uids', { credentials: 'same-origin' });
+                    if (!res.ok) throw new Error('Failed to load admin UIDs');
+                    const data = await res.json();
+                    const list = Array.isArray(data?.uids) ? data.uids.map(v => String(v || '').trim()).filter(Boolean) : [];
+                    window.__ADMIN_UIDS__ = new Set(list);
+                    return window.__ADMIN_UIDS__;
+                } catch (e) {
+                    window.__ADMIN_UIDS__ = new Set();
+                    return window.__ADMIN_UIDS__;
+                }
+            }
+
+            window.loadAdminUids = loadAdminUids;
+            loadAdminUids();
+        })();
+
         function handleLoginInline(e) {
             e.preventDefault();
-            var DEV_UIDS = [
-                '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-            ];
             var uid = document.getElementById('login-uid').value.trim();
             var errorEl = document.getElementById('login-error');
             errorEl.style.display = 'none';
 
-            if (DEV_UIDS.indexOf(uid) === -1) {
+            var uidSet = window.__ADMIN_UIDS__ instanceof Set ? window.__ADMIN_UIDS__ : new Set();
+
+            if (uidSet.size === 0 && typeof window.loadAdminUids === 'function') {
+                window.loadAdminUids().then(function() {
+                    handleLoginInline(e);
+                });
+                return false;
+            }
+
+            if (!uidSet.has(uid)) {
                 errorEl.textContent = 'Invalid admin UID.';
                 errorEl.style.display = 'block';
                 return false;

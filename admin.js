@@ -1,13 +1,36 @@
 // GlitchRealm Admin Panel - Core Logic
 // Requires Firebase globals set by index.html module script
 
-const DEV_UIDS = new Set([
-    '6iZDTXC78aVwX22qrY43BOxDRLt1',
-    'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-]);
+const DEV_UIDS = new Set();
+
+async function loadAdminUids() {
+    try {
+        if (window.__ADMIN_UIDS__ instanceof Set && window.__ADMIN_UIDS__.size > 0) {
+            DEV_UIDS.clear();
+            window.__ADMIN_UIDS__.forEach((uid) => DEV_UIDS.add(uid));
+            return DEV_UIDS;
+        }
+
+        if (typeof window.loadAdminUids === 'function') {
+            const setFromInline = await window.loadAdminUids();
+            DEV_UIDS.clear();
+            setFromInline.forEach((uid) => DEV_UIDS.add(uid));
+            return DEV_UIDS;
+        }
+
+        const res = await fetch('/.netlify/functions/admin-uids', { credentials: 'same-origin' });
+        if (!res.ok) throw new Error('Failed to load admin UIDs');
+        const data = await res.json();
+        const list = Array.isArray(data?.uids) ? data.uids.map(v => String(v || '').trim()).filter(Boolean) : [];
+        DEV_UIDS.clear();
+        list.forEach((uid) => DEV_UIDS.add(uid));
+        window.__ADMIN_UIDS__ = new Set(list);
+    } catch (e) {
+        DEV_UIDS.clear();
+    }
+
+    return DEV_UIDS;
+}
 
 let currentUser = null;
 let cachedData = {};
@@ -25,6 +48,7 @@ function waitForFirebase() {
 async function init() {
     // Attach login handler immediately — no Firebase needed for UID check
     document.getElementById('login-form').addEventListener('submit', handleLogin);
+    await loadAdminUids();
     await waitForFirebase();
 }
 
