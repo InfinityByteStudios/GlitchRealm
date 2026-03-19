@@ -113,10 +113,24 @@
         (function() {
             async function loadAdminUids() {
                 if (window.__ADMIN_UIDS__ instanceof Set) return window.__ADMIN_UIDS__;
+                const endpoints = [
+                    '/.netlify/functions/admin-uids',
+                    'https://glitchrealm.ca/.netlify/functions/admin-uids'
+                ];
                 try {
-                    const res = await fetch('/.netlify/functions/admin-uids', { credentials: 'same-origin' });
-                    if (!res.ok) throw new Error('Failed to load admin UIDs');
-                    const data = await res.json();
+                    let data = null;
+                    for (const endpoint of endpoints) {
+                        try {
+                            const res = await fetch(endpoint, { credentials: 'omit' });
+                            if (!res.ok) continue;
+                            data = await res.json();
+                            break;
+                        } catch (e) {
+                            // Try next endpoint
+                        }
+                    }
+
+                    if (!data) throw new Error('Failed to load admin UIDs');
                     const list = Array.isArray(data?.uids) ? data.uids.map(v => String(v || '').trim()).filter(Boolean) : [];
                     window.__ADMIN_UIDS__ = new Set(list);
                     return window.__ADMIN_UIDS__;
