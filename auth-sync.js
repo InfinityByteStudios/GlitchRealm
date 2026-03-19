@@ -31,7 +31,6 @@ export function redirectToAuth() {
 export async function signOut() {
   try {
     await auth.signOut();
-    console.log('[Auth Sync] ✓ Signed out successfully');
     
     // Clear any stored return URLs
     try {
@@ -71,19 +70,16 @@ export function onAuthChange(callback) {
  * Initialize auth sync - call this on page load
  */
 export function initAuthSync() {
-  console.log('[Auth Sync] Initializing authentication sync');
   
   // Listen for auth state changes
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      console.log('[Auth Sync] User signed in:', user.uid);
       
       // Broadcast sign-in event
       window.dispatchEvent(new CustomEvent('gr-auth-signed-in', { 
         detail: { user } 
       }));
     } else {
-      console.log('[Auth Sync] User signed out');
       
       // Broadcast sign-out event
       window.dispatchEvent(new CustomEvent('gr-auth-signed-out'));
@@ -93,7 +89,6 @@ export function initAuthSync() {
   // Handle return from auth bridge
   const hash = window.location.hash;
   if (hash && hash.includes('provider=')) {
-    console.log('[Auth Sync] Detected OAuth redirect - auth-bridge.html should handle this');
   }
 }
 

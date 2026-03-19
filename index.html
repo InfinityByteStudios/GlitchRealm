@@ -7,6 +7,9 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>GlitchRealm News - Latest Cyberpunk Gaming Updates & Announcements</title>
+    <!-- Self-hosted fonts (preloaded for instant rendering) -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
   
   <!-- RSS Feed -->
   <link rel="alternate" type="application/rss+xml" title="GlitchRealm News RSS Feed" href="/news/feed">
@@ -41,10 +44,10 @@
   <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/Favicon and Icons/site.webmanifest">
   
-  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../../css/styles.css">
   <link rel="stylesheet" href="newsletter-embed.css">
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  
+  
   
   <!-- ConvertKit Newsletter Form -->
   <script src="https://f.convertkit.com/ckjs/ck.5.js"></script>
@@ -146,7 +149,7 @@
     }
     @keyframes spin { to { transform:rotate(360deg); } }
   </style>
-  <script type="module" src="../firebase-core.js"></script>
+  <script type="module" src="../../js/firebase-core.js"></script>
 </head>
 <body>
   <div class="background-animation" aria-hidden="true"></div>
@@ -326,8 +329,8 @@
   <footer id="site-footer" class="footer">
     <div class="container">
         <div class="footer-bottom">
-            <p style="margin-bottom: 10px; font-size: 0.9em; color: rgba(255,255,255,0.7);">By using this site, you agree to our <a href="../terms-of-service.html" style="color: var(--primary-cyan); text-decoration: none;">Terms of Service</a> and <a href="../privacy-policy.html" style="color: var(--primary-cyan); text-decoration: none;">Privacy Policy</a>.</p>
-            <p>&copy; 2026 GlitchRealm Games. All rights reserved. | <a href="../donate.html" style="color: var(--primary-cyan); text-decoration: none;">Donate</a> | <a href="../settings.html" style="color: var(--primary-cyan); text-decoration: none;">Settings</a> | <a href="../legal.html" style="color: var(--primary-cyan); text-decoration: none;">Legal</a> | <a href="../credits.html" style="color: var(--primary-cyan); text-decoration: none;">Credits</a> | <a href="#" onclick="window.openConsentManager && window.openConsentManager(); return false;" style="color: var(--primary-cyan); text-decoration: none;">Manage consent</a></p>
+            <p style="margin-bottom: 10px; font-size: 0.9em; color: rgba(255,255,255,0.7);">By using this site, you agree to our <a href="../../terms-of-service.html" style="color: var(--primary-cyan); text-decoration: none;">Terms of Service</a> and <a href="../../privacy-policy.html" style="color: var(--primary-cyan); text-decoration: none;">Privacy Policy</a>.</p>
+            <p>&copy; 2026 GlitchRealm Games. All rights reserved. | <a href="../../donate.html" style="color: var(--primary-cyan); text-decoration: none;">Donate</a> | <a href="../../settings.html" style="color: var(--primary-cyan); text-decoration: none;">Settings</a> | <a href="../../legal.html" style="color: var(--primary-cyan); text-decoration: none;">Legal</a> | <a href="../../credits.html" style="color: var(--primary-cyan); text-decoration: none;">Credits</a> | <a href="#" onclick="window.openConsentManager && window.openConsentManager(); return false;" style="color: var(--primary-cyan); text-decoration: none;">Manage consent</a></p>
         </div>
         <div class="netlify-branding">
             <span>Powered by</span>
@@ -339,7 +342,12 @@
     </div>
   </footer>
   
+  <!-- Cookie Consent Banner & Preferences Modal -->
+  <script src="/js/cookie-consent.js"></script>
+
   <script type="module" src="news.js"></script>
-  <script src="../script.js" defer></script>
+  <script src="../../js/script.js" defer></script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "892ed403e03340bea2db911f5d5ceb5c"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

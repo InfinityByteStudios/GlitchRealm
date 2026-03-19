@@ -3,12 +3,11 @@
 // Register Service Worker for offline support
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
             .then(function(registration) {
-                console.log('ServiceWorker registered:', registration.scope);
+                registration.update();
             })
             .catch(function(error) {
-                console.log('ServiceWorker registration failed:', error);
             });
     });
 }
@@ -22,7 +21,6 @@ if ('serviceWorker' in navigator) {
             const authData = JSON.parse(cachedAuthState);
             // If auth state exists and is recent (within 24 hours), show user profile immediately
             if (authData.timestamp && (Date.now() - authData.timestamp) < 86400000) {
-                console.log('[News Auth] Found cached auth state, will restore UI on Firebase init');
                 window.__cachedAuthState = authData;
             }
         }
@@ -51,7 +49,6 @@ async function loadSupabaseAvatarIfAvailable(userId) {
         
         // If custom avatar exists, update all avatar elements
         if (profile?.custom_photo_url) {
-            console.log('[News Auth] Found Supabase custom avatar, updating UI');
             const userAvatar = document.getElementById('user-avatar');
             const userAvatarLarge = document.getElementById('user-avatar-large');
             
@@ -405,11 +402,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const setupSignInButton = function() {
         const signInBtn = document.getElementById('sign-in-btn');
         if (signInBtn && !signInBtn.dataset.listenerAttached) {
-            console.log('[Auth] Setting up sign-in button handler');
             
             signInBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('[Auth] Sign-in button clicked');
                 
                 // Detect localhost vs production
                 const isDev = window.location.hostname === 'localhost' || 
@@ -422,18 +417,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Redirect to auth (local folder or subdomain)
                 if (isDev) {
-                    const authUrl = `/auth/?return=${encodeURIComponent(returnUrl)}`;
-                    console.log('[Auth] Redirecting to local auth:', authUrl);
+                    const authUrl = `/subdomains/auth/?return=${encodeURIComponent(returnUrl)}`;
                     window.location.href = authUrl;
                 } else {
                     const authUrl = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
-                    console.log('[Auth] Redirecting to production auth:', authUrl);
                     window.location.href = authUrl;
                 }
             });
             
             signInBtn.dataset.listenerAttached = 'true';
-            console.log('[Auth] Sign-in button handler attached');
         }
     };
     
@@ -444,7 +436,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // IMMEDIATELY restore UI from cached auth state if available
     try {
         if (window.__cachedAuthState) {
-            console.log('[News Auth] Restoring UI from cached auth state on DOMContentLoaded');
             const signInBtn = document.getElementById('sign-in-btn');
             const userProfile = document.getElementById('user-profile');
             const userName = document.getElementById('user-name');
@@ -467,7 +458,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (userAvatarLarge) userAvatarLarge.src = window.__cachedAuthState.photoURL;
                 }
                 
-                console.log('[News Auth] UI restored successfully from cache');
                 
                 // Check for Supabase custom avatar asynchronously (higher priority than cached photoURL)
                 loadSupabaseAvatarIfAvailable(window.__cachedAuthState.uid).catch(err => {
@@ -964,11 +954,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     await ensureFirestoreLight();
                     const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', String(gameId));
                     const snap = await window.firestoreGetDoc(dref);
-                    if (!snap.exists()) { console.log('No such submission'); return; }
+                    if (!snap.exists()) {  return; }
                     const data = snap.data();
                     const ownerId = data?.ownerId || '(none)';
-                    console.log('[debugSubmissionOwnership]', { gameId, ownerId, currentUid: window.firebaseAuth?.currentUser?.uid });
-                } catch (e) { console.log('debugSubmissionOwnership error', e); }
+                } catch (e) {  }
             };
         })();
     const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
@@ -1541,10 +1530,9 @@ function initializeBasicModal() {
 async function initializeAuth() {
     try {
         if (!window.firebaseAuth) {
-            console.log('Firebase not yet initialized, retrying...');
             setTimeout(initializeAuth, 500);
             return;
-        }        console.log('Initializing Firebase Auth...');
+        }        
         // Attempt to initialize App Check if configured
         try {
             const { getApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
@@ -1560,15 +1548,12 @@ async function initializeAuth() {
                         provider: new ReCaptchaV3Provider(String(window.GR_APPCHECK_SITE_KEY)),
                         isTokenAutoRefreshEnabled: true,
                     });
-                    console.log('[AppCheck] Initialized with reCAPTCHA v3');
                 } catch (appCheckErr) {
                     console.warn('[AppCheck] Initialization skipped or failed:', appCheckErr?.message || appCheckErr);
                 }
             } else {
-                console.log('[AppCheck] GR_APPCHECK_SITE_KEY not set; skipping App Check init');
             }
         } catch (e) {
-            console.log('[AppCheck] Not initialized (modules unavailable or not needed).');
         }
 
         const { signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
@@ -1599,10 +1584,6 @@ async function initializeAuth() {
                 document.body.style.overflow = 'auto';
             }
             showAuthMessage('Signed in successfully!', 'success');
-            console.log('Completed redirect sign-in:', {
-                providerId: redirectResult.providerId,
-                user: { uid: redirectResult.user.uid, email: redirectResult.user.email }
-            });
         }
     } catch (redirectErr) {
         console.warn('getRedirectResult error (safe to ignore if no redirect happened):', redirectErr);
@@ -1611,7 +1592,6 @@ async function initializeAuth() {
     
     // If header elements aren't loaded yet, store auth function for later
     if (!signInBtn || !signInModal || !userProfile) {
-        console.log('Header elements not yet loaded, deferring auth initialization...');
         window.pendingAuthInit = () => initializeAuth();
         return;
     }
@@ -1788,7 +1768,6 @@ async function initializeAuth() {
         // First check localStorage for existing auth state
         const existingAuthState = window.sharedAuth.checkExistingAuthState();
         if (existingAuthState) {
-            console.log('Found existing auth state in localStorage, updating UI...');
             const mockUser = {
                 uid: existingAuthState.uid,
                 email: existingAuthState.email,
@@ -1802,12 +1781,10 @@ async function initializeAuth() {
             }
         } else {
             // If no localStorage auth, actively check other games
-            console.log('No localStorage auth found, checking other games...');
             window.sharedAuth.checkOtherGamesForAuth().then(foundAuth => {
                 if (foundAuth) {
                     showAuthMessage('Connected via cross-game account.', 'success');
                 } else {
-                    console.log('No existing authentication found in other games');
                 }
             }).catch(error => {
                 console.error('Error checking other games for auth:', error);
@@ -1822,20 +1799,14 @@ async function initializeAuth() {
         
         if (user) {
             // User is signed in
-            try { console.log('[Auth] User signed in:', { uid: user.uid, email: user.email }); } catch {}
+            try {  } catch {}
             updateUserProfile(user);
             if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
             if (notificationBell) notificationBell.style.display = 'flex';
             // Toggle Moderation menu visibility for dev UIDs only
             try {
-                const DEV_UIDS = new Set([
-                    '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                    'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-                    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-                ]);
+                const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
                 if (moderationMenuBtn) {
                     const newBtn = moderationMenuBtn.cloneNode(true);
                     moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
@@ -1867,7 +1838,6 @@ async function initializeAuth() {
             (async () => {
                 try {
                     await startGlobalNotificationsListener();
-                    console.log('[Notifications] Listener started for user:', user.uid);
                 } catch (e) {
                     console.warn('[Notifications] Failed to start listener:', e);
                 }
@@ -1880,7 +1850,7 @@ async function initializeAuth() {
             }
         } else {
             // User is signed out
-            try { console.log('[Auth] User signed out'); } catch {}
+            try {  } catch {}
             if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
             if (notificationBell) notificationBell.style.display = 'none';
@@ -1908,14 +1878,11 @@ async function initializeAuth() {
     // Listen for auth state changes from other tabs/windows
     window.addEventListener('storage', (e) => {
         if (e.key === 'firebase_auth_state') {
-            console.log('[Auth] Auth state changed in another tab');
             
             // Force auth state refresh
             if (auth.currentUser) {
-                console.log('[Auth] Updating UI for current user');
                 updateUserProfile(auth.currentUser);
             } else {
-                console.log('[Auth] No current user, checking for changes');
                 // Auth state might have changed, let Firebase handle it
                 auth.currentUser; // This triggers internal check
             }
@@ -1925,7 +1892,6 @@ async function initializeAuth() {
     // Listen for custom Firebase auth events
     window.addEventListener('firebaseAuthStateChanged', (e) => {
         const user = e.detail?.user;
-        console.log('[Auth] Custom auth state event received:', user ? user.uid : 'signed out');
         
         if (user) {
             // Ensure UI is updated even if onAuthStateChanged already fired
@@ -1943,12 +1909,9 @@ async function initializeAuth() {
         if (user && user.isAnonymous) {
             try {
                 deleteUser(user).then(() => {
-                    console.log('Anonymous account deleted on tab close/hide');
                 }).catch((error) => {
-                    console.log('Anonymous account cleanup attempted:', error.message);
                 });
             } catch (error) {
-                console.log('Anonymous account cleanup attempted');
             }
         }
     }
@@ -2008,26 +1971,19 @@ async function initializeAuth() {
         // The new system is in portal-avatar-integration.js and handles uploads properly
         // Only runs on user-portal.html with Supabase Storage
         
-        console.log('Old profile picture upload disabled - using Supabase avatar system');
         return; // Exit early - don't set up old handlers
         
         const uploadOverlays = document.querySelectorAll('.avatar-upload-overlay, .avatar-upload-overlay-large');
         const fileInput = document.getElementById('profile-picture-upload');
         
-        console.log('Initializing profile picture upload...');
-        console.log('Found upload overlays:', uploadOverlays.length);
-        console.log('Found file input:', !!fileInput);
         
         if (!fileInput) {
-            console.log('Profile picture upload input not found');
             return;
         }
         
         // Add click handlers to upload overlays
         uploadOverlays.forEach((overlay, index) => {
-            console.log(`Adding click handler to overlay ${index}:`, overlay);
             overlay.addEventListener('click', (e) => {
-                console.log('Upload overlay clicked - FEATURE DISABLED');
                 e.stopPropagation(); // Prevent dropdown from closing
                 
                 // FEATURE DISABLED: Profile picture upload is currently disabled
@@ -2039,7 +1995,6 @@ async function initializeAuth() {
         
         // Handle file selection
         fileInput.addEventListener('change', async (e) => {
-            console.log('File input changed, files:', e.target.files);
             const file = e.target.files[0];
             if (!file) return;
             
@@ -2058,7 +2013,6 @@ async function initializeAuth() {
             try {
                 // FEATURE DISABLED: Skip crop modal and upload directly
                 // showCropModal(file);
-                console.log('Crop modal feature disabled - uploading directly');
                 await uploadProfilePicture(file);
             } catch (error) {
                 console.error('Error uploading profile picture:', error);
@@ -2137,25 +2091,14 @@ async function initializeAuth() {
     
     // Show crop modal for profile picture
     function showCropModal(file) {
-        console.log('showCropModal called with file:', file.name);
         
         const modal = document.getElementById('crop-modal');
         const cropImage = document.getElementById('crop-image');
         const zoomSlider = document.getElementById('zoom-slider');
         
-        console.log('Modal elements found:', { 
-            modal: !!modal, 
-            cropImage: !!cropImage, 
-            zoomSlider: !!zoomSlider 
-        });
         
         if (!modal || !cropImage) {
             console.error('Crop modal elements not found');
-            console.log('Available elements in DOM:', {
-                cropModal: document.querySelector('#crop-modal'),
-                cropImage: document.querySelector('#crop-image'),
-                allModals: document.querySelectorAll('[id*="modal"]')
-            });
             // Fallback: directly upload without cropping
             uploadProfilePicture(file);
             return;
@@ -2178,7 +2121,6 @@ async function initializeAuth() {
                     cropImage.style.transform = 'scale(1)';
                     cropImage.style.transformOrigin = 'center center';
                     
-                    console.log('Image loaded and zoom reset to 1');
                 }
                 
                 // Store the original file for later use
@@ -2216,14 +2158,12 @@ async function initializeAuth() {
             
             newZoomSlider.addEventListener('input', (e) => {
                 const zoomValue = parseFloat(e.target.value);
-                console.log('Zoom value changed to:', zoomValue);
                 cropImage.style.transform = `scale(${zoomValue})`;
                 cropImage.style.transformOrigin = 'center center';
             });
             
             newZoomSlider.addEventListener('change', (e) => {
                 const zoomValue = parseFloat(e.target.value);
-                console.log('Zoom value final:', zoomValue);
                 cropImage.style.transform = `scale(${zoomValue})`;
                 cropImage.style.transformOrigin = 'center center';
             });
@@ -2236,7 +2176,6 @@ async function initializeAuth() {
             cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
             
             newCancelBtn.addEventListener('click', (e) => {
-                console.log('Cancel button clicked');
                 e.preventDefault();
                 e.stopPropagation();
                 hideCropModal();
@@ -2250,7 +2189,6 @@ async function initializeAuth() {
             closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
             
             newCloseBtn.addEventListener('click', (e) => {
-                console.log('Close button clicked');
                 e.preventDefault();
                 e.stopPropagation();
                 hideCropModal();
@@ -2264,7 +2202,6 @@ async function initializeAuth() {
             confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
             
             newConfirmBtn.addEventListener('click', async (e) => {
-                console.log('Confirm button clicked');
                 e.preventDefault();
                 e.stopPropagation();
                 await cropAndUploadImage();
@@ -2274,7 +2211,6 @@ async function initializeAuth() {
         // Close modal when clicking outside
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                console.log('Modal backdrop clicked');
                 hideCropModal();
             }
         });
@@ -2282,21 +2218,18 @@ async function initializeAuth() {
         // Add event delegation for button clicks
         modal.addEventListener('click', (e) => {
             if (e.target.id === 'crop-cancel' || e.target.classList.contains('crop-cancel')) {
-                console.log('Cancel clicked via delegation');
                 e.preventDefault();
                 e.stopPropagation();
                 hideCropModal();
             }
             
             if (e.target.id === 'crop-modal-close' || e.target.classList.contains('crop-modal-close')) {
-                console.log('Close clicked via delegation');
                 e.preventDefault();
                 e.stopPropagation();
                 hideCropModal();
             }
             
             if (e.target.id === 'crop-confirm' || e.target.classList.contains('crop-confirm')) {
-                console.log('Confirm clicked via delegation');
                 e.preventDefault();
                 e.stopPropagation();
                 cropAndUploadImage();
@@ -2307,11 +2240,9 @@ async function initializeAuth() {
         document.addEventListener('keydown', (e) => {
             if (modal.classList.contains('show')) {
                 if (e.key === 'Escape') {
-                    console.log('Escape key pressed');
                     hideCropModal();
                 }
                 if (e.key === 'Enter') {
-                    console.log('Enter key pressed');
                     e.preventDefault();
                     cropAndUploadImage();
                 }
@@ -2321,23 +2252,19 @@ async function initializeAuth() {
     
     // Hide crop modal
     function hideCropModal() {
-        console.log('hideCropModal called');
         const modal = document.getElementById('crop-modal');
         if (modal) {
-            console.log('Modal found, hiding...');
             modal.classList.remove('show');
             
             // Hide after transition
             setTimeout(() => {
                 modal.style.display = 'none';
-                console.log('Modal display set to none');
             }, 300);
             
             // Clear the file input
             const fileInput = document.getElementById('profile-picture-upload');
             if (fileInput) {
                 fileInput.value = '';
-                console.log('File input cleared');
             }
         } else {
             console.error('Modal not found when trying to hide');
@@ -2531,7 +2458,6 @@ async function initializeAuth() {
             if (currentUser) {
                 // Check if profile picture or display name changed
                 if (currentUser.photoURL !== lastPhotoURL || currentUser.displayName !== lastDisplayName) {
-                    console.log('Profile picture or display name changed, updating UI...');
                     
                     // Update the UI with new profile data
                     updateUserProfile(currentUser);
@@ -2558,7 +2484,6 @@ async function initializeAuth() {
         if (currentUser) {
             // Reload user data from Firebase
             currentUser.reload().then(() => {
-                console.log('User profile refreshed from Firebase');
                 updateUserProfile(currentUser);
                 
                 // Update SSO state
@@ -2731,14 +2656,12 @@ class SharedAuthSystem {
                 };
                 document.body.appendChild(iframe);
             } catch (error) {
-                console.log('Could not communicate with game:', origin);
             }
         });
     }
 
     // NEW: Actively check other games for existing auth state
     async checkOtherGamesForAuth() {
-        console.log('Checking other games for existing authentication...');
         
         const promises = this.gameOrigins.map(origin => {
             return new Promise((resolve) => {
@@ -2780,7 +2703,6 @@ class SharedAuthSystem {
                     
                     document.body.appendChild(iframe);
                 } catch (error) {
-                    console.log('Could not check auth for:', origin);
                     resolve(null);
                 }
             });
@@ -2795,7 +2717,6 @@ class SharedAuthSystem {
             );
             
             if (validAuth) {
-                console.log('Found existing authentication from another game:', validAuth);
                 this.syncExternalSignIn(validAuth);
                 return true;
             }
@@ -2825,11 +2746,9 @@ class SharedAuthSystem {
             if (authData.timestamp > Date.now() - 5000) { // 5 second window
                 if (authData.isSignedIn && !window.firebaseAuth?.currentUser) {
                     // User signed in elsewhere - we should sync this state
-                    console.log('User signed in from another game/tab');
                     this.syncExternalSignIn(authData);
                 } else if (!authData.isSignedIn && window.firebaseAuth?.currentUser) {
                     // User signed out elsewhere - sign out here too
-                    console.log('User signed out from another game/tab');
                     if (window.firebaseAuth) {
                         window.firebaseAuth.signOut();
                     }
@@ -2874,7 +2793,6 @@ class SharedAuthSystem {
                 if (authData.isSignedIn && 
                     authData.timestamp > Date.now() - (24 * 60 * 60 * 1000) &&
                     authData.uid) { // Make sure we have actual user data
-                    console.log('Found existing auth state from localStorage');
                     return authData;
                 }
             } catch (error) {
@@ -3128,7 +3046,6 @@ function setupChatbotFab() {
         loader.setAttribute('data-starting-message', 'Hello! How can I help you today?');
         loader.setAttribute('data-logo', '/static/chatbot/icons/default-agent.svg');
         loader.addEventListener('load', () => {
-            console.log('[Chatbot] Widget script loaded');
             resolveOpenFnCache = null; // reset
         });
         loader.addEventListener('error', () => {
@@ -3218,7 +3135,6 @@ function setupChatbotFab() {
         try {
             if (typeof ev.origin === 'string' && ev.origin.includes('agents.do-ai.run')) {
                 if (ev.data && (ev.data.type || ev.data.event)) {
-                    console.log('[Chatbot] message from widget:', ev.data.type || ev.data.event);
                 }
                 resolveOpenFnCache = null;
                 // If user clicked and widget just spoke, try to open immediately
@@ -3231,7 +3147,6 @@ function setupChatbotFab() {
         } catch {}
     });
     ['doai:ready', 'doai-ready', 'DoAI:ready'].forEach(evt => window.addEventListener(evt, (e) => {
-        console.log('[Chatbot] ready event:', evt, e && e.detail);
         if (e && e.detail) readyInstance = e.detail;
         resolveOpenFnCache = null;
         if (pendingOpen) {
@@ -3257,7 +3172,6 @@ function setupChatbotFab() {
                     } catch {}
                 }
             }
-            console.log('[Chatbot] probe candidates:', candidates);
         } catch {}
         // Try posting directly to widget iframes
         try {
@@ -3317,7 +3231,6 @@ function setupChatbotFab() {
             const fab = document.getElementById('chatbot-fab');
             if (fab) fab.style.display = 'none';
             widgetStyled = true;
-            console.log('[Chatbot] Styled widget launcher to match FAB');
             return true;
         } catch (e) {
             console.warn('[Chatbot] Failed to style widget launcher', e);
@@ -3327,7 +3240,6 @@ function setupChatbotFab() {
 
     // Bind click with retries and console logs
     btn.addEventListener('click', () => {
-        console.log('[Chatbot] FAB clicked');
         hint('Opening chat…');
         pendingOpen = true;
         if (tryOpen()) { pendingOpen = false; return; }
@@ -3359,21 +3271,17 @@ function setupChatbotFab() {
 
 // Function to initialize profile dropdown functionality
 function initializeProfileDropdown() {
-    console.log('Initializing profile dropdown functionality...');
     const profileTrigger = document.querySelector('.profile-trigger');
     const profileDropdown = document.querySelector('.profile-dropdown');
     
-    console.log('Profile dropdown elements found:', { profileTrigger, profileDropdown });
     
     if (profileTrigger && profileDropdown) {
-        console.log('Setting up profile dropdown event listeners...');
         
         // Clear any existing event listeners by removing and re-adding the element
         const newProfileTrigger = profileTrigger.cloneNode(true);
         profileTrigger.parentNode.replaceChild(newProfileTrigger, profileTrigger);
         
         newProfileTrigger.addEventListener('click', (e) => {
-            console.log('Profile dropdown clicked!');
             e.preventDefault();
             e.stopPropagation();
             
@@ -3383,7 +3291,6 @@ function initializeProfileDropdown() {
             });
             
             profileDropdown.classList.toggle('open');
-            console.log('Profile dropdown classes after toggle:', profileDropdown.className);
         });
 
         // Close dropdown when clicking outside
@@ -3400,9 +3307,7 @@ function initializeProfileDropdown() {
             }
         });
         
-        console.log('Profile dropdown initialized successfully');
     } else {
-        console.log('Profile dropdown elements not found');
     }
 }
 
@@ -3460,9 +3365,7 @@ function initializeProfileActions() {
     // Settings button functionality
     const settingsBtn = document.getElementById('settings-btn');
     if (settingsBtn) {
-        console.log('Settings button found, adding click listener');
         settingsBtn.addEventListener('click', () => {
-            console.log('Settings button clicked');
             const profileDropdown = document.querySelector('.profile-dropdown');
             if (profileDropdown) {
                 profileDropdown.classList.remove('open');
@@ -3470,7 +3373,6 @@ function initializeProfileActions() {
             window.location.href = '/settings.html';
         });
     } else {
-        console.log('Settings button not found during initialization');
     }
 }
 
@@ -3484,7 +3386,6 @@ async function deleteUserAccount() {
             return;
         }
 
-        console.log('Attempting to delete user account:', user.uid);
         
         // Delete user data from Firestore first
         try {
@@ -3504,7 +3405,6 @@ async function deleteUserAccount() {
             
             // Wait for all deletions to complete
             await Promise.all(deletePromises);
-            console.log('User data deleted from Firestore');
             
         } catch (firestoreError) {
             console.warn('Error deleting user data from Firestore:', firestoreError);
@@ -3514,7 +3414,6 @@ async function deleteUserAccount() {
         // Delete the user account
         await user.delete();
         
-        console.log('User account deleted successfully');
         showMessage('Account deleted successfully. You have been signed out.', 'success');
         
         // Clear any cached user data
@@ -3727,7 +3626,6 @@ window.saveSettings = function() {
                 setTimeout(() => {
                     deleteConfirmationInput.focus();
                     deleteConfirmationInput.click(); // Also try clicking to ensure focus
-                    console.log('Delete confirmation input should now be focused and ready for input');
                 }, 100);
             }
         });
@@ -3757,18 +3655,15 @@ window.saveSettings = function() {
         
         // Add click handler to ensure input is focusable
         deleteConfirmationInput?.addEventListener('click', () => {
-            console.log('Delete confirmation input clicked');
             deleteConfirmationInput.focus();
         });
         
         // Add focus event for debugging
         deleteConfirmationInput?.addEventListener('focus', () => {
-            console.log('Delete confirmation input focused');
         });
         
         // Add keydown event for debugging
         deleteConfirmationInput?.addEventListener('keydown', (e) => {
-            console.log('Key pressed in delete confirmation input:', e.key);
         });
         
         // Confirm deletion
@@ -3959,24 +3854,19 @@ if (!document.querySelector('#fadeOutKeyframes')) {
 
 // Load Header and Footer
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, starting header/footer loading...');
     
     // Load header (defer to idle when available to reduce TBT)
     const loadHeader = () => fetch('header.html?v=' + Date.now())
         .then(response => {
-            console.log('Header fetch response:', response.status);
             return response.text();
         })
         .then(data => {
-            console.log('Header data received, length:', data.length);
             const headerPlaceholder = document.getElementById('header-placeholder');
-            console.log('Header placeholder found:', !!headerPlaceholder);
             
             if (headerPlaceholder) {
                 headerPlaceholder.innerHTML = data;
                 
                 // Add a visual indicator that header was loaded
-                console.log('Header loaded successfully!');
                 
                 // Update active nav link based on current page
                 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
@@ -3992,7 +3882,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reinitialize authentication elements after header is loaded
                 // Add a small delay to ensure DOM is fully updated
                 setTimeout(() => {
-                    console.log('Initializing auth elements...');
                     
                     // Initialize auth elements
                     if (window.firebaseAuth) {
@@ -4007,13 +3896,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const user = window.firebaseAuth.currentUser;
                             const moderationMenuBtn = document.getElementById('moderation-menu-btn');
                             if (moderationMenuBtn) {
-                                const DEV_UIDS = new Set([
-                                    '6iZDTXC78aVwX22qrY43BOxDRLt1',
-                                    'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-                                    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-                                    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-                                    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-                                ]);
+                                const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
                                 const newBtn = moderationMenuBtn.cloneNode(true);
                                 moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
                                 const show = !!(user && DEV_UIDS.has(user.uid));
@@ -4029,13 +3912,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         } catch (e) { /* non-fatal */ }
                     } else {
-                        console.log('Firebase auth not ready, initializing basic auth elements...');
                         initializeAuthElements();
                     }
                     
                     // Force dropdown initialization after a bit more delay
                     setTimeout(() => {
-                        console.log('Force initializing dropdowns...');
                         forceInitializeDropdowns();
                         // After dropdowns are ready, maybe show the Portal intro popup
                         setTimeout(() => {
@@ -4059,7 +3940,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Also try to initialize dropdowns independently after a delay
     setTimeout(() => {
-        console.log('Independent dropdown initialization...');
         forceInitializeDropdowns();
         
         // Also force sign-in button if it exists
@@ -4084,7 +3964,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Force profile functions as backup
         setTimeout(() => {
-            console.log('Backup profile function setup...');
             if (window.fixProfileFunctions) {
                 window.fixProfileFunctions();
             }
@@ -4139,14 +4018,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to initialize authentication elements after header is loaded
 function initializeAuthElements() {
-    console.log('=== initializeAuthElements called ===');
     
     // Re-get DOM elements after header is loaded
     const signInBtn = document.getElementById('sign-in-btn');
     const signOutBtn = document.getElementById('sign-out-btn');
     const userProfile = document.getElementById('user-profile');
     
-    console.log('Auth elements found:', { signInBtn, signOutBtn, userProfile });
     
     // Disabled - sign-in button is now a direct link to auth.glitchrealm.ca
     // if (signInBtn) {
@@ -4189,12 +4066,10 @@ function initializeAuthElements() {
             
             newCloseModal.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('Close modal button clicked!');
                 
         // Get the sign-in auth overlay explicitly by id to avoid other overlays
         const authOverlay = document.getElementById('signin-modal');
                 if (authOverlay) {
-                    console.log('Auth overlay found, hiding it');
                     authOverlay.style.display = 'none';
                     document.body.style.overflow = 'auto';
                 }
@@ -4210,10 +4085,8 @@ function initializeAuthElements() {
             }
         });
         
-        console.log('Auth event listeners attached');
         
         // Re-initialize dropdown functionality
-        console.log('Calling dropdown initialization functions...');
         initializeDropdownFunctionality();
         
         // Re-initialize profile dropdown functionality
@@ -4236,15 +4109,12 @@ function initializeAuthElements() {
 
 // Function to initialize dropdown functionality
 function initializeDropdownFunctionality() {
-    console.log('Initializing dropdown functionality...');
     const dropdown = document.querySelector('.nav-dropdown');
     const trigger = dropdown?.querySelector('.dropdown-trigger');
     const menu = dropdown?.querySelector('.nav-dropdown-menu');
     
-    console.log('Dropdown elements found:', { dropdown, trigger, menu });
 
     if (dropdown && trigger && menu) {
-        console.log('Setting up "More" dropdown event listeners...');
         
         // Clear any existing event listeners by removing and re-adding the element
         const newTrigger = trigger.cloneNode(true);
@@ -4252,7 +4122,6 @@ function initializeDropdownFunctionality() {
         
         // Toggle dropdown on click
         newTrigger.addEventListener('click', function(e) {
-            console.log('More dropdown clicked!');
             e.preventDefault();
             e.stopPropagation();
             
@@ -4262,7 +4131,6 @@ function initializeDropdownFunctionality() {
             });
             
             dropdown.classList.toggle('open');
-            console.log('Dropdown classes after toggle:', dropdown.className);
         });
 
         // Global click handler for closing dropdowns
@@ -4295,22 +4163,18 @@ function initializeDropdownFunctionality() {
                 dropdown.classList.remove('open');
             });
         });
-        console.log('More dropdown initialized successfully');
     } else {
-        console.log('More dropdown elements not found');
     }
 }
 
 // Force initialize dropdowns with simplified approach
 function forceInitializeDropdowns() {
-    console.log('=== Force Initializing Dropdowns ===');
     
     // Initialize navigation dropdown
     const navDropdown = document.querySelector('.nav-dropdown');
     const navTrigger = document.querySelector('.dropdown-trigger');
     
     if (navDropdown && navTrigger) {
-        console.log('Setting up nav dropdown...');
         
         // Remove any existing listeners
         const newTrigger = navTrigger.cloneNode(true);
@@ -4320,19 +4184,15 @@ function forceInitializeDropdowns() {
         newTrigger.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Nav dropdown clicked!');
             
             // Close other dropdowns
             document.querySelectorAll('.profile-dropdown.open').forEach(dd => dd.classList.remove('open'));
             
             // Toggle this dropdown
             navDropdown.classList.toggle('open');
-            console.log('Nav dropdown is now:', navDropdown.classList.contains('open') ? 'open' : 'closed');
         });
         
-        console.log('Nav dropdown setup complete');
     } else {
-        console.log('Nav dropdown elements not found:', { navDropdown, navTrigger });
     }
     
     // Initialize profile dropdown
@@ -4340,7 +4200,6 @@ function forceInitializeDropdowns() {
     const profileTrigger = document.querySelector('.profile-trigger');
     
     if (profileDropdown && profileTrigger) {
-        console.log('Setting up profile dropdown...');
         
         // Remove any existing listeners
         const newProfileTrigger = profileTrigger.cloneNode(true);
@@ -4350,23 +4209,18 @@ function forceInitializeDropdowns() {
         newProfileTrigger.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Profile dropdown clicked!');
             
             // Close other dropdowns
             document.querySelectorAll('.nav-dropdown.open').forEach(dd => dd.classList.remove('open'));
             
             // Toggle this dropdown
             profileDropdown.classList.toggle('open');
-            console.log('Profile dropdown is now:', profileDropdown.classList.contains('open') ? 'open' : 'closed');
         });
         
-        console.log('Profile dropdown setup complete');
     } else {
-        console.log('Profile dropdown elements not found:', { profileDropdown, profileTrigger });
     }
     
     // Force setup all profile functions
-    console.log('Setting up profile actions...');
     initializeProfileActions();
     
     // Add global click handler to close dropdowns
@@ -4396,7 +4250,6 @@ function forceInitializeDropdowns() {
         });
         
         window.globalDropdownHandlerAdded = true;
-        console.log('Global dropdown handlers added');
     }
 }
 
@@ -4412,45 +4265,32 @@ function maybeShowBotIntro() {
 
 // Test profile functions
 window.testProfileFunctions = function() {
-    console.log('=== Testing Profile Functions ===');
     
     const refreshBtn = document.getElementById('refresh-profile-btn');
     const signOutBtn = document.getElementById('sign-out-btn');
     const deleteBtn = document.getElementById('delete-account-btn');
     
-    console.log('Profile buttons found:', {
-        refresh: !!refreshBtn,
-        signOut: !!signOutBtn,
-        delete: !!deleteBtn
-    });
     
     if (refreshBtn) {
-        console.log('Refresh button text:', refreshBtn.textContent.trim());
     }
     if (signOutBtn) {
-        console.log('Sign out button text:', signOutBtn.textContent.trim());
     }
     if (deleteBtn) {
-        console.log('Delete button text:', deleteBtn.textContent.trim());
     }
     
     // Check if they have click listeners
-    console.log('Testing button clicks...');
     if (refreshBtn) {
-        console.log('Refresh button click test');
         refreshBtn.click();
     }
     
     setTimeout(() => {
         if (signOutBtn) {
-            console.log('Sign out button click test');
             signOutBtn.click();
         }
     }, 1000);
     
     setTimeout(() => {
         if (deleteBtn) {
-            console.log('Delete button click test');
             deleteBtn.click();
         }
     }, 2000);
@@ -4458,19 +4298,16 @@ window.testProfileFunctions = function() {
 
 // Force setup all profile functions
 window.fixProfileFunctions = function() {
-    console.log('=== Fixing Profile Functions ===');
     
     // Setup refresh profile
     const refreshBtn = document.getElementById('refresh-profile-btn');
     if (refreshBtn) {
         refreshBtn.onclick = function(e) {
             e.preventDefault();
-            console.log('Refresh profile clicked');
             const dropdown = document.querySelector('.profile-dropdown');
             if (dropdown) dropdown.classList.remove('open');
             if (window.refreshUserProfile) window.refreshUserProfile();
         };
-        console.log('Refresh profile function setup');
     }
     
     // Setup sign out
@@ -4478,19 +4315,16 @@ window.fixProfileFunctions = function() {
     if (signOutBtn) {
         signOutBtn.onclick = function(e) {
             e.preventDefault();
-            console.log('Sign out clicked');
             const dropdown = document.querySelector('.profile-dropdown');
             if (dropdown) dropdown.classList.remove('open');
             if (window.firebaseAuth) {
                 window.firebaseAuth.signOut().then(() => {
-                    console.log('Signed out successfully');
                     location.reload();
                 }).catch(error => {
                     console.error('Sign out error:', error);
                 });
             }
         };
-        console.log('Sign out function setup');
     }
     
     // Setup delete account
@@ -4498,19 +4332,15 @@ window.fixProfileFunctions = function() {
     if (deleteBtn) {
         deleteBtn.onclick = function(e) {
             e.preventDefault();
-            console.log('Delete account clicked');
             const dropdown = document.querySelector('.profile-dropdown');
             if (dropdown) dropdown.classList.remove('open');
             
             const modal = document.getElementById('delete-account-modal');
             if (modal) {
                 modal.style.display = 'flex';
-                console.log('Delete account modal opened');
             } else {
-                console.log('Delete account modal not found');
             }
         };
-        console.log('Delete account function setup');
     }
     
     // Notification Bell Functionality
@@ -4530,7 +4360,6 @@ window.fixProfileFunctions = function() {
 
 // Notification Bell Functions
 function handleNotificationClick() {
-    console.log('Notification bell clicked');
     // Clear notification count
     updateNotificationCount(0);
     
@@ -4733,7 +4562,6 @@ function addNotification() {
 document.addEventListener('DOMContentLoaded', function() {
     // Debug: Check if notification bell exists
     const notificationBell = document.getElementById('notification-bell');
-    console.log('Notification bell found:', !!notificationBell);
 
     // Badges hidden by default - only shown when actual notifications exist
     // const inlineBadge = document.getElementById('notification-count-inline');
@@ -4755,7 +4583,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (ENABLE_TEST_BADGE) {
         setTimeout(() => {
             updateNotificationCount(1);
-            console.log('Test notification count set to 1');
         }, 1000);
     }
     
@@ -4770,13 +4597,9 @@ function initializeMobileNavigation() {
     let isMenuOpen = false;
 
     // Debug logging
-    console.log('Initializing mobile navigation...');
-    console.log('Mobile toggle button:', mobileMenuToggle);
-    console.log('Nav links:', navLinks);
 
     function toggleMobileMenu() {
         isMenuOpen = !isMenuOpen;
-        console.log('Toggling mobile menu. Open:', isMenuOpen);
         
         if (mobileMenuToggle) {
             mobileMenuToggle.classList.toggle('active', isMenuOpen);
@@ -4804,7 +4627,6 @@ function initializeMobileNavigation() {
                 navLinks.classList.remove('active');
             }
             document.body.style.overflow = '';
-            console.log('Mobile menu closed');
         }
     }
 
@@ -4825,7 +4647,6 @@ function initializeMobileNavigation() {
     // Mobile menu toggle click handler
     if (mobileMenuToggle) {
         mobileMenuToggle.addEventListener('click', function(e) {
-            console.log('Mobile menu button clicked!');
             e.preventDefault();
             e.stopPropagation();
             toggleMobileMenu();
@@ -4833,13 +4654,11 @@ function initializeMobileNavigation() {
         
         // Also add touch event for better mobile support
         mobileMenuToggle.addEventListener('touchend', function(e) {
-            console.log('Mobile menu button touched!');
             e.preventDefault();
             e.stopPropagation();
             toggleMobileMenu();
         });
         
-        console.log('Mobile menu toggle event listeners added');
     } else {
         console.warn('Mobile menu toggle button not found!');
     }
@@ -4918,5 +4737,4 @@ function initializeMobileNavigation() {
         });
     }
     
-    console.log('Mobile navigation initialization complete');
 }

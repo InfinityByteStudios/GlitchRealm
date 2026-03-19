@@ -4,13 +4,7 @@ import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/
 const db = getFirestore(window.firebaseApp);
 const auth = getAuth(window.firebaseApp);
 
-const DEV_UIDS = [
-  '6iZDTXC78aVwX22qrY43BOxDRLt1',
-  'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
-  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-];
+const DEV_UIDS = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
 
 // Check if user is admin/dev
 function isAdmin(uid) {

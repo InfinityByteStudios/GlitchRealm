@@ -13,13 +13,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const editArticleId = urlParams.get('edit');
 let originalArticle = null;
 
-const EDITOR_UIDS = [
-  '6iZDTXC78aVwX22qrY43BOxDRLt1',
-  'YR3c4TBw09aK7yYxd7vo0AmI6iG3', 
-  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
-  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
-  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
-];
+const EDITOR_UIDS = Array.from(window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || []);
 
 // Check if user is admin/dev
 function isDevUID(uid) {
@@ -210,12 +204,6 @@ function updateImageUploadAccess(user) {
   const imageBadge = document.getElementById('image-badge');
   const imageRestrictionMsg = document.getElementById('image-restriction-msg');
   
-  console.log('[Image Upload Access]', {
-    user: user?.uid || 'not signed in',
-    isDev,
-    badgeElement: !!imageBadge,
-    coverElement: !!coverEl
-  });
   
   if (isDev) {
     // Enable image upload for developers
@@ -411,9 +399,6 @@ async function publishArticle({ draft }){
         payload.publishedAt = Timestamp.now();
       }
 
-      console.log('[Update Debug] Payload:', JSON.stringify(payload, (k, v) => 
-        v instanceof Timestamp ? v.toDate().toISOString() : v, 2
-      ));
 
       await updateDoc(doc(db, 'news_articles', editArticleId), payload);
       
@@ -444,10 +429,6 @@ async function publishArticle({ draft }){
       }
       if (!draft) payload.publishedAt = Timestamp.now();
 
-      console.log('[Publish Debug] Payload:', JSON.stringify(payload, (k, v) => 
-        v instanceof Timestamp ? v.toDate().toISOString() : v, 2
-      ));
-      console.log('[Publish Debug] User:', { uid: user.uid, isDev: isDevUID(user.uid), isWriter: isWriter });
 
       docRef = await addDoc(collection(db,'news_articles'), payload);
       

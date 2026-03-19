@@ -32,7 +32,6 @@
       // Set persistence to LOCAL to maintain auth state across tabs and refreshes
       try { 
         await setPersistence(auth, browserLocalPersistence); 
-        console.log('[Firebase Core] Auth persistence set to LOCAL');
       } catch(e) {
         console.warn('[Firebase Core] Failed to set persistence:', e);
       }
@@ -43,7 +42,6 @@
       // Set up early auth state listener to ensure state is available ASAP
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          console.log('[Firebase Core] User authenticated:', user.uid);
           // Store current user globally for immediate access
           window.currentFirebaseUser = user;
           
@@ -60,7 +58,6 @@
             console.warn('[Firebase Core] Failed to broadcast auth state:', e);
           }
         } else {
-          console.log('[Firebase Core] User signed out');
           window.currentFirebaseUser = null;
           
           // Clear auth state from storage
@@ -75,7 +72,6 @@
         }));
       });
       
-      console.log('[Firebase Core] Initialization complete');
       
     } catch(e){ 
       console.warn('[Firebase Core] Init failed:', e); 

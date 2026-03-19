@@ -4,11 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Writer Admin - GlitchRealm News</title>
+    <!-- Self-hosted fonts (preloaded for instant rendering) -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
   
-  <link rel="icon" type="image/svg+xml" href="../assets/Favicon and Icons/favicon.svg">
-  <link rel="stylesheet" href="../styles.css">
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  <link rel="icon" type="image/svg+xml" href="../../assets/Favicon and Icons/favicon.svg">
+  <link rel="stylesheet" href="../../css/styles.css">
+  
+  
   
   <style>
     .admin-wrap { max-width:1200px; margin:40px auto 100px; padding:0 20px; }
@@ -75,7 +78,7 @@
     .search-box input { width:100%; max-width:400px; background:#0a1925; border:1px solid #1a3d4d; border-radius:8px; padding:10px 14px; color:#d7e5e8; font-size:.85rem; }
   </style>
   
-  <script type="module" src="../firebase-core.js"></script>
+  <script type="module" src="../../js/firebase-core.js"></script>
 </head>
 <body>
   <div class="background-animation" aria-hidden="true"></div>
@@ -165,6 +168,8 @@
   
   <div id="footer-placeholder"></div>
   <script type="module" src="admin.js"></script>
-  <script src="../script.js" defer></script>
+  <script src="../../js/script.js" defer></script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "892ed403e03340bea2db911f5d5ceb5c"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

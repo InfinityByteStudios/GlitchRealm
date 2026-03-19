@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Request Writer Verification - GlitchRealm News</title>
+    <!-- Self-hosted fonts (preloaded for instant rendering) -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
   
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="assets/Favicon and Icons/favicon.svg">
@@ -12,9 +15,9 @@
   <link rel="apple-touch-icon" sizes="180x180" href="assets/Favicon and Icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/Favicon and Icons/site.webmanifest">
   
-  <link rel="stylesheet" href="../styles.css">
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="../../css/styles.css">
+  
+  
   
   <style>
     body { --news-accent:#00fff9; }
@@ -28,7 +31,7 @@
   </style>
   
   <script type="module" src="firebase-core.js"></script>
-  <script type="module" src="../script.js"></script>
+  <script type="module" src="../../js/script.js"></script>
 </head>
 <body>
   <div class="background-animation" aria-hidden="true"></div>
@@ -62,5 +65,7 @@
       document.getElementById('footer-placeholder').innerHTML = html;
     });
   </script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "892ed403e03340bea2db911f5d5ceb5c"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

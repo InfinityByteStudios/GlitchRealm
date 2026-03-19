@@ -23,12 +23,7 @@ const isConfigured = SUPABASE_CONFIG.url &&
                      !SUPABASE_CONFIG.anonKey.includes('YOUR_SUPABASE');
 
 if (!isConfigured) {
-    console.log('%c⚠️ Supabase Avatar Upload Not Configured', 'color: #ff9800; font-size: 14px; font-weight: bold;');
-    console.log('%cTo enable avatar uploads:', 'color: #03a9f4; font-size: 12px;');
-    console.log('%c1. Update supabase-config.js with your Supabase project URL and anon key', 'color: #888; font-size: 11px;');
-    console.log('%c2. Run the SQL setup in supabase/avatars_setup.sql', 'color: #888; font-size: 11px;');
-    console.log('%c3. See AVATAR_IMPLEMENTATION.md for detailed instructions', 'color: #888; font-size: 11px;');
-    console.log('%c', 'color: inherit;'); // Reset
+     // Reset
 }
 
 // Example:
