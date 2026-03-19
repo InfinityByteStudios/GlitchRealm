@@ -540,10 +540,21 @@
                             <option value="reviews">reviews</option>
                             <option value="verified_users">verified_users</option>
                             <option value="verified_writers">verified_writers</option>
-                            <option value="verification_requests">verification_requests</option>
+                            <option value="writer_verification_requests">writer_verification_requests</option>
+                            <option value="verification_requests">verification_requests (legacy)</option>
                             <option value="site_banners">site_banners</option>
                             <option value="notifications">notifications</option>
+                            <option value="game_reports">game_reports</option>
+                            <option value="community_post_reports">community_post_reports</option>
+                            <option value="playtime">playtime</option>
+                            <option value="users">users</option>
+                            <option value="news_comments">news_comments</option>
+                            <option value="system">system</option>
+                            <option value="site_config">site_config</option>
                         </select>
+                    </div>
+                    <div class="search-group" style="min-width:320px;">
+                        <input type="text" id="db-collection-custom" placeholder="Or enter collection path (e.g. playtime/UID/games)">
                     </div>
                     <button class="btn-secondary" id="db-load-btn">Load Collection</button>
                 </div>
@@ -594,5 +605,7 @@
             }).catch(function(){ s.src = fallback; }).finally(function(){ document.body.appendChild(s); });
         })();
     </script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "892ed403e03340bea2db911f5d5ceb5c"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

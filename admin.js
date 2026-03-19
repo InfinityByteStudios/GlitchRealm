@@ -128,6 +128,26 @@ const db = () => window.firebaseDb;
 const col = (...args) => window.firestoreCollection(db(), ...args);
 const docRef = (...args) => window.firestoreDoc(db(), ...args);
 
+function normalizePathSegments(path) {
+    return String(path || '').split('/').map(s => s.trim()).filter(Boolean);
+}
+
+function colPath(path) {
+    const segments = normalizePathSegments(path);
+    if (segments.length === 0 || segments.length % 2 === 0) {
+        throw new Error('Collection path must have an odd number of segments.');
+    }
+    return window.firestoreCollection(db(), ...segments);
+}
+
+function docPath(path, id) {
+    const segments = normalizePathSegments(path);
+    if (segments.length === 0 || segments.length % 2 === 0) {
+        throw new Error('Collection path must have an odd number of segments before document ID.');
+    }
+    return window.firestoreDoc(db(), ...segments, id);
+}
+
 function escapeHTML(str) {
     const div = document.createElement('div');
     div.textContent = str;
@@ -213,6 +233,15 @@ function setupNavigation() {
 
     // DB browser
     document.getElementById('db-load-btn').addEventListener('click', () => loadDbCollection());
+    const customCollectionInput = document.getElementById('db-collection-custom');
+    if (customCollectionInput) {
+        customCollectionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loadDbCollection();
+            }
+        });
+    }
 
     // Banner form
     document.getElementById('banner-form').addEventListener('submit', handleBannerSubmit);
@@ -780,7 +809,9 @@ window.reopenReport = async function(collectionName, id) {
 // DATABASE BROWSER
 // ================================================================
 async function loadDbCollection() {
-    const collectionName = document.getElementById('db-collection').value;
+    const selectedCollection = document.getElementById('db-collection').value;
+    const customCollection = (document.getElementById('db-collection-custom')?.value || '').trim();
+    const collectionName = customCollection || selectedCollection;
     const container = document.getElementById('db-results');
 
     if (!collectionName) {
@@ -791,7 +822,7 @@ async function loadDbCollection() {
     container.innerHTML = '<div class="loading-placeholder">Loading...</div>';
 
     try {
-        const snap = await window.firestoreGetDocs(window.firestoreQuery(col(collectionName), window.firestoreLimit(100)));
+        const snap = await window.firestoreGetDocs(window.firestoreQuery(colPath(collectionName), window.firestoreLimit(100)));
         const docs = [];
         snap.forEach(d => docs.push({ id: d.id, data: d.data() }));
 
@@ -849,7 +880,7 @@ let editorState = { collection: '', id: '' };
 
 window.editDoc = async function(collectionName, id) {
     try {
-        const snap = await window.firestoreGetDoc(window.firestoreDoc(db(), collectionName, id));
+        const snap = await window.firestoreGetDoc(docPath(collectionName, id));
         if (!snap.exists()) return showToast('Document not found', 'error');
 
         editorState = { collection: collectionName, id };
@@ -899,7 +930,7 @@ async function saveDocEdit() {
     if (!confirm(`Save changes to ${editorState.collection}/${editorState.id}?`)) return;
 
     try {
-        await window.firestoreSetDoc(window.firestoreDoc(db(), editorState.collection, editorState.id), data);
+        await window.firestoreSetDoc(docPath(editorState.collection, editorState.id), data);
         showToast('Document saved', 'success');
         closeDocEditor();
         // Refresh the current section
@@ -913,7 +944,7 @@ async function saveDocEdit() {
 async function deleteDocFromEditor() {
     if (!confirm(`DELETE ${editorState.collection}/${editorState.id}? This cannot be undone.`)) return;
     try {
-        await window.firestoreDeleteDoc(window.firestoreDoc(db(), editorState.collection, editorState.id));
+        await window.firestoreDeleteDoc(docPath(editorState.collection, editorState.id));
         showToast('Document deleted', 'info');
         closeDocEditor();
         const activeNav = document.querySelector('.nav-item.active');
