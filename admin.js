@@ -1136,6 +1136,29 @@ const FX_PRESETS = [
 
 let effectsState = { presets: {}, custom: [] };
 
+function normalizeEmojiList(emojis, fallbackEmoji) {
+    const raw = Array.isArray(emojis) ? emojis : [];
+    const clean = raw.map(v => String(v || '').trim()).filter(Boolean);
+    if (clean.length) return clean;
+    const fallback = String(fallbackEmoji || '').trim();
+    return fallback ? [fallback] : ['✨'];
+}
+
+function collectEmojiValues(selector) {
+    return Array.from(document.querySelectorAll(selector))
+        .map(el => String(el.value || '').trim())
+        .filter(Boolean);
+}
+
+function buildEmojiEditorRows(kind, key, emojis) {
+    return emojis.map((emoji, index) => `
+        <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
+            <input type="text" class="${kind === 'preset' ? 'fx-preset-emoji' : 'fx-custom-emoji-edit'}" ${kind === 'preset' ? `data-id="${key}"` : `data-idx="${key}"`} maxlength="4" value="${escapeHTML(emoji)}" style="width:40px;text-align:center;padding:4px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:1.1rem;">
+            <button type="button" class="btn-danger btn-sm fx-remove-emoji" data-kind="${kind}" ${kind === 'preset' ? `data-id="${key}"` : `data-idx="${key}"`} title="Remove emoji" ${index === 0 && emojis.length === 1 ? 'disabled' : ''}>-</button>
+        </div>
+    `).join('');
+}
+
 function fxLocalToStr(dt) {
     if (!dt) return '';
     const d = dt.toDate ? dt.toDate() : new Date(dt);
@@ -1175,14 +1198,14 @@ function renderPresets() {
         const startVal = saved.startAt ? fxLocalToStr(saved.startAt) : defaultDatetime(p.defaultStart);
         const endVal = saved.endAt ? fxLocalToStr(saved.endAt) : defaultDatetime(p.defaultEnd, p.id === 'new-year' ? 1 : 0);
         const intensity = saved.intensity || p.intensity;
-        const emoji = saved.emoji || p.emoji;
+        const emojis = normalizeEmojiList(saved.emojis, saved.emoji || p.emoji);
         const color = saved.color || p.color;
 
         return `
         <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;margin-bottom:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:6px;flex-wrap:wrap;">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:170px;font-weight:700;">
                 <input type="checkbox" class="fx-preset-enabled" data-id="${p.id}" ${enabled ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent,#00fff9);">
-                <span style="font-size:1.2rem;">${emoji}</span> ${escapeHTML(p.name)}
+                <span style="font-size:1.2rem;">${emojis[0]}</span> ${escapeHTML(p.name)}
             </label>
             <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0;">
                 <input type="datetime-local" class="fx-preset-start" data-id="${p.id}" value="${startVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
@@ -1193,7 +1216,10 @@ function renderPresets() {
                     <option value="medium" ${intensity==='medium'?'selected':''}>Medium</option>
                     <option value="high" ${intensity==='high'?'selected':''}>High</option>
                 </select>
-                <input type="text" class="fx-preset-emoji" data-id="${p.id}" value="${emoji}" maxlength="4" style="width:40px;text-align:center;padding:4px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:1.1rem;" title="Change emoji">
+                <div class="fx-emoji-list" data-kind="preset" data-id="${p.id}" style="display:flex; flex-direction:column; gap:6px;">
+                    ${buildEmojiEditorRows('preset', p.id, emojis)}
+                </div>
+                <button type="button" class="btn-secondary btn-sm fx-add-emoji" data-kind="preset" data-id="${p.id}" title="Add emoji">+</button>
                 <input type="color" class="fx-preset-color" data-id="${p.id}" value="${color}" style="width:32px;height:28px;padding:0;border:1px solid #333;border-radius:4px;background:#111;cursor:pointer;" title="Particle color">
             </div>
         </div>`;
@@ -1209,11 +1235,12 @@ function renderCustomEffects() {
     container.innerHTML = effectsState.custom.map((c, i) => {
         const startVal = c.startAt ? fxLocalToStr(c.startAt) : '';
         const endVal = c.endAt ? fxLocalToStr(c.endAt) : '';
+        const emojis = normalizeEmojiList(c.emojis, c.emoji || '✨');
         return `
         <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;margin-bottom:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:6px;flex-wrap:wrap;">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:170px;font-weight:700;">
                 <input type="checkbox" class="fx-custom-enabled" data-idx="${i}" ${c.enabled ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent,#00fff9);">
-                <span style="font-size:1.2rem;">${c.emoji || '✨'}</span> ${escapeHTML(c.name || 'Untitled')}
+                <span style="font-size:1.2rem;">${emojis[0]}</span> ${escapeHTML(c.name || 'Untitled')}
             </label>
             <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0;align-items:center;">
                 <input type="datetime-local" class="fx-custom-start" data-idx="${i}" value="${startVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
@@ -1224,7 +1251,10 @@ function renderCustomEffects() {
                     <option value="medium" ${c.intensity==='medium'?'selected':''}>Medium</option>
                     <option value="high" ${c.intensity==='high'?'selected':''}>High</option>
                 </select>
-                <input type="text" class="fx-custom-emoji-edit" data-idx="${i}" value="${c.emoji || '✨'}" maxlength="4" style="width:40px;text-align:center;padding:4px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:1.1rem;">
+                <div class="fx-emoji-list" data-kind="custom" data-idx="${i}" style="display:flex; flex-direction:column; gap:6px;">
+                    ${buildEmojiEditorRows('custom', i, emojis)}
+                </div>
+                <button type="button" class="btn-secondary btn-sm fx-add-emoji" data-kind="custom" data-idx="${i}" title="Add emoji">+</button>
                 <input type="color" class="fx-custom-color-edit" data-idx="${i}" value="${c.color || '#ffffff'}" style="width:32px;height:28px;padding:0;border:1px solid #333;border-radius:4px;background:#111;cursor:pointer;">
                 <button class="btn-danger btn-sm" onclick="removeCustomEffect(${i})">✕</button>
             </div>
@@ -1232,23 +1262,77 @@ function renderCustomEffects() {
     }).join('');
 }
 
+document.addEventListener('click', (e) => {
+    const addBtn = e.target.closest('.fx-add-emoji');
+    if (addBtn) {
+        const kind = addBtn.dataset.kind;
+        const keyAttr = kind === 'preset' ? 'id' : 'idx';
+        const key = addBtn.dataset[keyAttr];
+        const list = document.querySelector(`.fx-emoji-list[data-kind="${kind}"][data-${keyAttr}="${key}"]`);
+        if (!list) return;
+        const inputClass = kind === 'preset' ? 'fx-preset-emoji' : 'fx-custom-emoji-edit';
+        list.insertAdjacentHTML('beforeend', `
+            <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
+                <input type="text" class="${inputClass}" data-${keyAttr}="${key}" maxlength="4" value="" style="width:40px;text-align:center;padding:4px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:1.1rem;">
+                <button type="button" class="btn-danger btn-sm fx-remove-emoji" data-kind="${kind}" data-${keyAttr}="${key}" title="Remove emoji">-</button>
+            </div>
+        `);
+        return;
+    }
+
+    const removeBtn = e.target.closest('.fx-remove-emoji');
+    if (removeBtn) {
+        const row = removeBtn.closest('.fx-emoji-input-row');
+        const list = removeBtn.closest('.fx-emoji-list');
+        if (!row || !list) return;
+        const rowCount = list.querySelectorAll('.fx-emoji-input-row').length;
+        if (rowCount <= 1) return;
+        row.remove();
+        return;
+    }
+
+    const addNewBtn = e.target.closest('#fx-custom-add-emoji');
+    if (addNewBtn) {
+        const list = document.getElementById('fx-custom-emojis');
+        if (!list) return;
+        list.insertAdjacentHTML('beforeend', `
+            <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
+                <input type="text" class="fx-custom-emoji-new" maxlength="4" placeholder="✨" style="width:64px; text-align:center;">
+                <button type="button" class="btn-danger btn-sm fx-remove-emoji-new" title="Remove emoji">-</button>
+            </div>
+        `);
+        return;
+    }
+
+    const removeNewBtn = e.target.closest('.fx-remove-emoji-new');
+    if (removeNewBtn) {
+        const list = document.getElementById('fx-custom-emojis');
+        if (!list) return;
+        const row = removeNewBtn.closest('.fx-emoji-input-row');
+        const rowCount = list.querySelectorAll('.fx-emoji-input-row').length;
+        if (rowCount <= 1) return;
+        if (row) row.remove();
+    }
+});
+
 // Add custom effect to local state
 document.getElementById('fx-add-custom-btn').addEventListener('click', () => {
     const name = document.getElementById('fx-custom-name').value.trim();
-    const emoji = document.getElementById('fx-custom-emoji').value.trim();
+    const emojis = collectEmojiValues('.fx-custom-emoji-new');
     const startVal = document.getElementById('fx-custom-start').value;
     const endVal = document.getElementById('fx-custom-end').value;
     const intensity = document.getElementById('fx-custom-intensity').value;
     const color = document.getElementById('fx-custom-color').value;
 
     if (!name) return showToast('Give the effect a name', 'error');
-    if (!emoji) return showToast('Pick an emoji or symbol', 'error');
+    if (!emojis.length) return showToast('Pick at least one emoji or symbol', 'error');
     if (!startVal || !endVal) return showToast('Set start and end dates', 'error');
 
     const tz = 'America/Edmonton';
     effectsState.custom.push({
         name,
-        emoji,
+        emoji: emojis[0],
+        emojis,
         enabled: true,
         startAt: findEpochForLocal(startVal, tz) || new Date(startVal),
         endAt: findEpochForLocal(endVal, tz) || new Date(endVal),
@@ -1257,7 +1341,15 @@ document.getElementById('fx-add-custom-btn').addEventListener('click', () => {
     });
 
     document.getElementById('fx-custom-name').value = '';
-    document.getElementById('fx-custom-emoji').value = '';
+    const newEmojiList = document.getElementById('fx-custom-emojis');
+    if (newEmojiList) {
+        newEmojiList.innerHTML = `
+            <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
+                <input type="text" class="fx-custom-emoji-new" maxlength="4" placeholder="✨" style="width:64px; text-align:center;">
+                <button type="button" class="btn-danger btn-sm fx-remove-emoji-new" title="Remove emoji">-</button>
+            </div>
+        `;
+    }
     document.getElementById('fx-custom-start').value = '';
     document.getElementById('fx-custom-end').value = '';
     renderCustomEffects();
@@ -1285,12 +1377,13 @@ document.getElementById('fx-save-btn').addEventListener('click', async () => {
         const startVal = el('fx-preset-start')?.value || '';
         const endVal = el('fx-preset-end')?.value || '';
         const intensity = el('fx-preset-intensity')?.value || p.intensity;
-        const emoji = el('fx-preset-emoji')?.value || p.emoji;
+        const emojis = normalizeEmojiList(collectEmojiValues(`.fx-preset-emoji[data-id="${p.id}"]`), p.emoji);
         const color = el('fx-preset-color')?.value || p.color;
 
         presets[p.id] = {
             enabled,
-            emoji,
+            emoji: emojis[0],
+            emojis,
             color,
             intensity,
             startAt: startVal ? (findEpochForLocal(startVal, tz) || new Date(startVal)) : null,
@@ -1307,7 +1400,8 @@ document.getElementById('fx-save-btn').addEventListener('click', async () => {
         if (sv) c.startAt = findEpochForLocal(sv, tz) || new Date(sv);
         if (ev) c.endAt = findEpochForLocal(ev, tz) || new Date(ev);
         c.intensity = el('fx-custom-intensity')?.value || c.intensity;
-        c.emoji = el('fx-custom-emoji-edit')?.value || c.emoji;
+        c.emojis = normalizeEmojiList(collectEmojiValues(`.fx-custom-emoji-edit[data-idx="${i}"]`), c.emoji || '✨');
+        c.emoji = c.emojis[0];
         c.color = el('fx-custom-color-edit')?.value || c.color;
     });
 

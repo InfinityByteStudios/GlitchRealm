@@ -517,6 +517,18 @@
                                 <input type="color" id="fx-custom-color" value="#ffffff">
                             </div>
                         </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Emojis</label>
+                                <div id="fx-custom-emojis" style="display:flex; flex-direction:column; gap:8px;">
+                                    <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
+                                        <input type="text" class="fx-custom-emoji-new" maxlength="4" placeholder="✨" style="width:64px; text-align:center;">
+                                        <button type="button" class="btn-danger btn-sm fx-remove-emoji-new" title="Remove emoji">-</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-secondary btn-sm" id="fx-custom-add-emoji" style="margin-top:8px;">+ Add Emoji</button>
+                            </div>
+                        </div>
                         <button class="btn-primary" id="fx-add-custom-btn" style="margin-top:8px;">Add Effect</button>
                     </div>
 
