@@ -61,8 +61,12 @@ function waitForFirebase() {
 }
 
 async function init() {
-    // Attach login handler immediately — no Firebase needed for UID check
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
+    // Attach login handler only when inline onsubmit is not present.
+    // The page currently uses an inline gate (UID pre-check) that calls handleLogin.
+    const loginForm = document.getElementById('login-form');
+    if (loginForm && !loginForm.hasAttribute('onsubmit')) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
     await loadAdminUids();
     await waitForFirebase();
 }

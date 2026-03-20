@@ -148,13 +148,42 @@
             e.preventDefault();
             var uid = document.getElementById('login-uid').value.trim();
             var errorEl = document.getElementById('login-error');
+            var loginBtn = document.getElementById('login-btn');
             errorEl.style.display = 'none';
 
             var uidSet = window.__ADMIN_UIDS__ instanceof Set ? window.__ADMIN_UIDS__ : new Set();
 
             if (uidSet.size === 0 && typeof window.loadAdminUids === 'function') {
-                window.loadAdminUids().then(function() {
-                    handleLoginInline(e);
+                if (loginBtn) {
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = 'Checking UID list...';
+                }
+
+                window.loadAdminUids().then(function(setResult) {
+                    var refreshed = setResult instanceof Set ? setResult : (window.__ADMIN_UIDS__ instanceof Set ? window.__ADMIN_UIDS__ : new Set());
+                    if (refreshed.size === 0) {
+                        errorEl.textContent = 'Unable to verify admin UID list right now. Please try again in a few seconds.';
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+
+                    if (!refreshed.has(uid)) {
+                        errorEl.textContent = 'Invalid admin UID.';
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+
+                    if (typeof handleLogin === 'function') {
+                        handleLogin(e);
+                    }
+                }).catch(function() {
+                    errorEl.textContent = 'Could not load admin credentials. Please try again.';
+                    errorEl.style.display = 'block';
+                }).finally(function() {
+                    if (loginBtn) {
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Authenticate';
+                    }
                 });
                 return false;
             }
