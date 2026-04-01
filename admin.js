@@ -2,23 +2,58 @@
 // Requires Firebase globals set by index.html module script
 
 const DEV_UIDS = new Set();
+const FALLBACK_ADMIN_UIDS = [
+    '6iZDTXC78aVwX22qrY43BOxDRLt1',
+    'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+    'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+    '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+    'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+];
+
+function applyUidListToDevSet(list) {
+    DEV_UIDS.clear();
+    (Array.isArray(list) ? list : []).forEach((uid) => {
+        const value = String(uid || '').trim();
+        if (value) DEV_UIDS.add(value);
+    });
+    return DEV_UIDS;
+}
+
+function buildFallbackUidList() {
+    const merged = [];
+
+    if (window.__ADMIN_UIDS__ instanceof Set) {
+        window.__ADMIN_UIDS__.forEach((uid) => merged.push(String(uid || '').trim()));
+    }
+
+    if (window.GlitchRealmDev && window.GlitchRealmDev.DEV_UIDS) {
+        try {
+            Array.from(window.GlitchRealmDev.DEV_UIDS).forEach((uid) => {
+                merged.push(String(uid || '').trim());
+            });
+        } catch (e) {
+            // ignore and continue
+        }
+    }
+
+    FALLBACK_ADMIN_UIDS.forEach((uid) => merged.push(uid));
+    return merged.filter(Boolean);
+}
 
 async function loadAdminUids() {
     try {
         if (window.__ADMIN_UIDS__ instanceof Set && window.__ADMIN_UIDS__.size > 0) {
-            DEV_UIDS.clear();
-            window.__ADMIN_UIDS__.forEach((uid) => DEV_UIDS.add(uid));
-            return DEV_UIDS;
+            return applyUidListToDevSet(Array.from(window.__ADMIN_UIDS__));
         }
 
         if (typeof window.loadAdminUids === 'function') {
             const setFromInline = await window.loadAdminUids();
-            DEV_UIDS.clear();
-            setFromInline.forEach((uid) => DEV_UIDS.add(uid));
-            return DEV_UIDS;
+            return applyUidListToDevSet(Array.from(setFromInline || []));
         }
 
         const endpoints = [
+            '/.netlify/functions/admin-auth-uids',
+            'https://glitchrealm.ca/.netlify/functions/admin-auth-uids',
             '/.netlify/functions/admin-uids',
             'https://glitchrealm.ca/.netlify/functions/admin-uids'
         ];
@@ -37,11 +72,19 @@ async function loadAdminUids() {
 
         if (!data) throw new Error('Failed to load admin UIDs');
         const list = Array.isArray(data?.uids) ? data.uids.map(v => String(v || '').trim()).filter(Boolean) : [];
-        DEV_UIDS.clear();
-        list.forEach((uid) => DEV_UIDS.add(uid));
+        if (!list.length) {
+            const fallback = buildFallbackUidList();
+            applyUidListToDevSet(fallback);
+            window.__ADMIN_UIDS__ = new Set(fallback);
+            return DEV_UIDS;
+        }
+
+        applyUidListToDevSet(list);
         window.__ADMIN_UIDS__ = new Set(list);
     } catch (e) {
-        DEV_UIDS.clear();
+        const fallback = buildFallbackUidList();
+        applyUidListToDevSet(fallback);
+        window.__ADMIN_UIDS__ = new Set(fallback);
     }
 
     return DEV_UIDS;
@@ -1470,8 +1513,13 @@ document.getElementById('fx-save-btn').addEventListener('click', async () => {
 // ================================================================
 // BOOT
 // ================================================================
-// Attach login form handler immediately on script load
+// Only attach the submit listener if the form does NOT already have
+// an inline onsubmit handler (handleLoginInline in index.html).
+// Having both causes handleLogin to fire with an empty DEV_UIDS set
+// before init() finishes loading UIDs.
 const loginForm = document.getElementById('login-form');
-if (loginForm) loginForm.addEventListener('submit', handleLogin);
+if (loginForm && !loginForm.hasAttribute('onsubmit')) {
+    loginForm.addEventListener('submit', handleLogin);
+}
 
 init();
