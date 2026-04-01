@@ -273,6 +273,8 @@ function setupNavigation() {
         community: 'Community Posts',
         banners: 'Site Banners',
         reports: 'Reports',
+        'staff-status': 'Staff Status',
+        maintenance: 'Maintenance',
         database: 'Database Browser',
         effects: 'Seasonal Effects'
     };
@@ -337,6 +339,10 @@ function setupNavigation() {
     document.getElementById('doc-editor-cancel').addEventListener('click', closeDocEditor);
     document.getElementById('doc-editor-save').addEventListener('click', saveDocEdit);
     document.getElementById('doc-editor-delete').addEventListener('click', deleteDocFromEditor);
+
+    // Staff status
+    document.getElementById('staff-status-save-btn').addEventListener('click', saveStaffStatus);
+    document.getElementById('staff-status-reset-btn').addEventListener('click', resetStaffStatus);
 }
 
 function loadSection(name) {
@@ -347,6 +353,7 @@ function loadSection(name) {
         case 'community': loadCommunity(); break;
         case 'banners': loadBanners(); break;
         case 'reports': loadReports(); break;
+        case 'staff-status': loadStaffStatus(); break;
         case 'maintenance': loadMaintenance(); break;
         case 'effects': loadEffects(); break;
     }
@@ -1054,6 +1061,117 @@ window.deleteItem = async function(collectionName, id, name) {
         showToast('Delete failed: ' + err.message, 'error');
     }
 };
+
+// ================================================================
+// STAFF STATUS
+// ================================================================
+const STAFF_STATUS_COLORS = {
+    operational: { bg: '#00ff00', label: 'Operational' },
+    degraded: { bg: '#ffaa00', label: 'Degraded' },
+    down: { bg: '#ff0000', label: 'Down' }
+};
+
+async function loadStaffStatus() {
+    const indicator = document.getElementById('staff-status-indicator');
+    const currentText = document.getElementById('staff-status-current');
+    const metaEl = document.getElementById('staff-status-meta');
+
+    try {
+        const snap = await window.firestoreGetDoc(window.firestoreDoc(db(), 'system', 'status'));
+        if (!snap.exists()) {
+            currentText.textContent = 'Not set';
+            metaEl.textContent = '';
+            document.getElementById('staff-status-select').value = 'operational';
+            document.getElementById('staff-status-message').value = '';
+            document.getElementById('staff-status-description').value = '';
+            return;
+        }
+        const data = snap.data();
+        const status = data.status || 'operational';
+        const message = data.message || 'All Systems Operational';
+        const description = data.description || '';
+        const colors = STAFF_STATUS_COLORS[status] || STAFF_STATUS_COLORS.operational;
+
+        indicator.style.background = colors.bg;
+        indicator.style.boxShadow = `0 0 10px ${colors.bg}`;
+        currentText.textContent = `${colors.label} — ${message}`;
+
+        const parts = [];
+        if (data.updatedBy) parts.push(`Updated by: ${data.updatedBy}`);
+        if (data.updatedAt) parts.push(`at ${data.updatedAt}`);
+        metaEl.textContent = parts.join(' ');
+
+        // Populate form fields
+        document.getElementById('staff-status-select').value = status;
+        document.getElementById('staff-status-message').value = message;
+        document.getElementById('staff-status-description').value = description;
+    } catch (err) {
+        console.error('Failed to load staff status:', err);
+        currentText.textContent = 'Error loading status';
+        metaEl.textContent = err.message;
+    }
+}
+
+async function saveStaffStatus() {
+    const statusVal = document.getElementById('staff-status-select').value;
+    const message = document.getElementById('staff-status-message').value.trim();
+    const description = document.getElementById('staff-status-description').value.trim();
+    const savingEl = document.getElementById('staff-status-saving');
+
+    if (!message) {
+        showToast('Status message is required', 'error');
+        return;
+    }
+    if (message.length > 100) {
+        showToast('Message must be 100 characters or fewer', 'error');
+        return;
+    }
+
+    savingEl.textContent = 'Saving...';
+    savingEl.style.color = '';
+
+    const payload = {
+        status: statusVal,
+        message: message,
+        updatedAt: new Date().toISOString(),
+        updatedBy: currentUser ? currentUser.uid : 'unknown'
+    };
+
+    if (description) {
+        payload.description = description;
+    }
+
+    try {
+        await window.firestoreSetDoc(window.firestoreDoc(db(), 'system', 'status'), payload);
+        showToast(`Status updated to: ${STAFF_STATUS_COLORS[statusVal]?.label || statusVal}`, 'success');
+        savingEl.textContent = '';
+        loadStaffStatus();
+    } catch (err) {
+        console.error('Failed to save staff status:', err);
+        showToast('Save failed: ' + err.message, 'error');
+        savingEl.textContent = 'Save failed.';
+        savingEl.style.color = '#ff4757';
+    }
+}
+
+async function resetStaffStatus() {
+    if (!confirm('Reset status to Operational?')) return;
+
+    const payload = {
+        status: 'operational',
+        message: 'All Systems Operational',
+        updatedAt: new Date().toISOString(),
+        updatedBy: currentUser ? currentUser.uid : 'unknown'
+    };
+
+    try {
+        await window.firestoreSetDoc(window.firestoreDoc(db(), 'system', 'status'), payload);
+        showToast('Status reset to Operational', 'success');
+        loadStaffStatus();
+    } catch (err) {
+        showToast('Reset failed: ' + err.message, 'error');
+    }
+}
 
 // ================================================================
 // MAINTENANCE MODE
