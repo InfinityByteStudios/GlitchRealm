@@ -294,6 +294,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                     Reports
                 </button>
+                <button class="nav-item" data-section="staff-status">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    Staff Status
+                </button>
                 <button class="nav-item" data-section="maintenance">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
                     Maintenance
@@ -525,6 +529,52 @@
                     </div>
                 </div>
                 <div id="reports-list" class="items-list"><div class="loading-placeholder">Loading...</div></div>
+            </section>
+
+            <!-- Section: Staff Status -->
+            <section id="sec-staff-status" class="content-section">
+                <div class="banner-creator">
+                    <h3>Staff Status Update</h3>
+                    <p class="subtle-text">Update the system status shown on the Support page. This is a manually set status visible to all users.</p>
+
+                    <!-- Current Status Preview -->
+                    <div id="staff-status-preview" style="padding:14px 18px; background:linear-gradient(135deg,rgba(11,24,34,0.9),rgba(7,16,23,0.95)); border:1px solid rgba(0,255,249,0.2); border-radius:12px; display:flex; align-items:center; gap:12px; margin:18px 0;">
+                        <div id="staff-status-indicator" style="width:12px; height:12px; border-radius:50%; background:#00ff00; box-shadow:0 0 10px #00ff00;"></div>
+                        <div style="flex:1;">
+                            <span style="font-weight:700; font-size:.9rem; color:#fff;">Current: <span id="staff-status-current">Loading...</span></span>
+                            <div id="staff-status-meta" style="font-size:.75rem; color:#7edcf0; opacity:.8; margin-top:2px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="staff-status-select">Status</label>
+                            <select id="staff-status-select">
+                                <option value="operational">Operational (Green)</option>
+                                <option value="degraded">Degraded (Orange)</option>
+                                <option value="down">Down (Red)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="staff-status-message">Message <span style="font-size:.75rem; color:#666;">(max 100 chars)</span></label>
+                            <input type="text" id="staff-status-message" placeholder="e.g. All Systems Operational" maxlength="100" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="staff-status-description">Description <span style="font-size:.75rem; color:#666;">(optional, max 1000 chars)</span></label>
+                            <textarea id="staff-status-description" rows="3" maxlength="1000" placeholder="Optional extended description shown when users click the status..."></textarea>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:12px;margin-top:8px;align-items:center;">
+                        <button class="btn-primary" id="staff-status-save-btn">Update Status</button>
+                        <button class="btn-secondary" id="staff-status-reset-btn">Reset to Operational</button>
+                        <span id="staff-status-saving" style="font-size:.9rem;"></span>
+                    </div>
+                </div>
             </section>
 
             <!-- Section: Maintenance Mode -->

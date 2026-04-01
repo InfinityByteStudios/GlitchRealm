@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal &mdash; GlitchRealm Games</title>
+    <meta name="description" content="GlitchRealm legal hub. Access our Terms of Service, Privacy Policy, EULA, Cookie Policy, and all legal documentation.">
+    <link rel="canonical" href="https://legal.glitchrealm.ca">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://legal.glitchrealm.ca">
+    <meta property="og:title" content="Legal &mdash; GlitchRealm Games">
+    <meta property="og:description" content="Access GlitchRealm's Terms of Service, Privacy Policy, EULA, and all legal documentation.">
+    <meta property="og:image" content="https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png">
+    <meta property="og:site_name" content="GlitchRealm">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Legal &mdash; GlitchRealm Games">
+    <meta name="twitter:description" content="Access GlitchRealm's Terms of Service, Privacy Policy, and legal documentation.">
+    <meta name="twitter:image" content="https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png">
+    <!-- Self-hosted fonts (preloaded for instant rendering) -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/assets/Favicon and Icons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <script src="/js/auth-redirect-handler.js"></script>
+    <script type="module" src="/js/firebase-core.js"></script>
+
+    <style>
+        /* ------------------------------------------------------------------ */
+        /* LEGAL HUB — Cyberpunk Vault Aesthetic                              */
+        /* ------------------------------------------------------------------ */
+
+        /* Grid background texture */
+        .vault-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                linear-gradient(rgba(0, 255, 249, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 249, 0.015) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+        }
+
+        /* Scanline overlay */
+        .vault-scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.06) 2px,
+                rgba(0, 0, 0, 0.06) 4px
+            );
+            pointer-events: none;
+        }
+
+        /* ── Hero ───────────────────────────────────────────────────────── */
+        .legal-hero {
+            position: relative;
+            padding: 6rem 1.5rem 3rem;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .legal-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 100%;
+            background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0, 255, 249, 0.06), transparent);
+            pointer-events: none;
+        }
+
+        /* Oversized decorative text behind the title */
+        .legal-hero__watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -55%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(6rem, 18vw, 16rem);
+            font-weight: 900;
+            color: rgba(0, 255, 249, 0.03);
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .legal-hero__title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.4rem, 5vw, 4rem);
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #fff;
+            position: relative;
+        }
+
+        .legal-hero__title span {
+            color: var(--primary-cyan);
+        }
+
+        .legal-hero__subtitle {
+            margin-top: 0.75rem;
+            font-size: 1.15rem;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+
+        .legal-hero__divider {
+            width: 72px;
+            height: 3px;
+            margin: 1.75rem auto 0;
+            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+            border: none;
+        }
+
+        /* ── Category Tabs (sticky) ─────────────────────────────────────── */
+        .category-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 10, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 255, 249, 0.12);
+            padding: 0 1rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .category-bar::-webkit-scrollbar { display: none; }
+
+        .category-bar__inner {
+            display: flex;
+            gap: 0.25rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0.6rem 0;
+        }
+
+        .category-tab {
+            flex-shrink: 0;
+            padding: 0.45rem 1.1rem;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.55);
+            background: transparent;
+            border: 1px solid transparent;
+            text-decoration: none;
+            transition: color 0.25s, background 0.25s, border-color 0.25s;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .category-tab:hover,
+        .category-tab.active {
+            color: var(--primary-cyan);
+            background: rgba(0, 255, 249, 0.07);
+            border-color: rgba(0, 255, 249, 0.2);
+        }
+
+        /* ── Main container ─────────────────────────────────────────────── */
+        .vault-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        /* ── Section ────────────────────────────────────────────────────── */
+        .vault-section {
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(24px);
+            animation: vaultReveal 0.6s ease-out forwards;
+        }
+        .vault-section:nth-child(1) { animation-delay: 0.05s; }
+        .vault-section:nth-child(2) { animation-delay: 0.12s; }
+        .vault-section:nth-child(3) { animation-delay: 0.19s; }
+        .vault-section:nth-child(4) { animation-delay: 0.26s; }
+        .vault-section:nth-child(5) { animation-delay: 0.33s; }
+        .vault-section:nth-child(6) { animation-delay: 0.40s; }
+        .vault-section:nth-child(7) { animation-delay: 0.47s; }
+        .vault-section:nth-child(8) { animation-delay: 0.54s; }
+
+        @keyframes vaultReveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .vault-section__heading {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .vault-section__label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .vault-section__line {
+            flex: 1;
+            height: 1px;
+        }
+
+        /* Category accent colours */
+        .accent-core    .vault-section__label { color: #00fff9; background: rgba(0,255,249,0.1); border: 1px solid rgba(0,255,249,0.25); }
+        .accent-core    .vault-section__line  { background: linear-gradient(90deg, rgba(0,255,249,0.25), transparent); }
+
+        .accent-privacy .vault-section__label { color: #a78bfa; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25); }
+        .accent-privacy .vault-section__line  { background: linear-gradient(90deg, rgba(167,139,250,0.25), transparent); }
+
+        .accent-dev     .vault-section__label { color: #34d399; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); }
+        .accent-dev     .vault-section__line  { background: linear-gradient(90deg, rgba(52,211,153,0.25), transparent); }
+
+        .accent-ip      .vault-section__label { color: #f472b6; background: rgba(244,114,182,0.1); border: 1px solid rgba(244,114,182,0.25); }
+        .accent-ip      .vault-section__line  { background: linear-gradient(90deg, rgba(244,114,182,0.25), transparent); }
+
+        .accent-payment .vault-section__label { color: #fbbf24; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); }
+        .accent-payment .vault-section__line  { background: linear-gradient(90deg, rgba(251,191,36,0.25), transparent); }
+
+        .accent-community .vault-section__label { color: #38bdf8; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.25); }
+        .accent-community .vault-section__line  { background: linear-gradient(90deg, rgba(56,189,248,0.25), transparent); }
+
+        .accent-extra   .vault-section__label { color: #94a3b8; background: rgba(148,163,184,0.08); border: 1px solid rgba(148,163,184,0.2); }
+        .accent-extra   .vault-section__line  { background: linear-gradient(90deg, rgba(148,163,184,0.2), transparent); }
+
+        .accent-contact .vault-section__label { color: #fb923c; background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.25); }
+        .accent-contact .vault-section__line  { background: linear-gradient(90deg, rgba(251,146,60,0.25), transparent); }
+
+        /* ── Document Row ───────────────────────────────────────────────── */
+        .doc-row {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            align-items: center;
+            gap: 1.25rem;
+            padding: 1rem 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.25s, border-color 0.3s, transform 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .doc-row + .doc-row {
+            margin-top: 0.5rem;
+        }
+
+        .doc-row::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 60%, rgba(0, 255, 249, 0.03));
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .doc-row:hover {
+            background: rgba(0, 255, 249, 0.04);
+            border-color: rgba(0, 255, 249, 0.18);
+            transform: translateX(4px);
+        }
+
+        .doc-row:hover::after {
+            opacity: 1;
+        }
+
+        /* Accent-coloured left bar on hover */
+        .accent-core    .doc-row:hover { border-left: 3px solid rgba(0,255,249,0.6); }
+        .accent-privacy .doc-row:hover { border-left: 3px solid rgba(167,139,250,0.6); }
+        .accent-dev     .doc-row:hover { border-left: 3px solid rgba(52,211,153,0.6); }
+        .accent-ip      .doc-row:hover { border-left: 3px solid rgba(244,114,182,0.6); }
+        .accent-payment .doc-row:hover { border-left: 3px solid rgba(251,191,36,0.6); }
+        .accent-community .doc-row:hover { border-left: 3px solid rgba(56,189,248,0.6); }
+        .accent-extra   .doc-row:hover { border-left: 3px solid rgba(148,163,184,0.4); }
+
+        .doc-row__icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+
+        .doc-row__icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: rgba(255, 255, 255, 0.45);
+            transition: stroke 0.25s;
+        }
+
+        .doc-row:hover .doc-row__icon svg {
+            stroke: var(--primary-cyan);
+        }
+
+        .doc-row__body {
+            min-width: 0;
+        }
+
+        .doc-row__title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.92);
+            transition: color 0.25s;
+        }
+
+        .doc-row:hover .doc-row__title {
+            color: #fff;
+        }
+
+        .doc-row__desc {
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.45);
+            margin-top: 0.2rem;
+            line-height: 1.45;
+        }
+
+        .doc-row__meta {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.3);
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        .doc-row__arrow {
+            display: block;
+            margin-top: 0.35rem;
+            text-align: right;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity 0.25s, transform 0.25s;
+            color: var(--primary-cyan);
+            font-size: 1rem;
+        }
+
+        .doc-row:hover .doc-row__arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* ── Contact Grid ───────────────────────────────────────────────── */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .contact-entry {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            transition: border-color 0.3s, background 0.25s;
+        }
+
+        .contact-entry:hover {
+            background: rgba(251, 146, 60, 0.04);
+            border-color: rgba(251, 146, 60, 0.2);
+        }
+
+        .contact-entry__icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(251, 146, 60, 0.08);
+            flex-shrink: 0;
+        }
+
+        .contact-entry__icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: #fb923c;
+        }
+
+        .contact-entry__label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .contact-entry__email {
+            font-size: 0.85rem;
+            color: var(--primary-cyan);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contact-entry__email:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        /* ── Footer CTA ─────────────────────────────────────────────────── */
+        .vault-cta {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 2rem;
+        }
+
+        .vault-cta__text {
+            font-size: 1.05rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.75rem;
+        }
+
+        .vault-cta__link {
+            color: var(--primary-cyan);
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .vault-cta__link:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        .vault-cta__sub {
+            margin-top: 0.75rem;
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .vault-cta__sub a {
+            color: var(--primary-cyan);
+            text-decoration: none;
+        }
+
+        .vault-cta__sub a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Responsive ─────────────────────────────────────────────────── */
+        @media (max-width: 700px) {
+            .legal-hero {
+                padding: 4rem 1rem 2rem;
+            }
+
+            .doc-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+
+            .doc-row__icon {
+                display: none;
+            }
+
+            .doc-row__meta {
+                text-align: left;
+            }
+
+            .doc-row__arrow {
+                display: none;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="vault-bg"></div>
+    <div class="vault-scanlines"></div>
+    <div class="background-animation"></div>
+
+    <div id="header-placeholder"></div>
+
+    <main class="main" id="main-content">
+        <!-- ── Hero ─────────────────────────────────────────────────────── -->
+        <section class="legal-hero">
+            <div class="legal-hero__watermark" aria-hidden="true">LEGAL</div>
+            <h1 class="legal-hero__title">
+                <span class="glitch" data-text="Legal">Legal</span>
+            </h1>
+            <p class="legal-hero__subtitle">Policies &middot; Terms &middot; Governance</p>
+            <hr class="legal-hero__divider">
+        </section>
+
+        <!-- ── Sticky Category Nav ──────────────────────────────────────── -->
+        <nav class="category-bar" aria-label="Legal categories">
+            <div class="category-bar__inner">
+                <a href="#core" class="category-tab active">Core</a>
+                <a href="#privacy" class="category-tab">Privacy</a>
+                <a href="#developers" class="category-tab">Developers</a>
+                <a href="#ip" class="category-tab">IP</a>
+                <a href="#payments" class="category-tab">Payments</a>
+                <a href="#community" class="category-tab">Community</a>
+                <a href="#additional" class="category-tab">Additional</a>
+                <a href="#contact-info" class="category-tab">Contact</a>
+            </div>
+        </nav>
+
+        <!-- ── Document Registry ────────────────────────────────────────── -->
+        <div class="vault-container">
+
+            <!-- Core Legal Documents -->
+            <section class="vault-section accent-core" id="core">
+                <div class="vault-section__heading">
+                    <span class="vault-section__label">Core Legal Documents</span>
+                    <span class="vault-section__line"></span>
+                </div>
+
+                <a href="/terms-of-service" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Terms of Service</div>
+                        <div class="doc-row__desc">The rules and guidelines governing your use of GlitchRealm's platform, games, and services.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Dec 6, 2025
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/privacy-policy" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Privacy Policy</div>
+                        <div class="doc-row__desc">How we collect, use, and protect your personal information when you use GlitchRealm.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Dec 27, 2025
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/eula" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">End User License Agreement</div>
+                        <div class="doc-row__desc">License terms for using GlitchRealm's platform, games, and services.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/cookie-policy" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="16" cy="8" r="1"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Cookie Policy</div>
+                        <div class="doc-row__desc">How we use cookies and tracking technologies on GlitchRealm.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/dpa" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Data Processing Addendum</div>
+                        <div class="doc-row__desc">GDPR compliance, subprocessors, and data protection details.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Privacy & Data Protection -->
+            <section class="vault-section accent-privacy" id="privacy">
+                <div class="vault-section__heading">
+                    <span class="vault-section__label">Privacy &amp; Data Protection</span>
+                    <span class="vault-section__line"></span>
+                </div>
+
+                <a href="/coppa" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Children's Privacy (COPPA)</div>
+                        <div class="doc-row__desc">Age restrictions, parental consent, and children's data protection.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/accessibility-statement" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="7" r="1.5"/><path d="M9 12h6"/><path d="M10 17l2-5 2 5"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Accessibility Statement</div>
+                        <div class="doc-row__desc">Our commitment to making GlitchRealm accessible to all users.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        &nbsp;
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Developer & Creator Policies -->
+            <section class="vault-section accent-dev" id="developers">
+                <div class="vault-section__heading">
+                    <span class="vault-section__label">Developer &amp; Creator Policies</span>
+                    <span class="vault-section__line"></span>
+                </div>
+
+                <a href="/developer-agreement" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Developer Agreement</div>
+                        <div class="doc-row__desc">Terms for game creators submitting content to GlitchRealm.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/submission-policy" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Game Submission Policy</div>
+                        <div class="doc-row__desc">Approval process, review criteria, and status workflow for submitted games.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/moderation-policy" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Content Moderation Policy</div>
+                        <div class="doc-row__desc">How we moderate games, reviews, and community content to maintain platform quality.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 27, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Intellectual Property -->
+            <section class="vault-section accent-ip" id="ip">
+                <div class="vault-section__heading">
+                    <span class="vault-section__label">Intellectual Property</span>
+                    <span class="vault-section__line"></span>
+                </div>
+
+                <a href="/copyright-dmca" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9a3 3 0 1 0 0 6"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Copyright &amp; DMCA</div>
+                        <div class="doc-row__desc">Copyright policy, DMCA takedown procedures, and infringement reporting.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/ip-notice" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">IP &amp; Trademark Notice</div>
+                        <div class="doc-row__desc">Dual licensing, trademark policy, and intellectual property rights.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/brand-protection" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Brand Protection</div>
+                        <div class="doc-row__desc">GlitchRealm brand names, usage guidelines, and intellectual property rights.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        &nbsp;
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Payment & Commerce -->
+            <section class="vault-section accent-payment" id="payments">
+                <div class="vault-section__heading">
+                    <span class="vault-section__label">Payment &amp; Commerce</span>
+                    <span class="vault-section__line"></span>
+                </div>
+
+                <a href="/refund-policy" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Refund Policy</div>
+                        <div class="doc-row__desc">Refund terms for future paid features, subscriptions, and in-game purchases.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/donation-policy" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Donation Policy</div>
+                        <div class="doc-row__desc">How voluntary contributions work, refund policies, and how we use donated funds.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 1, 2025
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Community Guidelines -->
+            <section class="vault-section accent-community" id="community">
+                <div class="vault-section__heading">
+                    <span class="vault-section__label">Community Guidelines</span>
+                    <span class="vault-section__line"></span>
+                </div>
+
+                <a href="/code-of-conduct" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Code of Conduct</div>
+                        <div class="doc-row__desc">Community guidelines and standards for respectful behavior on GlitchRealm.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        &nbsp;
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Additional Information -->
+            <section class="vault-section accent-extra" id="additional">
+                <div class="vault-section__heading">
+                    <span class="vault-section__label">Additional Information</span>
+                    <span class="vault-section__line"></span>
+                </div>
+
+                <a href="/external-platforms" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">External Platforms</div>
+                        <div class="doc-row__desc">Third-party service integrations, payment processing, and limitations of liability.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 23, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/legal-definitions" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Legal Definitions</div>
+                        <div class="doc-row__desc">Glossary of legal terms and definitions used throughout our policies.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        &nbsp;
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/legal-contact" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Legal Contact Information</div>
+                        <div class="doc-row__desc">Designated agents, contact emails, and supervisory authorities for legal inquiries.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Jan 24, 2026
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+
+                <a href="/legal-information" class="doc-row">
+                    <div class="doc-row__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </div>
+                    <div class="doc-row__body">
+                        <div class="doc-row__title">Legal Information</div>
+                        <div class="doc-row__desc">Additional legal notices, licensing information, and intellectual property details.</div>
+                    </div>
+                    <div class="doc-row__meta">
+                        Sep 16, 2025
+                        <span class="doc-row__arrow">&rarr;</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Contact Information -->
+            <section class="vault-section accent-contact" id="contact-info">
+                <div class="vault-section__heading">
+                    <span class="vault-section__label">Contact Information</span>
+                    <span class="vault-section__line"></span>
+                </div>
+
+                <div class="contact-grid">
+                    <div class="contact-entry">
+                        <div class="contact-entry__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </div>
+                        <div>
+                            <div class="contact-entry__label">General Support</div>
+                            <a href="mailto:support@glitchrealm.ca" class="contact-entry__email">support@glitchrealm.ca</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-entry">
+                        <div class="contact-entry__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </div>
+                        <div>
+                            <div class="contact-entry__label">General Contact</div>
+                            <a href="mailto:contact@glitchrealm.ca" class="contact-entry__email">contact@glitchrealm.ca</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-entry">
+                        <div class="contact-entry__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 1m0 0l-3 9a5 5 0 0 0 6 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5 5 0 0 0 6 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                        </div>
+                        <div>
+                            <div class="contact-entry__label">Legal Inquiries</div>
+                            <a href="mailto:legal@glitchrealm.ca" class="contact-entry__email">legal@glitchrealm.ca</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-entry">
+                        <div class="contact-entry__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </div>
+                        <div>
+                            <div class="contact-entry__label">Security Reports</div>
+                            <a href="mailto:security@glitchrealm.ca" class="contact-entry__email">security@glitchrealm.ca</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-entry">
+                        <div class="contact-entry__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                        </div>
+                        <div>
+                            <div class="contact-entry__label">Press &amp; Media</div>
+                            <a href="mailto:press@glitchrealm.ca" class="contact-entry__email">press@glitchrealm.ca</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-entry">
+                        <div class="contact-entry__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13.255A23.931 23.931 0 0 1 12 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2m4 6h.01M5 20h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+                        </div>
+                        <div>
+                            <div class="contact-entry__label">Partnerships</div>
+                            <a href="mailto:partnerships@glitchrealm.ca" class="contact-entry__email">partnerships@glitchrealm.ca</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-entry">
+                        <div class="contact-entry__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                        </div>
+                        <div>
+                            <div class="contact-entry__label">Developer Support</div>
+                            <a href="mailto:developers@glitchrealm.ca" class="contact-entry__email">developers@glitchrealm.ca</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-entry">
+                        <div class="contact-entry__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </div>
+                        <div>
+                            <div class="contact-entry__label">Donations</div>
+                            <a href="mailto:donations@glitchrealm.ca" class="contact-entry__email">donations@glitchrealm.ca</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA -->
+            <div class="vault-cta">
+                <p class="vault-cta__text">Can't find what you're looking for?</p>
+                <a href="mailto:contact@glitchrealm.ca" class="vault-cta__link">contact@glitchrealm.ca</a>
+                <p class="vault-cta__sub">
+                    For detailed contact routing, see our <a href="/legal-contact">Legal Contact Information</a> page.
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="/js/script.js" defer></script>
+
+    <!-- Category tab active-state on scroll -->
+    <script>
+    (function () {
+        var tabs = document.querySelectorAll('.category-tab');
+        var sections = [];
+        tabs.forEach(function (t) {
+            var id = t.getAttribute('href');
+            if (id && id.startsWith('#')) {
+                var el = document.getElementById(id.slice(1));
+                if (el) sections.push({ tab: t, el: el });
+            }
+        });
+
+        function update() {
+            var scrollY = window.scrollY + 120;
+            var active = sections[0];
+            for (var i = 0; i < sections.length; i++) {
+                if (sections[i].el.offsetTop <= scrollY) active = sections[i];
+            }
+            tabs.forEach(function (t) { t.classList.remove('active'); });
+            if (active) active.tab.classList.add('active');
+        }
+
+        var ticking = false;
+        window.addEventListener('scroll', function () {
+            if (!ticking) {
+                window.requestAnimationFrame(function () { update(); ticking = false; });
+                ticking = true;
+            }
+        });
+        update();
+
+        /* Smooth scroll for category tabs */
+        tabs.forEach(function (t) {
+            t.addEventListener('click', function (e) {
+                var id = t.getAttribute('href');
+                if (id && id.startsWith('#')) {
+                    e.preventDefault();
+                    var target = document.getElementById(id.slice(1));
+                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    })();
+    </script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "892ed403e03340bea2db911f5d5ceb5c"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

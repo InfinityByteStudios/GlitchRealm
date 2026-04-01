@@ -26,6 +26,10 @@ https://admin.glitchrealm.ca/*   /subdomains/admin/:splat  200
 # Developers subdomain - serve the Developer API page
 https://developers.glitchrealm.ca/*  /subdomains/developers/:splat  200
 
+# Legal subdomain - serve the Legal Hub
+https://legal.glitchrealm.ca       /subdomains/legal/index.html  200
+https://legal.glitchrealm.ca/      /subdomains/legal/index.html  200
+
 # Retire legacy Community Games page -> send to main Games
 /community-games        /games.html   301
 /community-games.html   /games.html   301
@@ -65,8 +69,8 @@ https://developers.glitchrealm.ca/*  /subdomains/developers/:splat  200
 /external-platforms                     /subdomains/pages/legal/external-platforms.html   200
 /ip-notice.html                         /subdomains/pages/legal/ip-notice.html   200
 /ip-notice                              /subdomains/pages/legal/ip-notice.html   200
-/legal.html                             /subdomains/pages/legal/legal.html   200
-/legal                                  /subdomains/pages/legal/legal.html   200
+/legal.html                             https://legal.glitchrealm.ca   301
+/legal                                  https://legal.glitchrealm.ca   301
 /legal-contact.html                     /subdomains/pages/legal/legal-contact.html   200
 /legal-contact                          /subdomains/pages/legal/legal-contact.html   200
 /legal-definitions.html                 /subdomains/pages/legal/legal-definitions.html   200
