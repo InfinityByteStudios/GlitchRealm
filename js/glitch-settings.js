@@ -69,32 +69,25 @@
         // Apply to all existing glitch text
         applyGlitchSpeed(speed);
 
-        // Initialize preview (works even when header is injected later)
-        const start = Date.now();
-        const interval = setInterval(() => {
+        // Initialize preview and radios once they appear in the DOM (header injection)
+        function tryInit() {
             initPreview(speed);
-            if (document.querySelector('.glitch-preview') || Date.now() - start > 5000) {
-                clearInterval(interval);
-            }
-        }, 100);
-
-        // Try to init radios once they exist
-        const radiosStart = Date.now();
-        const radiosInterval = setInterval(() => {
             initRadios(speed);
-            if (document.querySelector('input[name="glitchSpeed"]') || Date.now() - radiosStart > 5000) {
-                clearInterval(radiosInterval);
-            }
-        }, 100);
+        }
+        tryInit();
 
-        // Auto-show popup disabled - users can access via settings
-        // const hasSeenSettings = localStorage.getItem('hasSeenGlitchSettings');
-        // if (!hasSeenSettings) {
-        //     setTimeout(() => {
-        //         openGlitchSettings();
-        //         localStorage.setItem('hasSeenGlitchSettings', 'true');
-        //     }, 1000);
-        // }
+        // Watch for dynamically injected elements (header component)
+        if (!document.querySelector('.glitch-preview') || !document.querySelector('input[name="glitchSpeed"]')) {
+            const observer = new MutationObserver(() => {
+                if (document.querySelector('.glitch-preview') && document.querySelector('input[name="glitchSpeed"]')) {
+                    tryInit();
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            // Safety timeout to stop observing
+            setTimeout(() => observer.disconnect(), 10000);
+        }
     }
 
     // Open glitch settings modal

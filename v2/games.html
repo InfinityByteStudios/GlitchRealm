@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Games | GlitchRealm</title>
+  <meta name="description" content="Browse all games on GlitchRealm. Filter by genre, search by name, and play instantly in your browser.">
+  <link rel="canonical" href="https://glitchrealm.ca/v2/games">
+  <link rel="stylesheet" href="/v2/css/styles.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/v2/"><span class="brand-dot" aria-hidden="true"></span><span>GlitchRealm</span></a>
+      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="v2-nav">Menu</button>
+      <nav class="nav-menu" id="v2-nav" data-nav-menu>
+        <a class="nav-link" href="/v2/">Home</a>
+        <a class="nav-link active" href="/v2/games">Games</a>
+        <a class="nav-link" href="/v2/submit-game">Submit</a>
+        <a class="nav-link" href="/v2/legal">Legal</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="main-content">
+    <section class="panel section reveal">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">All Games</span>
+          <h2>Game Directory</h2>
+        </div>
+      </div>
+
+      <div class="filter-toolbar">
+        <div class="filters" role="group" aria-label="Filter games by category">
+          <button class="filter-chip active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="arcade">Arcade</button>
+          <button class="filter-chip" data-filter="strategy">Strategy</button>
+          <button class="filter-chip" data-filter="puzzle">Puzzle</button>
+          <button class="filter-chip" data-filter="multiplayer">Multiplayer</button>
+        </div>
+        <label class="search-field" for="games-search">
+          <span aria-hidden="true">Search</span>
+          <input id="games-search" type="search" placeholder="Search games..." data-search-input>
+        </label>
+      </div>
+
+      <div class="results-row" data-results-row>Showing 3 games</div>
+      <div class="results-row" data-live-status></div>
+
+      <div class="games-grid" data-games-grid>
+        <article class="game-card reveal" data-card-tags="racing,speed,cyberpunk">
+          <img src="/assets/game logos/ByteSurge.webp" alt="ByteSurge cover" loading="lazy">
+          <div class="game-body">
+            <div class="game-title-row"><h3>ByteSurge</h3><span class="badge badge-ok">Staff pick</span></div>
+            <p class="muted">High-speed cyberpunk racing through neon data networks.</p>
+            <div class="meta-row"><span>Racing</span><span>NanoShade Studios</span></div>
+            <div class="card-actions">
+              <a class="btn btn-primary btn-sm" href="https://bytesurgeloop.netlify.app/">Play</a>
+              <a class="btn btn-ghost btn-sm" href="/v2/game-detail?id=bytesurge">Details</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="game-card reveal" data-card-tags="puzzle,coding,adventure">
+          <img src="/assets/game%20logos/coderunner%20logo.webp" alt="CodeRunner cover" loading="lazy">
+          <div class="game-body">
+            <div class="game-title-row"><h3>CodeRunner</h3><span class="badge">Puzzle</span></div>
+            <p class="muted">Digital maze navigation with programming challenges.</p>
+            <div class="meta-row"><span>Puzzle / Adventure</span><span>NanoShade Studios</span></div>
+            <div class="card-actions">
+              <a class="btn btn-primary btn-sm" href="https://coderunner-quest.netlify.app/">Play</a>
+              <a class="btn btn-ghost btn-sm" href="/v2/game-detail?id=coderunner">Details</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="game-card reveal" data-card-tags="strategy,combat,sci-fi">
+          <img src="/assets/game%20logos/neurocore%20byte%20wars%20logo.webp" alt="NeuroCore Byte Wars cover" loading="lazy">
+          <div class="game-body">
+            <div class="game-title-row"><h3>NeuroCore: Byte Wars</h3><span class="badge">Strategy</span></div>
+            <p class="muted">Strategic neural combat with fast browser matches.</p>
+            <div class="meta-row"><span>Strategy / Sci-Fi</span><span>InfinityByte Studios</span></div>
+            <div class="card-actions">
+              <a class="btn btn-primary btn-sm" href="https://neurocorebytewars.netlify.app/">Play</a>
+              <a class="btn btn-ghost btn-sm" href="/v2/game-detail?id=neurocore">Details</a>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="empty-state" data-empty-state>No games match your search. Try a different filter or keyword.</div>
+    </section>
+
+    <footer class="foot">
+      <div class="foot-inner">
+        <div>
+          <div class="foot-brand">GlitchRealm</div>
+          <p class="foot-desc">Curated browser games from independent creators.</p>
+        </div>
+        <div>
+          <h4>Platform</h4>
+          <ul class="foot-links">
+            <li><a href="/v2/">Home</a></li>
+            <li><a href="/v2/games">Games</a></li>
+            <li><a href="/v2/submit-game">Submit</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <ul class="foot-links">
+            <li><a href="mailto:support@glitchrealm.ca">support@glitchrealm.ca</a></li>
+            <li><a href="mailto:developers@glitchrealm.ca">developers@glitchrealm.ca</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>&copy; 2025 GlitchRealm. All rights reserved.</span>
+        <span>glitchrealm.ca</span>
+      </div>
+    </footer>
+  </main>
+
+  <script type="module" src="/js/firebase-core.js"></script>
+  <script src="/v2/js/v2.js" defer></script>
+</body>
+</html>

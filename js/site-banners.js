@@ -20,28 +20,20 @@
     }
 
     await waitForFirebase();
-    console.info('[Site Banners] firebase ready, initializing banner loader');
 
-    // Get Firestore instance
-    let db, collection, query, where, getDocs, orderBy, Timestamp;
+    // Get Firestore instance — prefer window globals, fallback to dynamic import
+    let db, collection, query, where, getDocs, orderBy, Timestamp, mod;
     try {
-        const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-        collection = mod.collection;
-        query = mod.query;
+        mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        collection = window.firestoreCollection || mod.collection;
+        query = window.firestoreQuery || mod.query;
         where = mod.where;
-        getDocs = mod.getDocs;
+        getDocs = window.firestoreGetDocs || mod.getDocs;
         orderBy = mod.orderBy;
         Timestamp = mod.Timestamp;
 
-        if (window.firebaseFirestore) {
-            db = window.firebaseFirestore;
-        } else if (window.firebaseDb) {
-            db = window.firebaseDb;
-        } else if (window.firebaseApp) {
-            db = mod.getFirestore(window.firebaseApp);
-        } else {
-            return; // No Firebase available
-        }
+        db = window.firebaseFirestore || (window.firebaseApp ? mod.getFirestore(window.firebaseApp) : null);
+        if (!db) return;
     } catch (e) {
         console.warn('[Site Banners] Firebase unavailable:', e);
         return;
@@ -58,14 +50,12 @@
         if (!onSnapshotFn) {
             // Fallback to one-time fetch if realtime isn't available
             const snap = await getDocs(q);
-            console.info('[Site Banners] realtime onSnapshot unavailable, performed one-time fetch, docs=', snap.size);
             renderSnapshot(snap);
             return;
         }
 
         // Keep a live subscription so banners update immediately when admins change them
         const unsubscribe = onSnapshotFn(q, (snap) => {
-            console.info('[Site Banners] received snapshot, docs=', snap.size);
             renderSnapshot(snap);
         }, (err) => {
             console.warn('[Site Banners] onSnapshot error:', err);
@@ -76,7 +66,7 @@
 
         // Render helper used for both snapshot and one-time fetch
         function renderSnapshot(snap) {
-                if (!snap || snap.empty) { console.info('[Site Banners] snapshot empty - clearing banners'); removeBannerContainer(); return; }
+                if (!snap || snap.empty) { removeBannerContainer(); return; }
 
                 const now = new Date();
                 const banners = [];
@@ -84,23 +74,20 @@
 
                 snap.forEach(doc => {
                     const data = doc.data();
-                    // Provide debug info per doc
-                    console.debug('[Site Banners] doc', doc.id, data);
 
                     // Skip expired banners
                     if (data.expiresAt) {
                         const expires = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt);
-                        if (expires <= now) { console.info('[Site Banners] skipping expired banner', doc.id, expires); skipped++; return; }
+                        if (expires <= now) { skipped++; return; }
                     }
                     // Skip banners the user already dismissed (stored in localStorage)
                     const dismissedKey = 'gr_banner_' + doc.id;
-                    if (data.dismissible && localStorage.getItem(dismissedKey)) { console.info('[Site Banners] skipping dismissed banner', doc.id); skipped++; return; }
+                    if (data.dismissible && localStorage.getItem(dismissedKey)) { skipped++; return; }
 
                     banners.push({ id: doc.id, ...data });
                 });
 
-                if (banners.length === 0) { console.info('[Site Banners] no active banners after filtering (skipped=', skipped,')'); removeBannerContainer(); return; }
-                console.info('[Site Banners] rendering', banners.length, 'banners (skipped=', skipped,')');
+                if (banners.length === 0) { removeBannerContainer(); return; }
 
             // Inject banner CSS if not present
             let style = document.getElementById('gr-banner-style');

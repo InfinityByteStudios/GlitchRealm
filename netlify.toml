@@ -57,6 +57,14 @@
   [headers.values]
     Cache-Control = "no-cache"
 
+# Godot WASM game — needs relaxed CSP for WebAssembly and cross-origin isolation
+[[headers]]
+  for = "/Games/UnderYourSkin/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "require-corp"
+    Content-Security-Policy = "default-src 'self' blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob: https://*.firebaseio.com https://*.googleapis.com; frame-src 'self'"
+
 [[headers]]
   for = "/css/styles.css"
   [headers.values]
@@ -155,7 +163,7 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.buymeacoffee.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://pagead2.googlesyndication.com https://apis.google.com https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.cloudfunctions.net https://*.supabase.co wss://*.firebaseio.com; frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://*.google.com; object-src 'none'; base-uri 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.gstatic.com https://cdnjs.buymeacoffee.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://pagead2.googlesyndication.com https://apis.google.com https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' blob: https://*.firebaseio.com https://*.googleapis.com https://*.cloudfunctions.net https://*.supabase.co wss://*.firebaseio.com; frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://*.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     # Enable Brotli/Gzip
     Vary = "Accept-Encoding"

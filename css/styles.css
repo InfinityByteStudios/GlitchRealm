@@ -1608,7 +1608,7 @@ html {
 }
 
 .game-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-10px) scale(1.02);
     border-color: var(--primary-cyan);
     box-shadow: 0 10px 30px rgba(0, 255, 249, 0.3);
 }
@@ -1618,8 +1618,14 @@ html {
 }
 
 .game-card.coming-soon:hover {
+    transform: none;
     border-color: var(--gray-600);
     box-shadow: 0 10px 30px rgba(106, 106, 106, 0.2);
+}
+
+.game-card:hover .card-overlay {
+    opacity: 1;
+    animation: glitchOverlay 0.5s ease-in-out infinite;
 }
 
 .card-image {
@@ -1653,10 +1659,6 @@ html {
     background: linear-gradient(135deg, rgba(0, 255, 249, 0.1), rgba(255, 0, 128, 0.1));
     opacity: 0;
     transition: opacity 0.3s ease;
-}
-
-.game-card:hover .card-overlay {
-    opacity: 1;
 }
 
 .card-content {
@@ -1811,6 +1813,30 @@ html {
 .featured-developer strong {
     color: var(--primary-cyan);
     font-weight: 600;
+}
+
+.featured-play-btn {
+    margin-top: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--primary-cyan);
+    border: 1px solid var(--primary-cyan);
+    border-radius: 9px;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.featured-play-btn:hover {
+    background: var(--primary-cyan);
+    color: #0a0a0a;
 }
 
 /* About Page Styles */

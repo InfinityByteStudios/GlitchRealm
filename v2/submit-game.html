@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit a Game | GlitchRealm</title>
+  <meta name="description" content="Submit your browser game to GlitchRealm. We review every submission before publishing.">
+  <link rel="canonical" href="https://glitchrealm.ca/v2/submit-game">
+  <link rel="stylesheet" href="/v2/css/styles.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/v2/"><span class="brand-dot" aria-hidden="true"></span><span>GlitchRealm</span></a>
+      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="v2-nav">Menu</button>
+      <nav class="nav-menu" id="v2-nav" data-nav-menu>
+        <a class="nav-link" href="/v2/">Home</a>
+        <a class="nav-link" href="/v2/games">Games</a>
+        <a class="nav-link active" href="/v2/submit-game">Submit</a>
+        <a class="nav-link" href="/v2/legal">Legal</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="main-content">
+    <section class="panel section reveal">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Creators</span>
+          <h2>Submit Your Game</h2>
+        </div>
+      </div>
+
+      <p class="text-secondary" style="margin-bottom: 1rem; max-width: 56ch;">
+        Fill out the form below to submit your browser game. All submissions are saved as drafts and
+        reviewed by our team before going live.
+      </p>
+
+      <div class="stepper" aria-label="Submission steps">
+        <span class="step active">1. Game info</span>
+        <span class="step">2. Media &amp; controls</span>
+        <span class="step">3. Review &amp; submit</span>
+      </div>
+
+      <div class="results-row" data-submit-status>
+        Sign in to submit your game.
+      </div>
+
+      <form class="form-grid" action="/submit-game.html" method="get" data-submit-form>
+        <div class="field">
+          <label for="title">Game Title</label>
+          <input id="title" name="title" type="text" maxlength="120" required>
+        </div>
+
+        <div class="field">
+          <label for="genre">Primary Genre</label>
+          <select id="genre" name="genre" required>
+            <option value="">Select genre</option>
+            <option>Arcade</option>
+            <option>Puzzle</option>
+            <option>Strategy</option>
+            <option>Racing</option>
+            <option>Platformer</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="summary">Short Description</label>
+          <textarea id="summary" name="summary" maxlength="1000" placeholder="Describe your game in 1-2 sentences. Focus on gameplay." required></textarea>
+        </div>
+
+        <div class="field">
+          <label for="playUrl">Play URL</label>
+          <input id="playUrl" name="playUrl" type="url" placeholder="https://yourgame.netlify.app" required>
+        </div>
+
+        <div class="field">
+          <label for="cover">Cover Image URL</label>
+          <input id="cover" name="cover" type="url" placeholder="https://..." required>
+          <span class="field-hint">Use a 16:9 image for best results.</span>
+        </div>
+
+        <div class="field">
+          <label for="controls">Controls</label>
+          <input id="controls" name="controls" type="text" maxlength="80" placeholder="e.g., WASD + Mouse" required>
+        </div>
+
+        <div class="field">
+          <label for="sessionLength">Average Session Length</label>
+          <select id="sessionLength" name="sessionLength" required>
+            <option value="">Select</option>
+            <option>Under 5 minutes</option>
+            <option>5 to 10 minutes</option>
+            <option>10 to 20 minutes</option>
+            <option>20+ minutes</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="howTo">How To Play (optional)</label>
+          <textarea id="howTo" name="howTo" placeholder="Controls, objectives, tips for new players."></textarea>
+        </div>
+
+        <div class="field full" style="display:flex; gap:0.7rem; align-items:center; flex-wrap: wrap;">
+          <button class="btn btn-primary" type="submit" data-submit-button>Submit Game</button>
+          <a class="btn btn-ghost" href="/v2/legal">Submission Guidelines</a>
+        </div>
+      </form>
+    </section>
+
+    <footer class="foot">
+      <div class="foot-bottom">
+        <span>&copy; 2025 GlitchRealm. All rights reserved.</span>
+        <span><a href="mailto:developers@glitchrealm.ca" style="color: var(--muted);">developers@glitchrealm.ca</a></span>
+      </div>
+    </footer>
+  </main>
+
+  <script type="module" src="/js/firebase-core.js"></script>
+  <script src="/v2/js/v2.js" defer></script>
+</body>
+</html>

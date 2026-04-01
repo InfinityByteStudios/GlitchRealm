@@ -65,50 +65,15 @@ async function loadSupabaseAvatarIfAvailable(userId) {
 // Auth message display function - must be available early
 function showAuthMessage(message, type) {
     // Remove existing messages
-    const existingMessage = document.querySelector('.auth-message');
+    const existingMessage = document.querySelector('.auth-message-toast');
     if (existingMessage) {
         existingMessage.remove();
     }
 
     // Create new message
     const messageDiv = document.createElement('div');
-    messageDiv.className = `auth-message ${type}`;
+    messageDiv.className = `auth-message-toast auth-message ${type || 'info'}`;
     messageDiv.textContent = message;
-    
-    // Style the message
-    messageDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        border-radius: 12px;
-        font-family: 'Orbitron', monospace;
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        z-index: 10000;
-        animation: messageSlideIn 0.3s ease-out;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    `;
-    
-    // Set colors based on type
-    if (type === 'success') {
-        messageDiv.style.background = 'rgba(0, 255, 65, 0.2)';
-        messageDiv.style.border = '2px solid #00ff41';
-        messageDiv.style.color = '#00ff41';
-        messageDiv.style.boxShadow += ', 0 0 20px rgba(0, 255, 65, 0.3)';
-    } else if (type === 'error') {
-        messageDiv.style.background = 'rgba(255, 0, 128, 0.2)';
-        messageDiv.style.border = '2px solid #ff0080';
-        messageDiv.style.color = '#ff0080';
-        messageDiv.style.boxShadow += ', 0 0 20px rgba(255, 0, 128, 0.3)';
-    } else if (type === 'info') {
-        messageDiv.style.background = 'rgba(0, 255, 255, 0.2)';
-        messageDiv.style.border = '2px solid #00ffff';
-        messageDiv.style.color = '#00ffff';
-        messageDiv.style.boxShadow += ', 0 0 20px rgba(0, 255, 255, 0.3)';
-    }
     
     document.body.appendChild(messageDiv);
     
@@ -137,34 +102,19 @@ function checkPasswordChangeSuccess() {
 // Show password change success notification
 function showPasswordChangeSuccessNotification() {
     const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed; top: 20px; right: -400px; width: 350px;
-        background: linear-gradient(145deg, rgba(0,255,88,0.1), rgba(0,200,70,0.15));
-        border: 2px solid #00ff58; border-radius: 12px; padding: 0; z-index: 10000;
-        transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(10px); font-family: 'Orbitron', monospace;
-    `;
+    notification.className = 'gr-password-change-toast';
     notification.innerHTML = `
-        <div style="display:flex; align-items:flex-start; padding:1rem; gap:0.75rem;">
-            <div style="font-size:1.5rem; flex-shrink:0;">✅</div>
-            <div style="flex:1; color:#00ff58;">
-                <strong style="font-size:0.9rem; display:block; margin-bottom:0.25rem; text-shadow:0 0 10px rgba(0,255,88,0.5);">
-                    Password Successfully Changed!
-                </strong>
-                <p style="font-family:'Rajdhani',sans-serif; font-size:0.85rem; margin:0; opacity:0.9;">
-                    Your account credentials have been updated.
-                </p>
+        <div class="gr-toast-inner">
+            <div class="gr-toast-icon">✅</div>
+            <div class="gr-toast-body">
+                <strong>Password Successfully Changed!</strong>
+                <p>Your account credentials have been updated.</p>
             </div>
-            <button onclick="this.closest('div[style]').remove()" style="
-                background:none; border:none; color:#00ff58; font-size:1.2rem;
-                cursor:pointer; padding:0; width:20px; height:20px;
-                display:flex; align-items:center; justify-content:center;
-                border-radius:50%; transition:all 0.3s ease; flex-shrink:0;
-            " aria-label="Dismiss">&times;</button>
+            <button onclick="this.closest('.gr-password-change-toast').remove()" class="gr-toast-close" aria-label="Dismiss">&times;</button>
         </div>
     `;
     document.body.appendChild(notification);
-    setTimeout(() => { notification.style.right = '20px'; }, 100);
+    requestAnimationFrame(() => { notification.classList.add('visible'); });
     setTimeout(() => { if (notification.parentNode) notification.remove(); }, 5000);
 }
 
@@ -1091,36 +1041,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Game card hover effects
     function initCardAnimations() {
-        const gameCards = document.querySelectorAll('.game-card');
-        
-        gameCards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                if (!this.classList.contains('coming-soon')) {
-                    this.style.transform = 'translateY(-10px) scale(1.02)';
-                    addGlitchEffect(this);
-                }
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-                removeGlitchEffect(this);
-            });
-        });
-    }
-    
-    // Add temporary glitch effect to cards
-    function addGlitchEffect(element) {
-        const overlay = element.querySelector('.card-overlay');
-        if (overlay) {
-            overlay.style.animation = 'glitchOverlay 0.5s ease-in-out infinite';
-        }
-    }
-    
-    function removeGlitchEffect(element) {
-        const overlay = element.querySelector('.card-overlay');
-        if (overlay) {
-            overlay.style.animation = '';
-        }
+        // Handled by CSS :hover — no JS needed for basic transform/scale
     }
     
     // Parallax scrolling effect

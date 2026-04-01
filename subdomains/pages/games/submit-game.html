@@ -551,6 +551,11 @@
           <div style="font-size:0.85rem; color:var(--gray-400); margin-top:4px;">Help players learn how to play your game • <strong>Markdown supported</strong> (headings, lists, bold, italic, links)</div>
         </div>
         <div class="input-container">
+          <div class="input-label">Video Trailer URL (Optional)</div>
+          <input type="url" id="submissionTrailerUrl" class="neural-input" placeholder="YouTube or Vimeo URL (e.g., https://youtube.com/watch?v=...)" maxlength="500">
+          <div style="font-size:0.85rem; color:var(--gray-400); margin-top:4px;">Add a trailer or gameplay video from YouTube or Vimeo • Displays embedded on your game's detail page</div>
+        </div>
+        <div class="input-container">
           <div class="input-label">Screenshots (up to 10 URLs)</div>
           <input type="url" id="screenshot1" class="neural-input" placeholder="Screenshot 1 URL" maxlength="2000" style="margin-bottom:8px;">
           <input type="url" id="screenshot2" class="neural-input" placeholder="Screenshot 2 URL" maxlength="2000" style="margin-bottom:8px;">
@@ -822,6 +827,7 @@
         }
         if (game.extendedDescription) $('submissionExtendedDesc').value = game.extendedDescription;
         if (game.howToPlay) $('submissionHowToPlay').value = game.howToPlay;
+        if (game.trailerUrl) $('submissionTrailerUrl').value = game.trailerUrl;
         
         // Populate tags
         if (game.tags && Array.isArray(game.tags)) {
@@ -1323,6 +1329,7 @@
   const description=$('submissionDescription').value.trim(); 
   const extendedDescription=$('submissionExtendedDesc').value.trim();
   const howToPlay=$('submissionHowToPlay').value.trim();
+  const trailerUrl=$('submissionTrailerUrl')?.value.trim() || '';
   const playUrl=$('submissionPlayUrl').value.trim(); 
   let coverImageUrl=$('submissionCoverUrl').value.trim(); 
   const tags=[ $('tag1').value.trim(), $('tag2').value.trim(), $('tag3').value.trim() ].filter(Boolean).slice(0,3); 
@@ -1434,6 +1441,7 @@
           if (coverImageUrl && coverImageUrl.trim()) payloadDoc.coverImageUrl = coverImageUrl.trim();
           if (extendedDescription) payloadDoc.extendedDescription = extendedDescription;
           if (howToPlay) payloadDoc.howToPlay = howToPlay;
+          if (trailerUrl && /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|vimeo\.com)/i.test(trailerUrl)) payloadDoc.trailerUrl = trailerUrl;
           if (Array.isArray(screenshots) && screenshots.length > 0) payloadDoc.screenshots = screenshots;
           if (Array.isArray(tags) && tags.length > 0) payloadDoc.tags = tags;
           if (badge && ['new','updated','beta'].includes(badge)) payloadDoc.badge = badge;

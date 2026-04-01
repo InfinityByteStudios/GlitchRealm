@@ -22,11 +22,14 @@
   if (!db) return;
 
   try {
-    const { doc, getDoc } = await import(
+    const docFn = window.firestoreDoc || (await import(
       'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
-    );
+    )).doc;
+    const getDocFn = window.firestoreGetDoc || (await import(
+      'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
+    )).getDoc;
 
-    const snap = await getDoc(doc(db, 'site_config', 'maintenance'));
+    const snap = await getDocFn(docFn(db, 'site_config', 'maintenance'));
     if (!snap.exists()) return;
 
     const data = snap.data();

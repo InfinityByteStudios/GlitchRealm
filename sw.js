@@ -17,13 +17,6 @@ const BMC_WIDGET_URL = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js'
 
 // Same-origin paths that should NEVER be cached (always fetch fresh)
 const NEVER_CACHE_PATHS = [
-  '/subdomains/news/',
-  '/subdomains/news/index.html',
-  '/subdomains/news/publish.html',
-  '/subdomains/news/news-article.html',
-  '/index.html',
-  '/games.html',
-  '/user-portal.html',
   '/js/firebase-core.js',
   '/subdomains/news/firebase-core.js',
   '/js/script.js',
@@ -38,8 +31,8 @@ const NEVER_CACHE_PATHS = [
 function shouldNeverCache(url) {
   const pathname = url.pathname;
   // Never cache HTML pages
-  if (pathname.endsWith('.html')) return true;
-  // Never cache same-origin firebase scripts (e.g. /js/firebase-core.js)
+  if (pathname.endsWith('.html') || pathname === '/') return true;
+  // Never cache same-origin firebase scripts
   if (pathname.includes('firebase')) return true;
   // Never cache specific paths
   return NEVER_CACHE_PATHS.some(pattern => pathname.includes(pattern));

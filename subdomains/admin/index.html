@@ -111,9 +111,46 @@
     <!-- Inline login handler — guaranteed to run before any module loads -->
     <script>
         (function() {
+            const FALLBACK_ADMIN_UIDS = [
+                '6iZDTXC78aVwX22qrY43BOxDRLt1',
+                'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+                'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+                '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+                'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
+            ];
+
+            function normalizeUidList(list) {
+                return Array.isArray(list)
+                    ? list.map(function(v) { return String(v || '').trim(); }).filter(Boolean)
+                    : [];
+            }
+
+            function buildFallbackUidSet() {
+                var merged = [];
+
+                if (window.__ADMIN_UIDS__ instanceof Set) {
+                    window.__ADMIN_UIDS__.forEach(function(uid) { merged.push(String(uid || '').trim()); });
+                }
+
+                if (window.GlitchRealmDev && window.GlitchRealmDev.DEV_UIDS) {
+                    try {
+                        Array.from(window.GlitchRealmDev.DEV_UIDS).forEach(function(uid) {
+                            merged.push(String(uid || '').trim());
+                        });
+                    } catch (e) {
+                        // ignore and continue
+                    }
+                }
+
+                FALLBACK_ADMIN_UIDS.forEach(function(uid) { merged.push(uid); });
+                return new Set(merged.filter(Boolean));
+            }
+
             async function loadAdminUids() {
                 if (window.__ADMIN_UIDS__ instanceof Set) return window.__ADMIN_UIDS__;
                 const endpoints = [
+                    '/.netlify/functions/admin-auth-uids',
+                    'https://glitchrealm.ca/.netlify/functions/admin-auth-uids',
                     '/.netlify/functions/admin-uids',
                     'https://glitchrealm.ca/.netlify/functions/admin-uids'
                 ];
@@ -130,12 +167,16 @@
                         }
                     }
 
-                    if (!data) throw new Error('Failed to load admin UIDs');
-                    const list = Array.isArray(data?.uids) ? data.uids.map(v => String(v || '').trim()).filter(Boolean) : [];
+                    const list = normalizeUidList(data && data.uids);
+                    if (!list.length) {
+                        window.__ADMIN_UIDS__ = buildFallbackUidSet();
+                        return window.__ADMIN_UIDS__;
+                    }
+
                     window.__ADMIN_UIDS__ = new Set(list);
                     return window.__ADMIN_UIDS__;
                 } catch (e) {
-                    window.__ADMIN_UIDS__ = new Set();
+                    window.__ADMIN_UIDS__ = buildFallbackUidSet();
                     return window.__ADMIN_UIDS__;
                 }
             }
@@ -148,13 +189,42 @@
             e.preventDefault();
             var uid = document.getElementById('login-uid').value.trim();
             var errorEl = document.getElementById('login-error');
+            var loginBtn = document.getElementById('login-btn');
             errorEl.style.display = 'none';
 
             var uidSet = window.__ADMIN_UIDS__ instanceof Set ? window.__ADMIN_UIDS__ : new Set();
 
             if (uidSet.size === 0 && typeof window.loadAdminUids === 'function') {
-                window.loadAdminUids().then(function() {
-                    handleLoginInline(e);
+                if (loginBtn) {
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = 'Checking UID list...';
+                }
+
+                window.loadAdminUids().then(function(setResult) {
+                    var refreshed = setResult instanceof Set ? setResult : (window.__ADMIN_UIDS__ instanceof Set ? window.__ADMIN_UIDS__ : new Set());
+                    if (refreshed.size === 0) {
+                        errorEl.textContent = 'Unable to verify admin UID list right now. Please try again in a few seconds.';
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+
+                    if (!refreshed.has(uid)) {
+                        errorEl.textContent = 'Invalid admin UID.';
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+
+                    if (typeof handleLogin === 'function') {
+                        handleLogin(e);
+                    }
+                }).catch(function() {
+                    errorEl.textContent = 'Could not load admin credentials. Please try again.';
+                    errorEl.style.display = 'block';
+                }).finally(function() {
+                    if (loginBtn) {
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Authenticate';
+                    }
                 });
                 return false;
             }

@@ -27,6 +27,36 @@
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
   }
 
+  // Cached Firestore module — avoids 6 separate dynamic imports
+  let _fsMod = null;
+  async function getFS(){
+    if (_fsMod) return _fsMod;
+    if (window.firebaseFirestore && window.firestoreDoc) {
+      const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      _fsMod = {
+        getFirestore: () => window.firebaseFirestore,
+        collection: window.firestoreCollection,
+        query: window.firestoreQuery,
+        where: window.firestoreWhere,
+        orderBy: window.firestoreOrderBy,
+        limit: window.firestoreLimit,
+        doc: window.firestoreDoc,
+        getDoc: window.firestoreGetDoc,
+        getDocs: window.firestoreGetDocs,
+        updateDoc: window.firestoreUpdateDoc,
+        deleteDoc: window.firestoreDeleteDoc,
+        onSnapshot: window.firestoreOnSnapshot,
+        setDoc: window.firestoreSetDoc,
+        addDoc: window.firestoreAddDoc,
+        Timestamp: mod.Timestamp,
+        serverTimestamp: window.firestoreServerTimestamp,
+      };
+    } else {
+      _fsMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    }
+    return _fsMod;
+  }
+
   function renderEmpty(msg){
     listEl.innerHTML = `<div style="opacity:.8; padding:8px;">${esc(msg)}</div>`;
   }
@@ -132,7 +162,7 @@
     if (expiredIds.length) {
       (async () => {
         try {
-          const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const f = await getFS();
           const db = f.getFirestore();
           const col = (sourceEl?.value === 'games') ? 'game_reports' : 'community_post_reports';
           await Promise.all(expiredIds.map(id => f.deleteDoc(f.doc(db, col, id))));
@@ -143,7 +173,7 @@
     if (needsTTL.length) {
       (async () => {
         try {
-          const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const f = await getFS();
           const db = f.getFirestore();
           const expiresAt = f.Timestamp.fromMillis(Date.now() + AUTO_DELETE_TTL_HOURS*60*60*1000);
           const col = (sourceEl?.value === 'games') ? 'game_reports' : 'community_post_reports';
@@ -153,10 +183,6 @@
     }
     // Start countdown updates if any
     startCountdowns();
-  }
-
-  function esc(s){
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
   }
 
   function renderVerifyList(snap){
@@ -327,7 +353,7 @@
         if (!wvid) return;
         
         try {
-          const vmod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const vmod = await getFS();
           const db = vmod.getFirestore();
           
           if (approve) {
@@ -390,7 +416,7 @@
 
     // Capability-based: try a read to confirm
     try {
-    const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const mod = await getFS();
   const { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs, doc, updateDoc } = mod;
       const db = getFirestore();
       const buildQuery = () => {
@@ -421,7 +447,7 @@
       });
 
   // Verification requests query + handlers
-      const vmod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      const vmod = await getFS();
       const vdb = vmod.getFirestore();
       const buildVQuery = (filter, source) => {
         const collectionName = (source === 'writer-verification') ? 'writer_verification_requests' : 'verification_requests';
@@ -558,7 +584,7 @@
           // Only allow admins/moderators/devs (already checked), backend rules enforce update perms
       (async () => {
             try {
-              const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+              const f = await getFS();
               const db = f.getFirestore();
               const col = (sourceEl?.value === 'games') ? 'game_reports' : 'community_post_reports';
               const dref = f.doc(db, col, rid);

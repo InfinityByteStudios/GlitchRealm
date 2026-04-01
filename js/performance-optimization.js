@@ -203,41 +203,6 @@
 
     }
 
-    // ==================== RESPONSIVE IMAGES ====================
-    function addResponsiveSrcset() {
-        const images = document.querySelectorAll('img:not([srcset])');
-        
-        images.forEach(img => {
-            const src = img.src || img.dataset.src;
-            if (!src) return;
-
-            // Skip external images
-            if (src.startsWith('http') && !src.includes(window.location.hostname)) return;
-
-            // Skip SVG and icons
-            if (src.endsWith('.svg') || src.includes('/icons/')) return;
-
-            // Generate srcset for different sizes (assumes images exist)
-            const baseSrc = src.replace(/\.(png|jpg|jpeg|webp)$/i, '');
-            const ext = src.split('.').pop();
-
-            // Example: image.png → image-320w.png, image-640w.png, etc.
-            const srcset = [
-                `${baseSrc}-320w.${ext} 320w`,
-                `${baseSrc}-640w.${ext} 640w`,
-                `${baseSrc}-960w.${ext} 960w`,
-                `${baseSrc}.${ext} 1280w`
-            ].join(', ');
-
-            // Only add if responsive versions might exist
-            const sizes = '(max-width: 320px) 280px, (max-width: 640px) 600px, (max-width: 960px) 920px, 1200px';
-            
-            // Note: This is aspirational - images need to be generated
-            // img.srcset = srcset;
-            // img.sizes = sizes;
-        });
-    }
-
     // ==================== IMAGE COMPRESSION QUALITY ====================
     function adjustImageQuality() {
         const quality = getConnectionQuality();
@@ -326,61 +291,6 @@
         }
     }
 
-    // ==================== IMAGE OPTIMIZATION REPORT ====================
-    function generateOptimizationReport() {
-        const allImages = Array.from(document.images); // Convert HTMLCollection to Array
-        const report = {
-            total: allImages.length,
-            lazyLoaded: 0,
-            withoutAlt: 0,
-            withoutDimensions: 0,
-            largeImages: 0,
-            externalImages: 0,
-            missingWebP: 0
-        };
-
-        // Process immediate checks first
-        allImages.forEach(img => {
-            if (img.loading === 'lazy' || img.dataset.src) report.lazyLoaded++;
-            if (!img.alt) report.withoutAlt++;
-            if (!img.width || !img.height) report.withoutDimensions++;
-            if (img.src && img.src.startsWith('http') && !img.src.includes(window.location.hostname)) {
-                report.externalImages++;
-            }
-        });
-
-        // Defer expensive naturalWidth checks to idle time
-        const checkImageSizes = () => {
-            allImages.forEach(img => {
-                if (!img.complete) return; // Skip incomplete images
-                
-                // Use cached data attributes if available
-                const cachedWidth = img.dataset.width;
-                if (cachedWidth && parseInt(cachedWidth) > 1920) {
-                    report.largeImages++;
-                } else if (img.complete && img.naturalWidth > 1920) {
-                    report.largeImages++;
-                }
-            });
-            
-            // Update the report display if still visible
-            console.group('[Perf] Image Optimization Report (Updated)');
-            console.groupEnd();
-        };
-        
-        if (window.requestIdleCallback) {
-            requestIdleCallback(checkImageSizes, { timeout: 2500 });
-        } else {
-            setTimeout(checkImageSizes, 100);
-        }
-
-        // Return report immediately with pending data
-        console.group('[Perf] Image Optimization Report');
-        console.groupEnd();
-
-        return report;
-    }
-
     // ==================== INITIALIZATION ====================
     function init() {
         if (document.readyState === 'loading') {
@@ -402,26 +312,15 @@
         enableAsyncDecode();
         initLazyLoading();
         observeNewImages();
-
-        // Generate report after page load
-        if (document.readyState === 'complete') {
-            setTimeout(() => generateOptimizationReport(), 1000);
-        } else {
-            window.addEventListener('load', () => {
-                setTimeout(() => generateOptimizationReport(), 1000);
-            });
-        }
-
     }
 
     // Expose API
     window.GlitchRealmPerf = {
         reinit: initAll,
-        report: generateOptimizationReport,
         observeImage: processNewImage,
         getConnectionQuality: getConnectionQuality,
         supportsWebP: () => webpSupport,
-        config: config // Allow external config changes
+        config: config
     };
 
     // Conditional auto-initialize

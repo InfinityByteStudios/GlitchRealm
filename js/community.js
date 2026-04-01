@@ -89,26 +89,48 @@
 
   async function ensureModFirestore(){
     if (mfs.db) return mfs;
-    const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-  const { getFirestore, collection, query, where, orderBy, startAfter, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, Timestamp, getDoc, setDoc, increment, onSnapshot } = mod;
-    // Reuse default app initialized in page; getFirestore() will use it
-    mfs.db = getFirestore();
-    mfs.collection = collection;
-    mfs.query = query;
-    mfs.where = where;
-    mfs.orderBy = orderBy;
-    mfs.startAfter = startAfter;
-    mfs.limit = limit;
-    mfs.getDocs = getDocs;
-    mfs.addDoc = addDoc;
-  mfs.deleteDoc = deleteDoc;
-  mfs.doc = doc;
-  mfs.updateDoc = updateDoc;
-  mfs.getDoc = getDoc;
-  mfs.setDoc = setDoc;
-  mfs.increment = increment;
-    mfs.onSnapshot = onSnapshot;
-    mfs.Timestamp = Timestamp;
+    // Use window globals from firebase-core.js when available
+    if (window.firebaseFirestore && window.firestoreCollection) {
+      mfs.db = window.firebaseFirestore;
+      mfs.collection = window.firestoreCollection;
+      mfs.query = window.firestoreQuery;
+      mfs.where = window.firestoreWhere;
+      mfs.orderBy = window.firestoreOrderBy;
+      mfs.limit = window.firestoreLimit;
+      mfs.getDocs = window.firestoreGetDocs;
+      mfs.addDoc = window.firestoreAddDoc;
+      mfs.deleteDoc = window.firestoreDeleteDoc;
+      mfs.doc = window.firestoreDoc;
+      mfs.updateDoc = window.firestoreUpdateDoc;
+      mfs.getDoc = window.firestoreGetDoc;
+      mfs.setDoc = window.firestoreSetDoc;
+      mfs.onSnapshot = window.firestoreOnSnapshot;
+      // startAfter, increment, Timestamp not on window — import only those
+      const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      mfs.startAfter = mod.startAfter;
+      mfs.increment = mod.increment;
+      mfs.Timestamp = mod.Timestamp;
+    } else {
+      const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      const { getFirestore, collection, query, where, orderBy, startAfter, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, Timestamp, getDoc, setDoc, increment, onSnapshot } = mod;
+      mfs.db = getFirestore();
+      mfs.collection = collection;
+      mfs.query = query;
+      mfs.where = where;
+      mfs.orderBy = orderBy;
+      mfs.startAfter = startAfter;
+      mfs.limit = limit;
+      mfs.getDocs = getDocs;
+      mfs.addDoc = addDoc;
+      mfs.deleteDoc = deleteDoc;
+      mfs.doc = doc;
+      mfs.updateDoc = updateDoc;
+      mfs.getDoc = getDoc;
+      mfs.setDoc = setDoc;
+      mfs.increment = increment;
+      mfs.onSnapshot = onSnapshot;
+      mfs.Timestamp = Timestamp;
+    }
     return mfs;
   }
 
@@ -1561,12 +1583,20 @@
       let isAdmin = false;
       try { const t = await auth.currentUser.getIdTokenResult(); isAdmin = !!t.claims?.admin; } catch(e){}
       if (!isDev && !isAdmin) return;
-      const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-      const { getFirestore, collection, query, orderBy, limit, onSnapshot } = mod;
-      const db = getFirestore();
-      const q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(50));
-      if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
-      reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
+      let db, q;
+      if (window.firebaseFirestore && window.firestoreCollection) {
+        db = window.firebaseFirestore;
+        q = window.firestoreQuery(window.firestoreCollection(db, 'community_post_reports'), window.firestoreOrderBy('createdAt','desc'), window.firestoreLimit(50));
+        if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
+        reportsUnsub = window.firestoreOnSnapshot(q, (snap) => renderReportsList(snap));
+      } else {
+        const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const { getFirestore, collection, query, orderBy, limit, onSnapshot } = mod;
+        db = getFirestore();
+        q = query(collection(db, 'community_post_reports'), orderBy('createdAt','desc'), limit(50));
+        if (reportsUnsub) { try { reportsUnsub(); } catch(e){} reportsUnsub = null; }
+        reportsUnsub = onSnapshot(q, (snap) => renderReportsList(snap));
+      }
     } catch(e){ /* no-op */ }
   }
 

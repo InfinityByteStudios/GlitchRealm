@@ -174,28 +174,59 @@ document.getElementById('add-writer-form')?.addEventListener('submit', async (e)
   }
   
   try {
-    // If identifier looks like email, we need to find the UID
-    // For now, we'll assume it's a UID or ask them to use UID
-    // TODO: Add Firebase Admin SDK call to lookup user by email
-    
     let uid = identifier;
+    let lookupDisplayName = null;
     
-    // Check if this looks like an email
+    // Check if this looks like an email - use API to lookup UID
     if (identifier.includes('@')) {
-      showStatus('status-add', '⚠ Email lookup not yet implemented. Please use the user\'s UID instead.\n\nFind UIDs in Firebase Console → Authentication → Users', 'error');
-      return;
+      showStatus('status-add', '⏳ Looking up user by email...', 'info');
+      
+      // Get auth token for API call
+      const user = auth.currentUser;
+      if (!user) {
+        showStatus('status-add', '✗ You must be signed in', 'error');
+        return;
+      }
+      const token = await user.getIdToken();
+      
+      // Call Cloud Function API to lookup user by email
+      const apiBase = window.location.hostname === 'localhost' 
+        ? 'http://127.0.0.1:5001/shared-sign-in/us-central1/api'
+        : 'https://us-central1-shared-sign-in.cloudfunctions.net/api';
+      
+      const response = await fetch(`${apiBase}/admin/user-lookup?email=${encodeURIComponent(identifier)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 404) {
+          showStatus('status-add', `✗ No user found with email: ${identifier}`, 'error');
+        } else if (response.status === 403) {
+          showStatus('status-add', '✗ You do not have permission to lookup users', 'error');
+        } else {
+          showStatus('status-add', `✗ Lookup failed: ${errorData.error || 'Unknown error'}`, 'error');
+        }
+        return;
+      }
+      
+      const userData = await response.json();
+      uid = userData.uid;
+      lookupDisplayName = userData.displayName;
+      
+      showStatus('status-add', `✓ Found user: ${userData.email} (${uid})`, 'info');
     }
     
     // Create/update verified writer document
     await setDoc(doc(db, 'verified_writers', uid), {
       verified: true,
       verifiedAt: serverTimestamp(),
-      displayName: displayName || null,
+      displayName: displayName || lookupDisplayName || null,
       notes: notes || null,
       verifiedBy: auth.currentUser?.uid || null
     });
     
-    showStatus('status-add', `✓ Successfully verified writer: ${displayName || uid}`, 'success');
+    showStatus('status-add', `✓ Successfully verified writer: ${displayName || lookupDisplayName || uid}`, 'success');
     
     // Reset form
     e.target.reset();

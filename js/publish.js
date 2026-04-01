@@ -105,7 +105,7 @@ function showPublishForm() {
         <div class="field">
           <label>Cover Image (optional) <span id="image-badge" class="coming-soon-badge">Coming Soon</span></label>
           <input type="file" id="cover" accept="image/*" disabled />
-          <small style="opacity:.55; font-size:.6rem;">Uploaded to Supabase storage bucket <code>news-media</code>. <span id="image-restriction-msg" style="color:#ff9393;">Image uploads currently restricted to developers.</span></small>
+          <small style="opacity:.55; font-size:.6rem;">Uploaded to Supabase storage bucket <code>news-media</code>. <span id="image-restriction-msg" style="color:#ffb86c;">Verifying upload access...</span></small>
         </div>
         <div class="field">
           <label>Main Content (Markdown)</label>
@@ -196,25 +196,31 @@ function getSelectedCategories(){
   return Array.from(categoriesEl.selectedOptions).map(o=>o.value);
 }
 
-function updateImageUploadAccess(user) {
-  const isDev = user && isDevUID(user.uid);
-  
+async function updateImageUploadAccess(user) {
   // Get fresh element references
   const coverEl = document.getElementById('cover');
   const imageBadge = document.getElementById('image-badge');
   const imageRestrictionMsg = document.getElementById('image-restriction-msg');
   
+  // Devs always have access, verified writers also have access
+  const isDev = user && isDevUID(user.uid);
+  const isWriter = user ? await isVerifiedWriter(user.uid) : false;
+  const canUpload = isDev || isWriter;
   
-  if (isDev) {
-    // Enable image upload for developers
+  if (canUpload) {
+    // Enable image upload for developers and verified writers
     if (coverEl) coverEl.disabled = false;
     if (imageBadge) imageBadge.style.display = 'none';
     if (imageRestrictionMsg) imageRestrictionMsg.style.display = 'none';
   } else {
-    // Disable image upload for non-developers
+    // Disable image upload for non-verified users
     if (coverEl) coverEl.disabled = true;
     if (imageBadge) imageBadge.style.display = 'inline-block';
-    if (imageRestrictionMsg) imageRestrictionMsg.style.display = 'inline';
+    if (imageRestrictionMsg) {
+      imageRestrictionMsg.textContent = 'Image uploads require verified writer status.';
+      imageRestrictionMsg.style.color = '#ff9393';
+      imageRestrictionMsg.style.display = 'inline';
+    }
   }
 }
 
@@ -223,10 +229,11 @@ async function uploadCoverIfAny(){
   const file = coverEl?.files?.[0];
   if(!file) return null;
   
-  // Double-check: only devs can upload images
+  // Double-check: only devs and verified writers can upload images
   const user = auth.currentUser;
-  if (!user || !isDevUID(user.uid)) {
-    throw new Error('Image uploads are restricted to developers');
+  const canUpload = user && (isDevUID(user.uid) || await isVerifiedWriter(user.uid));
+  if (!canUpload) {
+    throw new Error('Image uploads are restricted to verified writers');
   }
   
   const fileExt = file.name.split('.').pop();
@@ -238,15 +245,15 @@ async function uploadCoverIfAny(){
   return data.publicUrl;
 }
 
-function requireEditor(user){
+async function requireEditor(user){
   if(!user){
     form.innerHTML = '<div style="padding:60px 30px; text-align:center; border:1px solid rgba(255,80,80,0.3); border-radius:14px; background:linear-gradient(135deg,#200, #400);"><h2 style="margin:0 0 10px; font-size:1.4rem; color:#ff9393;">Access Restricted</h2><p style="margin:0; font-size:.9rem; opacity:.8;">You must be signed in as a verified writer to publish news.</p></div>';
     throw new Error('Not authenticated');
   }
   // We'll check verified writer status async in publishArticle
   
-  // Update image upload access based on dev status
-  updateImageUploadAccess(user);
+  // Update image upload access based on verified status
+  await updateImageUploadAccess(user);
 }
 
 async function publishArticle({ draft }){
@@ -255,7 +262,7 @@ async function publishArticle({ draft }){
     errorMsg.style.display='none';
 
     const user = auth.currentUser;
-    requireEditor(user);
+    await requireEditor(user);
     
     // Check if user is a verified writer
     const isWriter = await isVerifiedWriter(user.uid);

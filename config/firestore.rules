@@ -152,6 +152,15 @@ service cloud.firestore {
                                 request.resource.data.hiddenAt is timestamp;
           allow delete: if request.auth != null && request.auth.uid == userId;
         }
+        
+        // Per-user wishlists (games saved to play later)
+        match /wishlist/{gameId} {
+          allow read: if request.auth != null && request.auth.uid == userId;
+          allow create, update: if request.auth != null && request.auth.uid == userId &&
+                                request.resource.data.keys().hasAll(['addedAt']) &&
+                                request.resource.data.addedAt is timestamp;
+          allow delete: if request.auth != null && request.auth.uid == userId;
+        }
     }
 
     // ================================

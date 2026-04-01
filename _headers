@@ -11,6 +11,13 @@
   Cache-Control: no-cache
   X-Content-Type-Options: nosniff
 
+# Godot WASM games - need wasm-unsafe-eval for WebAssembly execution
+/Games/UnderYourSkin/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Content-Security-Policy: default-src 'self' blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob:; frame-src 'self'; worker-src 'self' blob:
+  X-Frame-Options: SAMEORIGIN
+
 # JavaScript files - always revalidate
 /*.js
   Cache-Control: no-cache

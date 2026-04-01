@@ -67,6 +67,8 @@
     <link rel="dns-prefetch" href="//www.gstatic.com">
             <!-- Unified Firebase core (loads app+auth once, sets local persistence) -->
         <script type="module" src="js/firebase-core.js"></script>
+        <!-- Wishlist manager -->
+        <script type="module" src="js/wishlist-manager.js"></script>
         <!-- Enhanced auth redirect handler -->
         <script src="js/auth-redirect-handler.js"></script>
         <!-- Game analytics tracker -->
@@ -263,6 +265,37 @@
     .game-card:hover { transform: translateY(-4px); }
     .game-card .card-image { position: relative; }
     .game-card-link { text-decoration: none; color: inherit; display: block; }
+
+    /* Wishlist button styles */
+    .wishlist-btn {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+        width: 36px;
+        height: 36px;
+        background: rgba(10, 20, 30, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+    .wishlist-btn:hover {
+        background: rgba(255, 0, 128, 0.3);
+        border-color: var(--primary-magenta);
+        transform: scale(1.1);
+    }
+    .wishlist-btn.wishlisted {
+        color: var(--primary-magenta);
+        background: rgba(255, 0, 128, 0.2);
+        border-color: var(--primary-magenta);
+    }
 
     /* Review button styles */
         .review-btn {
@@ -3470,6 +3503,8 @@
                          alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
                     <div class="card-overlay"></div>
                     ${badge ? `<div class="game-badge ${badge}">${badgeLabel}</div>` : `<div class=\"game-badge new\" style=\"display:${doc.featured ? 'block' : 'none'};\">NEW</div>`}
+                    <!-- Wishlist button (top left) -->
+                    <button class="wishlist-btn" data-game-id="${escapeHtml(id)}" data-game-title="${escapeHtml(doc.title || '')}" data-cover-url="${escapeHtml(cover)}" data-play-url="${playUrl ? escapeHtml(playUrl) : ''}" title="Add to wishlist">♡</button>
                     <!-- Game Card Menu Buttons (top right) for submissions -->
                     <div class="game-card-menu" data-game-menu>
                         <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;">✏️ Edit</button>
@@ -3510,6 +3545,39 @@
                         openReviewModal(reviewBtn.dataset.reviewId, reviewBtn.dataset.reviewTitle);
                     }
                 });
+            }
+            // Wishlist button
+            const wishlistBtn = card.querySelector('.wishlist-btn');
+            if (wishlistBtn) {
+                wishlistBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const manager = window.GlitchRealmWishlist;
+                    if (!manager || !manager.isSignedIn()) {
+                        alert('Sign in to save games to your wishlist');
+                        return;
+                    }
+                    const gameId = wishlistBtn.dataset.gameId;
+                    const gameData = {
+                        title: wishlistBtn.dataset.gameTitle,
+                        coverImageUrl: wishlistBtn.dataset.coverUrl,
+                        playUrl: wishlistBtn.dataset.playUrl
+                    };
+                    try {
+                        const added = await manager.toggleWishlist(gameId, gameData);
+                        wishlistBtn.textContent = added ? '♥' : '♡';
+                        wishlistBtn.classList.toggle('wishlisted', added);
+                    } catch (err) {
+                        console.error('Wishlist error:', err);
+                    }
+                });
+                // Check initial wishlist state
+                setTimeout(() => {
+                    const manager = window.GlitchRealmWishlist;
+                    if (manager && manager.isInWishlist(wishlistBtn.dataset.gameId)) {
+                        wishlistBtn.textContent = '♥';
+                        wishlistBtn.classList.add('wishlisted');
+                    }
+                }, 500);
             }
             return card;
         }

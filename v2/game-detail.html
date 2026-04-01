@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Detail | GlitchRealm</title>
+  <meta name="description" content="View game details, screenshots, and player reviews on GlitchRealm.">
+  <link rel="canonical" href="https://glitchrealm.ca/v2/game-detail">
+  <link rel="stylesheet" href="/v2/css/styles.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/v2/"><span class="brand-dot" aria-hidden="true"></span><span>GlitchRealm</span></a>
+      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="v2-nav">Menu</button>
+      <nav class="nav-menu" id="v2-nav" data-nav-menu>
+        <a class="nav-link" href="/v2/">Home</a>
+        <a class="nav-link" href="/v2/games">Games</a>
+        <a class="nav-link" href="/v2/submit-game">Submit</a>
+        <a class="nav-link" href="/v2/legal">Legal</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="main-content" data-detail-root>
+    <section class="panel section reveal" data-detail-loading>
+      <div class="section-head">
+        <h2>Loading...</h2>
+      </div>
+      <p class="muted">Fetching game data.</p>
+    </section>
+
+    <section class="panel section reveal" data-detail-error style="display:none;">
+      <div class="section-head">
+        <h2>Game not found</h2>
+      </div>
+      <p class="muted" style="margin-bottom: 1rem;">We couldn't find this game. It may have been removed or the link is incorrect.</p>
+      <div class="card-actions">
+        <a class="btn btn-secondary btn-sm" href="/v2/games">Back to Games</a>
+      </div>
+    </section>
+
+    <section class="split reveal">
+      <article class="panel section">
+        <div class="detail-cover">
+          <img id="detailCover" src="/assets/game%20logos/neurocore%20byte%20wars%20logo.webp" alt="Game cover">
+        </div>
+        <div style="margin-top: 1.25rem;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <h1 id="detailTitle" style="margin: 0; font-family: 'Chakra Petch', sans-serif; font-size: clamp(1.3rem, 2.5vw, 1.8rem); font-weight: 700;">Game Detail</h1>
+            <span class="badge" id="detailBadge">Published</span>
+          </div>
+        </div>
+        <div class="markdown-content" id="detailDescription">
+          <p class="muted">Loading game description...</p>
+        </div>
+        <div class="card-actions" style="margin-top: 1rem;">
+          <a class="btn btn-primary" id="detailPlayButton" href="/v2/games">Play Now</a>
+          <a class="btn btn-ghost" href="/v2/games">All Games</a>
+        </div>
+      </article>
+
+      <aside class="panel section">
+        <h2 style="margin: 0 0 0.5rem; font-size: 1.1rem;">Game Info</h2>
+        <div class="stat-list">
+          <div class="stat-item"><span>Developer</span><strong id="detailDeveloper">-</strong></div>
+          <div class="stat-item"><span>Status</span><strong id="detailStatus">-</strong></div>
+          <div class="stat-item"><span>Tags</span><strong id="detailTags">-</strong></div>
+          <div class="stat-item"><span>Controls</span><strong id="detailInput">Keyboard + Mouse</strong></div>
+          <div class="stat-item"><span>Performance</span><strong id="detailPerformance">-</strong></div>
+          <div class="stat-item"><span>Mobile</span><strong id="detailMobile">-</strong></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel section reveal">
+      <div class="section-head">
+        <h2>About</h2>
+      </div>
+      <div class="markdown-content" id="detailExtendedDescription">
+        <p class="muted">Loading...</p>
+      </div>
+    </section>
+
+    <section class="panel section reveal" id="detailHowToSection" style="display:none;">
+      <div class="section-head">
+        <h2>How To Play</h2>
+      </div>
+      <div class="markdown-content" id="detailHowToPlay"></div>
+    </section>
+
+    <div id="detailTimeline" style="display:none;"></div>
+
+    <section class="panel section reveal">
+      <div class="section-head">
+        <h2>Player Reviews</h2>
+        <p id="detailReviewsCount"></p>
+      </div>
+      <div class="review-grid" id="detailReviewsList">
+        <article class="review-card">
+          <p class="muted">Loading reviews...</p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div class="foot-bottom">
+        <span>&copy; 2025 GlitchRealm. All rights reserved.</span>
+        <span><a href="mailto:support@glitchrealm.ca" style="color: var(--muted);">support@glitchrealm.ca</a></span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+  <script type="module" src="/js/firebase-core.js"></script>
+  <script src="/v2/js/v2.js" defer></script>
+</body>
+</html>

@@ -10,7 +10,7 @@
     
     // Dynamically import the full game launcher
     const script = document.createElement('script');
-    script.src = '/game-launcher.js';
+    script.src = '/js/game-launcher.js';
     script.async = true;
     document.head.appendChild(script);
     

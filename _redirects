@@ -9,14 +9,13 @@
 /header.html    /components/header.html   200
 /footer.html    /components/footer.html   200
 
-# Ensure Netlify Functions are reachable on all subdomains
-https://admin.glitchrealm.ca/.netlify/functions/*       https://glitchrealm.ca/.netlify/functions/:splat   200
-https://developers.glitchrealm.ca/.netlify/functions/*  https://glitchrealm.ca/.netlify/functions/:splat   200
-https://portal.glitchrealm.ca/.netlify/functions/*      https://glitchrealm.ca/.netlify/functions/:splat   200
-https://auth.glitchrealm.ca/.netlify/functions/*        https://glitchrealm.ca/.netlify/functions/:splat   200
-https://edu.glitchrealm.ca/.netlify/functions/*         https://glitchrealm.ca/.netlify/functions/:splat   200
-https://help.glitchrealm.ca/.netlify/functions/*        https://glitchrealm.ca/.netlify/functions/:splat   200
-https://news.glitchrealm.ca/.netlify/functions/*        https://glitchrealm.ca/.netlify/functions/:splat   200
+# V2 portal routes
+/v2                  /v2/index.html            200
+/v2/                 /v2/index.html            200
+/v2/games            /v2/games.html            200
+/v2/game-detail      /v2/game-detail.html      200
+/v2/submit-game      /v2/submit-game.html      200
+/v2/legal            /v2/legal.html            200
 
 # Portal subdomain rewrite - serve the User Portal for portal.glitchrealm.ca
 https://portal.glitchrealm.ca/*  /subdomains/pages/account/user-portal.html  200
@@ -127,6 +126,8 @@ https://developers.glitchrealm.ca/*  /subdomains/developers/:splat  200
 /game-detail                            /subdomains/pages/games/game-detail.html   200
 /games.html                             /subdomains/pages/games/games.html   200
 /games                                  /subdomains/pages/games/games.html   200
+/leaderboards.html                      /subdomains/pages/games/leaderboards.html   200
+/leaderboards                           /subdomains/pages/games/leaderboards.html   200
 /publish.html                           /subdomains/pages/games/publish.html   200
 /publish                                /subdomains/pages/games/publish.html   200
 /reviews.html                           /subdomains/pages/games/reviews.html   200

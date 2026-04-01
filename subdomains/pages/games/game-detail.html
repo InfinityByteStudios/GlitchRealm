@@ -440,6 +440,27 @@
       padding-left: 8px;
     }
     
+    /* Trailer video container */
+    .trailer-container {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16/9;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 255, 249, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 249, 0.1);
+      background: #000;
+    }
+    .trailer-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
     /* Screenshots grid */
     .screenshots-grid { 
       display: grid; 
@@ -769,6 +790,11 @@
         <div id="howToPlay"></div>
       </section>
       
+      <section id="trailerSection" class="detail-section" style="display:none;">
+        <h2>Trailer</h2>
+        <div id="trailerContainer" class="trailer-container"></div>
+      </section>
+      
       <section id="screenshotsSection" class="detail-section" style="display:none;">
         <h2>Screenshots</h2>
         <div id="screenshotsGrid" class="screenshots-grid"></div>
@@ -942,6 +968,26 @@
           howToPlaySection.style.display = '';
         }
 
+        // Trailer video
+        const trailerSection = document.getElementById('trailerSection');
+        const trailerContainer = document.getElementById('trailerContainer');
+        if (game.trailerUrl && trailerContainer) {
+          const embedUrl = getTrailerEmbedUrl(game.trailerUrl);
+          if (embedUrl) {
+            trailerContainer.innerHTML = `
+              <iframe 
+                src="${embedUrl}" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen
+                loading="lazy"
+                title="Game Trailer">
+              </iframe>
+            `;
+            trailerSection.style.display = '';
+          }
+        }
+
         // Screenshots
         const screenshotsSection = document.getElementById('screenshotsSection');
         const screenshotsGrid = document.getElementById('screenshotsGrid');
@@ -1072,6 +1118,25 @@
         // Set up menu functionality
         setupMenu();
       }
+    }
+
+    // Convert YouTube/Vimeo URL to embed URL
+    function getTrailerEmbedUrl(url) {
+      if (!url) return null;
+      
+      // YouTube patterns
+      const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+      if (youtubeMatch) {
+        return `https://www.youtube-nocookie.com/embed/${youtubeMatch[1]}?rel=0&modestbranding=1`;
+      }
+      
+      // Vimeo patterns
+      const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+      if (vimeoMatch) {
+        return `https://player.vimeo.com/video/${vimeoMatch[1]}?dnt=1`;
+      }
+      
+      return null;
     }
 
     function formatContent(content) {

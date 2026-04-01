@@ -81,6 +81,7 @@
     <!-- Accessibility & Performance Enhancements -->
     <link rel="stylesheet" href="css/accessibility-performance.css">
     <link rel="stylesheet" href="css/play-now-enhancement.css">
+    <link rel="stylesheet" href="css/auth-message.css">
     <script src="js/dev-config.js" defer></script>
     <script src="js/performance-optimization.js" defer></script>
     <script src="js/accessibility-keyboard-nav.js" defer></script>
@@ -243,7 +244,6 @@
 
     <!-- Load newest game from Firestore -->
     <script type="module">
-        // Wait for Firebase to be initialized (promise-based, no polling)
         async function loadNewestGame() {
             try {
                 await (window.firebaseReady || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true })));
@@ -253,8 +253,20 @@
             }
             
             try {
-                const { getFirestore, collection, query, where, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                const db = getFirestore(window.firebaseApp);
+                // Use globals from firebase-core.js, fallback to dynamic import
+                let collection, query, where, orderBy, limit, getDocs, getFirestore;
+                if (window.firestoreCollection && window.firestoreQuery) {
+                    collection = window.firestoreCollection;
+                    query = window.firestoreQuery;
+                    getDocs = window.firestoreGetDocs;
+                    const fs = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                    where = fs.where; orderBy = fs.orderBy; limit = fs.limit;
+                    getFirestore = fs.getFirestore;
+                } else {
+                    const fs = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                    ({ getFirestore, collection, query, where, orderBy, limit, getDocs } = fs);
+                }
+                const db = window.firebaseFirestore || getFirestore(window.firebaseApp);
                 
                 // Query for the newest published game
                 const gamesQuery = query(
@@ -295,26 +307,13 @@
                     <h3>${game.title || 'Untitled Game'}</h3>
                     <p>${game.description || 'No description available.'}</p>
                     <p class="featured-developer">Made by <strong>${ownerDisplay}</strong></p>
-                    <a href="${detailUrl}" class="play-btn" style="margin-top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; text-decoration: none; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-cyan); border: 1px solid var(--primary-cyan); border-radius: 9px; transition: all 0.2s ease;">
+                    <a href="${detailUrl}" class="play-btn featured-play-btn">
                         <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" style="flex-shrink: 0;">
                             <polygon points="0,0 10,6 0,12"/>
                         </svg>
                         <span>Play Now</span>
                     </a>
                 `;
-                
-                // Add hover effect via JavaScript
-                const playBtn = infoDiv.querySelector('.play-btn');
-                
-                playBtn.addEventListener('mouseenter', function() {
-                    this.style.backgroundColor = 'var(--primary-cyan)';
-                    this.style.color = '#0a0a0a';
-                });
-                
-                playBtn.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = 'transparent';
-                    this.style.color = 'var(--primary-cyan)';
-                });
                 
                 // Make card clickable
                 cardDiv.style.cursor = 'pointer';

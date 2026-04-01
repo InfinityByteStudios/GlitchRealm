@@ -20,12 +20,18 @@ const db = admin.firestore();
 const storage = admin.storage();
 
 // Helpers
-const DEV_UIDS = new Set(
-  (process.env.GLITCHREALM_ADMIN_UIDS || "")
-    .split(",")
-    .map((uid) => uid.trim())
-    .filter(Boolean),
-);
+const FALLBACK_DEV_UIDS = [
+  '6iZDTXC78aVwX22qrY43BOxDRLt1',
+  'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
+  'g14MPDZzUzR9ELP7TD6IZgk3nzx2',
+  '4oGjihtDjRPYI0LsTDhpXaQAJjk1',
+  'ZEkqLM6rNTZv1Sun0QWcKYOIbon1',
+];
+const envUids = (process.env.GLITCHREALM_ADMIN_UIDS || "")
+  .split(",")
+  .map((uid) => uid.trim())
+  .filter(Boolean);
+const DEV_UIDS = new Set([...(envUids.length ? envUids : []), ...FALLBACK_DEV_UIDS]);
 
 function isAdmin(context) {
   return Boolean(context.auth?.token?.admin) || false;
@@ -193,6 +199,137 @@ function makeEtag(obj) {
 
 // Health
 api.get("/health", (_req, res) => res.json({ ok: true }));
+
+// Public: Game leaderboards
+api.get("/leaderboards/:gameId", async (req, res) => {
+  const { gameId } = req.params;
+  const limit = Math.min(parseInt(req.query.limit) || 25, 100);
+
+  try {
+    // Get all playtime docs for this game ordered by total playtime
+    const playtimeQuery = await db
+      .collectionGroup("games")
+      .where("gameId", "==", gameId)
+      .orderBy("totalPlaytime", "desc")
+      .limit(limit)
+      .get();
+
+    const leaderboard = [];
+    let rank = 1;
+
+    for (const doc of playtimeQuery.docs) {
+      const data = doc.data();
+      const userId = data.userId;
+
+      // Get user display name (cached lookup for performance)
+      let username = "Anonymous";
+      try {
+        const userRecord = await admin.auth().getUser(userId);
+        username = userRecord.displayName || userRecord.email?.split("@")[0] || "Player";
+      } catch (e) {
+        // User might not exist anymore
+      }
+
+      const playtimeMinutes = Math.round((data.totalPlaytime || 0) / 60);
+      
+      leaderboard.push({
+        rank: rank++,
+        username: username,
+        playtimeMinutes: playtimeMinutes,
+        playtimeFormatted: formatPlaytime(playtimeMinutes),
+        lastPlayed: data.lastPlayed?.toDate?.()?.toISOString() || null,
+      });
+    }
+
+    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=120");
+    res.json({
+      gameId,
+      totalPlayers: leaderboard.length,
+      leaderboard,
+    });
+  } catch (error) {
+    functions.logger.error("Leaderboard fetch error:", error);
+    res.status(500).json({ error: "Failed to retrieve leaderboard" });
+  }
+});
+
+// Public: All games leaderboard (aggregate)
+api.get("/leaderboards", async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 25, 100);
+
+  try {
+    // Aggregate leaderboard across all games
+    const playtimeQuery = await db
+      .collectionGroup("games")
+      .orderBy("totalPlaytime", "desc")
+      .limit(limit * 3) // Get more to aggregate per user
+      .get();
+
+    // Aggregate by user
+    const userTotals = new Map();
+    
+    for (const doc of playtimeQuery.docs) {
+      const data = doc.data();
+      const userId = data.userId;
+      const existing = userTotals.get(userId) || { playtime: 0, gamesPlayed: 0, lastPlayed: null };
+      existing.playtime += (data.totalPlaytime || 0);
+      existing.gamesPlayed += 1;
+      const lastPlayed = data.lastPlayed?.toDate?.();
+      if (lastPlayed && (!existing.lastPlayed || lastPlayed > existing.lastPlayed)) {
+        existing.lastPlayed = lastPlayed;
+      }
+      userTotals.set(userId, existing);
+    }
+
+    // Sort by total playtime and build leaderboard
+    const sorted = Array.from(userTotals.entries())
+      .sort((a, b) => b[1].playtime - a[1].playtime)
+      .slice(0, limit);
+
+    const leaderboard = [];
+    let rank = 1;
+
+    for (const [userId, stats] of sorted) {
+      let username = "Anonymous";
+      try {
+        const userRecord = await admin.auth().getUser(userId);
+        username = userRecord.displayName || userRecord.email?.split("@")[0] || "Player";
+      } catch (e) {
+        // User might not exist
+      }
+
+      const playtimeMinutes = Math.round(stats.playtime / 60);
+      leaderboard.push({
+        rank: rank++,
+        username,
+        playtimeMinutes,
+        playtimeFormatted: formatPlaytime(playtimeMinutes),
+        gamesPlayed: stats.gamesPlayed,
+        lastPlayed: stats.lastPlayed?.toISOString() || null,
+      });
+    }
+
+    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=120");
+    res.json({
+      totalPlayers: leaderboard.length,
+      leaderboard,
+    });
+  } catch (error) {
+    functions.logger.error("Global leaderboard fetch error:", error);
+    res.status(500).json({ error: "Failed to retrieve leaderboard" });
+  }
+});
+
+// Helper: format playtime in human readable format
+function formatPlaytime(minutes) {
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours < 24) return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
+}
 
 // Current user info (auth required)
 api.get("/me", requireAuth, async (req, res) => {
@@ -418,6 +555,34 @@ api.delete("/submissions/:id", requireAuth, requireMod, async (req, res) => {
   await db.collection("game_submissions").doc(req.params.id).delete();
   invalidatePrefix("submissions?");
   res.json({ ok: true });
+});
+
+// Admin: lookup user by email to get UID
+api.get("/admin/user-lookup", requireAuth, requireMod, async (req, res) => {
+  try {
+    const email = req.query.email;
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ error: "Email query parameter required" });
+    }
+
+    // Use Firebase Admin Auth to lookup user by email
+    const userRecord = await admin.auth().getUserByEmail(email.toLowerCase().trim());
+    
+    res.json({
+      uid: userRecord.uid,
+      email: userRecord.email,
+      displayName: userRecord.displayName || null,
+      photoURL: userRecord.photoURL || null,
+      emailVerified: userRecord.emailVerified,
+      createdAt: userRecord.metadata.creationTime,
+    });
+  } catch (e) {
+    if (e.code === "auth/user-not-found") {
+      return res.status(404).json({ error: "User not found with that email" });
+    }
+    functions.logger.error("User lookup failed:", e);
+    res.status(500).json({ error: "Failed to lookup user" });
+  }
 });
 
 // Signed upload URL for covers (optional, if you prefer direct-to-GCS uploads)
@@ -1142,7 +1307,7 @@ exports.newsFeed = functions.https.onRequest(async (req, res) => {
       <link>${link}</link>
       <guid isPermaLink="true">${link}</guid>
       <pubDate>${pubDate}</pubDate>
-      <author>noreply@glitchrealm.com (${author})</author>
+      <author>noreply@glitchrealm.ca (${author})</author>
       <description>${description}</description>
       <content:encoded><![CDATA[${article.content || article.summary || ""}]]></content:encoded>
 `;

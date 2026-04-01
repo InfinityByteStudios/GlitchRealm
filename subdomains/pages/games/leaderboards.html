@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- PWA Manifest & Theming -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00fff9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/Favicon and Icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/Favicon and Icons/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/Favicon and Icons/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboards - Top Players | GlitchRealm</title>
+    <!-- Self-hosted fonts -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/rajdhani-400-latin.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/orbitron-latin.woff2">
+    <meta name="description" content="Check out the top players on GlitchRealm. View leaderboards for ByteSurge, CodeRunner, ByteWars and more cyberpunk browser games.">
+    <meta name="keywords" content="game leaderboards, top players, high scores, playtime rankings, gaming stats">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://glitchrealm.ca/leaderboards.html">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://glitchrealm.ca/leaderboards.html">
+    <meta property="og:title" content="Leaderboards - GlitchRealm">
+    <meta property="og:description" content="Check out the top players on GlitchRealm gaming platform.">
+    <meta property="og:image" content="https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png">
+    <meta property="og:site_name" content="GlitchRealm">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Leaderboards - GlitchRealm">
+    <meta name="twitter:description" content="Check out the top players on GlitchRealm gaming platform.">
+    <meta name="twitter:image" content="https://glitchrealm.ca/assets/Favicon%20and%20Icons/apple-touch-icon.png">
+    
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//www.gstatic.com">
+    
+    <style>
+        .leaderboard-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .leaderboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .leaderboard-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .leaderboard-header p {
+            color: #8a9ba8;
+            font-size: 1rem;
+        }
+        
+        .leaderboard-tabs {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        
+        .tab-btn {
+            background: rgba(0, 255, 249, 0.08);
+            border: 1px solid rgba(0, 255, 249, 0.2);
+            color: var(--primary-cyan);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(0, 255, 249, 0.15);
+            border-color: var(--primary-cyan);
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary-cyan), #008cff);
+            border-color: var(--primary-cyan);
+            color: #0a0a0a;
+        }
+        
+        .leaderboard-container {
+            background: linear-gradient(135deg, rgba(10, 20, 30, 0.95), rgba(5, 15, 25, 0.98));
+            border: 1px solid rgba(0, 255, 249, 0.15);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .leaderboard-table thead {
+            background: rgba(0, 255, 249, 0.08);
+        }
+        
+        .leaderboard-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary-cyan);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(0, 255, 249, 0.1);
+        }
+        
+        .leaderboard-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #d0dbe5;
+        }
+        
+        .leaderboard-table tbody tr {
+            transition: background 0.2s ease;
+        }
+        
+        .leaderboard-table tbody tr:hover {
+            background: rgba(0, 255, 249, 0.05);
+        }
+        
+        .rank-cell {
+            font-weight: 700;
+            font-size: 1.1rem;
+            width: 60px;
+        }
+        
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+        
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-weight: 700;
+        }
+        
+        .rank-1 .rank-badge {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #1a1a1a;
+        }
+        
+        .rank-2 .rank-badge {
+            background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+            color: #1a1a1a;
+        }
+        
+        .rank-3 .rank-badge {
+            background: linear-gradient(135deg, #cd7f32, #a05200);
+            color: #fff;
+        }
+        
+        .username-cell {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .playtime-cell {
+            color: var(--primary-cyan);
+            font-weight: 600;
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .games-cell {
+            color: #8a9ba8;
+        }
+        
+        .last-played-cell {
+            color: #6a7b88;
+            font-size: 0.9rem;
+        }
+        
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            color: #8a9ba8;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(0, 255, 249, 0.2);
+            border-top-color: var(--primary-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6a7b88;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: rgba(0, 255, 249, 0.3);
+        }
+        
+        .error-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #ff6b6b;
+        }
+        
+        @media (max-width: 768px) {
+            .leaderboard-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.9rem;
+            }
+            
+            .last-played-cell {
+                display: none;
+            }
+            
+            .tab-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header placeholder -->
+    <header id="site-header"></header>
+    
+    <main class="leaderboard-page">
+        <div class="leaderboard-header">
+            <h1>Leaderboards</h1>
+            <p>Top players ranked by total playtime</p>
+        </div>
+        
+        <div class="leaderboard-tabs">
+            <button class="tab-btn active" data-game="all">All Games</button>
+            <button class="tab-btn" data-game="bytesurge">ByteSurge</button>
+            <button class="tab-btn" data-game="coderunner">CodeRunner</button>
+            <button class="tab-btn" data-game="bytewars">ByteWars</button>
+        </div>
+        
+        <div class="leaderboard-container">
+            <div id="leaderboard-content">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Loading leaderboard...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer placeholder -->
+    <footer id="site-footer"></footer>
+
+    <script>
+        // API base URL
+        const API_BASE = window.location.hostname === 'localhost' 
+            ? 'http://127.0.0.1:5001/shared-sign-in/us-central1/api'
+            : 'https://us-central1-shared-sign-in.cloudfunctions.net/api';
+        
+        let currentGame = 'all';
+        
+        // Format relative time
+        function formatRelativeTime(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+        
+        // Render leaderboard table
+        function renderLeaderboard(data, isGlobal = false) {
+            const container = document.getElementById('leaderboard-content');
+            
+            if (!data.leaderboard || data.leaderboard.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i>🎮</i>
+                        <p>No players on the leaderboard yet.<br>Be the first to play!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const gamesHeader = isGlobal ? '<th>Games</th>' : '';
+            const rows = data.leaderboard.map(player => {
+                const rankClass = player.rank <= 3 ? `rank-${player.rank}` : '';
+                const rankDisplay = player.rank <= 3 
+                    ? `<span class="rank-badge">${player.rank}</span>`
+                    : player.rank;
+                const gamesCell = isGlobal ? `<td class="games-cell">${player.gamesPlayed}</td>` : '';
+                
+                return `
+                    <tr>
+                        <td class="rank-cell ${rankClass}">${rankDisplay}</td>
+                        <td class="username-cell">${escapeHtml(player.username)}</td>
+                        <td class="playtime-cell">${player.playtimeFormatted}</td>
+                        ${gamesCell}
+                        <td class="last-played-cell">${formatRelativeTime(player.lastPlayed)}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Playtime</th>
+                            ${gamesHeader}
+                            <th>Last Active</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Fetch leaderboard data
+        async function fetchLeaderboard(gameId = 'all') {
+            const container = document.getElementById('leaderboard-content');
+            container.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Loading leaderboard...</p>
+                </div>
+            `;
+            
+            try {
+                const endpoint = gameId === 'all' 
+                    ? `${API_BASE}/leaderboards?limit=50`
+                    : `${API_BASE}/leaderboards/${gameId}?limit=50`;
+                
+                const response = await fetch(endpoint);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load leaderboard');
+                }
+                
+                const data = await response.json();
+                renderLeaderboard(data, gameId === 'all');
+            } catch (error) {
+                console.error('Leaderboard error:', error);
+                container.innerHTML = `
+                    <div class="error-state">
+                        <p>Failed to load leaderboard. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentGame = btn.dataset.game;
+                fetchLeaderboard(currentGame);
+            });
+        });
+        
+        // Load header/footer components
+        async function loadComponents() {
+            try {
+                const [headerRes, footerRes] = await Promise.all([
+                    fetch('/components/header.html'),
+                    fetch('/components/footer.html')
+                ]);
+                
+                if (headerRes.ok) {
+                    document.getElementById('site-header').innerHTML = await headerRes.text();
+                }
+                if (footerRes.ok) {
+                    document.getElementById('site-footer').innerHTML = await footerRes.text();
+                }
+            } catch (e) {
+                console.warn('Could not load components:', e);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadComponents();
+            fetchLeaderboard('all');
+            
+            // Check URL params for specific game
+            const params = new URLSearchParams(window.location.search);
+            const gameParam = params.get('game');
+            if (gameParam && ['bytesurge', 'coderunner', 'bytewars'].includes(gameParam)) {
+                document.querySelector(`[data-game="${gameParam}"]`)?.click();
+            }
+        });
+    </script>
+</body>
+</html>
