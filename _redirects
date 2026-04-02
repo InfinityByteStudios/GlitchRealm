@@ -30,6 +30,31 @@ https://developers.glitchrealm.ca/*  /subdomains/developers/:splat  200
 https://legal.glitchrealm.ca       /subdomains/legal/index.html  200
 https://legal.glitchrealm.ca/      /subdomains/legal/index.html  200
 
+# Legal subdomain - serve each legal document from its canonical source
+https://legal.glitchrealm.ca/terms-of-service          /subdomains/pages/legal/terms-of-service.html          200
+https://legal.glitchrealm.ca/privacy-policy            /subdomains/pages/legal/privacy-policy.html            200
+https://legal.glitchrealm.ca/eula                      /subdomains/pages/legal/eula.html                      200
+https://legal.glitchrealm.ca/cookie-policy             /subdomains/pages/legal/cookie-policy.html             200
+https://legal.glitchrealm.ca/dpa                       /subdomains/pages/legal/dpa.html                       200
+https://legal.glitchrealm.ca/coppa                     /subdomains/pages/legal/coppa.html                     200
+https://legal.glitchrealm.ca/accessibility-statement   /subdomains/pages/legal/accessibility-statement.html   200
+https://legal.glitchrealm.ca/developer-agreement       /subdomains/pages/legal/developer-agreement.html       200
+https://legal.glitchrealm.ca/submission-policy         /subdomains/pages/legal/submission-policy.html         200
+https://legal.glitchrealm.ca/moderation-policy         /subdomains/pages/legal/moderation-policy.html         200
+https://legal.glitchrealm.ca/copyright-dmca            /subdomains/pages/legal/copyright-dmca.html            200
+https://legal.glitchrealm.ca/ip-notice                 /subdomains/pages/legal/ip-notice.html                 200
+https://legal.glitchrealm.ca/brand-protection          /subdomains/pages/legal/brand-protection.html          200
+https://legal.glitchrealm.ca/refund-policy             /subdomains/pages/legal/refund-policy.html             200
+https://legal.glitchrealm.ca/donation-policy           /subdomains/pages/legal/donation-policy.html           200
+https://legal.glitchrealm.ca/code-of-conduct           /subdomains/pages/legal/code-of-conduct.html           200
+https://legal.glitchrealm.ca/external-platforms        /subdomains/pages/legal/external-platforms.html        200
+https://legal.glitchrealm.ca/legal-definitions         /subdomains/pages/legal/legal-definitions.html         200
+https://legal.glitchrealm.ca/legal-contact             /subdomains/pages/legal/legal-contact.html             200
+https://legal.glitchrealm.ca/legal-information         /subdomains/pages/legal/legal-information.html         200
+
+# Legal subdomain - wildcard fallback for hub pages (core.html, privacy.html, etc.)
+https://legal.glitchrealm.ca/*     /subdomains/legal/:splat      200
+
 # Retire legacy Community Games page -> send to main Games
 /community-games        /games.html   301
 /community-games.html   /games.html   301
