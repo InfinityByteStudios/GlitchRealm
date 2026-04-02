@@ -1,0 +1,48 @@
+/* Shared styles for legal subdomain — supports dark + light theme */
+:root{
+  --bg: #0e0f11; --surface:#161719; --border: rgba(255,255,255,0.06);
+  --text:#c8cad0; --text-dim:#6b6e76; --text-bright:#ecedf0;
+  --accent:#2166ff; --accent-soft: rgba(33,102,255,0.08);
+  --radius:10px; --gap:1rem; --fs-base:16px;
+  --font-heading: "Sora", system-ui, sans-serif; --font-body: "Source Serif 4", Georgia, serif;
+}
+html.light-theme{
+  --bg: #f7f9fc; --surface: #ffffff; --border: rgba(11,15,23,0.06);
+  --text: #0b1220; --text-dim: #55606b; --text-bright:#0b1220; --accent:#0b5cff; --accent-soft: rgba(11,92,255,0.06);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font-body);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+a{color:var(--accent);}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.25rem;border-bottom:1px solid var(--border);background:linear-gradient(0deg, transparent, rgba(0,0,0,0.02));position:sticky;top:0;z-index:120}
+.topbar__brand{display:flex;gap:.6rem;align-items:center;font-family:var(--font-heading);font-weight:700;color:var(--text-bright);text-decoration:none}
+.topbar__brand svg{width:20px;height:20px;fill:var(--accent)}
+.topbar__actions{display:flex;gap:.5rem;align-items:center}
+.topbar__back{font-size:.86rem;color:var(--text-dim);text-decoration:none;padding:.35rem .6rem;border-radius:6px}
+.topbar__back:hover{color:var(--text-bright);background:var(--accent-soft)}
+.theme-toggle{display:inline-grid;place-items:center;width:40px;height:36px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:1rem;cursor:pointer}
+.theme-toggle[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.hero{max-width:980px;margin:2.2rem auto 1.25rem;padding:0 1.25rem}
+.hero__kicker{font-family:var(--font-heading);color:var(--accent);font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:.6rem}
+.hero__title{font-family:var(--font-heading);font-size:clamp(1.8rem,4vw,2.8rem);color:var(--text-bright);line-height:1.08}
+.hero__desc{color:var(--text-dim);margin-top:.85rem;max-width:68ch}
+.pill-nav{padding:.55rem 0;border-bottom:1px solid var(--border);background:var(--bg)}
+.pill-nav__inner{display:flex;gap:.5rem;max-width:980px;margin:0 auto;padding:0 1.25rem}
+.pill{padding:.35rem .85rem;border-radius:999px;background:transparent;color:var(--text-dim);font-weight:700;font-size:.82rem;text-decoration:none;border:1px solid transparent}
+.pill:hover{background:var(--accent-soft);color:var(--text-bright)}
+.pill.active{background:var(--accent-soft);color:var(--accent);border-color:rgba(33,102,255,0.14)}
+.container{max-width:980px;margin:0 auto;padding:2rem 1.25rem 4rem}
+.section{margin-bottom:2.25rem}
+.section__label{display:block;font-family:var(--font-heading);font-weight:700;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:.9rem;border-bottom:1px solid var(--border);padding-bottom:.5rem}
+.doc-list{background:transparent;border-radius:8px;overflow:hidden}
+.doc-link{display:flex;justify-content:space-between;gap:1rem;padding:1rem;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;align-items:flex-start}
+.doc-link:hover{background:var(--accent-soft)}
+.doc-link__meta{flex-shrink:0;color:var(--text-dim);font-weight:600;font-size:.84rem}
+.doc-link__title{font-family:var(--font-heading);font-weight:700;color:var(--text-bright)}
+.doc-link__desc{color:var(--text-dim);margin-top:.25rem;font-size:.95rem;max-width:60ch}
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--border);border-radius:8px;overflow:hidden}
+.contact-cell{background:var(--surface);padding:1rem}
+.contact-cell__label{font-weight:700;color:var(--text-bright);margin-bottom:.25rem}
+.contact-cell__email{color:var(--accent)}
+.legal-footer{text-align:center;padding:2rem 1.25rem;border-top:1px solid var(--border);color:var(--text-dim)}
+/* small screens */
+@media (max-width:640px){.hero{margin-top:1rem}.pill-nav__inner{padding:0 .5rem}.container{padding:1.25rem}.doc-link{flex-direction:column;align-items:flex-start}.doc-link__meta{align-self:flex-start}}

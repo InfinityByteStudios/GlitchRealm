@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Affiliated Sites — GlitchRealm Legal</title>
+  <meta name="description" content="The official registry of GlitchRealm-affiliated sites and properties.">
+  <link rel="canonical" href="https://legal.glitchrealm.ca/affiliated.html">
+  <link rel="icon" href="https://glitchrealm.ca/assets/Favicon%20and%20Icons/favicon-96x96.png" sizes="96x96">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/subdomains/legal/legal.css">
+  <script src="/subdomains/legal/theme.js" defer></script>
+  <style>
+    /* ── Affiliated page extras ── */
+    .notice-banner {
+      max-width: 980px;
+      margin: 1.5rem auto 0;
+      padding: 0 1.25rem;
+    }
+    .notice-banner__inner {
+      background: var(--accent-soft);
+      border: 1px solid rgba(33,102,255,0.18);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      gap: .75rem;
+      align-items: flex-start;
+    }
+    .notice-banner__icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: .05rem;
+    }
+    .notice-banner__text {
+      font-size: .9rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .notice-banner__text strong {
+      font-family: var(--font-heading);
+      color: var(--text-bright);
+    }
+
+    /* ── Site cards ── */
+    .site-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: .25rem;
+    }
+    .site-card {
+      background: var(--surface);
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+      transition: background .18s;
+    }
+    .site-card:hover {
+      background: var(--accent-soft);
+    }
+    .site-card__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+    }
+    .site-card__name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--text-bright);
+    }
+    .site-card__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      font-family: var(--font-heading);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .2rem .55rem;
+      border-radius: 999px;
+    }
+    .badge--official {
+      background: rgba(34,197,94,0.12);
+      color: #22c55e;
+      border: 1px solid rgba(34,197,94,0.25);
+    }
+    .badge--subdomain {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(33,102,255,0.2);
+    }
+    .badge--external {
+      background: rgba(234,179,8,0.1);
+      color: #ca8a04;
+      border: 1px solid rgba(234,179,8,0.2);
+    }
+    .site-card__url {
+      font-size: .82rem;
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .site-card__url:hover { text-decoration: underline; }
+    .site-card__desc {
+      font-size: .88rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .site-card__tos {
+      font-size: .78rem;
+      color: var(--text-dim);
+      font-family: var(--font-heading);
+      font-weight: 600;
+    }
+    .site-card__tos a { color: var(--accent); }
+
+    /* ── Coverage clause box ── */
+    .clause-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.35rem 1.5rem;
+      margin-top: .25rem;
+    }
+    .clause-box p {
+      font-size: .95rem;
+      line-height: 1.75;
+      color: var(--text);
+      margin-bottom: .85rem;
+    }
+    .clause-box p:last-child { margin-bottom: 0; }
+    .clause-box strong {
+      font-family: var(--font-heading);
+      color: var(--text-bright);
+    }
+
+    @media (max-width: 640px) {
+      .site-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      GlitchRealm Legal
+    </a>
+    <div class="topbar__actions">
+      <a class="topbar__back" href="https://glitchrealm.ca">Back to GlitchRealm</a>
+      <button id="theme-toggle" class="theme-toggle" aria-pressed="false" aria-label="Toggle theme">🌙</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="hero__kicker">Official Registry</div>
+      <h1 class="hero__title">Affiliated Sites</h1>
+      <p class="hero__desc">The authoritative list of sites and properties officially associated with GlitchRealm. If a site claims affiliation but is not listed here, it is not officially affiliated.</p>
+    </section>
+
+    <nav class="pill-nav" aria-label="Legal categories">
+      <div class="pill-nav__inner">
+        <a class="pill" href="core.html">Core</a>
+        <a class="pill" href="privacy.html">Privacy &amp; Data</a>
+        <a class="pill" href="developers.html">Developers</a>
+        <a class="pill" href="ip.html">IP</a>
+        <a class="pill" href="payments.html">Payments</a>
+        <a class="pill" href="community.html">Community</a>
+        <a class="pill" href="additional.html">Additional</a>
+        <a class="pill" href="contact.html">Contact</a>
+        <a class="pill active" href="affiliated.html">Affiliated Sites</a>
+      </div>
+    </nav>
+
+    <div class="notice-banner">
+      <div class="notice-banner__inner">
+        <span class="notice-banner__icon" aria-hidden="true">ℹ️</span>
+        <p class="notice-banner__text"><strong>How to verify affiliation:</strong> Only sites listed below are officially part of the GlitchRealm network. Affiliation is determined solely by GlitchRealm — it cannot be self-declared. If you encounter a site claiming GlitchRealm affiliation that is absent from this page, treat it as unaffiliated.</p>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <!-- Coverage Policy -->
+      <section class="section">
+        <div class="section__label">Legal Coverage Policy</div>
+        <div class="clause-box">
+          <p><strong>Scope of GlitchRealm Legal.</strong> All officially affiliated sites and properties listed on this page operate under GlitchRealm's legal policies — including but not limited to the Terms of Service, Privacy Policy, and Community Guidelines — unless that property has published its own superseding terms.</p>
+          <p><strong>Site-specific Terms take precedence.</strong> Where an affiliated property maintains its own Terms of Service, End User License Agreement, or equivalent policy document, and a conflict arises between those terms and GlitchRealm's policies, <strong>the affiliated site's own terms govern</strong> for interactions occurring on or through that property.</p>
+          <p><strong>Non-affiliated sites.</strong> Sites not listed below are not covered by or associated with GlitchRealm's legal framework, regardless of any claim to the contrary. GlitchRealm accepts no responsibility for the content, policies, or actions of non-affiliated properties.</p>
+          <p>This registry is maintained by GlitchRealm and updated as properties are added or removed. Last updated: <strong>April 1, 2026</strong>.</p>
+        </div>
+      </section>
+
+      <!-- Core Properties -->
+      <section class="section">
+        <div class="section__label">Core Properties</div>
+        <div class="site-grid">
+
+          <div class="site-card">
+            <div class="site-card__row">
+              <span class="site-card__name">GlitchRealm</span>
+              <span class="site-card__badge badge--official">✔ Official</span>
+            </div>
+            <a class="site-card__url" href="https://glitchrealm.ca" target="_blank" rel="noopener">glitchrealm.ca</a>
+            <p class="site-card__desc">The main GlitchRealm gaming platform. Hub for all games, news, community, and account management.</p>
+            <span class="site-card__tos">Governed by <a href="https://glitchrealm.ca/terms-of-service" target="_blank" rel="noopener">GlitchRealm Terms of Service</a></span>
+          </div>
+
+          <div class="site-card">
+            <div class="site-card__row">
+              <span class="site-card__name">GlitchRealm Legal</span>
+              <span class="site-card__badge badge--subdomain">Subdomain</span>
+            </div>
+            <a class="site-card__url" href="https://legal.glitchrealm.ca" target="_blank" rel="noopener">legal.glitchrealm.ca</a>
+            <p class="site-card__desc">The canonical legal hub for all GlitchRealm policies, terms, and legal documentation.</p>
+            <span class="site-card__tos">Governed by <a href="https://glitchrealm.ca/terms-of-service" target="_blank" rel="noopener">GlitchRealm Terms of Service</a></span>
+          </div>
+
+          <div class="site-card">
+            <div class="site-card__row">
+              <span class="site-card__name">GlitchRealm Portal</span>
+              <span class="site-card__badge badge--subdomain">Subdomain</span>
+            </div>
+            <a class="site-card__url" href="https://portal.glitchrealm.ca" target="_blank" rel="noopener">portal.glitchrealm.ca</a>
+            <p class="site-card__desc">User account portal for profile management, playtime stats, and settings.</p>
+            <span class="site-card__tos">Governed by <a href="https://glitchrealm.ca/terms-of-service" target="_blank" rel="noopener">GlitchRealm Terms of Service</a></span>
+          </div>
+
+          <div class="site-card">
+            <div class="site-card__row">
+              <span class="site-card__name">GlitchRealm Developers</span>
+              <span class="site-card__badge badge--subdomain">Subdomain</span>
+            </div>
+            <a class="site-card__url" href="https://developers.glitchrealm.ca" target="_blank" rel="noopener">developers.glitchrealm.ca</a>
+            <p class="site-card__desc">Developer hub, API documentation, and resources for game creators on GlitchRealm.</p>
+            <span class="site-card__tos">Governed by <a href="https://glitchrealm.ca/developer-agreement" target="_blank" rel="noopener">Developer Agreement</a> &amp; <a href="https://glitchrealm.ca/terms-of-service" target="_blank" rel="noopener">Terms of Service</a></span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Games -->
+      <section class="section">
+        <div class="section__label">Official GlitchRealm Games</div>
+        <div class="site-grid">
+
+          <div class="site-card">
+            <div class="site-card__row">
+              <span class="site-card__name">NeuroCore: Byte Wars</span>
+              <span class="site-card__badge badge--external">Hosted Externally</span>
+            </div>
+            <a class="site-card__url" href="https://neurocorebytewars.netlify.app" target="_blank" rel="noopener">neurocorebytewars.netlify.app</a>
+            <p class="site-card__desc">Official standalone version of NeuroCore: Byte Wars, hosted on Netlify.</p>
+            <span class="site-card__tos">Governed by <a href="https://glitchrealm.ca/eula" target="_blank" rel="noopener">GlitchRealm EULA</a></span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Footer note -->
+      <section class="section">
+        <div class="section__label">Questions</div>
+        <div class="clause-box">
+          <p>If you believe a site should be added or removed from this registry, or if you've encountered a site falsely claiming GlitchRealm affiliation, contact us at <a href="mailto:legal@glitchrealm.ca">legal@glitchrealm.ca</a>.</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="legal-footer">
+    <div class="legal-footer__text">&copy; 2025&ndash;2026 GlitchRealm. All rights reserved.</div>
+    <div class="legal-footer__links">
+      <a href="index.html">Legal Home</a>
+      <a href="https://glitchrealm.ca">GlitchRealm.ca</a>
+      <a href="mailto:legal@glitchrealm.ca">legal@glitchrealm.ca</a>
+    </div>
+  </footer>
+</body>
+</html>
