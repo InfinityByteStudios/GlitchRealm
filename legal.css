@@ -45,4 +45,10 @@ a{color:var(--accent);}
 .contact-cell__email{color:var(--accent)}
 .legal-footer{text-align:center;padding:2rem 1.25rem;border-top:1px solid var(--border);color:var(--text-dim)}
 /* small screens */
-@media (max-width:640px){.hero{margin-top:1rem}.pill-nav__inner{padding:0 .5rem}.container{padding:1.25rem}.doc-link{flex-direction:column;align-items:flex-start}.doc-link__meta{align-self:flex-start}}
+@media (max-width:640px) {
+  .hero { margin-top: 1rem; }
+  .pill-nav__inner { padding: 0 .5rem; }
+  .container { padding: 1.25rem; }
+  .doc-link { flex-direction: column; align-items: flex-start; }
+  .doc-link__meta { align-self: flex-start; }
+}
