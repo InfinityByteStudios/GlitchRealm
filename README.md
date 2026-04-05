@@ -11,6 +11,7 @@
 [![Netlify Status](https://img.shields.io/badge/Deployed%20on-Netlify-00C7B7?style=flat-square&logo=netlify&logoColor=white)](https://glitchrealm.ca)
 
 **Discover, play, and track HTML5 games — all in one place.**
+**PLEASE NOT ALL SIGN IN BUTTONS DO NOT WORK DUE TO ISSUES MOST HAVE BEEN REMOVED**
 
 [Explore Games](https://glitchrealm.ca/games.html) · [Submit Your Game](https://glitchrealm.ca/submit-game.html) · [Join the Community](https://glitchrealm.ca/community.html) · [Report a Bug](https://github.com/InfinityByteStudios/GlitchRealm/issues)
 
