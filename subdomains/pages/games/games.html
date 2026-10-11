@@ -266,10 +266,11 @@
     .game-card .card-image { position: relative; }
     .game-card-link { text-decoration: none; color: inherit; display: block; }
 
-    /* Wishlist button styles */
+    /* Wishlist button styles (bottom-left so it doesn't cover the top-left badges) */
     .wishlist-btn {
         position: absolute;
-        top: 10px;
+        top: auto;
+        bottom: 10px;
         left: 10px;
         z-index: 10;
         width: 36px;
@@ -1485,7 +1486,7 @@
                 </h1>
                 <p class="page-subtitle">Enter the digital realm and explore our cyberpunk gaming universe</p>
                 <p id="verified-submit-cta" class="page-subtitle" style="display:none; font-size:0.95rem;">
-                    Submit your game <a href="submit-game.html" style="text-decoration:underline; color: var(--primary-cyan);">here</a>.
+                    Submit your game <a href="/submit-game.html" style="text-decoration:underline; color: var(--primary-cyan);">here</a>.
                 </p>
             </div>
         </section>        <section class="games-grid">
@@ -1513,7 +1514,7 @@
                         <div class="card-content">
                             <h3 class="card-title">ByteSurge</h3>
                             <p class="card-description">Ride the digital waves in this high-speed cyberpunk racing adventure. Master the art of data surfing through neon-lit networks.</p>
-                            <p class="card-developer">Made by <a href="about.html"><strong>NanoShade Studios</strong></a> <button class="review-btn" onclick="openReviewModal('bytesurge', 'ByteSurge')">⭐ Review</button><span class="rating-display" data-game-id="bytesurge"><span class="no-rating">N/A (0)</span></span></p>                            <div class="card-tags">
+                            <p class="card-developer">Made by <a href="/about.html"><strong>NanoShade Studios</strong></a> <button class="review-btn" onclick="openReviewModal('bytesurge', 'ByteSurge')">⭐ Review</button><span class="rating-display" data-game-id="bytesurge"><span class="no-rating">N/A (0)</span></span></p>                            <div class="card-tags">
                                 <span class="tag">Racing</span>
                                 <span class="tag">Speed</span>
                                 <span class="tag">Cyberpunk</span>
@@ -1546,7 +1547,7 @@
                         </div>                        <div class="card-content">
                             <h3 class="card-title">NeuroCore: Byte Wars</h3>
                             <p class="card-description">Engage in neural combat using advanced algorithms. Battle through digital networks in this strategic warfare game.</p>
-                            <p class="card-developer">Made by <a href="about.html"><strong>InfinityByte Studios</strong></a> <button class="review-btn" onclick="openReviewModal('neurocore', 'NeuroCore: Byte Wars')">⭐ Review</button><span class="rating-display" data-game-id="neurocore"><span class="no-rating">N/A (0)</span></span></p>                            <div class="card-tags">
+                            <p class="card-developer">Made by <a href="/about.html"><strong>InfinityByte Studios</strong></a> <button class="review-btn" onclick="openReviewModal('neurocore', 'NeuroCore: Byte Wars')">⭐ Review</button><span class="rating-display" data-game-id="neurocore"><span class="no-rating">N/A (0)</span></span></p>                            <div class="card-tags">
                                 <span class="tag">Strategy</span>
                                 <span class="tag">Combat</span>
                                 <span class="tag">Sci-Fi</span>
@@ -1579,7 +1580,7 @@
                             </div>
                         </div><div class="card-content">                            <h3 class="card-title">CodeRunner</h3>
                             <p class="card-description">Navigate through digital mazes while solving programming challenges. Race against time in this cyberpunk coding adventure.</p>
-                            <p class="card-developer">Made by <a href="about.html"><strong>NanoShade Studios</strong></a> <button class="review-btn" onclick="openReviewModal('coderunner', 'CodeRunner')">⭐ Review</button><span class="rating-display" data-game-id="coderunner"><span class="no-rating">N/A (0)</span></span></p>                            <div class="card-tags">
+                            <p class="card-developer">Made by <a href="/about.html"><strong>NanoShade Studios</strong></a> <button class="review-btn" onclick="openReviewModal('coderunner', 'CodeRunner')">⭐ Review</button><span class="rating-display" data-game-id="coderunner"><span class="no-rating">N/A (0)</span></span></p>                            <div class="card-tags">
                                 <span class="tag">Puzzle</span>
                                 <span class="tag">Coding</span>
                                 <span class="tag">Adventure</span>
@@ -1647,7 +1648,7 @@
                                 <span class="tag">Community</span>
                                 <span class="tag">Creator</span>
                             </div>
-                            <a href="submit-game.html" class="btn btn-primary card-btn">Start Submission</a>
+                            <a href="/submit-game.html" class="btn btn-primary card-btn">Start Submission</a>
                         </div>
                     </div>
                 </div>
@@ -1802,7 +1803,7 @@
             </div>
             <div class="submit-section">
                 <button class="btn cancel-btn" onclick="closeGameRemovedModal()">Close</button>
-                <a class="btn submit-btn" href="contact.html">Contact Us</a>
+                <a class="btn submit-btn" href="/contact.html">Contact Us</a>
             </div>
         </div>
     </div>
@@ -2149,7 +2150,7 @@
                             sessionStorage.setItem('gr.returnTo', currentUrl); 
                             localStorage.setItem('gr.returnTo', currentUrl); // Also save to localStorage as backup
                         } catch {}
-                        window.location.href = `Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
+                        window.location.href = `/Sign In/index.html?redirect=${encodeURIComponent(currentUrl)}`;
                     }
                 }
             }
@@ -3492,7 +3493,7 @@
                 if (e.target.tagName === 'BUTTON' || e.target.closest('.game-card-menu') || e.target.closest('.card-btn')) {
                     return;
                 }
-                window.location.href = `game-detail.html?id=${id}`;
+                window.location.href = `/game-detail.html?id=${id}`;
             });
             
             card.innerHTML = `
@@ -3503,7 +3504,7 @@
                          alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
                     <div class="card-overlay"></div>
                     ${badge ? `<div class="game-badge ${badge}">${badgeLabel}</div>` : `<div class=\"game-badge new\" style=\"display:${doc.featured ? 'block' : 'none'};\">NEW</div>`}
-                    <!-- Wishlist button (top left) -->
+                    <!-- Wishlist button (bottom-left so it doesn't cover the top-left badges) -->
                     <button class="wishlist-btn" data-game-id="${escapeHtml(id)}" data-game-title="${escapeHtml(doc.title || '')}" data-cover-url="${escapeHtml(cover)}" data-play-url="${playUrl ? escapeHtml(playUrl) : ''}" title="Add to wishlist">♡</button>
                     <!-- Game Card Menu Buttons (top right) for submissions -->
                     <div class="game-card-menu" data-game-menu>

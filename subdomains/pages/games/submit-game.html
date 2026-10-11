@@ -407,8 +407,8 @@
     <!-- Tooltip for step validation messages -->
     <div id="stepTooltip" class="step-tooltip" style="display:none;"></div>
     
-    <div id="gateNotice" class="warning-message gate-block" style="display:none;">You must be a verified creator or approved developer to submit a game. <a href="user-portal.html#verification-section">Get verified</a>.</div>
-    <div id="authNotice" class="warning-message gate-block" style="display:none;">Please sign in to submit a game. <a href="index.html">Sign In</a></div>
+    <div id="gateNotice" class="warning-message gate-block" style="display:none;">You must be a verified creator or approved developer to submit a game. <a href="/user-portal.html#verification-section">Get verified</a>.</div>
+    <div id="authNotice" class="warning-message gate-block" style="display:none;">Please sign in to submit a game. <a href="/signin.html">Sign In</a></div>
     
     <!-- Requirements and Instructions Step -->
     <div class="requirements-card" id="requirementsCard" style="display:none;">
@@ -445,7 +445,7 @@
 
       <div class="acceptance-box">
         <input type="checkbox" id="acceptTerms" />
-        <label for="acceptTerms">I have read and agree to follow the submission guidelines, accept the <a href="developer-agreement.html" target="_blank" style="color: var(--primary-cyan); text-decoration: underline;">Developer Agreement</a>, and understand that my submission will be reviewed by staff before being published</label>
+        <label for="acceptTerms">I have read and agree to follow the submission guidelines, accept the <a href="/developer-agreement.html" target="_blank" style="color: var(--primary-cyan); text-decoration: underline;">Developer Agreement</a>, and understand that my submission will be reviewed by staff before being published</label>
       </div>
 
       <div class="next-btn-container">
@@ -596,15 +596,15 @@
           </div>
           
           <div class="success-actions">
-            <a href="games.html" class="btn btn-primary">View Games Library</a>
-            <a href="submit-game.html" class="btn btn-secondary">Submit Another Game</a>
+            <a href="/games.html" class="btn btn-primary">View Games Library</a>
+            <a href="/submit-game.html" class="btn btn-secondary">Submit Another Game</a>
             <a id="viewGameBtn" href="#" class="btn btn-outline" style="display:none;">View Your Game</a>
           </div>
         </div>
       </div>
     </div>
     
-    <div class="auth-redirect" id="postSubmitHint" style="display:none;">Return to the <a href="games.html">Games Library</a>.</div>
+    <div class="auth-redirect" id="postSubmitHint" style="display:none;">Return to the <a href="/games.html">Games Library</a>.</div>
   </div>
   <div id="footer-placeholder"></div>
   <script src="js/dev-config.js" defer></script>
@@ -761,7 +761,7 @@
 
         // Also show a simple library link
         const libLink = document.createElement('a');
-        libLink.href = 'games.html';
+        libLink.href = '/games.html';
         libLink.className = 'btn btn-primary';
         libLink.textContent = 'View Library';
         // Avoid duplicating if already added
@@ -802,7 +802,7 @@
         
         if (!gameSnap.exists()) {
           alert('Game not found');
-          window.location.href = 'submit-game.html';
+          window.location.href = '/submit-game.html';
           return;
         }
         
@@ -812,7 +812,7 @@
         
         if (!isDeveloper && !isOwner) {
           alert('You do not have permission to edit this game');
-          window.location.href = 'games.html';
+          window.location.href = '/games.html';
           return;
         }
         
@@ -1324,7 +1324,7 @@
           customClaims: await user.getIdTokenResult()
         });
         // verify privilege
-        try { const me = await getMe(); const allowed = me && (me.isVerified || me.isDeveloper); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch {}
+        try { const me = await getMe(); const allowed = me && (me.isVerified || me.isDeveloper); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="/user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch {}
   const title=$('submissionTitle').value.trim(); 
   const description=$('submissionDescription').value.trim(); 
   const extendedDescription=$('submissionExtendedDesc').value.trim();
