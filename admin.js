@@ -279,6 +279,22 @@ function setupNavigation() {
         effects: 'Seasonal Effects'
     };
 
+    const sectionDescs = {
+        dashboard: 'A quick look at what needs your attention.',
+        games: 'Review, publish and manage submitted games.',
+        news: 'Publish, unpublish and edit news articles.',
+        community: 'Moderate, pin and edit community posts.',
+        banners: 'Announcements shown at the top of every page.',
+        reports: 'User reports on games and community posts.',
+        'staff-status': 'The system status shown on the Support page.',
+        maintenance: 'Temporarily redirect visitors to a maintenance page.',
+        database: 'Browse and edit raw Firestore documents.',
+        effects: 'Falling particle effects shown across the site.'
+    };
+    const sectionDesc = document.getElementById('section-desc');
+    const sidebar = document.querySelector('.sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const target = item.dataset.section;
@@ -287,9 +303,11 @@ function setupNavigation() {
             sections.forEach(s => s.classList.remove('active'));
             document.getElementById(`sec-${target}`).classList.add('active');
             sectionTitle.textContent = sectionNames[target] || target;
+            if (sectionDesc) sectionDesc.textContent = sectionDescs[target] || '';
 
             // Close mobile sidebar
-            document.querySelector('.sidebar').classList.remove('open');
+            sidebar.classList.remove('open');
+            window.scrollTo(0, 0);
 
             // Load section data
             loadSection(target);
@@ -298,7 +316,23 @@ function setupNavigation() {
 
     // Mobile toggle
     document.getElementById('mobile-toggle').addEventListener('click', () => {
-        document.querySelector('.sidebar').classList.toggle('open');
+        sidebar.classList.toggle('open');
+    });
+    if (backdrop) backdrop.addEventListener('click', () => sidebar.classList.remove('open'));
+
+    // Dashboard shortcuts (stat cards / "View all" links)
+    document.querySelectorAll('[data-goto]').forEach(el => {
+        el.addEventListener('click', () => {
+            const nav = document.querySelector(`.nav-item[data-section="${el.dataset.goto}"]`);
+            if (nav) nav.click();
+        });
+    });
+
+    // Close the document editor with Escape or by clicking outside it
+    const docModal = document.getElementById('doc-editor-modal');
+    docModal.addEventListener('click', (e) => { if (e.target === docModal) closeDocEditor(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && docModal.style.display !== 'none') closeDocEditor();
     });
 
     // Refresh
@@ -393,6 +427,9 @@ async function loadDashboard() {
             if (data.status === 'draft') pendingGames.push({ id: d.id, ...data });
         });
 
+        setNavCount('nav-count-games', pendingGames.length);
+        setNavCount('nav-count-reports', totalReports);
+
         const pendingEl = document.getElementById('dash-pending-games');
         if (pendingGames.length === 0) {
             pendingEl.innerHTML = '<div class="empty-state"><p>No pending games</p></div>';
@@ -426,6 +463,13 @@ async function loadDashboard() {
         console.error('Dashboard load error:', err);
         showToast('Failed to load dashboard: ' + err.message, 'error');
     }
+}
+
+function setNavCount(id, count) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = count > 99 ? '99+' : String(count);
+    el.hidden = !count;
 }
 
 // ================================================================
@@ -470,7 +514,7 @@ async function loadGames() {
                 <div class="item-card-desc">${escapeHTML(g.description || '')}</div>
                 <div class="item-card-meta">
                     Owner: ${escapeHTML(g.ownerUsername || g.ownerId || 'Unknown')} · ${formatDate(g.createdAt)}
-                    ${g.playUrl ? ' · <a href="' + escapeHTML(g.playUrl) + '" target="_blank" rel="noopener" style="color:var(--primary-cyan);">Play</a>' : ''}
+                    ${g.playUrl ? ' · <a href="' + escapeHTML(g.playUrl) + '" target="_blank" rel="noopener" class="inline-link">Play ↗</a>' : ''}
                 </div>
                 <div class="item-card-actions">
                     ${g.status === 'draft' ? `<button class="btn-success" onclick="approveGame('${g.id}')">Publish</button>` : ''}
@@ -689,23 +733,17 @@ async function loadBanners() {
             return;
         }
 
-        const typeColors = {
-            info: 'rgba(0,212,255,0.12)',
-            warning: 'rgba(255,184,0,0.12)',
-            error: 'rgba(255,71,87,0.12)',
-            success: 'rgba(0,255,65,0.12)'
-        };
         const typeIcons = { info: 'ℹ️', warning: '⚠️', error: '🚨', success: '✅' };
 
         container.innerHTML = items.map(b => `
-            <div class="list-item" style="border-left: 3px solid ${b.active ? 'var(--success)' : 'var(--text-muted)'};">
-                <div class="list-item-icon" style="background: ${typeColors[b.type] || typeColors.info};">
+            <div class="list-item ${b.active ? 'is-active' : 'is-inactive'}">
+                <div class="list-item-icon tone-${typeIcons[b.type] ? b.type : 'info'}">
                     ${typeIcons[b.type] || 'ℹ️'}
                 </div>
                 <div class="list-item-body">
                     <div class="list-item-title">${escapeHTML(b.message)}</div>
                     <div class="list-item-sub">
-                        ${b.active ? '<strong style="color:var(--success);">ACTIVE</strong>' : '<span style="color:var(--text-muted);">INACTIVE</span>'}
+                        ${b.active ? '<span class="pill pill-success">Active</span>' : '<span class="pill pill-muted">Inactive</span>'}
                         · Type: ${b.type || 'info'}
                         ${b.expiresAt ? ' · Expires: ' + formatDate(b.expiresAt) : ' · No expiry'}
                         ${b.linkUrl ? ' · Link: ' + escapeHTML(b.linkUrl) : ''}
@@ -824,24 +862,15 @@ async function loadReports() {
             return;
         }
 
-        const statusColors = {
-            open: 'var(--error)',
-            pending: 'var(--warning)',
-            closed: 'var(--text-muted)',
-            reviewing: 'var(--info)',
-            resolved: 'var(--success)',
-            rejected: 'var(--text-muted)'
-        };
-
         container.innerHTML = allReports.map(r => `
-            <div class="list-item" style="border-left: 3px solid ${statusColors[r.status] || 'var(--border)'};">
-                <div class="list-item-icon" style="background: rgba(255,71,87,0.1); color: var(--error); font-size: 0.7rem; font-weight: 700;">
+            <div class="list-item report-${escapeHTML(r.status || 'unknown')}">
+                <div class="list-item-icon tone-${r.type === 'game' ? 'info' : 'community'}">
                     ${r.type === 'game' ? '🎮' : '💬'}
                 </div>
                 <div class="list-item-body">
                     <div class="list-item-title">${escapeHTML(r.reason || 'No reason given')}</div>
                     <div class="list-item-sub">
-                        <span class="status-badge status-${r.status === 'open' ? 'draft' : r.status === 'closed' ? 'archived' : 'published'}" style="font-size:0.55rem;">${r.status}</span>
+                        <span class="status-badge status-${r.status === 'open' ? 'draft' : r.status === 'closed' ? 'archived' : 'published'}">${escapeHTML(r.status || 'unknown')}</span>
                         · ${r.type === 'game' ? 'Game: ' + escapeHTML(r.gameId || '?') : 'Post: ' + escapeHTML(r.postId || '?')}
                         · Reporter: ${escapeHTML(r.userId || 'Unknown')}
                         · ${formatDate(r.createdAt)}
@@ -933,7 +962,8 @@ async function loadDbCollection() {
         const displayKeys = keys.slice(0, 6);
 
         container.innerHTML = `
-            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">${docs.length} documents · Click ID to edit</p>
+            <p class="db-meta"><strong>${docs.length}</strong> document${docs.length === 1 ? '' : 's'} in <code>${escapeHTML(collectionName)}</code> · Click an ID to view or edit${keys.length > displayKeys.length ? ` · Showing ${displayKeys.length} of ${keys.length} fields` : ''}</p>
+            <div class="db-table-wrap">
             <table class="db-table">
                 <thead>
                     <tr>
@@ -944,15 +974,15 @@ async function loadDbCollection() {
                 <tbody>
                     ${docs.map(d => `
                         <tr>
-                            <td class="doc-id" onclick="editDoc('${collectionName}','${d.id}')">${d.id.length > 16 ? d.id.slice(0, 16) + '...' : d.id}</td>
+                            <td class="doc-id" title="${escapeHTML(d.id)}" onclick="editDoc('${collectionName}','${d.id}')">${d.id.length > 16 ? d.id.slice(0, 16) + '...' : d.id}</td>
                             ${displayKeys.map(k => {
                                 const val = d.data[k];
                                 let display = '';
-                                if (val === null || val === undefined) display = '<span style="opacity:0.4;">null</span>';
+                                if (val === null || val === undefined) display = '<span class="db-null">null</span>';
                                 else if (val?.toDate) display = formatDate(val);
-                                else if (typeof val === 'boolean') display = val ? '✓' : '✗';
-                                else if (Array.isArray(val)) display = `[${val.length}]`;
-                                else if (typeof val === 'object') display = '{...}';
+                                else if (typeof val === 'boolean') display = val ? '<span class="db-true">true</span>' : '<span class="db-false">false</span>';
+                                else if (Array.isArray(val)) display = `<span class="db-obj">[${val.length}]</span>`;
+                                else if (typeof val === 'object') display = '<span class="db-obj">{…}</span>';
                                 else display = escapeHTML(truncate(String(val), 40));
                                 return `<td>${display}</td>`;
                             }).join('')}
@@ -960,6 +990,7 @@ async function loadDbCollection() {
                     `).join('')}
                 </tbody>
             </table>
+            </div>
         `;
     } catch (err) {
         container.innerHTML = `<div class="empty-state"><h3>Error</h3><p>${escapeHTML(err.message)}</p></div>`;
@@ -1181,8 +1212,8 @@ async function loadMaintenance() {
     try {
         const snap = await window.firestoreGetDoc(window.firestoreDoc(db(), 'site_config', 'maintenance'));
         if (!snap.exists()) {
-            badge.textContent = 'NOT SET';
-            badge.style.background = '#333'; badge.style.color = '#888';
+            badge.textContent = 'Not set';
+            badge.className = 'pill pill-muted';
             return;
         }
         const d = snap.data();
@@ -1199,9 +1230,9 @@ async function loadMaintenance() {
             document.getElementById('maint-expires').value = '';
         }
         if (d.enabled) {
-            badge.textContent = 'ACTIVE'; badge.style.background = '#ff4757'; badge.style.color = '#fff';
+            badge.textContent = 'Live — visitors are redirected'; badge.className = 'pill pill-danger';
         } else {
-            badge.textContent = 'OFF'; badge.style.background = '#1a3a1a'; badge.style.color = '#00ff41';
+            badge.textContent = 'Off'; badge.className = 'pill pill-success';
         }
     } catch (err) {
         showToast('Failed to load maintenance settings', 'error');
@@ -1356,9 +1387,9 @@ function collectEmojiValues(selector) {
 
 function buildEmojiEditorRows(kind, key, emojis) {
     return emojis.map((emoji, index) => `
-        <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
-            <input type="text" class="${kind === 'preset' ? 'fx-preset-emoji' : 'fx-custom-emoji-edit'}" ${kind === 'preset' ? `data-id="${key}"` : `data-idx="${key}"`} maxlength="4" value="${escapeHTML(emoji)}" style="width:40px;text-align:center;padding:4px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:1.1rem;">
-            <button type="button" class="btn-danger btn-sm fx-remove-emoji" data-kind="${kind}" ${kind === 'preset' ? `data-id="${key}"` : `data-idx="${key}"`} title="Remove emoji" ${index === 0 && emojis.length === 1 ? 'disabled' : ''}>-</button>
+        <div class="fx-emoji-input-row">
+            <input type="text" class="${kind === 'preset' ? 'fx-preset-emoji' : 'fx-custom-emoji-edit'} fx-emoji-input" ${kind === 'preset' ? `data-id="${key}"` : `data-idx="${key}"`} maxlength="4" value="${escapeHTML(emoji)}">
+            <button type="button" class="btn-icon fx-remove-emoji" data-kind="${kind}" ${kind === 'preset' ? `data-id="${key}"` : `data-idx="${key}"`} title="Remove emoji" ${index === 0 && emojis.length === 1 ? 'disabled' : ''}>−</button>
         </div>
     `).join('');
 }
@@ -1406,25 +1437,45 @@ function renderPresets() {
         const color = saved.color || p.color;
 
         return `
-        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;margin-bottom:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:6px;flex-wrap:wrap;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:170px;font-weight:700;">
-                <input type="checkbox" class="fx-preset-enabled" data-id="${p.id}" ${enabled ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent,#00fff9);">
-                <span style="font-size:1.2rem;">${emojis[0]}</span> ${escapeHTML(p.name)}
+        <div class="fx-row ${enabled ? 'is-on' : ''}">
+            <label class="fx-row-head">
+                <span class="switch">
+                    <input type="checkbox" class="fx-preset-enabled" data-id="${p.id}" ${enabled ? 'checked' : ''}>
+                    <span class="switch-track" aria-hidden="true"></span>
+                </span>
+                <span class="fx-row-emoji">${escapeHTML(emojis[0])}</span>
+                <span class="fx-row-name">${escapeHTML(p.name)}</span>
             </label>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0;">
-                <input type="datetime-local" class="fx-preset-start" data-id="${p.id}" value="${startVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
-                <span style="color:#666;align-self:center;">→</span>
-                <input type="datetime-local" class="fx-preset-end" data-id="${p.id}" value="${endVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
-                <select class="fx-preset-intensity" data-id="${p.id}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
-                    <option value="low" ${intensity==='low'?'selected':''}>Low</option>
-                    <option value="medium" ${intensity==='medium'?'selected':''}>Medium</option>
-                    <option value="high" ${intensity==='high'?'selected':''}>High</option>
-                </select>
-                <div class="fx-emoji-list" data-kind="preset" data-id="${p.id}" style="display:flex; flex-direction:column; gap:6px;">
-                    ${buildEmojiEditorRows('preset', p.id, emojis)}
+            <div class="fx-row-fields">
+                <div class="fx-field fx-field-dates">
+                    <span class="fx-field-label">Runs</span>
+                    <div class="fx-dates">
+                        <input type="datetime-local" class="fx-preset-start fx-input" data-id="${p.id}" value="${startVal}" aria-label="${escapeHTML(p.name)} start">
+                        <span class="fx-arrow">→</span>
+                        <input type="datetime-local" class="fx-preset-end fx-input" data-id="${p.id}" value="${endVal}" aria-label="${escapeHTML(p.name)} end">
+                    </div>
                 </div>
-                <button type="button" class="btn-secondary btn-sm fx-add-emoji" data-kind="preset" data-id="${p.id}" title="Add emoji">+</button>
-                <input type="color" class="fx-preset-color" data-id="${p.id}" value="${color}" style="width:32px;height:28px;padding:0;border:1px solid #333;border-radius:4px;background:#111;cursor:pointer;" title="Particle color">
+                <div class="fx-field">
+                    <span class="fx-field-label">Intensity</span>
+                    <select class="fx-preset-intensity fx-input" data-id="${p.id}">
+                        <option value="low" ${intensity==='low'?'selected':''}>Low</option>
+                        <option value="medium" ${intensity==='medium'?'selected':''}>Medium</option>
+                        <option value="high" ${intensity==='high'?'selected':''}>High</option>
+                    </select>
+                </div>
+                <div class="fx-field">
+                    <span class="fx-field-label">Color</span>
+                    <input type="color" class="fx-preset-color color-input" data-id="${p.id}" value="${color}" title="Particle color">
+                </div>
+                <div class="fx-field">
+                    <span class="fx-field-label">Emojis</span>
+                    <div class="fx-emoji-editor">
+                        <div class="fx-emoji-list" data-kind="preset" data-id="${p.id}">
+                            ${buildEmojiEditorRows('preset', p.id, emojis)}
+                        </div>
+                        <button type="button" class="btn-icon fx-add-emoji" data-kind="preset" data-id="${p.id}" title="Add emoji">+</button>
+                    </div>
+                </div>
             </div>
         </div>`;
     }).join('');
@@ -1433,7 +1484,7 @@ function renderPresets() {
 function renderCustomEffects() {
     const container = document.getElementById('effects-custom-list');
     if (effectsState.custom.length === 0) {
-        container.innerHTML = '<p style="color:#666;font-size:.85rem;">No custom effects yet.</p>';
+        container.innerHTML = '<p class="empty-inline">No custom effects yet. Add one below.</p>';
         return;
     }
     container.innerHTML = effectsState.custom.map((c, i) => {
@@ -1441,30 +1492,59 @@ function renderCustomEffects() {
         const endVal = c.endAt ? fxLocalToStr(c.endAt) : '';
         const emojis = normalizeEmojiList(c.emojis, c.emoji || '✨');
         return `
-        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;margin-bottom:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:6px;flex-wrap:wrap;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:170px;font-weight:700;">
-                <input type="checkbox" class="fx-custom-enabled" data-idx="${i}" ${c.enabled ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent,#00fff9);">
-                <span style="font-size:1.2rem;">${emojis[0]}</span> ${escapeHTML(c.name || 'Untitled')}
-            </label>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0;align-items:center;">
-                <input type="datetime-local" class="fx-custom-start" data-idx="${i}" value="${startVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
-                <span style="color:#666;">→</span>
-                <input type="datetime-local" class="fx-custom-end" data-idx="${i}" value="${endVal}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
-                <select class="fx-custom-intensity" data-idx="${i}" style="padding:4px 6px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:.82rem;font-family:Rajdhani,sans-serif;">
-                    <option value="low" ${c.intensity==='low'?'selected':''}>Low</option>
-                    <option value="medium" ${c.intensity==='medium'?'selected':''}>Medium</option>
-                    <option value="high" ${c.intensity==='high'?'selected':''}>High</option>
-                </select>
-                <div class="fx-emoji-list" data-kind="custom" data-idx="${i}" style="display:flex; flex-direction:column; gap:6px;">
-                    ${buildEmojiEditorRows('custom', i, emojis)}
+        <div class="fx-row ${c.enabled ? 'is-on' : ''}">
+            <div class="fx-row-top">
+                <label class="fx-row-head">
+                    <span class="switch">
+                        <input type="checkbox" class="fx-custom-enabled" data-idx="${i}" ${c.enabled ? 'checked' : ''}>
+                        <span class="switch-track" aria-hidden="true"></span>
+                    </span>
+                    <span class="fx-row-emoji">${escapeHTML(emojis[0])}</span>
+                    <span class="fx-row-name">${escapeHTML(c.name || 'Untitled')}</span>
+                </label>
+                <button class="btn-danger btn-sm" onclick="removeCustomEffect(${i})" title="Remove effect">Remove</button>
+            </div>
+            <div class="fx-row-fields">
+                <div class="fx-field fx-field-dates">
+                    <span class="fx-field-label">Runs</span>
+                    <div class="fx-dates">
+                        <input type="datetime-local" class="fx-custom-start fx-input" data-idx="${i}" value="${startVal}" aria-label="Start">
+                        <span class="fx-arrow">→</span>
+                        <input type="datetime-local" class="fx-custom-end fx-input" data-idx="${i}" value="${endVal}" aria-label="End">
+                    </div>
                 </div>
-                <button type="button" class="btn-secondary btn-sm fx-add-emoji" data-kind="custom" data-idx="${i}" title="Add emoji">+</button>
-                <input type="color" class="fx-custom-color-edit" data-idx="${i}" value="${c.color || '#ffffff'}" style="width:32px;height:28px;padding:0;border:1px solid #333;border-radius:4px;background:#111;cursor:pointer;">
-                <button class="btn-danger btn-sm" onclick="removeCustomEffect(${i})">✕</button>
+                <div class="fx-field">
+                    <span class="fx-field-label">Intensity</span>
+                    <select class="fx-custom-intensity fx-input" data-idx="${i}">
+                        <option value="low" ${c.intensity==='low'?'selected':''}>Low</option>
+                        <option value="medium" ${c.intensity==='medium'?'selected':''}>Medium</option>
+                        <option value="high" ${c.intensity==='high'?'selected':''}>High</option>
+                    </select>
+                </div>
+                <div class="fx-field">
+                    <span class="fx-field-label">Color</span>
+                    <input type="color" class="fx-custom-color-edit color-input" data-idx="${i}" value="${c.color || '#ffffff'}" title="Particle color">
+                </div>
+                <div class="fx-field">
+                    <span class="fx-field-label">Emojis</span>
+                    <div class="fx-emoji-editor">
+                        <div class="fx-emoji-list" data-kind="custom" data-idx="${i}">
+                            ${buildEmojiEditorRows('custom', i, emojis)}
+                        </div>
+                        <button type="button" class="btn-icon fx-add-emoji" data-kind="custom" data-idx="${i}" title="Add emoji">+</button>
+                    </div>
+                </div>
             </div>
         </div>`;
     }).join('');
 }
+
+document.addEventListener('change', (e) => {
+    if (e.target.matches('.fx-preset-enabled, .fx-custom-enabled')) {
+        const row = e.target.closest('.fx-row');
+        if (row) row.classList.toggle('is-on', e.target.checked);
+    }
+});
 
 document.addEventListener('click', (e) => {
     const addBtn = e.target.closest('.fx-add-emoji');
@@ -1476,9 +1556,9 @@ document.addEventListener('click', (e) => {
         if (!list) return;
         const inputClass = kind === 'preset' ? 'fx-preset-emoji' : 'fx-custom-emoji-edit';
         list.insertAdjacentHTML('beforeend', `
-            <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
-                <input type="text" class="${inputClass}" data-${keyAttr}="${key}" maxlength="4" value="" style="width:40px;text-align:center;padding:4px;background:#111;border:1px solid #333;border-radius:4px;color:#e0e0e0;font-size:1.1rem;">
-                <button type="button" class="btn-danger btn-sm fx-remove-emoji" data-kind="${kind}" data-${keyAttr}="${key}" title="Remove emoji">-</button>
+            <div class="fx-emoji-input-row">
+                <input type="text" class="${inputClass} fx-emoji-input" data-${keyAttr}="${key}" maxlength="4" value="">
+                <button type="button" class="btn-icon fx-remove-emoji" data-kind="${kind}" data-${keyAttr}="${key}" title="Remove emoji">−</button>
             </div>
         `);
         return;
@@ -1500,9 +1580,9 @@ document.addEventListener('click', (e) => {
         const list = document.getElementById('fx-custom-emojis');
         if (!list) return;
         list.insertAdjacentHTML('beforeend', `
-            <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
-                <input type="text" class="fx-custom-emoji-new" maxlength="4" placeholder="✨" style="width:64px; text-align:center;">
-                <button type="button" class="btn-danger btn-sm fx-remove-emoji-new" title="Remove emoji">-</button>
+            <div class="fx-emoji-input-row">
+                <input type="text" class="fx-custom-emoji-new fx-emoji-input" maxlength="4" placeholder="✨">
+                <button type="button" class="btn-icon fx-remove-emoji-new" title="Remove emoji">−</button>
             </div>
         `);
         return;
@@ -1548,9 +1628,9 @@ document.getElementById('fx-add-custom-btn').addEventListener('click', () => {
     const newEmojiList = document.getElementById('fx-custom-emojis');
     if (newEmojiList) {
         newEmojiList.innerHTML = `
-            <div class="fx-emoji-input-row" style="display:flex; gap:8px; align-items:center;">
-                <input type="text" class="fx-custom-emoji-new" maxlength="4" placeholder="✨" style="width:64px; text-align:center;">
-                <button type="button" class="btn-danger btn-sm fx-remove-emoji-new" title="Remove emoji">-</button>
+            <div class="fx-emoji-input-row">
+                <input type="text" class="fx-custom-emoji-new fx-emoji-input" maxlength="4" placeholder="✨">
+                <button type="button" class="btn-icon fx-remove-emoji-new" title="Remove emoji">−</button>
             </div>
         `;
     }
