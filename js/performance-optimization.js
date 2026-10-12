@@ -18,18 +18,20 @@
         autoInit: true, // NEW: Allow disabling auto-init
         rootMargin: '50px', // Start loading 50px before entering viewport
         threshold: 0.01,
-        enableWebP: true,
-        enableBlurPlaceholder: true,
+        // WebP probing doubled image requests (and 404'd when no .webp sibling existed);
+        // pages now reference .webp assets directly.
+        enableWebP: false,
+        // Blur-up on already-sized images delayed perceived paint and LCP.
+        enableBlurPlaceholder: false,
         qualityByConnection: {
             '4g': 'high',
             '3g': 'medium',
             '2g': 'low',
             'slow-2g': 'low'
         },
-        criticalImages: [
-            '/assets/Game Logos/ByteSurge.png',
-            '/assets/Favicon and Icons/favicon.svg'
-        ]
+        // Critical images are preloaded per page in <head>; preloading here from JS was
+        // too late to help LCP and pulled a 1.2 MB PNG that most pages never showed.
+        criticalImages: []
     };
 
     // ==================== WEBP SUPPORT DETECTION ====================

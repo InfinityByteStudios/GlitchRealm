@@ -54,9 +54,6 @@
     <link rel="preload" as="style" href="css/styles.css">
     <link rel="stylesheet" href="css/styles.css">
     
-    <!-- Preload LCP image -->
-    <link rel="preload" as="image" href="assets/game logos/ByteSurge.webp" type="image/webp" fetchpriority="high">
-    
     <!-- Preload header HTML so it's cached before script.js requests it -->
     <link rel="preload" as="fetch" href="components/header.html?v=2" crossorigin="anonymous">
     
@@ -81,7 +78,9 @@
     <!-- Accessibility & Performance Enhancements -->
     <link rel="stylesheet" href="css/accessibility-performance.css">
     <link rel="stylesheet" href="css/play-now-enhancement.css">
-    <link rel="stylesheet" href="css/auth-message.css">
+    <!-- Auth toast styles are only needed after interaction; load without blocking render -->
+    <link rel="stylesheet" href="css/auth-message.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="css/auth-message.css"></noscript>
     <script src="js/dev-config.js" defer></script>
     <script src="js/performance-optimization.js" defer></script>
     <script src="js/accessibility-keyboard-nav.js" defer></script>
@@ -244,11 +243,65 @@
 
     <!-- Load newest game from Firestore -->
     <script type="module">
+        const NEWEST_GAME_CACHE_KEY = 'gr.newestGame.v1';
+        const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        function renderNewestGame(game) {
+            const imageDiv = document.getElementById('newest-game-image');
+            const infoDiv = document.getElementById('newest-game-info');
+            const cardDiv = document.getElementById('newest-game-card');
+            if (!imageDiv || !infoDiv || !cardDiv) return;
+
+            if (game.coverImageUrl) {
+                imageDiv.style.backgroundImage = `url("${encodeURI(game.coverImageUrl)}")`;
+                imageDiv.style.backgroundSize = 'cover';
+                imageDiv.style.backgroundPosition = 'center';
+            }
+
+            const detailUrl = `game-detail.html?id=${encodeURIComponent(game.id)}`;
+            infoDiv.innerHTML = `
+                <h3>${escapeHtml(game.title || 'Untitled Game')}</h3>
+                <p class="featured-description">${escapeHtml(game.description || 'No description available.')}</p>
+                <p class="featured-developer">Made by <strong>${escapeHtml(game.ownerUsername || 'Community Creator')}</strong></p>
+                <a href="${detailUrl}" class="play-btn featured-play-btn">
+                    <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" style="flex-shrink: 0;">
+                        <polygon points="0,0 10,6 0,12"/>
+                    </svg>
+                    <span>Play Now</span>
+                </a>
+            `;
+
+            cardDiv.style.cursor = 'pointer';
+            cardDiv.onclick = (e) => {
+                if (!e.target.closest('a, .neural-button')) {
+                    window.location.href = detailUrl;
+                }
+            };
+        }
+
+        // Paint the last-known newest game immediately (improves LCP/CLS for returning
+        // visitors), then refresh from Firestore in the background.
+        let renderedFromCache = false;
+        try {
+            const cached = JSON.parse(localStorage.getItem(NEWEST_GAME_CACHE_KEY) || 'null');
+            if (cached && cached.id) {
+                if (cached.coverImageUrl) {
+                    const pre = document.createElement('link');
+                    pre.rel = 'preload'; pre.as = 'image'; pre.href = cached.coverImageUrl;
+                    pre.setAttribute('fetchpriority', 'high');
+                    document.head.appendChild(pre);
+                }
+                const paint = () => { renderNewestGame(cached); renderedFromCache = true; };
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint, { once: true });
+                else paint();
+            }
+        } catch (e) {}
+
         async function loadNewestGame() {
             try {
                 await (window.firebaseReady || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true })));
             } catch {
-                document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
+                if (!renderedFromCache) document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
                 return;
             }
             
@@ -279,54 +332,32 @@
                 const snapshot = await getDocs(gamesQuery);
                 
                 if (snapshot.empty) {
+                    try { localStorage.removeItem(NEWEST_GAME_CACHE_KEY); } catch (e) {}
                     document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
                     return;
                 }
                 
                 const gameDoc = snapshot.docs[0];
-                const game = gameDoc.data();
-                const gameId = gameDoc.id;
-                
-                // Update the featured card
-                const imageDiv = document.getElementById('newest-game-image');
-                const infoDiv = document.getElementById('newest-game-info');
-                const cardDiv = document.getElementById('newest-game-card');
-                
-                // Set background image
-                if (game.coverImageUrl) {
-                    imageDiv.style.backgroundImage = `url('${game.coverImageUrl}')`;
-                    imageDiv.style.backgroundSize = 'cover';
-                    imageDiv.style.backgroundPosition = 'center';
-                }
-                
-                // Update info
-                const ownerDisplay = game.ownerUsername || 'Community Creator';
-                const detailUrl = `game-detail.html?id=${gameId}`;
-                
-                infoDiv.innerHTML = `
-                    <h3>${game.title || 'Untitled Game'}</h3>
-                    <p>${game.description || 'No description available.'}</p>
-                    <p class="featured-developer">Made by <strong>${ownerDisplay}</strong></p>
-                    <a href="${detailUrl}" class="play-btn featured-play-btn">
-                        <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" style="flex-shrink: 0;">
-                            <polygon points="0,0 10,6 0,12"/>
-                        </svg>
-                        <span>Play Now</span>
-                    </a>
-                `;
-                
-                // Make card clickable
-                cardDiv.style.cursor = 'pointer';
-                cardDiv.addEventListener('click', (e) => {
-                    // Don't navigate if clicking the button
-                    if (!e.target.closest('.neural-button')) {
-                        window.location.href = `game-detail.html?id=${gameId}`;
-                    }
-                });
+                const data = gameDoc.data();
+                const game = {
+                    id: gameDoc.id,
+                    title: data.title || '',
+                    description: data.description || '',
+                    ownerUsername: data.ownerUsername || '',
+                    coverImageUrl: data.coverImageUrl || ''
+                };
+
+                const cachedRaw = localStorage.getItem(NEWEST_GAME_CACHE_KEY);
+                const fresh = JSON.stringify(game);
+                // Skip re-rendering identical content to avoid needless DOM churn
+                if (!renderedFromCache || cachedRaw !== fresh) renderNewestGame(game);
+                try { localStorage.setItem(NEWEST_GAME_CACHE_KEY, fresh); } catch (e) {}
                 
             } catch (err) {
                 console.error('Error loading newest game:', err);
-                document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
+                if (!renderedFromCache) {
+                    document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
+                }
             }
         }
         

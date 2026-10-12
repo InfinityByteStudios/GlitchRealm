@@ -22,7 +22,7 @@
     border-radius: 0 0 8px 0;
     box-shadow: 0 4px 12px rgba(22, 225, 255, 0.5);
     transition: left 0.3s ease;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-size: 16px;
 }
 
@@ -98,18 +98,6 @@ select:focus-visible {
 }
 
 /* ==================== LOADING STATES ==================== */
-/* Blur placeholder for lazy loading */
-img[loading="lazy"]:not(.loaded) {
-    filter: blur(10px);
-    transform: scale(1.02);
-    transition: filter 0.3s ease-out, transform 0.3s ease-out;
-}
-
-img.loaded {
-    filter: none;
-    transform: scale(1);
-}
-
 /* Skeleton loading animation */
 @keyframes skeleton-loading {
     0% {
@@ -240,7 +228,7 @@ img.loaded {
 .keyboard-shortcuts-help h3 {
     color: var(--primary-cyan, #16e1ff);
     margin-bottom: 1.5rem;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', 'Orbitron Fallback', sans-serif;
 }
 
 .keyboard-shortcuts-help dl {

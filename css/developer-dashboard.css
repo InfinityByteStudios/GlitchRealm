@@ -14,7 +14,7 @@
 }
 
 .dashboard-header h1 {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 2.5rem;
     background: linear-gradient(90deg, #00fff9, #008cff);
     -webkit-background-clip: text;
@@ -46,7 +46,7 @@
     padding: 12px 24px;
     border-radius: 8px;
     cursor: pointer;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.9rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -109,7 +109,7 @@
 .stat-value {
     font-size: 2.5rem;
     font-weight: 900;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     color: #00fff9;
     margin: 0;
     line-height: 1;
@@ -160,7 +160,7 @@
 }
 
 .chart-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.2rem;
     color: #00fff9;
     margin: 0 0 20px;
@@ -210,7 +210,7 @@
 }
 
 .game-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.1rem;
     color: #00fff9;
     margin: 0 0 8px;
@@ -280,7 +280,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     transition: all 0.3s ease;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     text-decoration: none;
     display: inline-block;
     text-align: center;
@@ -334,7 +334,7 @@
 }
 
 .empty-state h3 {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     color: #00fff9;
     margin-bottom: 15px;
 }
@@ -423,7 +423,7 @@
 }
 
 .auth-required h2 {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     color: #00fff9;
     margin-bottom: 15px;
 }
@@ -453,7 +453,7 @@
     font-size: 1.8rem;
     font-weight: 700;
     color: #00fff9;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
 }
 
 .analytics-label {
@@ -490,7 +490,7 @@
 .submission-info h4 {
     color: #00fff9;
     margin: 0 0 5px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
 }
 
 .submission-meta {
@@ -509,7 +509,7 @@
 
 .settings-section h3 {
     color: #00fff9;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     margin: 0 0 15px;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -652,7 +652,7 @@ mission Modal */
 
 .submission-modal .modal-header h3 {
     color: #00fff9;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     margin: 0;
     font-size: 1.2rem;
 }
@@ -710,7 +710,7 @@ mission Modal */
     font-weight: 600;
     z-index: 10001;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -742,7 +742,7 @@ mission Modal */
 
 .settings-section h3 {
     color: #00fff9;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     margin: 0 0 15px;
     text-transform: uppercase;
     letter-spacing: 1px;

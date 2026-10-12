@@ -48,6 +48,25 @@
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* Metric-matched fallbacks: local fonts resized to match Orbitron/Rajdhani so the
+   font-display: swap transition doesn't reflow text (prevents layout shift / CLS). */
+@font-face {
+    font-family: 'Orbitron Fallback';
+    src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Roboto'), local('Liberation Sans');
+    size-adjust: 125.5%;
+    ascent-override: 80.57%;
+    descent-override: 19.36%;
+    line-gap-override: 0%;
+}
+@font-face {
+    font-family: 'Rajdhani Fallback';
+    src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Roboto'), local('Liberation Sans');
+    size-adjust: 90.9%;
+    ascent-override: 102.29%;
+    descent-override: 38.05%;
+    line-gap-override: 0%;
+}
+
 /* CSS Variables for Cyberpunk Theme */
 :root {
     --primary-cyan: #00fff9;
@@ -75,7 +94,7 @@
 }
 
 body {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     background: var(--dark-bg);
     color: var(--white);
     line-height: 1.6;
@@ -162,7 +181,7 @@ body {
 }
 
 .terms-popup-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     color: var(--primary-cyan);
     font-size: 1.4rem;
     text-transform: uppercase;
@@ -275,7 +294,7 @@ body {
     padding: 10px 12px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.4), 0 0 16px rgba(0,255,249,0.15);
     z-index: 2300;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-size: 0.95rem;
     line-height: 1.4;
     backdrop-filter: blur(6px);
@@ -373,6 +392,11 @@ html {
     background-size: 50px 50px;
     background-position: 0 0, 0 25px, 25px -25px, -25px 0px;
     animation: moveBackground 20s linear infinite;
+    /* Keep the infinite animation on its own compositor layer so it never triggers
+       main-thread paint work that competes with input handling (INP). */
+    will-change: transform;
+    contain: strict;
+    pointer-events: none;
 }
 
 .background-animation::before {
@@ -390,6 +414,7 @@ html {
         rgba(0, 255, 249, 0.03) 4px
     );
     animation: scanlines 1s linear infinite;
+    will-change: transform;
 }
 
 @keyframes moveBackground {
@@ -426,7 +451,7 @@ html {
 }
 
 .logo {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.5rem;
     font-weight: 900;
     color: var(--primary-cyan);
@@ -1041,7 +1066,7 @@ html {
 }
 
 .modal-title.glitch {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 2.1rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -1067,7 +1092,7 @@ html {
     text-align: center;
     margin-bottom: 1.5rem;
     margin-top: 0.5rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     letter-spacing: 0.5px;
     opacity: 0.85;
 }
@@ -1088,7 +1113,7 @@ html {
     background: none;
     border: none;
     color: #b6eaff;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.08rem;
     font-weight: 700;
     cursor: pointer;
@@ -1131,7 +1156,7 @@ html {
     border-radius: 7px;
     padding: 0.9rem 1.2rem;
     font-size: 1.08rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-weight: 500;
     transition: border 0.2s, box-shadow 0.2s;
     box-shadow: 0 0 0 0 #00fff9;
@@ -1144,7 +1169,7 @@ html {
 .form-input::placeholder {
     color: #5befff;
     opacity: 0.7;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     letter-spacing: 1px;
 }
 
@@ -1153,7 +1178,7 @@ html {
     color: #181c22;
     border: none;
     border-radius: 7px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.08rem;
     font-weight: 700;
     margin-top: 0.5rem;
@@ -1174,7 +1199,7 @@ html {
     border: 1.5px solid #00fff9;
     color: #00fff9;
     border-radius: 7px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.08rem;
     font-weight: 700;
     margin-top: 0.5rem;
@@ -1197,7 +1222,7 @@ html {
     margin: 1.5rem 0 1.2rem 0;
     position: relative;
     color: #00fff9;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.08rem;
     opacity: 0.8;
 }
@@ -1225,7 +1250,7 @@ html {
     color: #fff;
     border: none;
     border-radius: 7px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.08rem;
     font-weight: 700;
     margin: 0.5rem 0 1.2rem 0;
@@ -1251,7 +1276,7 @@ html {
     color: #fff;
     border: none;
     border-radius: 7px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.08rem;
     font-weight: 700;
     margin: 0.5rem 0 1.2rem 0;
@@ -1277,7 +1302,7 @@ html {
     color: #fff;
     border: none;
     border-radius: 7px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.08rem;
     font-weight: 700;
     margin: 0.5rem 0 1.2rem 0;
@@ -1337,7 +1362,7 @@ html {
     color: #b6eaff;
     border: 1.5px solid #b6eaff;
     border-radius: 7px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.08rem;
     font-weight: 700;
     margin: 0.5rem 0 0 0;
@@ -1486,7 +1511,7 @@ html {
 }
 
 .hero-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 2.5rem;
     margin-bottom: 1rem;
     line-height: 1.2;
@@ -1512,7 +1537,7 @@ html {
     text-decoration: none;
     border: none;
     cursor: pointer;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-weight: 600;
     font-size: 1rem;
     transition: all 0.3s ease;
@@ -1575,7 +1600,7 @@ html {
 }
 
 .page-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 3rem;
     margin-bottom: 1rem;
 }
@@ -1666,7 +1691,7 @@ html {
 }
 
 .card-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.3rem;
     color: var(--primary-cyan);
     margin-bottom: 0.5rem;
@@ -1696,6 +1721,9 @@ html {
 
 .platform-icon {
     font-size: 1.2rem;
+    /* Reserve the glyph box before the async devicon font arrives (prevents CLS) */
+    width: 1.2em;
+    height: 1.2em;
     color: var(--primary-cyan);
     margin-left: 0.25rem;
     vertical-align: middle;
@@ -1755,7 +1783,7 @@ html {
 
 .section-title {
     text-align: center;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 2rem;
     color: var(--primary-cyan);
     margin-bottom: 2rem;
@@ -1790,8 +1818,25 @@ html {
     transform: scale(1.02);
 }
 
+.featured-info {
+    /* Match the 250px image column so swapping "Loading..." for game data doesn't shift layout */
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.featured-info .featured-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .featured-info h3 {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.5rem;
     color: var(--primary-cyan);
     margin-bottom: 1rem;
@@ -1822,7 +1867,7 @@ html {
     gap: 8px;
     padding: 10px 20px;
     text-decoration: none;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-weight: 600;
     font-size: 0.85rem;
     text-transform: uppercase;
@@ -1911,7 +1956,7 @@ html {
 }
 
 .member-name {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     color: var(--primary-cyan);
     margin-bottom: 0.25rem;
     font-size: 1rem;
@@ -1994,7 +2039,7 @@ html {
 }
 
 .project-card .card-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     color: var(--primary-cyan);
     margin-bottom: 1rem;
     font-size: 1.25rem;
@@ -2138,7 +2183,7 @@ html {
     border: 1px solid var(--gray-600);
     border-radius: 4px;
     color: var(--white);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-size: 1rem;
     transition: all 0.3s ease;
 }
@@ -2170,7 +2215,7 @@ html {
 .form-label {
     display: block;
     margin-bottom: 8px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.9rem;
     color: var(--text-lighter);
 }
@@ -2182,7 +2227,7 @@ html {
     border: 1px solid var(--primary-cyan);
     border-radius: 6px;
     color: var(--text-color);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     transition: all 0.3s ease;
 }
 
@@ -2198,7 +2243,7 @@ html {
     border: none;
     border-radius: 6px;
     padding: 12px 25px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
@@ -2268,7 +2313,7 @@ html {
     border: 1px solid var(--primary-cyan);
     z-index: 10;
     animation: badgePulse 3.5s ease-in-out infinite;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
 }
 
 /* Game Card Action Menu (top-right) */
@@ -2289,7 +2334,7 @@ html {
     border-radius: 9px;
     padding: 6px 14px;
     font-size: 14px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-weight: 700;
     letter-spacing: 0.4px;
     cursor: pointer;
@@ -2386,7 +2431,7 @@ html {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     letter-spacing: .3px;
     transition: background 0.15s ease, color 0.15s ease;
 }
@@ -2517,7 +2562,7 @@ html {
 }
 
 .modal-header h2 {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     color: var(--primary-cyan);
     margin: 0;
     font-size: 2.2rem;
@@ -2920,7 +2965,7 @@ body {
     border-radius: 8px !important;
     padding: 0.5rem 0.75rem !important;
     color: var(--white) !important;
-    font-family: 'Rajdhani', sans-serif !important;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
@@ -3003,7 +3048,7 @@ body {
     border: 1px solid rgba(0, 255, 249, 0.3) !important;
     border-radius: 8px !important;
     color: var(--white) !important;
-    font-family: 'Rajdhani', sans-serif !important;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
@@ -3075,7 +3120,7 @@ body {
 }
 
 .auth-logo .glitch {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.35rem;
     font-weight: 800;
     color: var(--primary-cyan);
@@ -3112,7 +3157,7 @@ body {
 }
 
 .glitch-text {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.4rem;
     font-weight: 900;
     color: var(--primary-cyan);
@@ -3145,7 +3190,7 @@ body {
 }
 
 .access-text {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-size: 0.75rem;
     color: rgba(0, 255, 249, 0.7);
     text-transform: uppercase;
@@ -3223,7 +3268,7 @@ body {
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.8);
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.95rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -3306,7 +3351,7 @@ body {
 }
 
 .glitch-small {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.3rem;
     font-weight: 800;
     color: var(--primary-cyan);
@@ -3354,7 +3399,7 @@ body {
 }
 
 .input-label {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.85rem;
     color: var(--primary-cyan);
     text-transform: uppercase;
@@ -3372,7 +3417,7 @@ body {
     border: none;
     border-bottom: 2px solid rgba(0, 255, 249, 0.4);
     color: var(--white);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-size: 1.05rem;
     padding: 14px 0 12px;
     outline: none;
@@ -3420,7 +3465,7 @@ body {
     border: 2px solid transparent;
     background-clip: padding-box;
     color: var(--dark-bg);
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.05rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -3498,7 +3543,7 @@ body {
     background: none;
     border: none;
     color: rgba(0, 255, 249, 0.8);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
@@ -3547,7 +3592,7 @@ body {
 }
 
 .divider-text {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--primary-cyan);
@@ -3572,7 +3617,7 @@ body {
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(0, 255, 249, 0.3);
     color: var(--white);
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.9rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -3908,7 +3953,7 @@ body {
     max-width: 500px !important;
     width: 90% !important;
     box-shadow: 0 20px 60px rgba(0, 255, 249, 0.3) !important;
-    font-family: 'Orbitron', monospace !important;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace !important;
 }
 
 .crop-modal-header {
@@ -4088,7 +4133,7 @@ body {
 .crop-btn {
     padding: 12px 24px !important;
     border-radius: 8px !important;
-    font-family: 'Orbitron', monospace !important;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace !important;
     font-weight: 600 !important;
     font-size: 0.9rem !important;
     text-transform: uppercase !important;
@@ -4136,7 +4181,7 @@ body {
     gap: 8px;
     font-size: 0.8rem;
     color: var(--gray-400);
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
 }
 
 .netlify-link {
@@ -4321,7 +4366,7 @@ body {
 .terms-popup-title {
     margin: 0;
     color: var(--white);
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.4rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -4335,7 +4380,7 @@ body {
 
 .terms-popup-content p {
     color: var(--light-gray);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-size: 1.1rem;
     line-height: 1.6;
     margin: 0;
@@ -4382,7 +4427,7 @@ body {
     flex: 1;
     max-width: 150px;
     padding: 1rem 1.5rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-weight: 600;
     font-size: 1rem;
     text-transform: uppercase;
@@ -4956,13 +5001,13 @@ body {
 .community-intro-body { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
 .community-intro-title {
     margin: 0;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-weight: 900;
     font-size: clamp(1.8rem, 3.8vw, 2.6rem);
     color: #16e1ff;
     text-shadow: 0 0 12px rgba(0,255,249,0.6);
 }
-.community-intro-desc { margin: 0; font-family: 'Rajdhani', sans-serif; font-size: 1.05rem; opacity: .92; max-width: 65ch; }
+.community-intro-desc { margin: 0; font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif; font-size: 1.05rem; opacity: .92; max-width: 65ch; }
 .community-intro-actions { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
 
 /* Button variants for neural-button */
@@ -5087,7 +5132,7 @@ body {
 }
 
 .glitch-settings-header h2 {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 1.4rem;
     color: var(--primary-cyan);
     margin: 0;
@@ -5144,7 +5189,7 @@ body {
 }
 
 .glitch-preview-section h3 {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.75rem;
     color: rgba(0, 255, 249, 0.7);
     margin: 0 0 24px 0;
@@ -5156,7 +5201,7 @@ body {
 .glitch-preview-text {
     font-size: 2.5rem;
     font-weight: 700;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     position: relative;
 }
 
@@ -5190,7 +5235,7 @@ body {
 
 /* Options Section */
 .glitch-options-section h3 {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.85rem;
     color: rgba(0, 255, 249, 0.8);
     margin: 0 0 16px 0;
@@ -5270,7 +5315,7 @@ body {
     font-size: 0.95rem;
     color: rgba(255, 255, 255, 0.9);
     font-weight: 500;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
 }
 
 /* Save Button */
@@ -5283,7 +5328,7 @@ body {
     color: #0a0a0a;
     font-size: 1rem;
     font-weight: 700;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     cursor: pointer;
     transition: all 0.2s ease;
     text-transform: uppercase;
@@ -5440,7 +5485,7 @@ body {
     border-radius: 8px !important;
     padding: 0.5rem 0.75rem !important;
     color: var(--white) !important;
-    font-family: 'Rajdhani', sans-serif !important;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
@@ -5651,7 +5696,7 @@ body {
     border: 1px solid rgba(0, 255, 249, 0.3) !important;
     border-radius: 8px !important;
     color: var(--white) !important;
-    font-family: 'Rajdhani', sans-serif !important;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
@@ -5707,7 +5752,7 @@ body {
 }
 
 .footer .footer-section h3 {
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', 'Orbitron Fallback', sans-serif;
     font-size: 1rem;
     color: #00fff9;
     margin-bottom: 1rem;
