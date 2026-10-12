@@ -117,7 +117,7 @@
         <div id="games-content" class="dashboard-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="color: #00fff9; font-family: 'Orbitron', monospace; margin: 0;">My Games</h2>
-                <button class="btn btn-primary" onclick="window.location.href='submit-game.html'">Submit New Game</button>
+                <button class="btn btn-primary" onclick="window.location.href='/submit-game.html'">Submit New Game</button>
             </div>
             
             <div id="games-grid" class="games-grid">
@@ -143,7 +143,7 @@
                 <p style="color: #b8d4d8; margin-bottom: 20px;">Manage your developer profile and preferences.</p>
                 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button class="btn btn-secondary" onclick="window.location.href='user-portal.html'">Edit Profile</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/user-portal.html'">Edit Profile</button>
                     <button class="btn btn-secondary" onclick="exportAnalytics()">Export Analytics</button>
                     <button class="btn btn-secondary" onclick="downloadReports()">Download Reports</button>
                 </div>
@@ -469,7 +469,7 @@
                     <div class="empty-state">
                         <h3>No Games Yet</h3>
                         <p>You haven't submitted any games yet. Start by submitting your first game!</p>
-                        <button class="btn btn-primary" onclick="window.location.href='submit-game.html'">Submit Your First Game</button>
+                        <button class="btn btn-primary" onclick="window.location.href='/submit-game.html'">Submit Your First Game</button>
                     </div>
                 `;
                 return;
@@ -661,7 +661,7 @@
         // Game management functions
         function editGame(gameId) {
             console.log('Editing game:', gameId);
-            window.location.href = `submit-game.html?edit=${gameId}`;
+            window.location.href = `/submit-game.html?edit=${gameId}`;
         }
         
         function viewGame(gameId) {
@@ -670,7 +670,7 @@
             if (game && game.gameUrl) {
                 window.open(game.gameUrl, '_blank');
             } else {
-                window.location.href = `game-detail.html?id=${gameId}`;
+                window.location.href = `/game-detail.html?id=${gameId}`;
             }
         }
         

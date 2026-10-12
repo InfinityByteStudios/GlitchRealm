@@ -69,6 +69,27 @@
     .warning-message { background:rgba(255,165,0,.1); border:1px solid rgba(255,165,0,.5); padding:12px 14px; font-size:.8rem; border-radius:10px; margin-bottom:12px; }
     .pre-badge { display:none; background:linear-gradient(135deg, rgba(255,165,0,.95), rgba(255,99,71,.95)); color:#0b0e14; font-family:'Orbitron', monospace; font-weight:800; letter-spacing:.4px; font-size:9px; padding:2px 6px; border-radius:5px; text-transform:uppercase; box-shadow:0 1px 4px rgba(255,140,0,.25); border:1px solid rgba(0,0,0,.12); user-select:none; white-space:nowrap; }
     .gate-block { margin:0 0 18px; }
+    /* Sign-in / Guest Pass gate */
+    .auth-gate { position:relative; overflow:hidden; text-align:center; padding:30px 24px 26px; border-radius:18px; background:linear-gradient(145deg, rgba(0,10,20,.88), rgba(0,40,55,.6)); border:1px solid rgba(0,255,249,.18); box-shadow:0 4px 22px -4px rgba(0,0,0,.55), 0 0 0 1px rgba(0,255,249,.05) inset; }
+    .auth-gate h2 { font-family:'Orbitron', monospace; font-size:1.25rem; letter-spacing:1px; margin:0 0 8px; color:var(--primary-cyan,#0ff); }
+    .auth-gate p { margin:0 0 22px; font-size:.9rem; opacity:.8; line-height:1.5; }
+    .auth-gate-actions { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; align-items:center; }
+    .auth-gate-actions .btn { text-decoration:none; display:inline-flex; align-items:center; }
+    .auth-gate-or { font-family:'Orbitron', monospace; font-size:.65rem; letter-spacing:2px; opacity:.5; }
+    .guest-pass-btn { position:relative; display:inline-flex; align-items:center; gap:12px; padding:12px 22px 12px 14px; border-radius:12px; cursor:pointer; overflow:hidden; font-family:'Orbitron', monospace; color:#0b0e14; text-align:left; border:1px solid rgba(255,255,255,.35); background:linear-gradient(135deg, #ff00e6 0%, #8a2bff 45%, #00fff9 100%); background-size:200% 200%; box-shadow:0 0 18px -4px rgba(255,0,230,.6), 0 0 26px -8px rgba(0,255,249,.6); transition:transform .2s, box-shadow .25s, background-position .6s; }
+    .guest-pass-btn:hover:not([disabled]) { transform:translateY(-2px); background-position:100% 50%; box-shadow:0 0 24px -2px rgba(255,0,230,.75), 0 0 34px -6px rgba(0,255,249,.8); }
+    .guest-pass-btn:active:not([disabled]) { transform:translateY(0); }
+    .guest-pass-btn[disabled] { opacity:.6; cursor:wait; }
+    .guest-pass-btn:after { content:""; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform:skewX(-20deg); animation:guestShine 3.2s ease-in-out infinite; pointer-events:none; }
+    @keyframes guestShine { 0%,60% { left:-60%; } 100% { left:130%; } }
+    .guest-pass-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:8px; background:rgba(11,14,20,.85); color:#00fff9; font-size:1.05rem; box-shadow:0 0 10px rgba(0,255,249,.4) inset; }
+    .guest-pass-text { display:flex; flex-direction:column; line-height:1.1; }
+    .guest-pass-text strong { font-size:.85rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; }
+    .guest-pass-text small { font-size:.6rem; font-weight:600; letter-spacing:.5px; opacity:.8; margin-top:3px; }
+    .guest-pass-error { margin-top:16px; }
+    .guest-badge { display:flex; flex-wrap:wrap; align-items:center; gap:10px; justify-content:space-between; padding:10px 14px; margin:0 0 18px; border-radius:10px; font-size:.8rem; background:linear-gradient(135deg, rgba(255,0,230,.12), rgba(0,255,249,.12)); border:1px solid rgba(255,0,230,.4); }
+    .guest-badge code { font-family:'Orbitron', monospace; font-size:.75rem; letter-spacing:1px; color:#00fff9; }
+    .guest-badge a { color:var(--primary-cyan,#0ff); }
     .auth-redirect { text-align:center; margin-top:24px; font-size:.85rem; opacity:.75; }
     @media (max-width:680px){ .submit-wrapper { margin-top:100px; } }
   /* Requirements step styles */
@@ -407,8 +428,24 @@
     <!-- Tooltip for step validation messages -->
     <div id="stepTooltip" class="step-tooltip" style="display:none;"></div>
     
-    <div id="gateNotice" class="warning-message gate-block" style="display:none;">You must be a verified creator or approved developer to submit a game. <a href="user-portal.html#verification-section">Get verified</a>.</div>
-    <div id="authNotice" class="warning-message gate-block" style="display:none;">Please sign in to submit a game. <a href="index.html">Sign In</a></div>
+    <div id="gateNotice" class="warning-message gate-block" style="display:none;">You must be a verified creator or approved developer to submit a game. <a href="/user-portal.html#verification-section">Get verified</a>.</div>
+    <div id="authNotice" class="auth-gate gate-block" style="display:none;">
+      <h2>Sign In to Submit</h2>
+      <p>Sign in with your GlitchRealm account, or grab a Guest Pass to submit without one.<br>Your Guest Pass ID is saved on this device.</p>
+      <div class="auth-gate-actions">
+        <a href="/signin.html" class="btn">Sign In</a>
+        <span class="auth-gate-or">OR</span>
+        <button type="button" id="guestPassBtn" class="guest-pass-btn">
+          <span class="guest-pass-icon" aria-hidden="true">&#9670;</span>
+          <span class="guest-pass-text"><strong>Guest Pass</strong><small>No account needed</small></span>
+        </button>
+      </div>
+      <div id="guestPassError" class="error-message guest-pass-error" style="display:none;"></div>
+    </div>
+    <div id="guestBadge" class="guest-badge" style="display:none;">
+      <span>Submitting with Guest Pass <code id="guestIdLabel"></code></span>
+      <span>Want to keep your games across devices? <a href="/signin.html">Sign in</a></span>
+    </div>
     
     <!-- Requirements and Instructions Step -->
     <div class="requirements-card" id="requirementsCard" style="display:none;">
@@ -445,7 +482,7 @@
 
       <div class="acceptance-box">
         <input type="checkbox" id="acceptTerms" />
-        <label for="acceptTerms">I have read and agree to follow the submission guidelines, accept the <a href="developer-agreement.html" target="_blank" style="color: var(--primary-cyan); text-decoration: underline;">Developer Agreement</a>, and understand that my submission will be reviewed by staff before being published</label>
+        <label for="acceptTerms">I have read and agree to follow the submission guidelines, accept the <a href="/developer-agreement.html" target="_blank" style="color: var(--primary-cyan); text-decoration: underline;">Developer Agreement</a>, and understand that my submission will be reviewed by staff before being published</label>
       </div>
 
       <div class="next-btn-container">
@@ -596,15 +633,15 @@
           </div>
           
           <div class="success-actions">
-            <a href="games.html" class="btn btn-primary">View Games Library</a>
-            <a href="submit-game.html" class="btn btn-secondary">Submit Another Game</a>
+            <a href="/games.html" class="btn btn-primary">View Games Library</a>
+            <a href="/submit-game.html" class="btn btn-secondary">Submit Another Game</a>
             <a id="viewGameBtn" href="#" class="btn btn-outline" style="display:none;">View Your Game</a>
           </div>
         </div>
       </div>
     </div>
     
-    <div class="auth-redirect" id="postSubmitHint" style="display:none;">Return to the <a href="games.html">Games Library</a>.</div>
+    <div class="auth-redirect" id="postSubmitHint" style="display:none;">Return to the <a href="/games.html">Games Library</a>.</div>
   </div>
   <div id="footer-placeholder"></div>
   <script src="js/dev-config.js" defer></script>
@@ -646,6 +683,45 @@
       try { const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'); const db = f.getFirestore(window.firebaseApp); const snap = await f.getDoc(f.doc(db,'verified_users',user.uid)); const isVerified = snap.exists() && !!(snap.data()?.verified===true); const isDeveloper = DEV_UIDS.has(user.uid); return {uid:user.uid,isVerified,isDeveloper}; } catch { return {uid:user?.uid,isVerified:false,isDeveloper:DEV_UIDS.has(user?.uid)}; }
     }
     function show(el,flag){ if(!el) return; el.style.display = flag?'' : 'none'; }
+
+    // Guest Pass: anonymous Firebase sign-in whose ID is kept on this device
+    const GUEST_PASS_KEY = 'glitchrealm_guest_pass';
+    function guestIdFor(uid){ return 'GR-GUEST-' + String(uid||'').slice(0,8).toUpperCase(); }
+    function getGuestPass(user){
+      if(!user || !user.isAnonymous) return null;
+      let pass = null;
+      try { pass = JSON.parse(localStorage.getItem(GUEST_PASS_KEY) || 'null'); } catch {}
+      if(!pass || pass.uid !== user.uid){
+        pass = { id: guestIdFor(user.uid), uid: user.uid, createdAt: new Date().toISOString() };
+        try { localStorage.setItem(GUEST_PASS_KEY, JSON.stringify(pass)); } catch {}
+      }
+      return pass;
+    }
+    async function startGuestPass(){
+      const btn = $('guestPassBtn'); const err = $('guestPassError');
+      show(err,false);
+      if(btn) btn.disabled = true;
+      try {
+        const m = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const auth = window.firebaseAuth;
+        if(!auth) throw new Error('Sign-in is still loading. Please try again in a moment.');
+        await m.setPersistence(auth, m.browserLocalPersistence).catch(()=>{});
+        const cred = await m.signInAnonymously(auth);
+        getGuestPass(cred.user);
+        await gate();
+      } catch (e) {
+        console.error('Guest Pass failed:', e);
+        if(err){
+          err.textContent = e?.code === 'auth/operation-not-allowed'
+            ? 'Guest Pass is not available right now. Please sign in instead.'
+            : (e?.message || 'Could not create a Guest Pass. Please try again.');
+          show(err,true);
+        }
+      } finally {
+        if(btn) btn.disabled = false;
+      }
+    }
+    $('guestPassBtn')?.addEventListener('click', startGuestPass);
     function updateStepIndicator(currentStep) {
       const step1 = $('step1');
       const step2 = $('step2');
@@ -761,7 +837,7 @@
 
         // Also show a simple library link
         const libLink = document.createElement('a');
-        libLink.href = 'games.html';
+        libLink.href = '/games.html';
         libLink.className = 'btn btn-primary';
         libLink.textContent = 'View Library';
         // Avoid duplicating if already added
@@ -802,7 +878,7 @@
         
         if (!gameSnap.exists()) {
           alert('Game not found');
-          window.location.href = 'submit-game.html';
+          window.location.href = '/submit-game.html';
           return;
         }
         
@@ -812,7 +888,7 @@
         
         if (!isDeveloper && !isOwner) {
           alert('You do not have permission to edit this game');
-          window.location.href = 'games.html';
+          window.location.href = '/games.html';
           return;
         }
         
@@ -912,13 +988,17 @@
         show(extendedDetailsCard,false); 
         show(authNotice,true); 
         show(gateNotice,false); 
+        show($('guestBadge'),false);
         show($('stepIndicator'),false); 
         return; 
       }
       show(authNotice,false);
+      const guestPass = getGuestPass(user);
+      if($('guestIdLabel')) $('guestIdLabel').textContent = guestPass ? guestPass.id : '';
+      show($('guestBadge'), !!guestPass);
       try{ 
-        const me = await getMe(); 
-        const allowed = me && (me.isVerified || me.isDeveloper); 
+        const me = guestPass ? null : await getMe(); 
+        const allowed = !!guestPass || (me && (me.isVerified || me.isDeveloper)); 
         show(requirementsCard, allowed); 
         show(basicInfoCard, false); 
         show(extendedDetailsCard, false); 
@@ -1232,7 +1312,7 @@
         const auth = window.firebaseAuth;
         const user = auth?.currentUser;
         if(user && pvDev){
-          pvDev.textContent = user.displayName || user.email?.split('@')[0] || 'You';
+          pvDev.textContent = getGuestPass(user)?.id || user.displayName || user.email?.split('@')[0] || 'You';
         }
       }
       // Try immediately and also when auth state changes
@@ -1324,7 +1404,7 @@
           customClaims: await user.getIdTokenResult()
         });
         // verify privilege
-        try { const me = await getMe(); const allowed = me && (me.isVerified || me.isDeveloper); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch {}
+        try { const me = getGuestPass(user) ? null : await getMe(); const allowed = !!getGuestPass(user) || (me && (me.isVerified || me.isDeveloper)); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="/user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch {}
   const title=$('submissionTitle').value.trim(); 
   const description=$('submissionDescription').value.trim(); 
   const extendedDescription=$('submissionExtendedDesc').value.trim();
@@ -1426,7 +1506,7 @@
           const db = f.getFirestore(window.firebaseApp);
           
           // Get the verified username for the owner
-          let ownerUsername = user.displayName || user.email?.split('@')[0] || 'Anonymous';
+          let ownerUsername = getGuestPass(user)?.id || user.displayName || user.email?.split('@')[0] || 'Anonymous';
           try {
             const verifiedRef = f.doc(db, 'verified_users', user.uid);
             const verifiedSnap = await f.getDoc(verifiedRef);
