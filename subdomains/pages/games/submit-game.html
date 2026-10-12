@@ -429,7 +429,23 @@
     <div id="stepTooltip" class="step-tooltip" style="display:none;"></div>
     
     <div id="gateNotice" class="warning-message gate-block" style="display:none;">You must be a verified creator or approved developer to submit a game. <a href="/user-portal.html#verification-section">Get verified</a>.</div>
-    <div id="authNotice" class="warning-message gate-block" style="display:none;">Please sign in to submit a game. <a href="/signin.html">Sign In</a></div>
+    <div id="authNotice" class="auth-gate gate-block" style="display:none;">
+      <h2>Sign In to Submit</h2>
+      <p>Sign in with your GlitchRealm account, or grab a Guest Pass to submit without one.<br>Your Guest Pass ID is saved on this device.</p>
+      <div class="auth-gate-actions">
+        <a href="/signin.html" class="btn">Sign In</a>
+        <span class="auth-gate-or">OR</span>
+        <button type="button" id="guestPassBtn" class="guest-pass-btn">
+          <span class="guest-pass-icon" aria-hidden="true">&#9670;</span>
+          <span class="guest-pass-text"><strong>Guest Pass</strong><small>No account needed</small></span>
+        </button>
+      </div>
+      <div id="guestPassError" class="error-message guest-pass-error" style="display:none;"></div>
+    </div>
+    <div id="guestBadge" class="guest-badge" style="display:none;">
+      <span>Submitting with Guest Pass <code id="guestIdLabel"></code></span>
+      <span>Want to keep your games across devices? <a href="/signin.html">Sign in</a></span>
+    </div>
     
     <!-- Requirements and Instructions Step -->
     <div class="requirements-card" id="requirementsCard" style="display:none;">
@@ -1388,7 +1404,7 @@
           customClaims: await user.getIdTokenResult()
         });
         // verify privilege
-        try { const me = await getMe(); const allowed = me && (me.isVerified || me.isDeveloper); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="/user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch {}
+        try { const me = getGuestPass(user) ? null : await getMe(); const allowed = !!getGuestPass(user) || (me && (me.isVerified || me.isDeveloper)); if(!allowed){ if(msg) msg.innerHTML='<div class="error-message">Only verified creators or developers can submit games. <a href="/user-portal.html#verification-section">Request verification</a>.</div>'; return; } } catch {}
   const title=$('submissionTitle').value.trim(); 
   const description=$('submissionDescription').value.trim(); 
   const extendedDescription=$('submissionExtendedDesc').value.trim();
