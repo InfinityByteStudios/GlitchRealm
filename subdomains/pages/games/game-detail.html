@@ -452,13 +452,17 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 249, 0.1);
       background: #000;
     }
-    .trailer-container iframe {
+    .trailer-container iframe,
+    .trailer-container video {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       border: none;
+    }
+    .trailer-container.desc-video {
+      margin: 16px 0;
     }
     
     /* Screenshots grid */
@@ -771,6 +775,11 @@
         </div>
       </div>
       
+      <section id="trailerSection" class="detail-section" style="display:none;">
+        <h2>Trailer</h2>
+        <div id="trailerContainer" class="trailer-container"></div>
+      </section>
+      
       <!-- Embedded game container -->
       <div id="embeddedGameContainer" class="embedded-game-container" style="display:none;">
         <button class="close-embedded-btn" id="closeEmbeddedBtn">✕ Close</button>
@@ -788,11 +797,6 @@
       <section id="howToPlaySection" class="detail-section" style="display:none;">
         <h2>How to Play</h2>
         <div id="howToPlay"></div>
-      </section>
-      
-      <section id="trailerSection" class="detail-section" style="display:none;">
-        <h2>Trailer</h2>
-        <div id="trailerContainer" class="trailer-container"></div>
       </section>
       
       <section id="screenshotsSection" class="detail-section" style="display:none;">
@@ -1139,6 +1143,70 @@
       return null;
     }
 
+    // Direct video file URL (mp4/webm/ogg/mov)
+    function isVideoFileUrl(url) {
+      return /^https?:\/\/[^\s?#]+\.(mp4|webm|ogg|ogv|mov|m4v)(?:[?#].*)?$/i.test(url || '');
+    }
+
+    function buildVideoEmbed(url) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'trailer-container desc-video';
+      const embedUrl = getTrailerEmbedUrl(url);
+      if (embedUrl) {
+        const iframe = document.createElement('iframe');
+        iframe.src = embedUrl;
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('loading', 'lazy');
+        iframe.title = 'Game video';
+        wrapper.appendChild(iframe);
+        return wrapper;
+      }
+      if (isVideoFileUrl(url)) {
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        video.preload = 'metadata';
+        video.setAttribute('playsinline', '');
+        wrapper.appendChild(video);
+        return wrapper;
+      }
+      return null;
+    }
+
+    // Turn YouTube/Vimeo/video-file links placed on their own line (or as ![](url)) into players
+    function embedDescriptionVideos(html) {
+      const container = document.createElement('div');
+      container.innerHTML = html;
+
+      container.querySelectorAll('img').forEach(img => {
+        const embed = buildVideoEmbed(img.getAttribute('src'));
+        if (embed) img.replaceWith(embed);
+      });
+
+      container.querySelectorAll('p').forEach(p => {
+        const links = p.querySelectorAll('a');
+        if (links.length !== 1) return;
+        const link = links[0];
+        if (p.textContent.trim() !== link.textContent.trim()) return;
+        const embed = buildVideoEmbed(link.getAttribute('href'));
+        if (embed) p.replaceWith(embed);
+      });
+
+      // Pasted <video>/<iframe> tags: make sure they size nicely
+      container.querySelectorAll('iframe, video').forEach(el => {
+        if (el.closest('.trailer-container')) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'trailer-container desc-video';
+        el.removeAttribute('width');
+        el.removeAttribute('height');
+        el.parentNode.insertBefore(wrapper, el);
+        wrapper.appendChild(el);
+      });
+
+      return container.innerHTML;
+    }
+
     function formatContent(content) {
       // Parse markdown to HTML
       if (typeof marked !== 'undefined') {
@@ -1148,7 +1216,7 @@
           headerIds: false,
           mangle: false
         });
-        return marked.parse(content);
+        return embedDescriptionVideos(marked.parse(content));
       }
       // Fallback: Convert line breaks to paragraphs
       return content

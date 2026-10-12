@@ -76,6 +76,41 @@
       .replace(/javascript:/gi, '');
   }
 
+  function getVideoEmbedHtml(url) {
+    const value = String(url || '');
+    const yt = value.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    const vimeo = value.match(/vimeo\.com\/(\d+)/);
+    const style = 'position:relative;width:100%;max-width:800px;aspect-ratio:16/9;margin:16px 0;border-radius:12px;overflow:hidden;background:#000;';
+    const inner = 'position:absolute;inset:0;width:100%;height:100%;border:0;';
+    let src = '';
+    if (yt) src = 'https://www.youtube-nocookie.com/embed/' + yt[1] + '?rel=0&modestbranding=1';
+    else if (vimeo) src = 'https://player.vimeo.com/video/' + vimeo[1] + '?dnt=1';
+    if (src) {
+      return '<div style="' + style + '"><iframe src="' + src + '" style="' + inner + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" title="Game video"></iframe></div>';
+    }
+    if (/^https?:\/\/[^\s?#"]+\.(mp4|webm|ogg|ogv|mov|m4v)(?:[?#][^\s"]*)?$/i.test(value)) {
+      return '<div style="' + style + '"><video src="' + escapeHtml(value) + '" style="' + inner + '" controls preload="metadata" playsinline></video></div>';
+    }
+    return '';
+  }
+
+  // Turn YouTube/Vimeo/video-file links placed on their own line (or as ![](url)) into players
+  function embedMarkdownVideos(html) {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    container.querySelectorAll('img').forEach(function (img) {
+      const embed = getVideoEmbedHtml(img.getAttribute('src'));
+      if (embed) img.outerHTML = embed;
+    });
+    container.querySelectorAll('p').forEach(function (p) {
+      const links = p.querySelectorAll('a');
+      if (links.length !== 1 || p.textContent.trim() !== links[0].textContent.trim()) return;
+      const embed = getVideoEmbedHtml(links[0].getAttribute('href'));
+      if (embed) p.outerHTML = embed;
+    });
+    return container.innerHTML;
+  }
+
   function markdownToHtml(markdownText) {
     const text = String(markdownText || '').trim();
     if (!text) {
@@ -84,7 +119,7 @@
 
     if (window.marked && typeof window.marked.parse === 'function') {
       try {
-        return sanitizeRenderedHtml(window.marked.parse(text, { breaks: true, gfm: true }));
+        return embedMarkdownVideos(sanitizeRenderedHtml(window.marked.parse(text, { breaks: true, gfm: true })));
       } catch (e) {
         console.warn('[V2] Markdown parse failed, using escaped fallback:', e);
       }
