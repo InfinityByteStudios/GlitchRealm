@@ -2,7 +2,7 @@
     margin: 15px 0;
     padding: 12px 15px;
     border-radius: 8px;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif;
     font-weight: 600;
     animation: messageSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transition: all 0.3s ease;
@@ -16,7 +16,7 @@
     right: 20px;
     padding: 15px 25px;
     border-radius: 12px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -112,14 +112,14 @@
     z-index: 10000;
     transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(10px);
-    font-family: 'Orbitron', monospace;
+    font-family: 'Orbitron', 'Orbitron Fallback', monospace;
 }
 .gr-password-change-toast.visible { right: 20px; }
 .gr-toast-inner { display: flex; align-items: flex-start; padding: 1rem; gap: 0.75rem; }
 .gr-toast-icon { font-size: 1.5rem; flex-shrink: 0; }
 .gr-toast-body { flex: 1; color: #00ff58; }
 .gr-toast-body strong { font-size: 0.9rem; display: block; margin-bottom: 0.25rem; text-shadow: 0 0 10px rgba(0,255,88,0.5); }
-.gr-toast-body p { font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; margin: 0; opacity: 0.9; }
+.gr-toast-body p { font-family: 'Rajdhani', 'Rajdhani Fallback', sans-serif; font-size: 0.85rem; margin: 0; opacity: 0.9; }
 .gr-toast-close {
     background: none; border: none; color: #00ff58; font-size: 1.2rem;
     cursor: pointer; padding: 0; width: 20px; height: 20px;

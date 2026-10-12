@@ -2363,60 +2363,14 @@ IMPORTANT: The troubleshooting steps above are guidelines, not limits. You are a
 
       async function loadRSSFeed() {
         try {
-          // Priority 1: Try main status page HTML directly (highest priority)
-          const urls = [
-            'https://status.glitchrealm.ca/',
-            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/'),
-            'https://status.glitchrealm.ca/feed.atom',
-            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/feed.rss'),
-            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://status.glitchrealm.ca/feed.atom')
-          ];
-          
-          let xmlDoc = null;
-          let lastError = null;
-          let isHtmlSource = false;
-          
-          for (let i = 0; i < urls.length; i++) {
-            const url = urls[i];
-            try {
-              const response = await fetch(url);
-              if (!response.ok) continue;
-              
-              const feedText = await response.text();
-              
-              // Check if this is the HTML status page
-              if (i < 2 && feedText.includes('<!DOCTYPE') || feedText.includes('<html')) {
-                // Parse HTML to extract status info
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = feedText;
-                
-                // Try to find status elements (this depends on the actual HTML structure)
-                // We'll create a pseudo-XML structure from it
-                isHtmlSource = true;
-                
-                // Extract any visible status information from the page
-                // For now, skip HTML and continue to feeds
-                continue;
-              }
-              
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(feedText, 'text/xml');
-              
-              // Check for parsing errors
-              const parserError = doc.querySelector('parsererror');
-              if (parserError) continue;
-              
-              xmlDoc = doc;
-              break;
-            } catch (err) {
-              lastError = err;
-              continue;
-            }
-          }
-          
-          if (!xmlDoc) {
-            throw lastError || new Error('All feed URLs failed');
-          }
+          // Fetched through a same-origin Netlify Function: status.glitchrealm.ca sends no
+          // CORS headers and isn't allowed by the site CSP, so direct browser fetches always fail.
+          const response = await fetch('/.netlify/functions/status-feed', { cache: 'no-cache' });
+          if (!response.ok) throw new Error('Status feed proxy returned ' + response.status);
+
+          const feedText = await response.text();
+          const xmlDoc = new DOMParser().parseFromString(feedText, 'text/xml');
+          if (xmlDoc.querySelector('parsererror')) throw new Error('Invalid status feed XML');
 
           // Extract items from the feed (supports both RSS and Atom)
           let items = xmlDoc.querySelectorAll('item');
@@ -2469,16 +2423,18 @@ IMPORTANT: The troubleshooting steps above are guidelines, not limits. You are a
               detailText = description.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
             }
             
-            // Set badge based on status
-            if (statusText.toLowerCase().includes('resolved') || statusText.toLowerCase().includes('operational') || 
-                titleLower.includes('up') || titleLower.includes('operational') || descLower.includes('up')) {
+            // Set badge based on status (whole-word matches so e.g. "update" doesn't read as "up")
+            const statusLower = statusText.toLowerCase();
+            const allText = `${statusLower} ${titleLower} ${descLower}`;
+            const has = (re) => re.test(allText);
+            if (/\b(resolved|operational|completed)\b/.test(statusLower) ||
+                (!statusLower && has(/\b(resolved|operational|back up|is up)\b/))) {
               badge = '<span class="rss-incident-badge rss-incident-up">✓ UP</span>';
               if (!statusText) statusText = 'Operational';
-            } else if (titleLower.includes('down') || descLower.includes('down') || statusText.toLowerCase().includes('down')) {
+            } else if (has(/\b(down|outage|unavailable|major)\b/)) {
               badge = '<span class="rss-incident-badge rss-incident-down">✗ DOWN</span>';
               if (!statusText) statusText = 'Service Issue';
-            } else if (titleLower.includes('degraded') || titleLower.includes('slow') || descLower.includes('degraded') || 
-                      statusText.toLowerCase().includes('degraded') || statusText.toLowerCase().includes('investigating')) {
+            } else if (statusLower || has(/\b(degraded|slow|investigating|identified|monitoring|maintenance)\b/)) {
               badge = '<span class="rss-incident-badge rss-incident-degraded">⚠ DEGRADED</span>';
               if (!statusText) statusText = 'Performance Issue';
             }

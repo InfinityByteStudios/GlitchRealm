@@ -18,11 +18,8 @@
     <!-- Buy Me a Coffee performance hints -->
     <link rel="preconnect" href="https://cdnjs.buymeacoffee.com">
     <link rel="dns-prefetch" href="//cdnjs.buymeacoffee.com">
-    <link rel="preload" as="script" href="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" crossorigin>
-    <!-- Preload critical images for better LCP -->
-    <link rel="preload" as="image" href="/assets/Favicon and Icons/favicon.svg">
-    <link rel="preload" as="image" href="/assets/Game Logos/ByteSurge.png">
-    <link rel="preload" as="image" href="/assets/Game Logos/CodeRunner Logo.png">
+    <!-- Preload the first above-the-fold game cover (LCP candidate) -->
+    <link rel="preload" as="image" href="/assets/game%20logos/ByteSurge.webp" type="image/webp" fetchpriority="high">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games Library - Play Free Cyberpunk Browser Games | GlitchRealm</title>
     <!-- Self-hosted fonts (preloaded for instant rendering) -->
@@ -1495,12 +1492,7 @@
                     <!-- ByteSurge Game Card -->
                     <div class="game-card" data-game="bytesurge">
                         <div class="card-image">
-                            <img src="assets/Game Logos/ByteSurge.png" 
-                                 srcset="assets/Game%20Logos/ByteSurge.png 320w, 
-                                         assets/Game%20Logos/ByteSurge.png 640w, 
-                                         assets/Game%20Logos/ByteSurge.png 960w" 
-                                 sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px"
-                                 alt="ByteSurge" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
+                            <img src="/assets/game%20logos/ByteSurge.webp" alt="ByteSurge" class="game-logo-image" loading="eager" fetchpriority="high" decoding="async" width="1024" height="1024">
                             <div class="card-overlay"></div>
                             <div class="game-badge new">NEW</div>
                             <!-- Game Card Menu Buttons (top right) -->
@@ -1529,12 +1521,7 @@
 
                     <!-- NeuroCore: Byte Wars Game Card -->
                     <div class="game-card" data-game="neurocore">                        <div class="card-image">
-                            <img src="assets/Game Logos/NeuroCore Byte Wars Logo.png" 
-                                 srcset="assets/Game%20Logos/NeuroCore%20Byte%20Wars%20Logo.png 320w, 
-                                         assets/Game%20Logos/NeuroCore%20Byte%20Wars%20Logo.png 640w, 
-                                         assets/Game%20Logos/NeuroCore%20Byte%20Wars%20Logo.png 960w" 
-                                 sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px"
-                                 alt="NeuroCore: Byte Wars" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
+                            <img src="/assets/game%20logos/neurocore%20byte%20wars%20logo.webp" alt="NeuroCore: Byte Wars" class="game-logo-image" loading="eager" decoding="async" width="1024" height="1024">
                             <div class="card-overlay"></div>
                             <div class="game-badge coming-soon" style="display: none;">UPDATE SOON</div>
                             <!-- Game Card Menu Buttons (top right) -->
@@ -1563,12 +1550,7 @@
                     <!-- CodeRunner Game Card -->
                     <div class="game-card" data-game="coderunner">
                         <div class="card-image">
-                            <img src="assets/Game Logos/CodeRunner Logo.png" 
-                                 srcset="assets/Game%20Logos/CodeRunner%20Logo.png 320w, 
-                                         assets/Game%20Logos/CodeRunner%20Logo.png 640w, 
-                                         assets/Game%20Logos/CodeRunner%20Logo.png 960w" 
-                                 sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px"
-                                 alt="CodeRunner" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
+                            <img src="/assets/game%20logos/coderunner%20logo.webp" alt="CodeRunner" class="game-logo-image" loading="eager" decoding="async" width="1024" height="1024">
                             <div class="card-overlay"></div>
                             
                             <!-- Game Card Menu Buttons (top right) -->
@@ -1981,10 +1963,6 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/devicon@latest/devicon.min.js" defer></script>
     <script src="js/dev-config.js" defer></script>
     <script src="js/script.js" defer></script>
 

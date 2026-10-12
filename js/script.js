@@ -337,7 +337,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize all effects
     initGlitchEffects();
     initCardAnimations();
-    initParallaxEffect();
+    // Parallax disabled: .background-animation's CSS animation overrides the inline
+    // transform, so the scroll handler only cost style recalcs every frame (hurt INP).
     initConsoleMessage();
     initBadgeAutoHide();
     // Default lazy-load images without an explicit loading attribute

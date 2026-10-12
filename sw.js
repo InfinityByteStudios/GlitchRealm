@@ -178,15 +178,9 @@ self.addEventListener('fetch', (event) => {
 
   // --- Same-origin handling ---
 
-  // NEVER cache auth-sensitive or HTML files
-  if (shouldNeverCache(url)) {
-    event.respondWith(
-      fetch(request, { cache: 'no-cache' }).catch(() => caches.match('/offline.html'))
-    );
-    return;
-  }
-
-  // HTML/navigation: Network-first with fallback to offline page (don't cache HTML)
+  // HTML/navigation: Network-first with fallback to offline page (don't cache HTML).
+  // Must run before shouldNeverCache() so .html and / navigations consume the
+  // navigation preload response instead of fetching the document a second time.
   // Handle both `request.destination === 'document'` and navigation-mode requests
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(
@@ -210,6 +204,14 @@ self.addEventListener('fetch', (event) => {
           });
         }
       })()
+    );
+    return;
+  }
+
+  // NEVER cache auth-sensitive or HTML files
+  if (shouldNeverCache(url)) {
+    event.respondWith(
+      fetch(request, { cache: 'no-cache' }).catch(() => caches.match('/offline.html'))
     );
     return;
   }
