@@ -2581,7 +2581,9 @@ class SharedAuthSystem {
         this.eventKey = 'glitchRealm_auth_change';
         this.gameOrigins = [
             'https://coderunner-test.netlify.app',
-            'https://neurocorebytewars.netlify.app'
+            'https://neurocorebytewars.netlify.app',
+            'https://bytewars.game.glitchrealm.ca',
+            'https://coderunner.game.glitchrealm.ca'
         ];
         this.initCrossTabSync();
     }
