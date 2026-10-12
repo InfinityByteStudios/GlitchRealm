@@ -69,6 +69,27 @@
     .warning-message { background:rgba(255,165,0,.1); border:1px solid rgba(255,165,0,.5); padding:12px 14px; font-size:.8rem; border-radius:10px; margin-bottom:12px; }
     .pre-badge { display:none; background:linear-gradient(135deg, rgba(255,165,0,.95), rgba(255,99,71,.95)); color:#0b0e14; font-family:'Orbitron', monospace; font-weight:800; letter-spacing:.4px; font-size:9px; padding:2px 6px; border-radius:5px; text-transform:uppercase; box-shadow:0 1px 4px rgba(255,140,0,.25); border:1px solid rgba(0,0,0,.12); user-select:none; white-space:nowrap; }
     .gate-block { margin:0 0 18px; }
+    /* Sign-in / Guest Pass gate */
+    .auth-gate { position:relative; overflow:hidden; text-align:center; padding:30px 24px 26px; border-radius:18px; background:linear-gradient(145deg, rgba(0,10,20,.88), rgba(0,40,55,.6)); border:1px solid rgba(0,255,249,.18); box-shadow:0 4px 22px -4px rgba(0,0,0,.55), 0 0 0 1px rgba(0,255,249,.05) inset; }
+    .auth-gate h2 { font-family:'Orbitron', monospace; font-size:1.25rem; letter-spacing:1px; margin:0 0 8px; color:var(--primary-cyan,#0ff); }
+    .auth-gate p { margin:0 0 22px; font-size:.9rem; opacity:.8; line-height:1.5; }
+    .auth-gate-actions { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; align-items:center; }
+    .auth-gate-actions .btn { text-decoration:none; display:inline-flex; align-items:center; }
+    .auth-gate-or { font-family:'Orbitron', monospace; font-size:.65rem; letter-spacing:2px; opacity:.5; }
+    .guest-pass-btn { position:relative; display:inline-flex; align-items:center; gap:12px; padding:12px 22px 12px 14px; border-radius:12px; cursor:pointer; overflow:hidden; font-family:'Orbitron', monospace; color:#0b0e14; text-align:left; border:1px solid rgba(255,255,255,.35); background:linear-gradient(135deg, #ff00e6 0%, #8a2bff 45%, #00fff9 100%); background-size:200% 200%; box-shadow:0 0 18px -4px rgba(255,0,230,.6), 0 0 26px -8px rgba(0,255,249,.6); transition:transform .2s, box-shadow .25s, background-position .6s; }
+    .guest-pass-btn:hover:not([disabled]) { transform:translateY(-2px); background-position:100% 50%; box-shadow:0 0 24px -2px rgba(255,0,230,.75), 0 0 34px -6px rgba(0,255,249,.8); }
+    .guest-pass-btn:active:not([disabled]) { transform:translateY(0); }
+    .guest-pass-btn[disabled] { opacity:.6; cursor:wait; }
+    .guest-pass-btn:after { content:""; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform:skewX(-20deg); animation:guestShine 3.2s ease-in-out infinite; pointer-events:none; }
+    @keyframes guestShine { 0%,60% { left:-60%; } 100% { left:130%; } }
+    .guest-pass-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:8px; background:rgba(11,14,20,.85); color:#00fff9; font-size:1.05rem; box-shadow:0 0 10px rgba(0,255,249,.4) inset; }
+    .guest-pass-text { display:flex; flex-direction:column; line-height:1.1; }
+    .guest-pass-text strong { font-size:.85rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; }
+    .guest-pass-text small { font-size:.6rem; font-weight:600; letter-spacing:.5px; opacity:.8; margin-top:3px; }
+    .guest-pass-error { margin-top:16px; }
+    .guest-badge { display:flex; flex-wrap:wrap; align-items:center; gap:10px; justify-content:space-between; padding:10px 14px; margin:0 0 18px; border-radius:10px; font-size:.8rem; background:linear-gradient(135deg, rgba(255,0,230,.12), rgba(0,255,249,.12)); border:1px solid rgba(255,0,230,.4); }
+    .guest-badge code { font-family:'Orbitron', monospace; font-size:.75rem; letter-spacing:1px; color:#00fff9; }
+    .guest-badge a { color:var(--primary-cyan,#0ff); }
     .auth-redirect { text-align:center; margin-top:24px; font-size:.85rem; opacity:.75; }
     @media (max-width:680px){ .submit-wrapper { margin-top:100px; } }
   /* Requirements step styles */
@@ -646,6 +667,45 @@
       try { const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'); const db = f.getFirestore(window.firebaseApp); const snap = await f.getDoc(f.doc(db,'verified_users',user.uid)); const isVerified = snap.exists() && !!(snap.data()?.verified===true); const isDeveloper = DEV_UIDS.has(user.uid); return {uid:user.uid,isVerified,isDeveloper}; } catch { return {uid:user?.uid,isVerified:false,isDeveloper:DEV_UIDS.has(user?.uid)}; }
     }
     function show(el,flag){ if(!el) return; el.style.display = flag?'' : 'none'; }
+
+    // Guest Pass: anonymous Firebase sign-in whose ID is kept on this device
+    const GUEST_PASS_KEY = 'glitchrealm_guest_pass';
+    function guestIdFor(uid){ return 'GR-GUEST-' + String(uid||'').slice(0,8).toUpperCase(); }
+    function getGuestPass(user){
+      if(!user || !user.isAnonymous) return null;
+      let pass = null;
+      try { pass = JSON.parse(localStorage.getItem(GUEST_PASS_KEY) || 'null'); } catch {}
+      if(!pass || pass.uid !== user.uid){
+        pass = { id: guestIdFor(user.uid), uid: user.uid, createdAt: new Date().toISOString() };
+        try { localStorage.setItem(GUEST_PASS_KEY, JSON.stringify(pass)); } catch {}
+      }
+      return pass;
+    }
+    async function startGuestPass(){
+      const btn = $('guestPassBtn'); const err = $('guestPassError');
+      show(err,false);
+      if(btn) btn.disabled = true;
+      try {
+        const m = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const auth = window.firebaseAuth;
+        if(!auth) throw new Error('Sign-in is still loading. Please try again in a moment.');
+        await m.setPersistence(auth, m.browserLocalPersistence).catch(()=>{});
+        const cred = await m.signInAnonymously(auth);
+        getGuestPass(cred.user);
+        await gate();
+      } catch (e) {
+        console.error('Guest Pass failed:', e);
+        if(err){
+          err.textContent = e?.code === 'auth/operation-not-allowed'
+            ? 'Guest Pass is not available right now. Please sign in instead.'
+            : (e?.message || 'Could not create a Guest Pass. Please try again.');
+          show(err,true);
+        }
+      } finally {
+        if(btn) btn.disabled = false;
+      }
+    }
+    $('guestPassBtn')?.addEventListener('click', startGuestPass);
     function updateStepIndicator(currentStep) {
       const step1 = $('step1');
       const step2 = $('step2');
@@ -912,13 +972,17 @@
         show(extendedDetailsCard,false); 
         show(authNotice,true); 
         show(gateNotice,false); 
+        show($('guestBadge'),false);
         show($('stepIndicator'),false); 
         return; 
       }
       show(authNotice,false);
+      const guestPass = getGuestPass(user);
+      if($('guestIdLabel')) $('guestIdLabel').textContent = guestPass ? guestPass.id : '';
+      show($('guestBadge'), !!guestPass);
       try{ 
-        const me = await getMe(); 
-        const allowed = me && (me.isVerified || me.isDeveloper); 
+        const me = guestPass ? null : await getMe(); 
+        const allowed = !!guestPass || (me && (me.isVerified || me.isDeveloper)); 
         show(requirementsCard, allowed); 
         show(basicInfoCard, false); 
         show(extendedDetailsCard, false); 
@@ -1232,7 +1296,7 @@
         const auth = window.firebaseAuth;
         const user = auth?.currentUser;
         if(user && pvDev){
-          pvDev.textContent = user.displayName || user.email?.split('@')[0] || 'You';
+          pvDev.textContent = getGuestPass(user)?.id || user.displayName || user.email?.split('@')[0] || 'You';
         }
       }
       // Try immediately and also when auth state changes
@@ -1426,7 +1490,7 @@
           const db = f.getFirestore(window.firebaseApp);
           
           // Get the verified username for the owner
-          let ownerUsername = user.displayName || user.email?.split('@')[0] || 'Anonymous';
+          let ownerUsername = getGuestPass(user)?.id || user.displayName || user.email?.split('@')[0] || 'Anonymous';
           try {
             const verifiedRef = f.doc(db, 'verified_users', user.uid);
             const verifiedSnap = await f.getDoc(verifiedRef);
