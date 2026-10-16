@@ -398,8 +398,66 @@
   </script>
 </head>
 <body>
+  <!-- Submission moved notice (owner can unlock the legacy form) -->
+  <style>
+    html.gr-moved-locked .submit-wrapper { display:none !important; }
+    html:not(.gr-moved-locked) #grMovedNotice { display:none; }
+    #grMovedNotice { position:relative; z-index:1; max-width:640px; margin:140px auto 80px; padding:0 20px; font-family:'Rajdhani', sans-serif; color:#fff; }
+    #grMovedNotice .gr-card { text-align:center; background:linear-gradient(145deg, rgba(0,10,20,.9), rgba(0,40,55,.6)); border:1px solid rgba(0,255,249,.25); border-radius:18px; padding:40px 28px; box-shadow:0 0 40px -8px rgba(0,255,249,.35); }
+    #grMovedNotice h1 { font-family:'Orbitron', monospace; font-size:1.8rem; letter-spacing:1px; margin:0 0 14px; color:#00fff9; }
+    #grMovedNotice p { opacity:.85; line-height:1.5; margin:0 0 24px; font-size:1.05rem; }
+    #grMovedNotice .gr-go { display:inline-block; padding:13px 28px; border-radius:10px; background:#00fff9; color:#001018; font-family:'Orbitron', monospace; font-weight:700; text-decoration:none; letter-spacing:1px; }
+    #grMovedNotice .gr-go:hover { box-shadow:0 0 18px rgba(0,255,249,.6); }
+    #grMovedNotice .gr-url { display:block; margin-top:12px; font-size:.85rem; opacity:.6; word-break:break-all; }
+    #grMovedNotice .gr-owner-link { margin-top:28px; background:none; border:none; color:rgba(255,255,255,.45); font-size:.8rem; cursor:pointer; text-decoration:underline; font-family:inherit; }
+    #grMovedNotice .gr-owner-form { display:none; margin-top:14px; gap:8px; justify-content:center; }
+    #grMovedNotice .gr-owner-form.open { display:flex; }
+    #grMovedNotice .gr-owner-form input { background:rgba(0,8,12,.6); border:1px solid rgba(0,255,249,.25); border-radius:8px; padding:8px 10px; color:#fff; font-family:inherit; width:160px; }
+    #grMovedNotice .gr-owner-form button { background:rgba(0,255,249,.15); border:1px solid rgba(0,255,249,.35); color:#00fff9; border-radius:8px; padding:8px 14px; cursor:pointer; font-family:inherit; }
+    #grMovedNotice .gr-owner-err { color:#ff5c7a; font-size:.8rem; margin-top:8px; min-height:1em; }
+    @media (max-width:680px){ #grMovedNotice { margin-top:110px; } }
+  </style>
+  <script>
+    (function(){ try { if (sessionStorage.getItem('gr_submit_owner') !== '1') document.documentElement.classList.add('gr-moved-locked'); } catch(e){ document.documentElement.classList.add('gr-moved-locked'); } })();
+  </script>
+
   <div class="background-animation"></div>
   <div id="header-placeholder"></div>
+  <main id="grMovedNotice" aria-labelledby="grMovedTitle">
+    <div class="gr-card">
+      <h1 id="grMovedTitle">We've Moved!</h1>
+      <p>Game submissions now live at our new submission portal.</p>
+      <a class="gr-go" href="https://submit-game.forms.glitchrealm.ca/">Go to New Submit Page</a>
+      <span class="gr-url">https://submit-game.forms.glitchrealm.ca/</span>
+      <button type="button" class="gr-owner-link" id="grOwnerToggle">Are you the owner?</button>
+      <form class="gr-owner-form" id="grOwnerForm" autocomplete="off">
+        <input type="password" id="grOwnerPass" placeholder="Password" aria-label="Owner password">
+        <button type="submit">Continue</button>
+      </form>
+      <div class="gr-owner-err" id="grOwnerErr" aria-live="polite"></div>
+    </div>
+  </main>
+  <script>
+    (function(){
+      var toggle = document.getElementById('grOwnerToggle');
+      var form = document.getElementById('grOwnerForm');
+      var input = document.getElementById('grOwnerPass');
+      var err = document.getElementById('grOwnerErr');
+      toggle.addEventListener('click', function(){ form.classList.toggle('open'); if (form.classList.contains('open')) input.focus(); });
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        if (input.value === '12345') {
+          try { sessionStorage.setItem('gr_submit_owner', '1'); } catch(_){}
+          document.documentElement.classList.remove('gr-moved-locked');
+          window.scrollTo(0, 0);
+        } else {
+          err.textContent = 'Incorrect password.';
+          input.value = '';
+          input.focus();
+        }
+      });
+    })();
+  </script>
   <div class="submit-wrapper">
     <div class="submit-header">
       <h1 id="pageMainTitle">Submit Your Game</h1>
