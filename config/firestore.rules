@@ -14,10 +14,12 @@ service cloud.firestore {
          isAdmin(request.auth.uid) ||
          isDeveloper(request.auth.uid);
       
-      // Create: Authenticated users only
-      allow create: if request.auth != null &&
-                       request.auth.uid == request.resource.data.userId &&
-                       isValidReview(request.resource.data);
+      // Create: Direct client writes are disabled. Reviews are submitted
+      //        through the server-side `submit-review` Netlify Function,
+      //        which authenticates the user, rate limits, word-filters and
+      //        AI-moderates the submission, then writes via the Admin SDK
+      //        (Admin SDK writes bypass these rules).
+      allow create: if false;
       
       // Update: Only review author can update their own reviews
       allow update: if request.auth != null &&
@@ -28,6 +30,22 @@ service cloud.firestore {
       
       // Delete: Only admins can delete reviews
       allow delete: if isAdmin(request.auth.uid);
+    }
+    
+    // ================================
+    // Moderation Config (filter word lists managed from the admin console)
+    // Only the server (Admin SDK) and admins can touch these.
+    // ================================
+    match /moderation_config/{configId} {
+      allow read: if isAdmin(request.auth.uid) || isDeveloper(request.auth.uid);
+      allow write: if isAdmin(request.auth.uid);
+    }
+    
+    // ================================
+    // Review Rate Limits (internal counters, server-only)
+    // ================================
+    match /review_rate_limits/{limitId} {
+      allow read, write: if false;
     }
     
     // ================================
