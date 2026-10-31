@@ -815,6 +815,7 @@
   </div>
   
   <div id="footer-placeholder"></div>
+  <script src="/js/game-play-notices.js" defer></script>
   <script src="js/script.js" defer></script>
   <script type="module">
     import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -1308,32 +1309,44 @@
         switchMode('embedded');
       });
       
+      // Load the game in the embedded iframe (extracted so the notice gate can reuse it)
+      function loadEmbeddedGame() {
+        embeddedGameIframe.src = playUrl;
+        embeddedGameContainer.style.display = 'block';
+        
+        // Request fullscreen after iframe loads
+        embeddedGameIframe.addEventListener('load', function() {
+          // Try to enter fullscreen
+          if (embeddedGameIframe.requestFullscreen) {
+            embeddedGameIframe.requestFullscreen().catch(err => {
+              console.log('Fullscreen request failed:', err);
+            });
+          } else if (embeddedGameIframe.webkitRequestFullscreen) {
+            embeddedGameIframe.webkitRequestFullscreen();
+          } else if (embeddedGameIframe.msRequestFullscreen) {
+            embeddedGameIframe.msRequestFullscreen();
+          }
+        }, { once: true });
+        
+        // Scroll to embedded player
+        setTimeout(() => {
+          embeddedGameContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+      
       // Play button click handler
       playButton.addEventListener('click', function(e) {
+        if (window.GRPlayNotices && window.GRPlayNotices.hasNotice(gameId)) {
+          e.preventDefault();
+          const proceed = currentMode === 'embedded'
+            ? loadEmbeddedGame
+            : () => window.open(playUrl, '_blank', 'noopener');
+          window.GRPlayNotices.showNotice(gameId, proceed);
+          return;
+        }
         if (currentMode === 'embedded') {
           e.preventDefault();
-          // Load game in iframe
-          embeddedGameIframe.src = playUrl;
-          embeddedGameContainer.style.display = 'block';
-          
-          // Request fullscreen after iframe loads
-          embeddedGameIframe.addEventListener('load', function() {
-            // Try to enter fullscreen
-            if (embeddedGameIframe.requestFullscreen) {
-              embeddedGameIframe.requestFullscreen().catch(err => {
-                console.log('Fullscreen request failed:', err);
-              });
-            } else if (embeddedGameIframe.webkitRequestFullscreen) {
-              embeddedGameIframe.webkitRequestFullscreen();
-            } else if (embeddedGameIframe.msRequestFullscreen) {
-              embeddedGameIframe.msRequestFullscreen();
-            }
-          }, { once: true });
-          
-          // Scroll to embedded player
-          setTimeout(() => {
-            embeddedGameContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+          loadEmbeddedGame();
         }
         // For 'newtab' mode, let the default link behavior work
       });
