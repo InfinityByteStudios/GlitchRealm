@@ -240,6 +240,14 @@ function escapeHTML(str) {
     return div.innerHTML;
 }
 
+function escapeAttr(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
 function formatDate(ts) {
     if (!ts) return 'N/A';
     const d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -273,6 +281,7 @@ function setupNavigation() {
         community: 'Community Posts',
         banners: 'Site Banners',
         reports: 'Reports',
+        reviews: 'Reviews',
         'staff-status': 'Staff Status',
         maintenance: 'Maintenance',
         database: 'Database Browser',
@@ -286,6 +295,7 @@ function setupNavigation() {
         community: 'Moderate, pin and edit community posts.',
         banners: 'Announcements shown at the top of every page.',
         reports: 'User reports on games and community posts.',
+        reviews: 'Moderate game reviews, tune the content filter and track review activity.',
         'staff-status': 'The system status shown on the Support page.',
         maintenance: 'Temporarily redirect visitors to a maintenance page.',
         database: 'Browse and edit raw Firestore documents.',
@@ -353,6 +363,28 @@ function setupNavigation() {
     document.getElementById('reports-type-filter').addEventListener('change', () => loadReports());
     document.getElementById('reports-status-filter').addEventListener('change', () => loadReports());
 
+    // Reviews section
+    document.querySelectorAll('#reviews-subtabs .subtab').forEach(btn => {
+        btn.addEventListener('click', () => switchReviewsSubtab(btn.dataset.subtab));
+    });
+    document.querySelectorAll('#reviews-status-tabs .filter-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#reviews-status-tabs .filter-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderReviewsQueue();
+        });
+    });
+    document.getElementById('reviews-search').addEventListener('input', debounce(() => renderReviewsQueue(), 300));
+    document.getElementById('reviews-reload-btn').addEventListener('click', async () => {
+        reviewsState.loaded = false;
+        await loadReviewsData(true);
+        renderReviewsQueue();
+        showToast('Reviews refreshed', 'info');
+    });
+    document.getElementById('mod-save-btn').addEventListener('click', saveModerationConfig);
+    document.getElementById('mod-test-btn').addEventListener('click', runFilterTest);
+    bindModerationListEditors();
+
     // DB browser
     document.getElementById('db-load-btn').addEventListener('click', () => loadDbCollection());
     const customCollectionInput = document.getElementById('db-collection-custom');
@@ -387,6 +419,7 @@ function loadSection(name) {
         case 'community': loadCommunity(); break;
         case 'banners': loadBanners(); break;
         case 'reports': loadReports(); break;
+        case 'reviews': loadReviewsSection(); break;
         case 'staff-status': loadStaffStatus(); break;
         case 'maintenance': loadMaintenance(); break;
         case 'effects': loadEffects(); break;
@@ -1709,8 +1742,558 @@ document.getElementById('fx-save-btn').addEventListener('click', async () => {
 });
 
 // ================================================================
-// BOOT
+// REVIEWS
 // ================================================================
+const REVIEWS_BLOCKED_SET = ['blocked', 'rejected'];
+
+let reviewsState = {
+    loaded: false,
+    reviews: [],
+    subtab: 'queue',
+    modLoaded: false,
+    modLoading: false,
+    modState: null
+};
+
+function loadReviewsSection() {
+    switchReviewsSubtab(reviewsState.subtab || 'queue');
+}
+
+function switchReviewsSubtab(name) {
+    if (!['queue', 'filters', 'stats'].includes(name)) name = 'queue';
+    reviewsState.subtab = name;
+
+    document.querySelectorAll('#reviews-subtabs .subtab').forEach(btn => {
+        const active = btn.dataset.subtab === name;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    document.querySelectorAll('#sec-reviews .subtab-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById(`reviews-panel-${name}`);
+    if (panel) panel.classList.add('active');
+
+    if (name === 'queue') {
+        loadReviewsData().then(renderReviewsQueue);
+    } else if (name === 'filters') {
+        loadModerationConfig();
+    } else if (name === 'stats') {
+        loadReviewsData().then(renderReviewsStats);
+    }
+}
+
+function loadReviewsData(force) {
+    if (reviewsState.loaded && !force) return Promise.resolve();
+    if (!reviewsState.loadPromise) {
+        reviewsState.loadPromise = (async () => {
+            try {
+                const snap = await window.firestoreGetDocs(col('reviews'));
+                const items = [];
+                snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+                items.sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
+                reviewsState.reviews = items;
+                reviewsState.loaded = true;
+                setNavCount('nav-count-reviews', items.filter(r => r.moderationStatus === 'pending').length);
+            } catch (err) {
+                console.error('Failed to load reviews:', err);
+                showToast('Failed to load reviews: ' + err.message, 'error');
+                const container = document.getElementById('reviews-list');
+                if (container) container.innerHTML = `<div class="empty-state"><h3>Error</h3><p>${escapeHTML(err.message)}</p></div>`;
+            } finally {
+                reviewsState.loadPromise = null;
+            }
+        })();
+    }
+    return reviewsState.loadPromise;
+}
+
+function updateReviewCounts() {
+    const rs = reviewsState.reviews;
+    const pending = rs.filter(r => r.moderationStatus === 'pending').length;
+    const blocked = rs.filter(r => REVIEWS_BLOCKED_SET.includes(r.moderationStatus)).length;
+    const approved = rs.filter(r => r.moderationStatus === 'approved').length;
+    document.getElementById('revcount-pending').textContent = pending;
+    document.getElementById('revcount-blocked').textContent = blocked;
+    document.getElementById('revcount-approved').textContent = approved;
+    document.getElementById('revcount-all').textContent = rs.length;
+}
+
+function renderStars(rating) {
+    const r = Math.max(0, Math.min(5, Number(rating) || 0));
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += `<span class="star ${i <= r ? 'star-on' : 'star-off'}">★</span>`;
+    }
+    return `<span class="stars" aria-label="${r} out of 5 stars" title="${r} out of 5">${html}</span>`;
+}
+
+function reviewStatusBadge(status) {
+    const cls = status === 'approved' ? 'status-published'
+        : status === 'pending' ? 'status-draft'
+        : 'status-archived';
+    return `<span class="status-badge ${cls}">${escapeHTML(status || 'unknown')}</span>`;
+}
+
+function reviewerAvatarHTML(r) {
+    const name = r.userDisplayName || 'Guest';
+    const initial = escapeHTML(name.charAt(0).toUpperCase());
+    if (r.authorPhotoUrl) {
+        const safeUrl = escapeAttr(r.authorPhotoUrl);
+        return `<img class="review-avatar" src="${safeUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`;
+    }
+    return `<div class="review-avatar review-avatar-initial">${initial}</div>`;
+}
+
+function reviewAiVerdictHTML(r) {
+    const v = r.aiVerdict;
+    if (!v || !v.verdict) return '';
+    const cls = v.verdict === 'approve' ? 'pill-success' : v.verdict === 'block' ? 'pill-danger' : 'pill-warning';
+    const reason = v.reason ? ` — ${escapeHTML(String(v.reason))}` : '';
+    return `<span class="pill ${cls}" title="AI moderation verdict">AI: ${escapeHTML(v.verdict)}${reason}</span>`;
+}
+
+function renderReviewsQueue() {
+    if (!reviewsState.loaded) {
+        document.getElementById('reviews-list').innerHTML = '<div class="loading-placeholder">Loading…</div>';
+        return;
+    }
+
+    updateReviewCounts();
+
+    const activeBtn = document.querySelector('#reviews-status-tabs .filter-tab.active');
+    const statusFilter = activeBtn ? activeBtn.dataset.status : 'pending';
+    const search = (document.getElementById('reviews-search')?.value || '').toLowerCase().trim();
+
+    let items = reviewsState.reviews;
+    if (statusFilter === 'pending') items = items.filter(r => r.moderationStatus === 'pending');
+    else if (statusFilter === 'blocked') items = items.filter(r => REVIEWS_BLOCKED_SET.includes(r.moderationStatus));
+    else if (statusFilter === 'approved') items = items.filter(r => r.moderationStatus === 'approved');
+
+    if (search) {
+        items = items.filter(r =>
+            (r.gameName || '').toLowerCase().includes(search) ||
+            (r.userDisplayName || '').toLowerCase().includes(search)
+        );
+    }
+
+    const container = document.getElementById('reviews-list');
+    const line = document.getElementById('reviews-count-line');
+    if (line) {
+        line.textContent = statusFilter === 'all'
+            ? `Showing ${items.length} of ${reviewsState.reviews.length} reviews`
+            : `Showing ${items.length} review${items.length === 1 ? '' : 's'}`;
+    }
+
+    if (items.length === 0) {
+        container.innerHTML = '<div class="empty-state"><h3>No reviews found</h3><p>Try a different status filter or search.</p></div>';
+        return;
+    }
+
+    container.innerHTML = items.map(r => {
+        const guest = r.isGuest === true;
+        const comment = (r.comment || '').trim();
+        const metaBits = [];
+        if (r.moderationSource) metaBits.push(`Source: ${escapeHTML(r.moderationSource)}`);
+        if (r.authProvider) metaBits.push(`Auth: ${escapeHTML(r.authProvider)}`);
+        if (guest) metaBits.push('Guest reviewer');
+
+        return `
+        <div class="review-card" data-id="${r.id}">
+            <div class="review-card-top">
+                <div class="review-card-title">
+                    <span class="item-card-title">${escapeHTML(r.gameName || r.gameId || 'Unknown game')}</span>
+                    ${reviewStatusBadge(r.moderationStatus)}
+                </div>
+                <div class="review-card-stars">${renderStars(r.rating)} <span class="review-time">${formatDate(r.timestamp)}</span></div>
+            </div>
+            ${comment ? `<div class="review-comment">${escapeHTML(comment)}</div>` : '<div class="review-comment review-comment-empty">Rating-only review (no comment)</div>'}
+            <div class="review-reviewer">
+                ${reviewerAvatarHTML(r)}
+                <div class="review-reviewer-info">
+                    <span class="review-reviewer-name">${escapeHTML(r.userDisplayName || 'Unknown')}${guest ? ' <span class="pill pill-guest">Guest</span>' : ''}</span>
+                    <span class="review-reviewer-sub">${metaBits.join(' · ')}</span>
+                </div>
+            </div>
+            ${(r.reason || r.moderationSource || r.aiVerdict) ? `
+            <div class="review-modmeta">
+                ${r.reason ? `<div class="review-modmeta-line"><span class="review-modmeta-label">Reason</span>${escapeHTML(r.reason)}</div>` : ''}
+                ${r.aiVerdict && r.aiVerdict.verdict ? `<div class="review-modmeta-line"><span class="review-modmeta-label">AI verdict</span>${reviewAiVerdictHTML(r)}</div>` : ''}
+            </div>` : ''}
+            <div class="item-card-actions">
+                ${r.moderationStatus !== 'approved' ? `<button class="btn-success btn-sm" onclick="reviewSetStatus('${r.id}','approved')">Approve</button>` : ''}
+                ${r.moderationStatus !== 'rejected' ? `<button class="btn-warn btn-sm" onclick="reviewSetStatus('${r.id}','rejected')">Reject</button>` : ''}
+                ${r.moderationStatus !== 'blocked' ? `<button class="btn-danger btn-sm" onclick="reviewSetStatus('${r.id}','blocked')">Block</button>` : ''}
+                <button class="btn-danger btn-sm" onclick="reviewDelete('${r.id}')">Delete</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+window.reviewSetStatus = async function(id, status) {
+    const idx = reviewsState.reviews.findIndex(r => r.id === id);
+    if (idx === -1) return showToast('Review not found', 'error');
+
+    const labels = { approved: 'approved', rejected: 'rejected (hidden, marked as manually rejected)', blocked: 'blocked' };
+    if (!confirm(`Set this review to "${labels[status] || status}"?`)) return;
+
+    const original = reviewsState.reviews[idx].moderationStatus;
+
+    // Optimistic update
+    reviewsState.reviews[idx] = { ...reviewsState.reviews[idx], moderationStatus: status };
+    renderReviewsQueue();
+
+    try {
+        await window.firestoreUpdateDoc(docRef('reviews', id), {
+            moderationStatus: status,
+            moderatedAt: window.firestoreServerTimestamp(),
+            moderatedBy: currentUser ? currentUser.uid : null
+        });
+        setNavCount('nav-count-reviews', reviewsState.reviews.filter(r => r.moderationStatus === 'pending').length);
+        showToast(`Review ${status}`, 'success');
+    } catch (err) {
+        // Revert on failure
+        reviewsState.reviews[idx] = { ...reviewsState.reviews[idx], moderationStatus: original };
+        renderReviewsQueue();
+        showToast('Failed: ' + err.message, 'error');
+    }
+};
+
+window.reviewDelete = async function(id) {
+    if (!confirm('Delete this review permanently? This cannot be undone.')) return;
+    const idx = reviewsState.reviews.findIndex(r => r.id === id);
+    if (idx === -1) return showToast('Review not found', 'error');
+
+    const removed = reviewsState.reviews[idx];
+
+    // Optimistic update
+    reviewsState.reviews.splice(idx, 1);
+    renderReviewsQueue();
+
+    try {
+        await window.firestoreDeleteDoc(docRef('reviews', id));
+        setNavCount('nav-count-reviews', reviewsState.reviews.filter(r => r.moderationStatus === 'pending').length);
+        showToast('Review deleted', 'info');
+    } catch (err) {
+        // Revert on failure
+        reviewsState.reviews.splice(idx, 0, removed);
+        renderReviewsQueue();
+        showToast('Delete failed: ' + err.message, 'error');
+    }
+};
+
+// ----------------------------------------------------------------
+// Filter word manager (moderation_config/filters)
+// ----------------------------------------------------------------
+const MOD_LIST_FIELDS = [
+    { key: 'bannedWords', placeholder: 'e.g. badword' },
+    { key: 'suspiciousWords', placeholder: 'e.g. suspiciousword' },
+    { key: 'bannedPatterns', placeholder: 'e.g. b\\s*[^a-z]*\\s*a\\s*[^a-z]*\\s*d' }
+];
+
+async function loadModerationConfig() {
+    if (reviewsState.modLoading) return;
+    reviewsState.modLoading = true;
+    const container = document.getElementById('reviews-panel-filters');
+    try {
+        const snap = await window.firestoreGetDoc(window.firestoreDoc(db(), 'moderation_config', 'filters'));
+        const d = snap.exists() ? snap.data() : {};
+        reviewsState.modState = {
+            bannedWords: (d.bannedWords || []).map(String),
+            suspiciousWords: (d.suspiciousWords || []).map(String),
+            bannedPatterns: (d.bannedPatterns || []).map(String),
+            aiModerationEnabled: d.aiModerationEnabled !== false,
+            existed: snap.exists(),
+            base: d
+        };
+        reviewsState.modLoaded = true;
+        renderModerationEditor();
+    } catch (err) {
+        console.error('Failed to load moderation config:', err);
+        showToast('Failed to load filter config: ' + err.message, 'error');
+    } finally {
+        reviewsState.modLoading = false;
+    }
+}
+
+function renderModerationEditor() {
+    const s = reviewsState.modState;
+    if (!s) return;
+
+    document.getElementById('mod-ai-enabled').checked = !!s.aiModerationEnabled;
+
+    MOD_LIST_FIELDS.forEach(f => {
+        const wrap = document.querySelector(`.word-rows[data-field="${f.key}"]`);
+        if (!wrap) return;
+        const values = s[f.key] || [];
+        wrap.innerHTML = values.length === 0
+            ? '<p class="empty-inline">Empty — leave blank to rely on the built-in defaults.</p>'
+            : values.map((v, i) => `
+                <div class="word-row">
+                    <input type="text" class="mod-word-input mono-input" data-field="${f.key}" data-idx="${i}" value="${escapeAttr(v)}" placeholder="${f.placeholder}" spellcheck="false" autocomplete="off">
+                    <button type="button" class="btn-icon mod-remove-word" data-field="${f.key}" data-idx="${i}" title="Remove">&times;</button>
+                </div>`).join('');
+    });
+}
+
+function bindModerationListEditors() {
+    // Live-update state as rows are edited
+    document.getElementById('reviews-panel-filters').addEventListener('input', (e) => {
+        if (!e.target.matches('.mod-word-input')) return;
+        const s = reviewsState.modState;
+        if (!s) return;
+        const { field, idx } = e.target.dataset;
+        const list = s[field];
+        if (Array.isArray(list)) list[Number(idx)] = e.target.value;
+    });
+
+    document.getElementById('reviews-panel-filters').addEventListener('click', (e) => {
+        const s = reviewsState.modState;
+        if (!s) return;
+
+        const addBtn = e.target.closest('.mod-add-word');
+        if (addBtn) {
+            s[addBtn.dataset.field].push('');
+            renderModerationEditor();
+            const rows = document.querySelectorAll(`.word-rows[data-field="${addBtn.dataset.field}"] .mod-word-input`);
+            if (rows.length) rows[rows.length - 1].focus();
+            return;
+        }
+
+        const removeBtn = e.target.closest('.mod-remove-word');
+        if (removeBtn) {
+            const { field, idx } = removeBtn.dataset;
+            s[field].splice(Number(idx), 1);
+            renderModerationEditor();
+        }
+    });
+}
+
+async function saveModerationConfig() {
+    const s = reviewsState.modState;
+    if (!s) return showToast('Filter config not loaded yet', 'error');
+
+    // Collect current values from state (inputs already sync into state on input)
+    const payload = {
+        bannedWords: s.bannedWords.map(v => String(v || '').trim()).filter(Boolean),
+        suspiciousWords: s.suspiciousWords.map(v => String(v || '').trim()).filter(Boolean),
+        bannedPatterns: s.bannedPatterns.map(v => String(v || '').trim()).filter(Boolean),
+        aiModerationEnabled: document.getElementById('mod-ai-enabled').checked,
+        updatedAt: window.firestoreServerTimestamp(),
+        updatedBy: currentUser ? currentUser.uid : null
+    };
+
+    // Validate regex patterns so a typo never breaks the server filter
+    for (const p of payload.bannedPatterns) {
+        try { new RegExp(p, 'i'); } catch (e) {
+            return showToast(`Invalid regex pattern: "${p}" — ${e.message}`, 'error');
+        }
+    }
+
+    // Preserve any unknown fields already stored in the document
+    const base = s.base || {};
+    Object.keys(base).forEach(k => {
+        if (!(k in payload) && !['updatedAt', 'updatedBy'].includes(k)) payload[k] = base[k];
+    });
+
+    const statusEl = document.getElementById('mod-save-status');
+    statusEl.textContent = 'Saving…';
+
+    try {
+        await window.firestoreSetDoc(window.firestoreDoc(db(), 'moderation_config', 'filters'), payload);
+        s.bannedWords = [...payload.bannedWords];
+        s.suspiciousWords = [...payload.suspiciousWords];
+        s.bannedPatterns = [...payload.bannedPatterns];
+        s.aiModerationEnabled = payload.aiModerationEnabled;
+        s.existed = true;
+        s.base = { ...payload };
+        renderModerationEditor();
+        statusEl.textContent = '';
+        showToast('Filter configuration saved', 'success');
+    } catch (err) {
+        console.error('Failed to save moderation config:', err);
+        statusEl.textContent = 'Save failed.';
+        statusEl.style.color = '#ff4757';
+        showToast('Save failed: ' + err.message, 'error');
+    }
+}
+
+// Offline approximation of the server-side normalization used by
+// netlify/functions/lib/content-filter.mjs — good enough to preview
+// how a sample would be classified.
+const MOD_LOOKALIKES = {
+    '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b', '9': 'g',
+    '@': 'a', '$': 's', '!': 'i', '|': 'i', '+': 't', '€': 'e', '£': 'l', '¥': 'y',
+    'а': 'a', 'в': 'b', 'е': 'e', 'к': 'k', 'м': 'm', 'н': 'h', 'о': 'o', 'р': 'p',
+    'с': 'c', 'т': 't', 'у': 'y', 'х': 'x', 'і': 'i', 'ѕ': 's', 'ԁ': 'd', 'ј': 'j',
+    'α': 'a', 'β': 'b', 'γ': 'g', 'ε': 'e', 'ι': 'i', 'κ': 'k', 'ο': 'o', 'ρ': 'p',
+    'σ': 's', 'τ': 't', 'υ': 'u', 'χ': 'x', 'ɡ': 'g', 'ℓ': 'l', '０': '0'
+};
+
+function modNormalize(raw, { compact = false } = {}) {
+    let s = String(raw || '').toLowerCase();
+    // Strip diacritics / unicode lookalike forms
+    s = s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+    // Strip zero-width chars, soft hyphens, bidi controls
+    s = s.replace(/[\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2064\u206a-\u206f\ufeff]/g, '');
+    // Map lookalikes (cyrillic/greek homoglyphs, leetspeak digits/symbols)
+    s = Array.from(s).map(ch => MOD_LOOKALIKES[ch] || ch).join('');
+    // Collapse repeated letters ("baaaad" -> "bad")
+    s = s.replace(/([a-z])\1+/g, '$1');
+    if (compact) {
+        // Defeat separator tricks ("b.a.d", "b a d")
+        return s.replace(/[^a-z0-9]/g, '');
+    }
+    // Keep word boundaries, drop remaining punctuation tricks
+    return s.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function runFilterTest() {
+    const s = reviewsState.modState;
+    const resultEl = document.getElementById('mod-test-result');
+    if (!s) return showToast('Filter config not loaded yet', 'error');
+
+    const raw = document.getElementById('mod-test-input').value;
+    if (!raw.trim()) {
+        resultEl.className = 'mod-test-result';
+        resultEl.textContent = '';
+        return showToast('Enter some sample text first', 'error');
+    }
+
+    const spaced = modNormalize(raw);
+    const compact = modNormalize(raw, { compact: true });
+
+    const listHit = (list, kind) => {
+        for (const entry of list) {
+            const w = String(entry || '').trim().toLowerCase();
+            if (!w) continue;
+            const targets = compact.includes(modNormalize(w, { compact: true })) ? ['compact'] : [];
+            if (spaced.includes(modNormalize(w))) targets.push('spaced');
+            if (targets.length) return { kind, entry: w, via: targets[0] };
+        }
+        return null;
+    };
+
+    let hit = listHit(s.bannedWords, 'banned word');
+    let verdict = hit ? 'blocked' : null;
+    let reason = hit ? `Contains banned word "${hit.entry}"` : null;
+
+    if (!verdict) {
+        for (const p of s.bannedPatterns) {
+            const src = String(p || '').trim();
+            if (!src) continue;
+            try {
+                if (new RegExp(src, 'i').test(spaced) || new RegExp(src, 'i').test(compact)) {
+                    verdict = 'blocked';
+                    reason = `Matches banned pattern /${src}/i`;
+                    break;
+                }
+            } catch (e) { /* invalid pattern — server would reject it at save time */ }
+        }
+    }
+
+    if (!verdict) {
+        hit = listHit(s.suspiciousWords, 'suspicious word');
+        if (hit) {
+            verdict = 'pending';
+            reason = `Contains suspicious word "${hit.entry}" — queued for review`;
+        }
+    }
+
+    if (!verdict) {
+        verdict = 'approved';
+        reason = s.aiModerationEnabled
+            ? 'No filter match — would still go through AI moderation'
+            : 'No filter match';
+    }
+
+    const cls = verdict === 'blocked' ? 'pill-danger' : verdict === 'pending' ? 'pill-warning' : 'pill-success';
+    resultEl.className = `mod-test-result`;
+    resultEl.innerHTML = `<span class="pill ${cls}">${verdict}</span> <span class="mod-test-reason">${escapeHTML(reason)}</span>`;
+}
+
+// ----------------------------------------------------------------
+// Stats & activity
+// ----------------------------------------------------------------
+function renderReviewsStats() {
+    if (!reviewsState.loaded) {
+        document.getElementById('revstats-feed').innerHTML = '<div class="loading-placeholder">Loading…</div>';
+        return;
+    }
+
+    const rs = reviewsState.reviews;
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+    const ms = (r) => r.timestamp?.toMillis?.() || 0;
+
+    const total = rs.length;
+    const pending = rs.filter(r => r.moderationStatus === 'pending').length;
+    const approved = rs.filter(r => r.moderationStatus === 'approved').length;
+    const blockedRejected = rs.filter(r => REVIEWS_BLOCKED_SET.includes(r.moderationStatus)).length;
+    const last24h = rs.filter(r => ms(r) >= now - DAY).length;
+    const last7d = rs.filter(r => ms(r) >= now - 7 * DAY).length;
+
+    const stats = [
+        { value: total, label: 'Total reviews' },
+        { value: pending, label: 'Pending' },
+        { value: approved, label: 'Approved' },
+        { value: blockedRejected, label: 'Blocked / rejected' },
+        { value: last24h, label: 'Last 24 hours' },
+        { value: last7d, label: 'Last 7 days' }
+    ];
+    document.getElementById('revstats-grid').innerHTML = stats.map(s => `
+        <div class="stat-card stat-card-static">
+            <div class="stat-icon reviews-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">${s.value}</span>
+                <span class="stat-label">${s.label}</span>
+            </div>
+        </div>`).join('');
+
+    // Recent activity feed (latest 50)
+    const feed = rs.slice(0, 50);
+    document.getElementById('revstats-feed').innerHTML = feed.length === 0
+        ? '<div class="empty-state"><p>No reviews yet</p></div>'
+        : feed.map(r => `
+            <div class="recent-item rev-feed-item">
+                <div class="rev-feed-main">
+                    <span class="recent-item-title">${escapeHTML(r.gameName || r.gameId || 'Unknown game')} ${reviewStatusBadge(r.moderationStatus)}</span>
+                    <span class="recent-item-meta">
+                        ${escapeHTML(r.userDisplayName || 'Unknown')}${r.isGuest ? ' (guest)' : ''}
+                        ${r.rating ? '· ' + Number(r.rating) + '/5' : ''}
+                        ${r.reason ? '· ' + escapeHTML(truncate(r.reason, 90)) : ''}
+                    </span>
+                </div>
+                <span class="recent-item-meta">${formatDate(r.timestamp)}</span>
+            </div>`).join('');
+
+    // Abuse signals
+    const guests = new Set(rs.filter(r => r.isGuest === true && r.userId).map(r => r.userId));
+    const ipCounts = new Map();
+    rs.forEach(r => {
+        const h = r.clientIpHash;
+        if (h) ipCounts.set(h, (ipCounts.get(h) || 0) + 1);
+    });
+    const topIps = Array.from(ipCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+    const abuseEl = document.getElementById('revstats-abuse');
+    const parts = [];
+    parts.push(`<div class="recent-item"><span class="recent-item-title">Distinct guest reviewers</span><span class="recent-item-meta">${guests.size}</span></div>`);
+    if (topIps.length === 0) {
+        parts.push('<div class="recent-item"><span class="recent-item-title">No IP hash data</span><span class="recent-item-meta">—</span></div>');
+    } else {
+        topIps.forEach(([hash, count]) => {
+            parts.push(`
+                <div class="recent-item">
+                    <span class="recent-item-title mono" title="${escapeAttr(hash)}">${escapeHTML(hash.length > 12 ? hash.slice(0, 12) + '…' : hash)}</span>
+                    <span class="recent-item-meta">${count} review${count === 1 ? '' : 's'}</span>
+                </div>`);
+        });
+    }
+    parts.push('<div class="recent-item rev-abuse-note"><span class="recent-item-meta">Rate-limit counters live in <code>review_rate_limits</code> (server-only) and are not readable here. Only pre-hashed IP prefixes are shown — raw IPs are never stored or displayed.</span></div>');
+    abuseEl.innerHTML = parts.join('');
+}
+
 // Only attach the submit listener if the form does NOT already have
 // an inline onsubmit handler (handleLoginInline in index.html).
 // Having both causes handleLogin to fire with an empty DEV_UIDS set
