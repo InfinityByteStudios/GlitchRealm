@@ -1964,6 +1964,7 @@
     </div>
 
     <script src="js/dev-config.js" defer></script>
+    <script src="/js/game-play-notices.js" defer></script>
     <script src="js/script.js" defer></script>
 
     <script>
@@ -3513,6 +3514,13 @@
             if (playBtn) {
                 playBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    if (window.GRPlayNotices && window.GRPlayNotices.hasNotice(card.getAttribute('data-game'))) {
+                        e.preventDefault();
+                        window.GRPlayNotices.showNotice(card.getAttribute('data-game'), () => {
+                            window.open(playBtn.dataset.playUrl, '_blank', 'noopener');
+                        });
+                        return;
+                    }
                     window.open(playBtn.dataset.playUrl, '_blank');
                 });
             }

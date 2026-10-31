@@ -244,6 +244,8 @@
     <!-- Load newest game from Firestore -->
     <script type="module">
         const NEWEST_GAME_CACHE_KEY = 'gr.newestGame.v1';
+        // Games temporarily hidden from the "Newest Game" slot (Firestore doc IDs).
+        const NEWEST_GAME_EXCLUDED_IDS = new Set(['YxnZNN7g1gT0ih5Q1wqo']);
         const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         function renderNewestGame(game) {
@@ -285,6 +287,10 @@
         try {
             const cached = JSON.parse(localStorage.getItem(NEWEST_GAME_CACHE_KEY) || 'null');
             if (cached && cached.id) {
+                if (NEWEST_GAME_EXCLUDED_IDS.has(cached.id)) {
+                    // Cached game is excluded from the "Newest Game" slot; drop the cache.
+                    try { localStorage.removeItem(NEWEST_GAME_CACHE_KEY); } catch (e) {}
+                } else {
                 if (cached.coverImageUrl) {
                     const pre = document.createElement('link');
                     pre.rel = 'preload'; pre.as = 'image'; pre.href = cached.coverImageUrl;
@@ -294,6 +300,7 @@
                 const paint = () => { renderNewestGame(cached); renderedFromCache = true; };
                 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint, { once: true });
                 else paint();
+                }
             }
         } catch (e) {}
 
@@ -321,12 +328,12 @@
                 }
                 const db = window.firebaseFirestore || getFirestore(window.firebaseApp);
                 
-                // Query for the newest published game
+                // Query for the newest published games (a few, so excluded games can be skipped)
                 const gamesQuery = query(
                     collection(db, 'game_submissions'),
                     where('status', '==', 'published'),
                     orderBy('createdAt', 'desc'),
-                    limit(1)
+                    limit(10)
                 );
                 
                 const snapshot = await getDocs(gamesQuery);
@@ -337,7 +344,13 @@
                     return;
                 }
                 
-                const gameDoc = snapshot.docs[0];
+                // Skip games excluded from the "Newest Game" slot
+                const gameDoc = snapshot.docs.find(d => !NEWEST_GAME_EXCLUDED_IDS.has(d.id));
+                if (!gameDoc) {
+                    try { localStorage.removeItem(NEWEST_GAME_CACHE_KEY); } catch (e) {}
+                    document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
+                    return;
+                }
                 const data = gameDoc.data();
                 const game = {
                     id: gameDoc.id,
