@@ -33,6 +33,7 @@
             // Dynamically set auth URL based on environment and attach handler immediately
             (function() {
                 const signInBtn = document.getElementById('sign-in-btn');
+                if (!signInBtn) return;
                 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.');
                 const authUrl = isDev ? '/subdomains/auth/' : 'https://auth.glitchrealm.ca/';
                 
