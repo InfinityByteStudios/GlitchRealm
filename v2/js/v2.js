@@ -426,7 +426,16 @@
       coverEl.alt = title + ' cover';
 
       const playUrl = game.playUrl || '/games.html';
-      document.getElementById('detailPlayButton').setAttribute('href', playUrl);
+      const playLink = document.getElementById('detailPlayButton');
+      playLink.setAttribute('href', playUrl);
+      if (window.GRPlayNotices && window.GRPlayNotices.hasNotice(gameId)) {
+        playLink.addEventListener('click', function (e) {
+          e.preventDefault();
+          window.GRPlayNotices.showNotice(gameId, function () {
+            window.open(playUrl, '_blank', 'noopener');
+          });
+        });
+      }
 
       const timeline = document.getElementById('detailTimeline');
       if (timeline) {
