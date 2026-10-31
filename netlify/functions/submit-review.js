@@ -57,11 +57,12 @@ function corsHeaders(origin) {
 }
 
 function json(statusCode, body, origin) {
-  return {
-    statusCode,
-    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  };
+  // This function runs on the v2 runtime (ES module export), which requires a
+  // web Response — returning a legacy { statusCode, body } object causes a 502.
+  return new Response(JSON.stringify(body), {
+    status: statusCode,
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' }
+  });
 }
 
 function hashKey(value) {
@@ -232,7 +233,7 @@ export default async (req, context) => {
   const origin = req.headers.get('origin') || '';
 
   if (req.method === 'OPTIONS') {
-    return { statusCode: 204, headers: corsHeaders(origin), body: '' };
+    return new Response(null, { status: 204, headers: corsHeaders(origin) });
   }
   if (req.method !== 'POST') {
     return json(405, { error: 'Method not allowed' }, origin);
