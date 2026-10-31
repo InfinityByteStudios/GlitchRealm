@@ -298,6 +298,11 @@
                 </button>
 
                 <span class="nav-label">Moderation</span>
+                <button class="nav-item" data-section="reviews">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span class="nav-text">Reviews</span>
+                    <span class="nav-count nav-count-alert" id="nav-count-reviews" hidden></span>
+                </button>
                 <button class="nav-item" data-section="reports">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                     <span class="nav-text">Reports</span>
@@ -571,6 +576,109 @@
                 </div>
                 <div id="reports-list" class="items-list"><div class="loading-placeholder">Loading…</div></div>
             </section>
+
+            <!-- Section: Reviews -->
+            <section id="sec-reviews" class="content-section">
+                <div class="subtabs" id="reviews-subtabs" role="tablist" aria-label="Reviews sub-sections">
+                    <button type="button" class="subtab active" data-subtab="queue" role="tab" aria-selected="true">Moderation queue</button>
+                    <button type="button" class="subtab" data-subtab="filters" role="tab" aria-selected="false">Filter words</button>
+                    <button type="button" class="subtab" data-subtab="stats" role="tab" aria-selected="false">Stats &amp; activity</button>
+                </div>
+
+                <!-- Sub-tab: Moderation queue -->
+                <div id="reviews-panel-queue" class="subtab-panel active">
+                    <div class="filter-tabs" id="reviews-status-tabs" role="tablist" aria-label="Review status filter">
+                        <button type="button" class="filter-tab active" data-status="pending">Pending <span class="tab-count" id="revcount-pending">–</span></button>
+                        <button type="button" class="filter-tab" data-status="blocked">Blocked <span class="tab-count" id="revcount-blocked">–</span></button>
+                        <button type="button" class="filter-tab" data-status="approved">Approved <span class="tab-count" id="revcount-approved">–</span></button>
+                        <button type="button" class="filter-tab" data-status="all">All <span class="tab-count" id="revcount-all">–</span></button>
+                    </div>
+                    <div class="section-controls">
+                        <div class="search-group grow">
+                            <input type="search" id="reviews-search" placeholder="Search by game or reviewer…" aria-label="Search reviews">
+                        </div>
+                        <button class="btn-secondary" id="reviews-reload-btn">Reload</button>
+                    </div>
+                    <div id="reviews-count-line" class="subtle-text rev-count-line"></div>
+                    <div id="reviews-list" class="items-list"><div class="loading-placeholder">Loading…</div></div>
+                </div>
+
+                <!-- Sub-tab: Filter word manager -->
+                <div id="reviews-panel-filters" class="subtab-panel">
+                    <div class="banner-creator narrow">
+                        <div class="card-head">
+                            <h3>Content filter configuration</h3>
+                            <p class="subtle-text">Stored in <code>moderation_config/filters</code> and merged over the built-in defaults used by <code>submit-review</code>. Saving replaces the whole document.</p>
+                        </div>
+
+                        <div class="toggle-row">
+                            <label class="switch" for="mod-ai-enabled">
+                                <input type="checkbox" id="mod-ai-enabled">
+                                <span class="switch-track" aria-hidden="true"></span>
+                                <span class="switch-label">AI moderation enabled</span>
+                            </label>
+                        </div>
+                        <p class="subtle-text toggle-hint">When off, only the word filter decides — nothing is queued for AI review.</p>
+
+                        <div class="mod-list-editor" id="mod-editor-bannedWords">
+                            <h4 class="sub-heading">Banned words</h4>
+                            <p class="subtle-text">Reviews containing any of these (after normalization) are rejected outright and never stored.</p>
+                            <div class="word-rows" data-field="bannedWords"></div>
+                            <button type="button" class="btn-ghost btn-sm mod-add-word" data-field="bannedWords">+ Add word</button>
+                        </div>
+
+                        <div class="mod-list-editor" id="mod-editor-suspiciousWords">
+                            <h4 class="sub-heading">Suspicious words</h4>
+                            <p class="subtle-text">Reviews containing any of these are queued as pending for human review.</p>
+                            <div class="word-rows" data-field="suspiciousWords"></div>
+                            <button type="button" class="btn-ghost btn-sm mod-add-word" data-field="suspiciousWords">+ Add word</button>
+                        </div>
+
+                        <div class="mod-list-editor" id="mod-editor-bannedPatterns">
+                            <h4 class="sub-heading">Banned regex patterns</h4>
+                            <p class="subtle-text">Regular expression source strings, compiled case-insensitive on the server. For catch-all bypass detection.</p>
+                            <div class="word-rows" data-field="bannedPatterns"></div>
+                            <button type="button" class="btn-ghost btn-sm mod-add-word" data-field="bannedPatterns">+ Add pattern</button>
+                        </div>
+
+                        <div class="mod-test-box">
+                            <h4 class="sub-heading">Test the filter</h4>
+                            <p class="subtle-text">Paste sample text to see how it would be classified. Runs an offline approximation of the server's normalization (lookalikes, leetspeak, repeated letters, separators), so results are indicative only.</p>
+                            <textarea id="mod-test-input" rows="3" maxlength="1000" placeholder="Paste a sample review comment…"></textarea>
+                            <div class="form-actions" style="border-top:none; padding-top:10px; margin-top:0;">
+                                <button type="button" class="btn-secondary" id="mod-test-btn">Test classification</button>
+                                <span id="mod-test-result" class="mod-test-result"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <span id="mod-save-status" class="inline-status"></span>
+                            <button type="button" class="btn-primary" id="mod-save-btn">Save filter config</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-tab: Stats & activity -->
+                <div id="reviews-panel-stats" class="subtab-panel">
+                    <div class="stats-grid" id="revstats-grid"></div>
+                    <div class="dashboard-recent">
+                        <div class="recent-panel">
+                            <div class="panel-head">
+                                <h3>Recent activity</h3>
+                                <span class="subtle-text">Latest 50 reviews, newest first</span>
+                            </div>
+                            <div id="revstats-feed" class="recent-list"><div class="loading-placeholder">Loading…</div></div>
+                        </div>
+                        <div class="recent-panel">
+                            <div class="panel-head">
+                                <h3>Abuse signals</h3>
+                            </div>
+                            <div id="revstats-abuse" class="recent-list"><div class="loading-placeholder">Loading…</div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
 
             <!-- Section: Staff Status -->
             <section id="sec-staff-status" class="content-section">
