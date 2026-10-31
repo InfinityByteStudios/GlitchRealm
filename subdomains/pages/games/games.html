@@ -1833,6 +1833,7 @@
                     placeholder="Share your thoughts about this game... (Max 500 characters)"
                     maxlength="500"></textarea>
                 <div id="charCounter" class="character-counter">0/500</div>
+                <input type="text" id="reviewWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none !important; position:absolute; left:-9999px;">
             </div>
 
             <div id="reviewMessage"></div>
@@ -1984,17 +1985,13 @@
             document.getElementById('reviewModal').style.display = 'block';
             document.body.style.overflow = 'hidden'; // Prevent background scrolling
             
-            // Check if user is signed in
-            if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
-                // Show reviews only mode - hide submission form
-                hideSubmissionForm();
-                updateModalTitle('REVIEWS - ' + gameName.toUpperCase());
-            } else {
-                // Show full review modal with submission form
-                showSubmissionForm();
-                updateModalTitle('LEAVE A REVIEW');
-                resetReviewForm();
-            }
+            // Reviews no longer require the sign-in button: open the form right
+            // away, then silently establish a session (anonymous for guests) in
+            // the background. If that fails, fall back to reviews-only mode.
+            showSubmissionForm();
+            updateModalTitle('LEAVE A REVIEW');
+            resetReviewForm();
+            attemptReviewerSession();
             
             // Start realtime reviews for this game when modal opens
             try {
@@ -2017,6 +2014,44 @@
             // Stop realtime listeners when modal closes
             try { if (typeof stopLiveModalReviews === 'function') stopLiveModalReviews(); } catch {}
         };
+
+        // Silently establish a review session without any sign-in UI.
+        // Guests get an ephemeral anonymous Firebase account; returning
+        // visitors with a real session keep using it.
+        async function attemptReviewerSession() {
+            try {
+                await (window.firebaseReady || new Promise((resolve) => window.addEventListener('firebaseCoreReady', resolve, { once: true })));
+            } catch {}
+
+            if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                showSubmissionForm();
+                updateModalTitle('LEAVE A REVIEW');
+                return;
+            }
+
+            try {
+                const { signInAnonymously } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                await signInAnonymously(window.firebaseAuth);
+                logger.log('✅ Anonymous review session established');
+                showSubmissionForm();
+                updateModalTitle('LEAVE A REVIEW');
+            } catch (err) {
+                logger.log('⚠️ Anonymous review session unavailable:', err && err.message);
+                hideSubmissionForm();
+                updateModalTitle('REVIEWS - ' + currentGameName.toUpperCase());
+            }
+        }
+
+        // Stable per-device display name for guest reviews.
+        function getGuestDisplayName() {
+            let name = null;
+            try { name = localStorage.getItem('gr_guest_name'); } catch {}
+            if (!name) {
+                name = 'Guest-' + Math.floor(1000 + Math.random() * 9000);
+                try { localStorage.setItem('gr_guest_name', name); } catch {}
+            }
+            return name;
+        }
 
         function hideSubmissionForm() {
             // Hide review submission elements for non-logged in users
@@ -2067,7 +2102,7 @@
                 gameInfo.innerHTML = `
                     <strong id="reviewGameName">${currentGameName}</strong>
                     <div class="login-prompt">
-                        <p>Want to leave a review? <a href="#" class="login-link" onclick="triggerSignIn(event)">Sign in here</a></p>
+                        <p>Review submission is temporarily unavailable. You can still read reviews below.</p>
                     </div>
                 `;
             }
@@ -2350,15 +2385,16 @@
             return { status: 'approved', reason: 'content approved automatically' };
         }
 
-        function submitReview() {
+        async function submitReview() {
             logger.log('🔍 submitReview() called');
             
-            // Double-check authentication before submitting
+            // No sign-in required: make sure a (possibly anonymous) session exists.
             if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
-                logger.log('❌ No authenticated user found');
-                showMessage('❌ Error: You must be signed in to submit a review. Please sign in and try again.', 'error');
-                closeReviewModal();
-                showSignInError(currentGameName);
+                await attemptReviewerSession();
+            }
+            if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                logger.log('❌ Could not establish a review session');
+                showMessage('❌ Review submission is temporarily unavailable. Please try again later.', 'error');
                 return;
             }
 
@@ -2386,22 +2422,16 @@
             logger.log('🔍 Content check result:', contentCheck);
             
             const authUser = window.firebaseAuth.currentUser;
-            const derivedDisplayName = authUser.displayName || (authUser.email ? authUser.email.split('@')[0] : 'Anonymous User');
+            const isGuestUser = authUser.isAnonymous || (!authUser.displayName && !authUser.email);
+            const derivedDisplayName = authUser.displayName || (authUser.email ? authUser.email.split('@')[0] : getGuestDisplayName());
             const derivedPhoto = authUser.photoURL || 'assets/icons/anonymous.png';
-            // Firestore rules require: rating int 1-5, timestamp is timestamp (use serverTimestamp), moderationStatus value in list
-            // We'll map blocked -> 'blocked', pending->'pending', approved->'approved'.
-            const normalizedStatus = (contentCheck.status === 'blocked') ? 'blocked' : (contentCheck.status === 'pending' ? 'pending' : 'approved');
             const review = {
                 gameId: currentGameId,
                 gameName: currentGameName.substring(0,100),
                 rating: Math.min(5, Math.max(1, Math.round(currentRating))),
                 comment: comment.substring(0,500),
-                moderationStatus: normalizedStatus,
-                timestamp: window.firestoreServerTimestamp ? window.firestoreServerTimestamp() : new Date(),
-                userId: authUser.uid,
-                userDisplayName: derivedDisplayName.substring(0,50),
-                authorPhotoUrl: derivedPhoto.substring(0,2000),
-                reason: contentCheck.reason.substring(0,200)
+                userDisplayName: (isGuestUser ? getGuestDisplayName() : derivedDisplayName).substring(0,50),
+                authorPhotoUrl: derivedPhoto.substring(0,2000)
             };
 
             logger.log('📋 Review object created:', review);
@@ -2415,58 +2445,70 @@
                 return;
             }
 
-            logger.log('🚀 Attempting to submit to Firestore...');
+            logger.log('🚀 Submitting review via server-side intake...');
 
-            // Submit to Firestore using the same method that worked for test review
-            window.firestoreAddDoc(window.firestoreCollection(window.firebaseFirestore, 'reviews'), review)
-                .then(async (docRef) => {
-                    logger.log('✅ SUCCESS! Review written with ID: ', docRef.id);
-                    logger.log('🔗 Document reference:', docRef);
-                    logger.log('📊 Check Firebase Console - review should be in reviews collection!');
-                    
-                    // Also save to localStorage for demo purposes
-                    saveReview({...review, id: docRef.id});
-
-                    // Reset button state
-                    submitBtn.innerHTML = 'Submit Review';
-                    submitBtn.disabled = false;
-
-                    // Show appropriate message based on content check
-                    if (contentCheck.status === 'pending') {
-                        showMessage('⏳ Review Submitted! Your review is pending moderation and will be visible once approved by our team. Thank you!', 'warning');
-                        
-                        // Show a notification for pending review
-                        showSuccessNotification('Review Submitted for Moderation', 'Your review has been received and will be reviewed by our team shortly.');
-                        
-                        // Update rating display after a short delay
-                        setTimeout(async () => {
-                            const ratingData = await calculateAverageRating(currentGameId);
-                            updateRatingDisplay(currentGameId, ratingData);
-                        }, 500);
-                        setTimeout(() => closeReviewModal(), 3000);
-                    } else {
-                        showMessage('✅ SUCCESS! Your review has been submitted and is now live! Thank you for sharing your feedback.', 'success');
-                        
-                        // Show a prominent success notification
-                        showSuccessNotification('Review Submitted Successfully!', 'Your review is now visible to everyone. Thank you for contributing to the community!');
-                        
-                        // Refresh the reviews display in the modal
-                        refreshModalReviews();
-                        // Update the rating display for this game
-                        setTimeout(async () => {
-                            const ratingData = await calculateAverageRating(currentGameId);
-                            updateRatingDisplay(currentGameId, ratingData);
-                        }, 500);
-                        setTimeout(() => closeReviewModal(), 3000);
-                    }
-                })
-                .catch((error) => {
-                    console.error('❌ FIRESTORE ERROR:', error);
-                    logger.log('Full error details:', error.message);
-                    showMessage('❌ Error submitting review: ' + error.message, 'error');
-                    submitBtn.innerHTML = 'Submit Review';
-                    submitBtn.disabled = false;
+            try {
+                const idToken = await authUser.getIdToken();
+                const honeypotEl = document.getElementById('reviewWebsite');
+                const resp = await fetch('/.netlify/functions/submit-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        idToken,
+                        gameId: review.gameId,
+                        gameName: review.gameName,
+                        rating: review.rating,
+                        comment: review.comment,
+                        userDisplayName: review.userDisplayName,
+                        authorPhotoUrl: review.authorPhotoUrl,
+                        website: honeypotEl ? honeypotEl.value : ''
+                    })
                 });
+
+                const result = await resp.json().catch(() => ({}));
+
+                if (!resp.ok) {
+                    logger.log('❌ Server rejected review:', resp.status, result);
+                    showMessage('❌ Error submitting review: ' + (result.error || 'Please try again later.'), 'error');
+                    submitBtn.innerHTML = 'Submit Review';
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                logger.log('✅ Server accepted review:', result);
+
+                // Mirror to localStorage for offline/demo fallbacks
+                saveReview({ ...review, moderationStatus: result.status, reason: result.reason, id: result.id, userId: authUser.uid });
+
+                submitBtn.innerHTML = 'Submit Review';
+                submitBtn.disabled = false;
+
+                if (result.status === 'blocked') {
+                    showMessage('❌ Your review contains inappropriate content and cannot be submitted. Please revise your comment and try again.', 'error');
+                    return;
+                }
+
+                if (result.status === 'pending') {
+                    showMessage('⏳ Review Submitted! Your review is pending moderation and will be visible once approved by our team. Thank you!', 'warning');
+                    showSuccessNotification('Review Submitted for Moderation', 'Your review has been received and will be reviewed by our team shortly.');
+                } else {
+                    showMessage('✅ SUCCESS! Your review has been submitted and is now live! Thank you for sharing your feedback.', 'success');
+                    showSuccessNotification('Review Submitted Successfully!', 'Your review is now visible to everyone. Thank you for contributing to the community!');
+                    refreshModalReviews();
+                }
+
+                setTimeout(async () => {
+                    const ratingData = await calculateAverageRating(currentGameId);
+                    updateRatingDisplay(currentGameId, ratingData);
+                }, 500);
+                setTimeout(() => closeReviewModal(), 3000);
+            } catch (error) {
+                console.error('❌ REVIEW SUBMIT ERROR:', error);
+                logger.log('Full error details:', error.message);
+                showMessage('❌ Error submitting review: ' + error.message, 'error');
+                submitBtn.innerHTML = 'Submit Review';
+                submitBtn.disabled = false;
+            }
         }
 
         function saveReview(review) {
