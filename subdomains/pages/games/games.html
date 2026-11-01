@@ -2832,29 +2832,46 @@
                     scheduleModalReviewsRender();
                     return;
                 }
-                // Firestore 'in' supports up to 10 ids; we limit reviews to 10 so this is safe
+                // Firestore 'in' supports up to 10 ids per query, so chunk the ids.
+                // No orderBy: avoids the composite index requirement — replies are
+                // sorted in memory (oldest first) after each snapshot.
                 const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
                 const repliesRef = window.firestoreCollection(window.firebaseFirestore, 'review_replies');
-                const q = f.query(
-                    repliesRef,
-                    f.where('reviewId', 'in', reviewIds),
-                    f.orderBy('timestamp', 'asc')
-                );
-                __modalReviews.unsubReplies = f.onSnapshot(q, (snap) => {
-                    try {
-                        const tmp = new Map();
-                        snap.forEach(d => {
-                            const reply = { id: d.id, ...d.data() };
-                            const arr = tmp.get(reply.reviewId) || [];
-                            arr.push(reply);
-                            tmp.set(reply.reviewId, arr);
-                        });
-                        __modalReviews.repliesMap = tmp;
-                        scheduleModalReviewsRender();
-                    } catch (e) { console.error('[reviews modal] replies snapshot err:', e); }
-                }, (err) => {
-                    console.error('[reviews modal] replies realtime error:', err);
-                });
+                const replyTs = (v) => {
+                    if (!v) return 0;
+                    if (typeof v === 'number') return v;
+                    if (typeof v.toMillis === 'function') return v.toMillis();
+                    const t = Date.parse(v);
+                    return isNaN(t) ? 0 : t;
+                };
+                const unsubs = [];
+                __modalReviews.unsubReplies = () => { unsubs.forEach(u => { try { u(); } catch {} }); };
+                for (let i = 0; i < reviewIds.length; i += 10) {
+                    const chunk = reviewIds.slice(i, i + 10);
+                    const q = f.query(
+                        repliesRef,
+                        f.where('reviewId', 'in', chunk)
+                    );
+                    unsubs.push(f.onSnapshot(q, (snap) => {
+                        try {
+                            const tmp = new Map();
+                            snap.forEach(d => {
+                                const reply = { id: d.id, ...d.data() };
+                                const arr = tmp.get(reply.reviewId) || [];
+                                arr.push(reply);
+                                tmp.set(reply.reviewId, arr);
+                            });
+                            tmp.forEach((arr, key) => {
+                                const merged = (__modalReviews.repliesMap.get(key) || []).concat(arr);
+                                const seen = new Set();
+                                __modalReviews.repliesMap.set(key, merged.filter(r => !seen.has(r.id) && seen.add(r.id)).sort((a, b) => replyTs(a.timestamp) - replyTs(b.timestamp)));
+                            });
+                            scheduleModalReviewsRender();
+                        } catch (e) { console.error('[reviews modal] replies snapshot err:', e); }
+                    }, (err) => {
+                        console.error('[reviews modal] replies realtime error:', err);
+                    }));
+                }
             } catch (e) {
                 console.error('[reviews modal] failed to attach replies listener:', e);
             }
@@ -2884,12 +2901,13 @@
                     try { return new Date(ts).getTime() || 0; } catch { return 0; }
                 }
 
+                // Note: these queries intentionally avoid orderBy/limit so they
+                // never require a composite Firestore index; sorting happens in
+                // memory (scheduleModalReviewsRender sorts by timestamp desc).
                 const approvedQ = f.query(
                     reviewsRef,
                     f.where('gameId', '==', gameId),
-                    f.where('moderationStatus', '==', 'approved'),
-                    f.orderBy('timestamp', 'desc'),
-                    f.limit(10)
+                    f.where('moderationStatus', '==', 'approved')
                 );
                 __modalReviews.unsubApproved = f.onSnapshot(approvedQ, (snap) => {
                     try {
@@ -2917,9 +2935,7 @@
                     const pendingQ = f.query(
                         reviewsRef,
                         f.where('gameId', '==', gameId),
-                        f.where('moderationStatus', '==', 'pending'),
-                        f.orderBy('timestamp', 'desc'),
-                        f.limit(10)
+                        f.where('moderationStatus', '==', 'pending')
                     );
                     __modalReviews.unsubPending = f.onSnapshot(pendingQ, (snap) => {
                         try {
@@ -2988,23 +3004,19 @@
                 ];
                 const isPrivileged = currentUid && (developerUIDs.includes(currentUid) || adminUIDs.includes(currentUid));
 
-                // Note: Firestore doesn't support 'in' on same field with orderBy easily; we fetch approved first,
-                // and if privileged, we also fetch pending and merge. This avoids composite index issues.
+                // Note: no orderBy/limit here either — avoids the composite index
+                // requirement. Sort in memory (newest first) and cap at 10.
                 const baseQuery = query(
                     reviewsRef,
                     where('gameId', '==', gameId),
-                    where('moderationStatus', '==', 'approved'),
-                    orderBy('timestamp', 'desc'),
-                    limit(10)
+                    where('moderationStatus', '==', 'approved')
                 );
                 let querySnapshots = [await getDocs(baseQuery)];
                 if (isPrivileged) {
                     const pendingQuery = query(
                         reviewsRef,
                         where('gameId', '==', gameId),
-                        where('moderationStatus', '==', 'pending'),
-                        orderBy('timestamp', 'desc'),
-                        limit(10)
+                        where('moderationStatus', '==', 'pending')
                     );
                     querySnapshots.push(await getDocs(pendingQuery));
                 }
@@ -3015,6 +3027,15 @@
                         reviews.push({ id: doc.id, ...doc.data() });
                     });
                 }
+                const ts = (v) => {
+                    if (!v) return 0;
+                    if (typeof v === 'number') return v;
+                    if (typeof v.toMillis === 'function') return v.toMillis();
+                    const t = Date.parse(v);
+                    return isNaN(t) ? 0 : t;
+                };
+                reviews.sort((a, b) => ts(b.timestamp) - ts(a.timestamp));
+                reviews.length = Math.min(reviews.length, 10);
                 
                 // Load replies for all reviews
                 const reviewsWithReplies = await loadRepliesForReviews(reviews);
@@ -3048,7 +3069,7 @@
         async function loadRepliesForReviews(reviews) {
             try {
                 // Import query functions
-                const { query, where, orderBy, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const { query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
                 
                 // Get all review IDs
                 const reviewIds = reviews.map(review => review.id);
@@ -3057,24 +3078,32 @@
                     return reviews;
                 }
                 
-                // Query all replies for these reviews
-                const repliesRef = window.firestoreCollection(window.firebaseFirestore, 'review_replies');
-                const repliesQuery = query(
-                    repliesRef,
-                    where('reviewId', 'in', reviewIds),
-                    orderBy('timestamp', 'asc')
-                );
+                const replyTs = (v) => {
+                    if (!v) return 0;
+                    if (typeof v === 'number') return v;
+                    if (typeof v.toMillis === 'function') return v.toMillis();
+                    const t = Date.parse(v);
+                    return isNaN(t) ? 0 : t;
+                };
                 
-                const repliesSnapshot = await getDocs(repliesQuery);
+                // Query all replies for these reviews ('in' supports max 10 ids per
+                // query; no orderBy so no composite index is required — sort in memory)
+                const repliesRef = window.firestoreCollection(window.firebaseFirestore, 'review_replies');
                 const repliesMap = {};
                 
-                repliesSnapshot.forEach((doc) => {
-                    const reply = { id: doc.id, ...doc.data() };
-                    if (!repliesMap[reply.reviewId]) {
-                        repliesMap[reply.reviewId] = [];
-                    }
-                    repliesMap[reply.reviewId].push(reply);
-                });
+                for (let i = 0; i < reviewIds.length; i += 10) {
+                    const chunk = reviewIds.slice(i, i + 10);
+                    const repliesQuery = query(repliesRef, where('reviewId', 'in', chunk));
+                    const repliesSnapshot = await getDocs(repliesQuery);
+                    repliesSnapshot.forEach((doc) => {
+                        const reply = { id: doc.id, ...doc.data() };
+                        if (!repliesMap[reply.reviewId]) {
+                            repliesMap[reply.reviewId] = [];
+                        }
+                        repliesMap[reply.reviewId].push(reply);
+                    });
+                }
+                Object.values(repliesMap).forEach(arr => arr.sort((a, b) => replyTs(a.timestamp) - replyTs(b.timestamp)));
                 
                 // Add replies to reviews
                 const reviewsWithReplies = reviews.map(review => ({
