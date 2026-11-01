@@ -283,8 +283,11 @@ const authStateRecovery = {
   },
   
   // Update UI based on auth state
-  updateUIForAuthState(user) {
+  updateUIForAuthState(rawUser) {
     try {
+      // Anonymous sessions are created silently for guest reviews; they must
+      // not make the header look "logged in".
+      const user = rawUser && rawUser.isAnonymous ? null : rawUser;
       const signInBtn = document.getElementById('sign-in-btn');
       const userProfile = document.getElementById('user-profile');
       const userName = document.getElementById('user-name');
