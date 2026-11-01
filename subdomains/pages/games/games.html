@@ -2642,7 +2642,11 @@
 
         // Function to update rating display for a specific game
         function updateRatingDisplay(gameId, ratingData) {
-            const ratingElement = document.querySelector(`[data-game-id="${gameId}"]`);
+            // IMPORTANT: scope the selector to .rating-display. Community game
+            // cards also render a wishlist button carrying data-game-id earlier
+            // in the DOM, and a bare [data-game-id] lookup used to match that
+            // button instead — leaving the counter stuck at "N/A (0)".
+            const ratingElement = document.querySelector(`.rating-display[data-game-id="${gameId}"]`);
             
             if (ratingElement) {
                 if (ratingData.count > 0) {

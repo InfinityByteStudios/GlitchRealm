@@ -1638,7 +1638,10 @@ async function initializeAuth() {
     }
 
     // Auth state observer with profile monitoring
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, (rawUser) => {
+        // Anonymous sessions are created silently just to let guests leave
+        // reviews; they must not make the header look "logged in".
+        const user = rawUser && rawUser.isAnonymous ? null : rawUser;
         const notificationBell = document.getElementById('notification-bell');
         const moderationMenuBtn = document.getElementById('moderation-menu-btn');
         
@@ -1721,13 +1724,11 @@ async function initializeAuth() {
     // Listen for auth state changes from other tabs/windows
     window.addEventListener('storage', (e) => {
         if (e.key === 'firebase_auth_state') {
-            
-            // Force auth state refresh
-            if (auth.currentUser) {
-                updateUserProfile(auth.currentUser);
-            } else {
-                // Auth state might have changed, let Firebase handle it
-                auth.currentUser; // This triggers internal check
+            // Force auth state refresh (anonymous guest sessions are not a
+            // signed-in profile; skip them so the header stays "signed out")
+            const user = auth.currentUser;
+            if (user && !user.isAnonymous) {
+                updateUserProfile(user);
             }
         }
     });
@@ -1736,7 +1737,7 @@ async function initializeAuth() {
     window.addEventListener('firebaseAuthStateChanged', (e) => {
         const user = e.detail?.user;
         
-        if (user) {
+        if (user && !user.isAnonymous) {
             // Ensure UI is updated even if onAuthStateChanged already fired
             setTimeout(() => {
                 if (auth.currentUser) {
