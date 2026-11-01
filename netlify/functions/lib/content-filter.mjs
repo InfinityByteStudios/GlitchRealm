@@ -47,12 +47,18 @@ const DEFAULT_BANNED_PATTERNS = [
   /\bl+[o0*@#$%^&+=_\-~`|\\/ ]*s+[e3*@#$%^&+=_\-~`|\\/ ]*r+\b/i,
   /\bn+[o0*@#$%^&+=_\-~`|\\/ ]*[o0*@#$%^&+=_\-~`|\\/ ]*b+\b/i,
   /\bs+[ck]+r+u+b+\b/i,
-  /\bt+[o0*@#$%^&+=_\-~`|\\/ ]*x+[i1*@#$%^&+=_\-~`|\\/ ]*[ck]+\b/i
+  /\bt+[o0*@#$%^&+=_\-~`|\\/ ]*x+[i1*@#$%^&+=_\-~`|\\/ ]*[ck]+\b/i,
+  // Slur bypass patterns: `+` quantifiers keep matching when letters are
+  // doubled ("niggerr") or mask characters are inserted between letters.
+  /\bn+[i1!*@#$%^&+=_\-~`|\\/ ]*g+g+[a4e3*@#$%^&+=_\-~`|\\/ ]*r+\b/i,
+  /\bn+i+g+g+a+s*\b/i,
+  /\bf+[a4@*@#$%^&+=_\-~`|\\/ ]*g+g+[o0*@#$%^&+=_\-~`|\\/ ]*t+\b/i,
+  /\bf+a+g+s*\b/i
 ];
 
 const LEET_MAP = {
   '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b',
-  '@': 'a', '$': 's', '!': 'i', '|': 'l', '+': 't', '€': 'e', '£': 'l'
+  '9': 'g', '@': 'a', '$': 's', '!': 'i', '|': 'l', '+': 't', '€': 'e', '£': 'l'
 };
 
 // Common unicode lookalikes used to slip words past plain filters.
@@ -104,6 +110,13 @@ export function createContentFilter(config = {}) {
 
   // Build word-boundary regexes once instead of per submission.
   const bannedWordRegexes = bannedWords.map((word) => ({
+    word,
+    regex: new RegExp('\\b' + escapeRegex(word) + '\\b', 'i')
+  }));
+
+  // Suspicious words also match on word boundaries — plain substring search
+  // on the compact variations false-positives ("game had" contains "meh").
+  const suspiciousWordRegexes = suspiciousWords.map((word) => ({
     word,
     regex: new RegExp('\\b' + escapeRegex(word) + '\\b', 'i')
   }));
@@ -175,9 +188,9 @@ export function createContentFilter(config = {}) {
       }
     }
 
-    for (const word of suspiciousWords) {
+    for (const { word, regex } of suspiciousWordRegexes) {
       for (const variation of variations) {
-        if (variation.includes(word)) {
+        if (regex.test(variation)) {
           matches.push({ type: 'suspicious-word', word });
           return {
             status: 'pending',

@@ -27,9 +27,9 @@ const IP_HOURLY_LIMIT = 10;               // per IP: max reviews per UTC hour
 const IP_DAILY_LIMIT = 25;                // per IP: max reviews per UTC day
 
 // AI moderation — NVIDIA's dedicated content-safety classifier, served
-// through the Netlify AI Gateway (OpenRouter provider path).
+// through the site's Netlify AI Gateway proxy (all models under /api/v1).
 const AI_MODEL = 'nvidia/nemotron-3.5-content-safety';
-const AI_TIMEOUT_MS = 8000;
+const AI_TIMEOUT_MS = 12000;
 
 let adminApp;
 
@@ -186,7 +186,7 @@ async function runAiModeration(comment) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
   try {
-    const resp = await fetch(`${gatewayUrl}/openrouter/v1/chat/completions`, {
+    const resp = await fetch(`${gatewayUrl}/api/v1/chat/completions`, {
       method: 'POST',
       signal: controller.signal,
       headers: {
@@ -195,7 +195,10 @@ async function runAiModeration(comment) {
       },
       body: JSON.stringify({
         model: AI_MODEL,
-        max_tokens: 100,
+        // This is a reasoning model: internal reasoning consumes output tokens
+        // before the final verdict, so the budget must be generous or the
+        // response comes back with `content: null`.
+        max_tokens: 2000,
         temperature: 0,
         messages: [
           {
