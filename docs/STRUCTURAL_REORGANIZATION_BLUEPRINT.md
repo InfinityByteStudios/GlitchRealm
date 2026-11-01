@@ -59,6 +59,10 @@ This is the structure being reorganized. `functions/node_modules/` is intentiona
 
 ```text
 /
+├── netlify.toml                           [CANONICAL: must remain at repo root]
+├── firebase.json                          [CANONICAL: Firebase CLI entry point]
+├── .firebaserc                            [CANONICAL: Firebase project selection]
+├── package.json                           [root dependency resolution for Netlify]
 ├── apps/
 │   ├── main/public/                         [NEW: main glitchrealm.ca site]
 │   │   ├── index.html
@@ -108,10 +112,8 @@ This is the structure being reorganized. `functions/node_modules/` is intentiona
 │   └── netlify/functions/                     [moved from /netlify/functions]
 ├── infrastructure/
 │   ├── netlify/
-│   │   ├── main.toml
+│   │   ├── main.toml                    [reference/overlay; root netlify.toml is canonical]
 │   │   └── subdomains/
-│   ├── firebase.json
-│   ├── .firebaserc
 │   ├── lighthouse/
 │   └── supabase/
 ├── tooling/                                   [moved from /scripts]
@@ -121,11 +123,11 @@ This is the structure being reorganized. `functions/node_modules/` is intentiona
 │   └── legacy-html/
 ├── docs/                                      [retained]
 ├── subdomains/School/                         [FROZEN: do not touch]
-├── package.json                               [tooling manifest]
+├── package.json                               [tooling and Netlify dependency manifest]
 └── LICENSE, LICENSE-ASSETS, NOTICE, README.md
 ```
 
-The target structure separates deployable applications, backend services, infrastructure, tooling, tests, and documentation. `subdomains/School/` remains in place and is frozen.
+The target structure separates deployable applications, backend services, infrastructure, tooling, tests, and documentation. Netlify and Firebase root entry points intentionally remain at the repository root because both CLIs resolve these files by convention. `subdomains/School/` remains in place and is frozen.
 
 The deployed URL structure should remain unchanged. Netlify publish directories must point to the appropriate `apps/*/public` directory, so `/js/...`, `/css/...`, `/pages/...`, and `/components/...` continue resolving from the same public URLs.
 
@@ -153,13 +155,14 @@ The deployed URL structure should remain unchanged. Netlify publish directories 
 | `utilities/SiteMaps/` | `tooling/sitemaps/` | Treat generated sitemap artifacts as tooling output. |
 | `utilities/tests/` | `tests/legacy-html/` | Remove test pages from production publishing. |
 | `functions/` | `services/firebase/functions/` | Establish a clear Firebase backend boundary. |
-| `netlify/functions/` | `services/netlify/functions/` | Isolate Netlify serverless endpoints. |
+| `netlify/functions/` | `services/netlify/functions/` | Isolate Netlify serverless endpoints; requires a root `[functions] directory = "services/netlify/functions"` setting. |
 | `config/firestore.rules`, `storage.rules`, `database.rules.json`, `firestore.indexes.json` | `services/firebase/` | Keep Firebase security and indexing beside Firebase functions. |
 | `config/lighthouse-budget.json`, `lighthouserc.json` | `infrastructure/lighthouse/` | Separate quality configuration from runtime configuration. |
 | `scripts/` | `tooling/` | Consolidate maintenance, validation, deployment, and asset scripts. |
 | `supabase/` | `infrastructure/supabase/` | Place storage-schema infrastructure beside other infrastructure. |
-| `firebase.json`, `.firebaserc` | `infrastructure/` | Centralize deployment configuration. |
-| `netlify.toml`, `netlify.dev.toml` | `infrastructure/netlify/` | Separate Netlify production and development configuration. |
+| `firebase.json`, `.firebaserc` | Remain at repository root | Firebase CLI resolves these as project entry points; update their internal paths instead of moving them. |
+| `netlify.toml` | Remain at repository root | Netlify reads the canonical site configuration from the repository root. |
+| `netlify.dev.toml` | `infrastructure/netlify/netlify.dev.toml` plus root invocation flag | Keep development overrides separate, but invoke Netlify with `--config` explicitly. |
 | `subdomains/auth/` | `apps/auth/public/` | Self-contained auth deployment. |
 | `subdomains/news/` | `apps/news/public/` | Self-contained news deployment. |
 | `subdomains/GlitchRealm Portal/` | `apps/portal/public/` | Self-contained portal deployment. |
@@ -171,7 +174,8 @@ The deployed URL structure should remain unchanged. Netlify publish directories 
 | `subdomains/Sign In/` | `apps/auth/public/legacy-signin/` | Fold the duplicate sign-in surface into auth. |
 | `subdomains/School/` | No move | Explicitly excluded from this reorganization. |
 | `utilities/tests/` | `tests/legacy-html/` | Keep test pages out of production deployment. |
-| `functions/package.json` | `services/firebase/functions/package.json` | Make backend dependencies authoritative. |
+| `functions/package.json` | `services/firebase/functions/package.json` | Keep Firebase Functions dependencies authoritative for Firebase deployment. |
+| Root `package.json` | Remain at repository root | Netlify Functions currently bundle against root dependencies; retain `firebase-admin` and add `@anthropic-ai/sdk` before relying on `ai-chat.js`. |
 | `functions/node_modules/` | No target; remove from version control separately | Restore dependencies from lockfiles rather than Git. |
 
 ## ⚠️ PART C: Critical Dependency & Import Updates
@@ -244,10 +248,16 @@ Filesystem paths should use `apps/main/public/...`; generated browser URLs must 
 
 ### Deployment configuration
 
-- `firebase.json`: update `functions.source` and all rules/index paths.
-- `netlify.toml`: publish `apps/main/public`; update exclusions for functions and games.
-- `netlify.dev.toml`: update local publish and redirect paths.
-- Each subdomain `netlify.toml`: publish the corresponding `apps/<name>/public`.
+- `netlify.toml` must remain at the repository root. It is the canonical production configuration; `infrastructure/netlify/` may contain documented copies or overlays, but Netlify must not depend on a moved file.
+- Add `[build] publish = "apps/main/public"` only after all root-site assets and routed content are inside that publish tree.
+- Add `[functions] directory = "services/netlify/functions"` if Netlify Functions are moved. Update every `included_files` path because those paths are resolved relative to the configured functions directory.
+- Decide the fate of `emails/` before moving functions. Preserve the directory at the location expected by `@netlify/plugin-emails`, or update the plugin configuration and verify form processing in a deploy preview.
+- The current root `_redirects` points many host and route rewrites at `/subdomains/...`. Either keep those target files under `apps/main/public/subdomains/...` or rewrite every rule to the new public path before changing `publish`.
+- Verify redirect precedence between `netlify.toml` and `_redirects`. The catch-all `/* -> /404.html` rule in `netlify.toml` may shadow `_redirects`; test current behavior and remove or narrow the catch-all only as an intentional, verified change.
+- Preserve `[build.environment]` values, `[context.production.environment] NETLIFY_AI_GATEWAY_ENABLED`, plugin blocks, headers, redirects, and sitemap `buildDir` behavior in the root configuration.
+- `netlify.dev.toml` may live under `infrastructure/netlify/`, but local commands must pass `--config infrastructure/netlify/netlify.dev.toml` explicitly.
+- Each subdomain is not automatically an independent Netlify site. Confirm the Netlify UI base directory and publish directory first. Only move `subdomains/help/` and `subdomains/GlitchRealm Portal/` into independent app roots after their site configuration is verified.
+- `firebase.json` and `.firebaserc` must remain at the repository root. Update `firebase.json` to point `functions.source` to `services/firebase/functions` and rules/index paths to `services/firebase/...`; alternatively use explicit Firebase CLI `--config` and `--project` flags for every command.
 
 ### Backend imports
 
@@ -259,6 +269,14 @@ Update local `require()` and `import` paths in:
 - Every file under `netlify/functions/`
 
 Confirm Netlify functions still resolve `lib/content-filter.mjs`.
+
+### Netlify dependency and plugin safeguards
+
+- Netlify Functions currently resolve dependencies from the root `package.json`; do not remove `firebase-admin` from root dependencies when moving Firebase Functions.
+- Add and lock `@anthropic-ai/sdk` before treating `netlify/functions/ai-chat.js` as deployable; it is currently imported but absent from the manifests.
+- Keep separate dependency manifests for Firebase Functions and Netlify Functions only if each deployment has an explicit install/bundle boundary and lockfile.
+- Confirm `NETLIFY_AI_GATEWAY_URL` and `NETLIFY_AI_GATEWAY_KEY` are available in the production function environment before changing the AI Gateway configuration. `submit-review.js` must not silently lose moderation capability.
+- Verify `@netlify/plugin-emails`, its edge-function behavior, and any `emails/` templates in a deploy preview. The repository currently has no tracked `emails/` directory, so this must be resolved rather than assumed.
 
 ### Documentation and automation
 
@@ -287,29 +305,35 @@ Preserve public URLs, update internal paths only where files physically move, an
 
 2. **Freeze current behavior.** Run the existing Netlify development setup and capture smoke-test results for authentication, game launching, header/footer loading, news, submissions, admin pages, service workers, and redirects.
 
-3. **Create deployment manifests.** Add main-site and subdomain publish mappings without moving application files. Validate that each Netlify site still publishes successfully.
+3. **Freeze CLI entry points.** Keep root `netlify.toml`, `firebase.json`, and `.firebaserc` in place. Add no new publish directory or functions directory yet. Record Netlify UI base directories, publish directories, installed plugins, edge functions, and environment variables for every site.
 
-4. **Move infrastructure configuration.** Move Firebase rules, indexes, Firebase Functions, Netlify Functions, Supabase SQL, and quality configuration. Update `firebase.json` before deployment. **High risk:** immediately run Firebase rules validation and Functions linting.
+4. **Validate current Netlify behavior.** Confirm whether the root `netlify.toml` catch-all 404 rule shadows `_redirects`, and test portal, admin, developer, legal, education, auth, and sign-in host rewrites. Do not treat `_redirects` as effective until verified.
 
-5. **Move shared static resources.** Move assets, CSS, components, manifests, SEO files, and root HTML into `apps/main/public`. **High risk:** test header/footer loading on root pages and all `/pages/...` routes.
+5. **Prepare configuration changes without moving files.** Add a root `[functions] directory` only if the Netlify Functions move is approved. Preserve environment variables, plugin configuration, email settings, AI Gateway settings, headers, redirects, and sitemap behavior. **High risk:** deploy a preview and verify function discovery, edge/plugin functions, forms, and AI moderation.
 
-6. **Move low-dependency JavaScript.** Move Firebase configuration, environment configuration, accessibility helpers, cookie consent, and integrations. Update HTML references before moving orchestrators. Run syntax checks and browser smoke tests.
+6. **Move Firebase infrastructure.** Move rules, indexes, and Firebase Functions only after updating root `firebase.json` paths to `services/firebase/...`. Keep `.firebaserc` at root. **High risk:** immediately run Firebase rules validation, Functions linting, and an emulator/deploy-preview smoke test.
 
-7. **Move feature JavaScript.** Move authentication, games, community, admin, and UI modules into categorized directories. Update script tags, lazy-load paths, and runtime `import()` calls. **High risk:** immediately test sign-in persistence, sign-out, game launch, playtime tracking, and admin authorization.
+7. **Move shared static resources.** Move assets, CSS, components, manifests, SEO files, and root HTML into `apps/main/public`. Before changing `publish`, rewrite every `_redirects` target currently pointing at `/subdomains/...`, or preserve those files under `apps/main/public/subdomains/...`. **High risk:** test header/footer loading, all host rewrites, and all `/pages/...` routes.
 
-8. **Move main pages.** Move `subdomains/pages/*` into `apps/main/public/pages/*`. Replace relative component fetches with canonical main-site component URLs. **High risk:** crawl every account, games, legal, info, community, and newsletter page.
+8. **Move low-dependency JavaScript.** Move Firebase configuration, environment configuration, accessibility helpers, cookie consent, and integrations. Update HTML references before moving orchestrators. Run syntax checks and browser smoke tests.
 
-9. **Move independent subdomain applications.** Migrate auth, news, portal, admin, developers, education, help, and legal one at a time. Test each deployed host independently.
+9. **Move feature JavaScript.** Move authentication, games, community, admin, and UI modules into categorized directories. Update script tags, lazy-load paths, and runtime `import()` calls. **High risk:** immediately test sign-in persistence, sign-out, game launch, playtime tracking, and admin authorization.
 
-10. **Move games, v2, and offline utilities.** Move the WASM game without changing its public URL. Move `v2` and the offline game after the main site is stable. **High risk:** test WASM loading, cross-origin isolation headers, service-worker behavior, and offline fallback.
+10. **Move main pages.** Move `subdomains/pages/*` into `apps/main/public/pages/*`. Replace relative component fetches with canonical main-site component URLs. **High risk:** crawl every account, games, legal, info, community, and newsletter page.
 
-11. **Move tests and tooling.** Move legacy test pages out of production publish directories. Update tooling filesystem paths. Add path-integrity checks that fail on missing scripts, stylesheets, components, images, or Firebase configuration.
+11. **Move Netlify Functions only with an explicit bundle boundary.** Move `netlify/functions/` to `services/netlify/functions/`, add the root `[functions] directory = "services/netlify/functions"` setting, preserve or relocate email templates as required by the plugin, and keep `firebase-admin` in root dependencies. Add `@anthropic-ai/sdk` and lock it before validating `ai-chat.js`. **High risk:** run a deploy preview and invoke every endpoint.
 
-12. **Reconcile package manifests.** Keep backend dependencies in `services/firebase/functions/package.json` and tooling dependencies in the root `package.json`. Resolve the current version mismatch between root and Functions manifests. Stop tracking `functions/node_modules` and restore dependencies from lockfiles.
+12. **Move verified subdomain applications.** Migrate auth, news, portal, admin, developers, education, help, and legal one at a time only after confirming each Netlify site’s UI base directory and publish directory. Test each deployed host independently.
 
-13. **Update the service worker and cache policy.** Regenerate precache paths, increment the cache version, verify old caches are invalidated, and confirm new assets load correctly.
+13. **Move games, v2, and offline utilities.** Move the WASM game without changing its public URL. Keep `v2` reference-only and exclude `v2/DEPRECATED.md` from public output. Move the offline game after the main site is stable. **High risk:** test WASM loading, cross-origin isolation headers, service-worker behavior, and offline fallback.
 
-14. **Run final validation.**
+14. **Move tests and tooling.** Move legacy test pages out of production publish directories. Update tooling filesystem paths. Add path-integrity checks that fail on missing scripts, stylesheets, components, images, redirects, or Firebase configuration.
+
+15. **Reconcile package manifests.** Keep Firebase dependencies in `services/firebase/functions/package.json`, retain Netlify-bundled dependencies in the root `package.json`, resolve version mismatches, add `@anthropic-ai/sdk`, and stop tracking generated `functions/node_modules`.
+
+16. **Update the service worker and cache policy.** Regenerate precache paths, increment the cache version, verify old caches are invalidated, and confirm new assets load correctly.
+
+17. **Run final validation.**
 
     - `netlify dev`
     - HTML/link/path crawl
@@ -321,4 +345,4 @@ Preserve public URLs, update internal paths only where files physically move, an
     - Lighthouse/performance checks
     - Netlify deploy preview
 
-15. **Deploy incrementally.** Deploy infrastructure first, the main site second, low-risk subdomains next, and auth, news, admin, and developer surfaces last. Keep rollback copies of all Netlify and Firebase configuration until production verification completes.
+18. **Deploy incrementally.** Deploy configuration and infrastructure first, the main site second, low-risk subdomains next, and auth, news, admin, and developer surfaces last. Keep rollback copies of root Netlify/Firebase configuration until production verification completes.
