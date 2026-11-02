@@ -276,6 +276,7 @@ function setupNavigation() {
 
     const sectionNames = {
         dashboard: 'Dashboard',
+        analytics: 'Analytics',
         games: 'Game Submissions',
         news: 'News Articles',
         community: 'Community Posts',
@@ -290,6 +291,7 @@ function setupNavigation() {
 
     const sectionDescs = {
         dashboard: 'A quick look at what needs your attention.',
+        analytics: 'Site traffic, plays, attribution and errors across the network.',
         games: 'Review, publish and manage submitted games.',
         news: 'Publish, unpublish and edit news articles.',
         community: 'Moderate, pin and edit community posts.',
@@ -414,6 +416,11 @@ function setupNavigation() {
 function loadSection(name) {
     switch (name) {
         case 'dashboard': loadDashboard(); break;
+        case 'analytics':
+            if (window.GlitchRealmAnalytics && typeof window.GlitchRealmAnalytics.load === 'function') {
+                window.GlitchRealmAnalytics.load();
+            }
+            break;
         case 'games': loadGames(); break;
         case 'news': loadNews(); break;
         case 'community': loadCommunity(); break;

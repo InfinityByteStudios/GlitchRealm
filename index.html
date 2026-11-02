@@ -281,6 +281,11 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                     <span class="nav-text">Dashboard</span>
                 </button>
+                <button class="nav-item" data-section="analytics">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 4 3 5-7"/></svg>
+                    <span class="nav-text">Analytics</span>
+                </button>
+
 
                 <span class="nav-label">Content</span>
                 <button class="nav-item" data-section="games">
@@ -437,6 +442,123 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Section: Analytics -->
+            <section id="sec-analytics" class="content-section">
+                <noscript><p class="subtle-text">Analytics requires JavaScript.</p></noscript>
+
+                <!-- Access gate (fail closed) -->
+                <div id="an-gate" class="an-gate" hidden>
+                    <div class="empty-state">
+                        <h3 id="an-gate-title">Sign in required</h3>
+                        <p id="an-gate-msg">Sign in through the admin console to view analytics.</p>
+                    </div>
+                </div>
+
+                <div id="an-body" hidden>
+                    <!-- Controls: range / game filter / refresh / export -->
+                    <div class="section-controls an-toolbar">
+                        <div class="filter-group">
+                            <label id="an-range-label">Range</label>
+                            <div class="an-segmented" id="an-range" role="group" aria-labelledby="an-range-label">
+                                <button type="button" data-days="7" class="active">7d</button>
+                                <button type="button" data-days="30">30d</button>
+                                <button type="button" data-days="90">90d</button>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="an-game-filter">Game</label>
+                            <select id="an-game-filter">
+                                <option value="">All games</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="an-refresh">&nbsp;</label>
+                            <button type="button" class="btn-secondary" id="an-refresh">Refresh</button>
+                        </div>
+                        <div class="filter-group">
+                            <label for="an-export">&nbsp;</label>
+                            <button type="button" class="btn-secondary" id="an-export" disabled>Export CSV</button>
+                        </div>
+                        <span class="an-spacer"></span>
+                        <span id="an-status" class="an-status" aria-live="polite"></span>
+                    </div>
+
+                    <!-- KPI cards -->
+                    <div class="stats-grid" id="an-kpis">
+                        <div class="loading-placeholder">Loading analytics…</div>
+                    </div>
+
+                    <!-- Traffic chart (inline SVG, drawn by analytics.js) -->
+                    <div class="list-panel an-panel">
+                        <div class="panel-head">
+                            <h3>Traffic</h3>
+                            <span class="subtle-text" id="an-chart-meta"></span>
+                        </div>
+                        <div id="an-chart"><div class="loading-placeholder">Loading…</div></div>
+                    </div>
+
+                    <!-- Attribution: where plays came from -->
+                    <div class="list-panel an-panel">
+                        <div class="panel-head">
+                            <h3>Where plays came from</h3>
+                            <span class="subtle-text" id="an-attr-total"></span>
+                        </div>
+                        <div id="an-attr"><div class="loading-placeholder">Loading…</div></div>
+                    </div>
+
+                    <!-- Top games -->
+                    <div class="list-panel an-panel">
+                        <div class="panel-head">
+                            <h3>Top games</h3>
+                            <span class="subtle-text">Click a row to filter the whole dashboard by that game</span>
+                        </div>
+                        <div id="an-topgames"><div class="loading-placeholder">Loading…</div></div>
+                    </div>
+
+                    <!-- Referrers & top pages -->
+                    <div class="dashboard-recent an-panel">
+                        <div class="recent-panel">
+                            <div class="panel-head">
+                                <h3>Top referrers</h3>
+                            </div>
+                            <div id="an-referrers" class="recent-list"><div class="loading-placeholder">Loading…</div></div>
+                        </div>
+                        <div class="recent-panel">
+                            <div class="panel-head">
+                                <h3>Top pages</h3>
+                            </div>
+                            <div id="an-pages" class="recent-list"><div class="loading-placeholder">Loading…</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Live -->
+                    <div class="list-panel an-panel">
+                        <div class="panel-head">
+                            <h3 class="an-live-head"><span class="an-live-dot" aria-hidden="true"></span>Live</h3>
+                            <span class="subtle-text" id="an-live-meta"></span>
+                        </div>
+                        <div id="an-live"><div class="loading-placeholder">Loading…</div></div>
+                    </div>
+
+                    <!-- Errors -->
+                    <div class="list-panel an-panel">
+                        <div class="panel-head">
+                            <h3>JavaScript errors</h3>
+                            <span class="subtle-text" id="an-errors-meta"></span>
+                        </div>
+                        <div id="an-errors" class="recent-list"><div class="loading-placeholder">Loading…</div></div>
+                    </div>
+
+                    <!-- Debug (collapsed) -->
+                    <details class="an-debug">
+                        <summary>Debug — raw recent events</summary>
+                        <span id="an-debug-meta" class="subtle-text"></span>
+                        <pre id="an-debug" class="an-debug-pre">Loading…</pre>
+                    </details>
+                </div>
+            </section>
+
 
             <!-- Section: Game Submissions -->
             <section id="sec-games" class="content-section">
@@ -925,6 +1047,22 @@
                 if (s.src.indexOf(fallback) === -1) s.src = fallback;
             };
             // Probe primary path with HEAD; if missing, switch to fallback before appending
+            fetch(primary, { method: 'HEAD' }).then(function(res){
+                if (!res.ok) s.src = fallback;
+            }).catch(function(){ s.src = fallback; }).finally(function(){ document.body.appendChild(s); });
+        })();
+    </script>
+
+    <script>
+        (function(){
+            var s = document.createElement('script');
+            s.type = 'module';
+            var primary = '/analytics.js';
+            var fallback = '/subdomains/admin/analytics.js';
+            s.src = primary;
+            s.onerror = function(){
+                if (s.src.indexOf(fallback) === -1) s.src = fallback;
+            };
             fetch(primary, { method: 'HEAD' }).then(function(res){
                 if (!res.ok) s.src = fallback;
             }).catch(function(){ s.src = fallback; }).finally(function(){ document.body.appendChild(s); });
