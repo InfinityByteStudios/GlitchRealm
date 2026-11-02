@@ -116,11 +116,27 @@ function rangeStart(days) {
 }
 
 async function scanEvents(db, { names, since, gameId, limit = RAW_SCAN_LIMIT }) {
-  let q = db.collection('analytics_events').where('ts', '>=', since).orderBy('ts', 'desc');
+  let q = db.collection('analytics_events').where('ts', '>=', since);
+  const filtered = (names && names.length) || gameId;
   if (names && names.length) q = q.where('name', 'in', names.slice(0, 10));
   if (gameId) q = q.where('props.gameId', '==', gameId);
+  // orderBy('ts') combined with an equality/in filter would require a
+  // composite Firestore index; skip it and sort in memory instead.
+  if (!filtered) q = q.orderBy('ts', 'desc');
   const snap = await q.limit(limit).get();
-  return snap.docs.map(d => d.data());
+  const docs = snap.docs.map(d => d.data());
+  if (filtered) {
+    docs.sort((a, b) => tsMillis(b) - tsMillis(a));
+    return docs.slice(0, limit);
+  }
+  return docs;
+}
+
+function tsMillis(v) {
+  if (v && typeof v.toMillis === 'function') return v.toMillis();
+  if (v && typeof v.seconds === 'number') return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
 }
 
 function groupCount(items, keyFn) {
@@ -210,10 +226,16 @@ async function reportTopGames(db, { since, days }) {
 }
 
 async function reportAttribution(db, { since, gameId }) {
-  let q = db.collection('play_attribution').where('ts', '>=', since).orderBy('ts', 'desc');
-  if (gameId) q = q.where('gameId', '==', gameId);
+  let q = db.collection('play_attribution').where('ts', '>=', since);
+  if (gameId) {
+    // avoid composite index (gameId, ts): filter + in-memory sort
+    q = q.where('gameId', '==', gameId);
+  } else {
+    q = q.orderBy('ts', 'desc');
+  }
   const snap = await q.limit(RAW_SCAN_LIMIT).get();
   const rows = snap.docs.map(d => d.data());
+  if (gameId) rows.sort((a, b) => tsMillis(b.ts) - tsMillis(a.ts));
   const bySource = groupCount(rows, r => r.source);
   const byMedium = groupCount(rows, r => r.medium);
   const byCampaign = groupCount(rows, r => r.campaign);
