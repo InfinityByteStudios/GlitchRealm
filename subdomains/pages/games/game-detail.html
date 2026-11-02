@@ -1311,9 +1311,34 @@
         switchMode('embedded');
       });
       
+      // Record the play_click and stamp attribution params onto the game URL
+      function launchUrl() {
+        let url = playUrl;
+        try {
+          const gr = window.grAnalytics;
+          const res = gr && gr.playClick && gr.playClick({
+            gameId: gameId,
+            gameName: (gameData && gameData.title) || null,
+            gameUrl: playUrl,
+            buttonEl: playButton,
+            locationOnPage: window.location.pathname
+          });
+          if (res && res.url) url = res.url;
+          if (res && gr.startPlay) {
+            gr.startPlay({
+              gameId: gameId,
+              gameName: (gameData && gameData.title) || null,
+              playId: res.playId,
+              attribution: res.snapshot
+            });
+          }
+        } catch (err) { /* analytics must never block launching */ }
+        return url;
+      }
+
       // Load the game in the embedded iframe (extracted so the notice gate can reuse it)
       function loadEmbeddedGame() {
-        embeddedGameIframe.src = playUrl;
+        embeddedGameIframe.src = launchUrl();
         embeddedGameContainer.style.display = 'block';
         
         // Request fullscreen after iframe loads
@@ -1342,15 +1367,17 @@
           e.preventDefault();
           const proceed = currentMode === 'embedded'
             ? loadEmbeddedGame
-            : () => window.open(playUrl, '_blank', 'noopener');
+            : () => window.open(launchUrl(), '_blank', 'noopener');
           window.GRPlayNotices.showNotice(gameId, proceed);
           return;
         }
         if (currentMode === 'embedded') {
           e.preventDefault();
           loadEmbeddedGame();
+        } else {
+          // New tab: stamp attribution params before the default navigation
+          playButton.href = launchUrl();
         }
-        // For 'newtab' mode, let the default link behavior work
       });
       
       // Close embedded player

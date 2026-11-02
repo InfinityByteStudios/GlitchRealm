@@ -1522,7 +1522,7 @@
                                 <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
                             </div>
-                            <button onclick="window.open('https://bytesurgeloop.netlify.app/', '_blank')" class="btn btn-primary card-btn">Play Now</button>
+                            <button class="btn btn-primary card-btn" data-play-url="https://bytesurgeloop.netlify.app/" data-play-game="bytesurge" data-play-name="ByteSurge">Play Now</button>
                                 
                         </div>
                     </div>
@@ -1550,7 +1550,7 @@
                                 <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS"></i>
                             </div>
-                            <button onclick="window.open('https://bytewars.game.glitchrealm.ca/', '_blank')" class="btn btn-primary card-btn">Play Now</button>
+                            <button class="btn btn-primary card-btn" data-play-url="https://bytewars.game.glitchrealm.ca/" data-play-game="neurocore" data-play-name="NeuroCore: Byte Wars">Play Now</button>
                                 
                         </div>
                     </div>
@@ -1578,7 +1578,7 @@
                                 <i class="devicon-windows8-original platform-icon" title="Works on Windows"></i>
                                 <i class="devicon-apple-original platform-icon" title="Works on macOS (doesn't work well in Safari)"></i>
                             </div>
-                            <button onclick="window.open('https://coderunner.game.glitchrealm.ca/', '_blank')" class="btn btn-primary card-btn">Play Now</button>
+                            <button class="btn btn-primary card-btn" data-play-url="https://coderunner.game.glitchrealm.ca/" data-play-game="coderunner" data-play-name="CodeRunner">Play Now</button>
                                 <!-- Game Card Menu Buttons -->
                                 <div class="game-card-menu" data-game-menu>
                                     <button class="menu-btn edit-btn" data-action="edit" title="Edit Game" style="display:none;"><span>✏️ Edit</span></button>
@@ -1975,6 +1975,52 @@
     <script src="js/dev-config.js" defer></script>
     <script src="/js/game-play-notices.js" defer></script>
     <script src="js/script.js" defer></script>
+
+    <script>
+    // Static game cards: launch with attribution params stamped onto the game URL
+    // (dynamic submission cards handle this in their own Play button handlers).
+    (function () {
+        function launchStatic(btn) {
+            let url = btn.getAttribute('data-play-url');
+            if (!url) return;
+            const gameId = btn.getAttribute('data-play-game') || '';
+            const gameName = btn.getAttribute('data-play-name') || gameId;
+            let playId = null, snapshot = null;
+            try {
+                const res = window.grAnalytics && window.grAnalytics.playClick && window.grAnalytics.playClick({
+                    gameId: gameId,
+                    gameName: gameName,
+                    gameUrl: url,
+                    buttonEl: btn,
+                    locationOnPage: window.location.pathname
+                });
+                if (res && res.url) url = res.url;
+                if (res) { playId = res.playId; snapshot = res.snapshot; }
+            } catch (err) { /* analytics must never block launching */ }
+            const gameWindow = window.open(url, '_blank');
+            try {
+                window.grAnalytics && window.grAnalytics.startPlay && window.grAnalytics.startPlay({
+                    gameId: gameId,
+                    gameName: gameName,
+                    playId: playId,
+                    gameWindow: gameWindow,
+                    attribution: snapshot
+                });
+            } catch (err) { /* ignore */ }
+        }
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-play-game]');
+            if (!btn || !btn.hasAttribute('data-play-url')) return;
+            e.stopPropagation();
+            if (window.GRPlayNotices && window.GRPlayNotices.hasNotice(btn.getAttribute('data-play-game'))) {
+                e.preventDefault();
+                window.GRPlayNotices.showNotice(btn.getAttribute('data-play-game'), () => launchStatic(btn));
+                return;
+            }
+            launchStatic(btn);
+        });
+    })();
+    </script>
 
     <script>
         // Review System JavaScript
@@ -3597,14 +3643,39 @@
             if (playBtn) {
                 playBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    const gameId = card.getAttribute('data-game') || '';
+                    const gameName = (card.querySelector('.card-title')?.textContent || '').trim() || gameId;
+                    const launch = () => {
+                        let url = playBtn.dataset.playUrl;
+                        let playId = null, snapshot = null;
+                        try {
+                            const res = window.grAnalytics && window.grAnalytics.playClick && window.grAnalytics.playClick({
+                                gameId: gameId,
+                                gameName: gameName,
+                                gameUrl: url,
+                                buttonEl: playBtn,
+                                locationOnPage: window.location.pathname
+                            });
+                            if (res && res.url) url = res.url;
+                            if (res) { playId = res.playId; snapshot = res.snapshot; }
+                        } catch (err) { /* analytics must never block launching */ }
+                        const gameWindow = window.open(url, '_blank');
+                        try {
+                            window.grAnalytics && window.grAnalytics.startPlay && window.grAnalytics.startPlay({
+                                gameId: gameId,
+                                gameName: gameName,
+                                playId: playId,
+                                gameWindow: gameWindow,
+                                attribution: snapshot
+                            });
+                        } catch (err) { /* ignore */ }
+                    };
                     if (window.GRPlayNotices && window.GRPlayNotices.hasNotice(card.getAttribute('data-game'))) {
                         e.preventDefault();
-                        window.GRPlayNotices.showNotice(card.getAttribute('data-game'), () => {
-                            window.open(playBtn.dataset.playUrl, '_blank', 'noopener');
-                        });
+                        window.GRPlayNotices.showNotice(card.getAttribute('data-game'), launch);
                         return;
                     }
-                    window.open(playBtn.dataset.playUrl, '_blank');
+                    launch();
                 });
             }
             const reviewBtn = card.querySelector('.review-btn');
