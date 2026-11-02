@@ -61,6 +61,8 @@
     
     <!-- Unified Firebase core (loads app+auth+firestore once, sets local persistence) -->
     <script type="module" src="js/firebase-core.js"></script>
+    <!-- First-party analytics (consent-gated; mirrors events to GA4/Firebase too) -->
+    <script type="module" src="js/analytics/index.js"></script>
     <!-- Lazy-load Analytics only when browser is idle -->
     <script type="module">
         const loadAnalytics = () => {

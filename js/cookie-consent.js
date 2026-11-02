@@ -38,6 +38,8 @@
       timestamp: new Date().toISOString()
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch (e) { /* quota */ }
+    /* notify listeners (e.g. js/analytics) that consent changed */
+    try { window.dispatchEvent(new CustomEvent('gr:consentchange', { detail: { analytics: !!analytics, advertising: !!advertising } })); } catch (e) { /* ignore */ }
     return obj;
   }
 

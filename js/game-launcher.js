@@ -73,6 +73,20 @@ class GameLauncher {
     
     // Open the game in a new window or tab
     openGameWindow(game) {
+        // First-party analytics: build the Play attribution snapshot, stamp
+        // attribution params onto the game URL and start playtime tracking
+        let playId = null;
+        let gameUrl = `${window.location.origin}/${game.path}`;
+        try {
+            const res = window.grAnalytics && window.grAnalytics.playClick && window.grAnalytics.playClick({
+                gameId: game.id,
+                gameName: game.name,
+                gameUrl: gameUrl
+            });
+            if (res && res.url) gameUrl = res.url;
+            if (res) playId = res.playId;
+        } catch (e) { /* analytics must never block launching */ }
+
         // Trigger game start event for playtime tracking
         const gameStartEvent = new CustomEvent('gameStarted', { 
             detail: { gameId: game.id, gameName: game.name }
@@ -80,8 +94,17 @@ class GameLauncher {
         window.dispatchEvent(gameStartEvent);
         
         // Open the game
-        const gameUrl = `${window.location.origin}/${game.path}`;
         const gameWindow = window.open(gameUrl, `_blank`);
+
+        // Start playtime accounting (uses the window handle to detect the end)
+        try {
+            window.grAnalytics && window.grAnalytics.startPlay && window.grAnalytics.startPlay({
+                gameId: game.id,
+                gameName: game.name,
+                playId: playId,
+                gameWindow: gameWindow
+            });
+        } catch (e) { /* ignore */ }
         
         // Set up event listener for when the game window closes
         if (gameWindow) {
