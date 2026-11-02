@@ -1,5 +1,7 @@
 // GlitchRealm Admin — Analytics dashboard logic (ES module)
-// Data source: GET /.netlify/functions/analytics-query?report=<name>&days=<N>&gameId=<id>
+// Data source: GET https://glitchrealm.ca/.netlify/functions/analytics-query?report=<name>&days=<N>&gameId=<id>
+// Hosted by the main site — this admin site has no analytics functions, so the API is called
+// cross-origin (CORS is handled server-side; auth is the Firebase ID token, sent as a Bearer header).
 // Auth: Firebase ID token of a signed-in admin (same UID list as admin.js).
 // Fail closed: nothing renders or fetches until an authorized admin is signed in.
 
@@ -13,10 +15,7 @@ const FALLBACK_ADMIN_UIDS = [
     'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
 ];
 
-const ENDPOINTS = [
-    '/.netlify/functions/analytics-query',
-    'https://glitchrealm.ca/.netlify/functions/analytics-query'
-];
+const ANALYTICS_QUERY_URL = 'https://glitchrealm.ca/.netlify/functions/analytics-query';
 
 const EMPTY_MSG = 'No data yet — events appear once consented visitors browse the site.';
 
@@ -33,7 +32,6 @@ const state = {
 };
 
 const gameNames = new Map(); // gameId -> display name (best effort)
-let pinnedBase = null;
 
 // ================================================================
 // TINY DOM + FORMAT HELPERS
@@ -229,45 +227,32 @@ async function callApi(report, days, gameId, forceToken) {
     }
     const token = await user.getIdToken(!!forceToken);
 
-    const bases = pinnedBase ? [pinnedBase, ...ENDPOINTS.filter(b => b !== pinnedBase)] : ENDPOINTS;
-    let lastError = null;
+    const url = new URL(ANALYTICS_QUERY_URL);
+    url.searchParams.set('report', report);
+    url.searchParams.set('days', String(days));
+    if (gameId) url.searchParams.set('gameId', gameId);
 
-    for (const base of bases) {
-        let url;
-        try {
-            url = new URL(base, window.location.origin);
-        } catch (e) { continue; }
-        url.searchParams.set('report', report);
-        url.searchParams.set('days', String(days));
-        if (gameId) url.searchParams.set('gameId', gameId);
+    let res;
+    try {
+        res = await fetch(url, {
+            headers: { Authorization: 'Bearer ' + token },
+            credentials: 'omit'
+        });
+    } catch (networkErr) {
+        throw new Error('Network error contacting the analytics API');
+    }
 
-        let res;
-        try {
-            res = await fetch(url, {
-                headers: { Authorization: 'Bearer ' + token },
-                credentials: 'omit'
-            });
-        } catch (networkErr) {
-            lastError = new Error('Network error contacting the analytics API');
-            continue;
-        }
-
-        // Endpoint not hosted here — try the next base (the public site hosts the functions).
-        if (res.status === 404 || res.status === 405) {
-            lastError = new Error('analytics-query endpoint not found (' + res.status + ')');
-            if (base === pinnedBase) pinnedBase = null; // stale pin — rediscover
-            continue;
-        }
-
-        pinnedBase = base;
-        if (res.ok) return res.json();
-
+    if (res.status === 404 || res.status === 405) {
+        const e = new Error('analytics-query endpoint not found (' + res.status + ')');
+        e.status = res.status;
+        throw e;
+    }
+    if (!res.ok) {
         const e = new Error('analytics-query ' + res.status);
         e.status = res.status;
         throw e;
     }
-
-    throw lastError || new Error('analytics-query unreachable');
+    return res.json();
 }
 
 async function fetchReport(report, days, gameId) {
