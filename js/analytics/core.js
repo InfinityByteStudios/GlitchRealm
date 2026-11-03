@@ -74,6 +74,12 @@ export function consentGranted() {
       if (c) return c.analytics === true;
       return false; // banner present but no decision yet
     }
+    // banner script not loaded on this page — honor a decision the visitor
+    // already stored elsewhere (e.g. accepted the banner on the homepage)
+    const raw = window.localStorage.getItem('gr_cookie_consent');
+    if (!raw) return false;
+    const obj = JSON.parse(raw);
+    return !!(obj && obj.analytics === true);
   } catch (e) { /* fall through */ }
   return false;
 }
@@ -297,7 +303,11 @@ export function start(onStart) {
   ['click', 'keydown', 'pointerdown', 'scroll'].forEach(t =>
     window.addEventListener(t, touch, { passive: true }));
 
-  // flush on leave / hide
+  // end-of-session marker (before the flush listener below, so the beacon
+  // carries it) — lets reports drop closed tabs from "active" immediately
+  window.addEventListener('pagehide', () => {
+    if (ctx.started) track('session_end', {});
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) flush();
   });

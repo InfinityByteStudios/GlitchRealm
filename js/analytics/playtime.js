@@ -20,8 +20,7 @@
  *   playtime/{uid}/games/{gameId}  -> { totalPlaytime (seconds), hours, ... }
  */
 
-import { track } from './core.js';
-import { local } from './core.js';
+import { track, local, ctx } from './core.js';
 
 const HEARTBEAT_MS = 30000;
 const END_POLL_MS = 2000;
@@ -81,7 +80,7 @@ function writeBack(reason) {
     const doWrite = async () => {
       const db = window.firebaseFirestore;
       const doc = window.firestoreDoc;
-      const { getFirestore, doc as fdoc, getDoc, setDoc } =
+      const { getFirestore, doc: fdoc, getDoc, setDoc } =
         await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
       const ref = fdoc(db, 'playtime', uid, 'games', String(active.gameId));
       const snap = await getDoc(ref);
@@ -94,7 +93,7 @@ function writeBack(reason) {
         iconUrl: prev.iconUrl || null,
         totalPlaytime: total,
         hours: Math.round((total / 3600) * 100) / 100,
-        sessions: (Number(prev.sessions) || 0) + (reason === 'end' ? 1 : 0),
+        sessions: (Number(prev.sessions) || 0) + 1,
         lastUpdated: new Date(),
         lastSource: active.attribution && active.attribution.source || prev.lastSource || null,
         lastPlayId: active.playId
@@ -130,7 +129,7 @@ function endPlay(reason = 'closed') {
 }
 
 export function startPlay({ gameId, gameName, playId, gameWindow, attribution } = {}) {
-  if (!gameId) return null;
+  if (!gameId || !ctx.started) return null;
   if (active && !active.ended) endPlay('superseded');
 
   lastInput = Date.now();
@@ -202,6 +201,12 @@ export function init() {
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) heartbeat(); // flush partial seconds on hide
+  });
+
+  // tab closed / navigated away: end the play now so its duration is recorded
+  // (core.js flushes the queue on pagehide right after this listener runs)
+  window.addEventListener('pagehide', () => {
+    if (active && !active.ended) endPlay('pagehide');
   });
 
   // orphaned plays (page reloaded mid-play, no active record): emit stale end

@@ -21,20 +21,29 @@ import * as playtime from './playtime.js';
 /* ── public API ──────────────────────────────────────────── */
 
 function playClick({ gameId, gameName, gameUrl, buttonEl, locationOnPage } = {}) {
-  if (!core.ctx.started || !gameId) return null;
+  if (!gameId) return null;
 
   const playId = 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
   const snapshot = attribution.buildPlaySnapshot({ gameId, gameName, playId, buttonEl, locationOnPage });
-  snapshot.sessionId = core.getSessionId();
-  snapshot.visitorId = core.getVisitorId();
 
-  attribution.persistPendingPlay(snapshot);
-  core.track('play_click', snapshot);
+  if (core.ctx.started) {
+    snapshot.sessionId = core.getSessionId();
+    snapshot.visitorId = core.getVisitorId();
+    attribution.persistPendingPlay(snapshot);
+    core.track('play_click', snapshot);
+  } else {
+    // Tracker not running (visitor hasn't made a consent decision yet):
+    // the game URL must still carry its gr_* params, so reuse an existing
+    // session id read-only and skip all recording/storage.
+    try { snapshot.sessionId = window.sessionStorage.getItem('gr_sid') || null; }
+    catch (e) { snapshot.sessionId = null; }
+    snapshot.visitorId = null;
+  }
 
   let url = gameUrl || null;
   if (url) url = attribution.attachGameParams(url, snapshot);
 
-  return { playId, snapshot, url };
+  return { playId, snapshot, url, started: core.ctx.started };
 }
 
 const api = {

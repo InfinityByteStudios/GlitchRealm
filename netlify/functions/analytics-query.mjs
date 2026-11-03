@@ -12,8 +12,11 @@
 //   referrers    page_view referrer hosts
 //   pages        top paths by views
 //   errors       recent error events
-//   live         active sessions + last-5-minute activity
+//   live         active visitors/sessions (drop tabs as soon as they close)
 //   recent       last N raw events (debug)
+//
+// Storage: Firestore collections fed by analytics-collect — analytics_events,
+// event_daily, play_attribution, play_sessions, play_daily, session_state.
 //
 // The admin.glitchrealm.ca dashboard consumes this API.
 
@@ -32,7 +35,8 @@ const FALLBACK_ADMINS = [
   'ZEkqLM6rNTZv1Sun0QWcKYOIbon1'
 ];
 
-const RAW_SCAN_LIMIT = 5000; // bounded raw scan per report
+const RAW_SCAN_LIMIT = 2000; // bounded raw scan per report
+const SCAN_PAGE_SIZE = 1000; // Firestore caps a single get() page
 const MAX_DAYS = 90;
 
 let adminApp = null;
@@ -116,20 +120,37 @@ function rangeStart(days) {
 }
 
 async function scanEvents(db, { names, since, gameId, limit = RAW_SCAN_LIMIT }) {
-  let q = db.collection('analytics_events').where('ts', '>=', since);
-  const filtered = (names && names.length) || gameId;
-  if (names && names.length) q = q.where('name', 'in', names.slice(0, 10));
-  if (gameId) q = q.where('props.gameId', '==', gameId);
-  // orderBy('ts') combined with an equality/in filter would require a
-  // composite Firestore index; skip it and sort in memory instead.
-  if (!filtered) q = q.orderBy('ts', 'desc');
-  const snap = await q.limit(limit).get();
-  const docs = snap.docs.map(d => d.data());
-  if (filtered) {
-    docs.sort((a, b) => tsMillis(b) - tsMillis(a));
-    return docs.slice(0, limit);
+  // Firestore needs a composite index to combine an equality/in filter on one
+  // field with a range filter on another (e.g. name + ts), which caused 500s.
+  // Instead: scan by ts range only (single-field index, most recent first),
+  // page through, and apply name/gameId filters in memory.
+  const want = Math.max(1, Math.min(limit, RAW_SCAN_LIMIT));
+  const out = [];
+  let query = db.collection('analytics_events')
+    .where('ts', '>=', since)
+    .orderBy('ts', 'desc')
+    .limit(SCAN_PAGE_SIZE);
+  let cursor = null;
+  while (out.length < want) {
+    let snap;
+    try {
+      snap = cursor ? await query.startAfter(cursor).get() : await query.get();
+    } catch (e) {
+      break; // tolerate storage hiccups — partial data beats a 500
+    }
+    const docs = snap.docs;
+    if (!docs.length) break;
+    for (const d of docs) {
+      const data = d.data();
+      if (names && names.length && !names.includes(data.name)) continue;
+      if (gameId && data.props?.gameId !== gameId) continue;
+      out.push(data);
+      if (out.length >= want) break;
+    }
+    if (docs.length < SCAN_PAGE_SIZE) break;
+    cursor = docs[docs.length - 1];
   }
-  return docs;
+  return out;
 }
 
 function tsMillis(v) {
@@ -226,16 +247,30 @@ async function reportTopGames(db, { since, days }) {
 }
 
 async function reportAttribution(db, { since, gameId }) {
-  let q = db.collection('play_attribution').where('ts', '>=', since);
-  if (gameId) {
-    // avoid composite index (gameId, ts): filter + in-memory sort
-    q = q.where('gameId', '==', gameId);
-  } else {
-    q = q.orderBy('ts', 'desc');
+  // scan by ts range only (single-field index, newest first) and filter
+  // gameId in memory — equality + range across fields needs a composite index
+  const rows = [];
+  let cursor = null;
+  while (rows.length < RAW_SCAN_LIMIT) {
+    let snap;
+    try {
+      let q = db.collection('play_attribution').where('ts', '>=', since).orderBy('ts', 'desc').limit(SCAN_PAGE_SIZE);
+      if (cursor) q = q.startAfter(cursor);
+      snap = await q.get();
+    } catch (e) {
+      break; // partial data beats a 500
+    }
+    const docs = snap.docs;
+    if (!docs.length) break;
+    for (const d of docs) {
+      const data = d.data();
+      if (gameId && data.gameId !== gameId) continue;
+      rows.push(data);
+      if (rows.length >= RAW_SCAN_LIMIT) break;
+    }
+    if (docs.length < SCAN_PAGE_SIZE) break;
+    cursor = docs[docs.length - 1];
   }
-  const snap = await q.limit(RAW_SCAN_LIMIT).get();
-  const rows = snap.docs.map(d => d.data());
-  if (gameId) rows.sort((a, b) => tsMillis(b.ts) - tsMillis(a.ts));
   const bySource = groupCount(rows, r => r.source);
   const byMedium = groupCount(rows, r => r.medium);
   const byCampaign = groupCount(rows, r => r.campaign);
@@ -281,28 +316,83 @@ async function reportErrors(db, { since }) {
     count: evs.length,
     recent: evs.slice(0, 50).map(ev => ({
       ts: ev.ts, name: ev.name, path: ev.path,
-      message: ev.props?.message || null, file: ev.props?.file || null
+      message: ev.props?.message || null, file: ev.props?.file || null,
+      line: Number.isFinite(ev.props?.line) ? ev.props.line : null
     }))
   };
 }
 
 async function reportLive(db) {
-  const now = new Date();
-  const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
-  const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
+  const now = Date.now();
+  const fiveMinAgo = new Date(now - 5 * 60 * 1000);
+  const tenMinAgo = new Date(now - 10 * 60 * 1000);
 
-  const activeSessions = await db.collection('play_sessions')
-    .where('startedAt', '>=', tenMinAgo).orderBy('startedAt', 'desc').limit(20).get();
   const recent = await scanEvents(db, { since: fiveMinAgo, limit: 1000 });
-  const visitors = new Set(recent.filter(e => e.visitorHash).map(e => e.visitorHash));
+
+  // sessions seen in the last 5 minutes
+  const sessions = new Map(); // sessionHash -> { visitorHash, lastEventMs }
+  for (const ev of recent) {
+    if (!ev.sessionHash) continue;
+    const s = sessions.get(ev.sessionHash) || { visitorHash: null, lastEventMs: 0 };
+    if (!s.visitorHash && ev.visitorHash) s.visitorHash = ev.visitorHash;
+    s.lastEventMs = Math.max(s.lastEventMs, tsMillis(ev.ts));
+    sessions.set(ev.sessionHash, s);
+  }
+
+  // session_state is written by analytics-collect: a 60s presence ping keeps
+  // lastSeen fresh, and an explicit endedAt is written when the tab closes —
+  // so closed tabs leave the "active" counts immediately instead of after a
+  // decaying time window.
+  const hashes = Array.from(sessions.keys()).slice(0, 500);
+  const stateByHash = new Map();
+  for (let i = 0; i < hashes.length; i += 50) {
+    const chunk = hashes.slice(i, i + 50);
+    try {
+      const snaps = await Promise.all(chunk.map(h => db.collection('session_state').doc(h).get()));
+      snaps.forEach((snap, j) => { if (snap.exists) stateByHash.set(chunk[j], snap.data()); });
+    } catch (e) { /* fall back to event-window heuristics */ }
+  }
+
+  const ACTIVE_FRESH_MS = 3 * 60 * 1000;
+  const activeSessions = new Set();
+  for (const [hash, s] of sessions) {
+    const st = stateByHash.get(hash);
+    const lastSeen = st && st.lastSeen ? tsMillis(st.lastSeen) : s.lastEventMs;
+    const ended = st && st.endedAt ? tsMillis(st.endedAt) : 0;
+    const active = lastSeen >= now - ACTIVE_FRESH_MS && (!ended || lastSeen > ended + 30 * 1000);
+    if (active) activeSessions.add(hash);
+  }
+
+  const activeVisitors = new Set();
+  for (const [hash, s] of sessions) {
+    if (!s.visitorHash) continue;
+    if (activeSessions.has(hash)) activeVisitors.add(s.visitorHash);
+  }
+
+  // plays started in the last 10 minutes that haven't ended (and whose
+  // session is still live) count as active
+  let activePlays = [];
+  try {
+    const psSnap = await db.collection('play_sessions')
+      .where('startedAt', '>=', tenMinAgo).orderBy('startedAt', 'desc').limit(50).get();
+    activePlays = psSnap.docs
+      .map(d => d.data())
+      .filter(s => !s.endedAt && (!s.sessionHash || activeSessions.has(s.sessionHash)))
+      .map(s => ({
+        gameId: s.gameId || null,
+        gameName: s.gameName || null,
+        startedAt: s.startedAt,
+        source: s.source || null,
+        playSeconds: Number.isFinite(s.playSeconds) ? s.playSeconds : null
+      }));
+  } catch (e) { /* live panel degrades gracefully */ }
 
   return {
-    visitorsLast5Min: visitors.size,
+    visitorsLast5Min: activeVisitors.size,
+    activeVisitors: activeVisitors.size,
+    activeSessions: activeSessions.size,
     recentEvents: recent.length,
-    activePlays: activeSessions.docs
-      .map(d => d.data())
-      .filter(s => !s.endedAt)
-      .map(s => ({ gameId: s.gameId, gameName: s.gameName, startedAt: s.startedAt, source: s.source }))
+    activePlays
   };
 }
 

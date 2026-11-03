@@ -8,6 +8,7 @@
 //   event_daily/{day}_{name}    per-day per-event-name counters (rollup)
 //   play_attribution/{autoId}   one doc per play_click with full snapshot
 //   play_sessions/{playId}      one doc per play (doc id = client playId)
+//   session_state/{sessionHash} session presence (lastSeen ping / endedAt)
 //
 // No client-side Firestore rules are needed for these collections — writes
 // happen here with Admin credentials only.
@@ -30,6 +31,7 @@ const EVENT_ALLOWLIST = new Set([
   'wishlist_add', 'wishlist_remove', 'review_submit', 'review_vote',
   'newsletter_subscribe', 'push_opt_in', 'support_ticket', 'share_click',
   'outbound_click', 'error', 'web_vitals', 'navigation_timing',
+  'session_ping', 'session_end',
   'game_launch', 'game_pause', 'game_resume', 'game_level_complete',
   'game_score', 'ad_request', 'ad_impression', 'ad_click', 'reward_shown'
 ]);
@@ -41,7 +43,7 @@ const STRING_PROPS = new Set(['gameId', 'gameName', 'source', 'medium', 'campaig
 
 const NUM_PROPS = new Set(['seconds', 'maxScrollPct', 'duration_s', 'playSeconds', 'gained',
   'pageviews', 'lcp', 'cls', 'inp', 'ttfb', 'domReady', 'load', 'position', 'firstTouchAt',
-  'level_reached', 'score']);
+  'line', 'level_reached', 'score']);
 
 let adminApp = null;
 let lastSaltDay = null;
@@ -159,6 +161,7 @@ function sanitizeEvent(raw, salt) {
 
   if (name === 'play_click') ev.playId = sanitizeString(raw.props && raw.props.playId, 40) || null;
   if (name === 'game_start' || name === 'game_end') ev.playId = sanitizeString(raw.props && raw.props.playId, 40) || null;
+  if (name === 'game_heartbeat') ev.playId = sanitizeString(raw.props && raw.props.playId, 40) || null;
 
   return ev;
 }
@@ -258,6 +261,30 @@ export default async (request, context) => {
     }, { merge: true });
 
     const props = ev.props || {};
+
+    // session presence: 60s pings keep lastSeen fresh; session_end (sent when
+    // the tab closes/navigates away) stamps endedAt so live reports can drop
+    // closed tabs immediately
+    if ((ev.name === 'session_ping' || ev.name === 'session_end') && ev.sessionHash) {
+      const sessionDoc = {
+        sessionHash: ev.sessionHash,
+        visitorHash: ev.visitorHash || null,
+        day: ev.day,
+        lastSeen: ev.ts
+      };
+      if (ev.name === 'session_end') sessionDoc.endedAt = ev.ts;
+      batch.set(db.collection('session_state').doc(ev.sessionHash), sessionDoc, { merge: true });
+      writeCount++;
+    }
+
+    // heartbeats keep the running play duration fresh even if game_end is lost
+    if (ev.name === 'game_heartbeat' && ev.playId) {
+      batch.set(db.collection('play_sessions').doc(String(ev.playId).slice(0, 60)), {
+        playSeconds: typeof props.playSeconds === 'number' ? props.playSeconds : null,
+        lastBeatAt: ev.ts
+      }, { merge: true });
+      writeCount++;
+    }
 
     if (ev.name === 'play_click') {
       batch.set(db.collection('play_attribution').doc(), {
