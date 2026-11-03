@@ -2227,6 +2227,8 @@ button:disabled,
 .an-live-stat .stat-label { font-size: 0.8rem; color: var(--text-3); margin-top: 2px; }
 
 /* Errors */
+.an-head-side { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.an-error-actions { margin-top: 12px; }
 .an-err { padding: 10px 4px; border-top: 1px solid var(--line); font-size: 0.85rem; }
 .an-err:first-child { border-top: none; }
 .an-err-head {
@@ -2241,6 +2243,7 @@ button:disabled,
     font-size: 0.82rem;
     white-space: nowrap;
 }
+.an-err-name.game { color: var(--warning); }
 .an-err-path {
     color: var(--text-3);
     font-size: 0.78rem;

@@ -28,6 +28,7 @@ const state = {
     cache: {},
     liveTimer: null,
     liveUpdating: false,
+    retrying: false,
     lastUpdated: null
 };
 
@@ -279,8 +280,9 @@ function describeApiError(err) {
     if (!err) return 'Unknown error';
     if (err.status === 401) return 'Sign-in expired. Refresh the page to sign in again.';
     if (err.status === 403) return 'Access denied — this account is not authorized for analytics.';
-    if (err.status === 503) return 'Analytics backend unavailable — Firestore service credentials are missing on the server.';
     if (err.status === 429) return 'Rate limited — slow down and retry in a moment.';
+    if (err.status === 500) return 'The report failed on the server (report_failed) — this is usually temporary. Try again.';
+    if (err.status === 503) return 'Analytics backend unavailable — storage credentials are missing on the server.';
     return err.message || 'Request failed';
 }
 
@@ -297,8 +299,12 @@ function panelEmpty(el, msg) {
     if (el) el.innerHTML = '<div class="empty-state"><p>' + escapeHTML(msg || EMPTY_MSG) + '</p></div>';
 }
 
-function panelError(el, err) {
-    if (el) el.innerHTML = '<div class="empty-state"><h3>Could not load</h3><p>' + escapeHTML(describeApiError(err)) + '</p></div>';
+function panelError(el, err, retryKey) {
+    if (!el) return;
+    const retry = retryKey
+        ? '<div class="an-error-actions"><button type="button" class="btn-secondary btn-sm an-retry" data-report="' + escapeAttr(retryKey) + '">Retry</button></div>'
+        : '';
+    el.innerHTML = '<div class="empty-state"><h3>Could not load</h3><p>' + escapeHTML(describeApiError(err)) + '</p>' + retry + '</div>';
 }
 
 function panelContent(el, html) {
@@ -383,6 +389,90 @@ async function loadAll() {
     updateExportButton();
 }
 
+async function refetchReport(cacheKey, report, days, gameId) {
+    try {
+        const value = await fetchReport(report, days, gameId);
+        if (state.cache) state.cache[cacheKey] = value;
+        return { status: 'fulfilled', value };
+    } catch (reason) {
+        return { status: 'rejected', reason };
+    }
+}
+
+// Per-report retry: re-fetches a single failed report and re-renders only its panel(s).
+const RETRY_DEFS = {
+    overview: async () => {
+        const gameId = state.gameId || null;
+        const [ov, prev] = await Promise.all([
+            refetchReport('overview', 'overview', state.days, gameId),
+            refetchReport('overviewPrev', 'overview', state.days * 2, gameId)
+        ]);
+        renderKpis(ov, prev);
+        renderTraffic(ov);
+        return ov.status === 'fulfilled' ? null : ov.reason;
+    },
+    topGames: async () => {
+        const r = await refetchReport('topGames', 'top-games', state.days, null);
+        renderTopGames(r);
+        return r.status === 'fulfilled' ? null : r.reason;
+    },
+    attribution: async () => {
+        const r = await refetchReport('attribution', 'attribution', state.days, state.gameId || null);
+        renderAttribution(r);
+        return r.status === 'fulfilled' ? null : r.reason;
+    },
+    referrers: async () => {
+        const r = await refetchReport('referrers', 'referrers', state.days, null);
+        renderReferrers(r);
+        return r.status === 'fulfilled' ? null : r.reason;
+    },
+    pages: async () => {
+        const r = await refetchReport('pages', 'pages', state.days, null);
+        renderPages(r);
+        return r.status === 'fulfilled' ? null : r.reason;
+    },
+    errors: async () => {
+        const r = await refetchReport('errors', 'errors', state.days, null);
+        renderErrors(r);
+        return r.status === 'fulfilled' ? null : r.reason;
+    },
+    live: async () => {
+        const r = await refetchReport('live', 'live', state.days, null);
+        renderLive(r);
+        return r.status === 'fulfilled' ? null : r.reason;
+    },
+    recent: async () => {
+        const r = await refetchReport('recent', 'recent', state.days, null);
+        renderDebug(r);
+        return r.status === 'fulfilled' ? null : r.reason;
+    }
+};
+
+async function retryReport(key) {
+    const fn = RETRY_DEFS[key];
+    if (!fn || state.retrying) return;
+    state.retrying = true;
+    try {
+        const err = await fn();
+        if (err) {
+            if (err.status === 403) {
+                state.cache = {};
+                forceDeniedGate();
+                toast('Access denied — analytics are restricted to admin accounts', 'error');
+            } else {
+                toast('Retry failed — ' + describeApiError(err), 'error');
+            }
+        } else {
+            state.lastUpdated = new Date();
+            if (!state.loaded) state.loaded = true;
+            updateStatusLine();
+            updateExportButton();
+        }
+    } finally {
+        state.retrying = false;
+    }
+}
+
 function updateStatusLine(override) {
     const el = $('#an-status');
     if (!el) return;
@@ -402,7 +492,7 @@ const KPI_DEFS = [
     { key: 'sessions', label: 'Sessions', goodUp: true, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>', iconCls: 'an-ic-magenta' },
     { key: 'playClicks', label: 'Play clicks', goodUp: true, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z"/></svg>', iconCls: 'an-ic-cyan' },
     { key: 'plays', label: 'Plays', goodUp: true, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>', iconCls: 'an-ic-success' },
-    { key: 'playtime_s', label: 'Total playtime', goodUp: true, fmt: fmtHours, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>', iconCls: 'an-ic-warning' },
+    { key: 'playtime_s', label: 'Total playtime', goodUp: true, fmt: fmtMinutes, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>', iconCls: 'an-ic-warning' },
     { key: 'errors', label: 'JS errors', goodUp: false, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 10l4 4M10 10l-4 4M15 10h.01M18 13h.01"/></svg>', iconCls: 'an-ic-error' },
     { key: 'newsletter', label: 'Newsletter signups', goodUp: true, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>', iconCls: 'an-ic-info' }
 ];
@@ -412,7 +502,7 @@ function renderKpis(res, prevRes) {
     if (!el) return;
 
     if (!res || res.status !== 'fulfilled') {
-        panelError(el, res && res.reason);
+        panelError(el, res && res.reason, 'overview');
         return;
     }
 
@@ -476,7 +566,7 @@ function renderTraffic(res) {
     if (!el) return;
 
     if (!res || res.status !== 'fulfilled') {
-        panelError(el, res && res.reason);
+        panelError(el, res && res.reason, 'overview');
         if (meta) meta.textContent = '';
         return;
     }
@@ -609,7 +699,7 @@ function renderAttribution(res) {
     if (!el) return;
 
     if (!res || res.status !== 'fulfilled') {
-        panelError(el, res && res.reason);
+        panelError(el, res && res.reason, 'attribution');
         if (totalEl) totalEl.textContent = '';
         return;
     }
@@ -662,7 +752,7 @@ function renderTopGames(res) {
     if (!el) return;
 
     if (!res || res.status !== 'fulfilled') {
-        panelError(el, res && res.reason);
+        panelError(el, res && res.reason, 'topGames');
         return;
     }
 
@@ -679,19 +769,18 @@ function renderTopGames(res) {
     }
 
     const rows = games.map(g => {
-        const hours = g.seconds / 3600;
-        const perHour = hours > 0 ? g.plays / hours : null;
+        const avg = g.plays > 0 ? g.seconds / g.plays : null;
         return '<tr data-game="' + escapeAttr(g.gameId) + '" tabindex="0" title="Filter dashboard by this game">' +
             '<td>' + escapeHTML(gameLabel(g.gameId)) + '<span class="an-sub mono">' + escapeHTML(g.gameId) + '</span></td>' +
             '<td class="num">' + fmtInt(g.plays) + '</td>' +
             '<td class="num">' + escapeHTML(fmtHours(g.seconds)) + '</td>' +
-            '<td class="num">' + (perHour === null ? '—' : (Math.round(perHour * 10) / 10).toLocaleString() + '/h') + '</td>' +
+            '<td class="num">' + (avg === null ? '—' : escapeHTML(fmtMinutes(avg))) + '</td>' +
         '</tr>';
     }).join('');
 
     panelContent(el,
         '<table class="an-table"><thead><tr>' +
-            '<th>Game</th><th class="num">Plays</th><th class="num">Playtime</th><th class="num">Avg plays/hr</th>' +
+            '<th>Game</th><th class="num">Plays</th><th class="num">Playtime</th><th class="num">Avg/play</th>' +
         '</tr></thead><tbody>' + rows + '</tbody></table>'
     );
 }
@@ -729,7 +818,7 @@ function refreshGameFilter(ids) {
 function renderReferrers(res) {
     const el = panelEl('an-referrers');
     if (!el) return;
-    if (!res || res.status !== 'fulfilled') { panelError(el, res && res.reason); return; }
+    if (!res || res.status !== 'fulfilled') { panelError(el, res && res.reason, 'referrers'); return; }
 
     const data = res.value || {};
     const total = num(data.total);
@@ -749,7 +838,7 @@ function renderReferrers(res) {
 function renderPages(res) {
     const el = panelEl('an-pages');
     if (!el) return;
-    if (!res || res.status !== 'fulfilled') { panelError(el, res && res.reason); return; }
+    if (!res || res.status !== 'fulfilled') { panelError(el, res && res.reason, 'pages'); return; }
 
     const pages = Array.isArray(res.value && res.value.pages) ? res.value.pages : [];
     if (!pages.length) { panelEmpty(el); return; }
@@ -773,7 +862,7 @@ function renderLive(res) {
     if (!el) return;
 
     if (res && res.status === 'rejected') {
-        panelError(el, res.reason);
+        panelError(el, res.reason, 'live');
         if (meta) meta.textContent = '';
         return;
     }
@@ -781,7 +870,9 @@ function renderLive(res) {
 
     const data = res.value || {};
     const plays = Array.isArray(data.activePlays) ? data.activePlays : [];
-    const visitors = num(data.visitorsLast5Min);
+    // activeVisitors is the current name for the ~3-minute ping window; visitorsLast5Min is the legacy alias.
+    const visitors = num(data.activeVisitors !== undefined && data.activeVisitors !== null ? data.activeVisitors : data.visitorsLast5Min);
+    const sessions = num(data.activeSessions);
 
     if (meta) {
         const checked = state.lastLiveCheck ? ' · checked ' + relTime(state.lastLiveCheck) : '';
@@ -792,11 +883,16 @@ function renderLive(res) {
         ? plays.slice(0, 10).map(p => {
             const started = toDate(p.startedAt);
             const src = p.source ? String(p.source) : '';
+            // playSeconds is the running duration; it can be null early in a play.
+            const running = (typeof p.playSeconds === 'number' && Number.isFinite(p.playSeconds))
+                ? escapeHTML(fmtMinutes(p.playSeconds)) + ' played'
+                : '';
             return '<div class="recent-item">' +
                 '<span class="recent-item-title">' + escapeHTML(p.gameName || gameLabel(p.gameId || '—')) + '</span>' +
                 '<span class="recent-item-meta">' +
                     (src ? 'via ' + escapeHTML(src) + ' · ' : '') +
                     'started ' + escapeHTML(started ? relTime(started) : '—') +
+                    (running ? ' · ' + running : '') +
                 '</span>' +
             '</div>';
         }).join('')
@@ -804,7 +900,8 @@ function renderLive(res) {
 
     panelContent(el,
         '<div class="an-live-stats">' +
-            '<div class="an-live-stat"><span class="stat-value">' + fmtInt(visitors) + '</span><span class="stat-label">Visitors last 5 min</span></div>' +
+            '<div class="an-live-stat"><span class="stat-value">' + fmtInt(visitors) + '</span><span class="stat-label">Active visitors</span></div>' +
+            '<div class="an-live-stat"><span class="stat-value">' + fmtInt(sessions) + '</span><span class="stat-label">Active sessions</span></div>' +
             '<div class="an-live-stat"><span class="stat-value">' + fmtInt(plays.length) + '</span><span class="stat-label">Active plays</span></div>' +
         '</div>' +
         '<div class="recent-list">' + playsHTML + '</div>'
@@ -837,7 +934,7 @@ function renderErrors(res) {
     if (!el) return;
 
     if (!res || res.status !== 'fulfilled') {
-        panelError(el, res && res.reason);
+        panelError(el, res && res.reason, 'errors');
         if (meta) meta.textContent = '';
         return;
     }
@@ -856,10 +953,15 @@ function renderErrors(res) {
         const msg = String(e.message || '');
         const truncated = msg.length > 140 ? msg.slice(0, 140) + '…' : msg;
         const needsExpand = msg.length > 140;
+        // name is "error" (window errors / unhandled rejections) or "game_error"
+        const name = String(e.name || 'Error');
+        const isGameError = name === 'game_error';
+        const file = e.file ? String(e.file) : '';
+        const loc = file + (file && e.line !== undefined && e.line !== null && e.line !== '' ? ':' + escapeHTML(String(e.line)) : '');
         return '<div class="an-err">' +
             '<div class="an-err-head">' +
                 '<span class="recent-item-meta">' + escapeHTML(when ? relTime(when) : '—') + '</span>' +
-                '<span class="an-err-name">' + escapeHTML(e.name || 'Error') + '</span>' +
+                '<span class="an-err-name' + (isGameError ? ' game' : '') + '" title="' + escapeAttr(isGameError ? 'Error reported by a game' : 'Window error / unhandled rejection') + '">' + escapeHTML(name) + '</span>' +
                 '<span class="an-err-path mono">' + escapeHTML(e.path || '—') + '</span>' +
             '</div>' +
             (msg
@@ -868,7 +970,7 @@ function renderErrors(res) {
                       '<pre class="an-err-full" hidden>' + escapeHTML(msg) + '</pre>'
                     : '<div class="an-err-msg static">' + escapeHTML(msg) + '</div>')
                 : '') +
-            (e.file ? '<div class="an-err-file mono">' + escapeHTML(e.file) + '</div>' : '') +
+            (loc ? '<div class="an-err-file mono">' + loc + '</div>' : '') +
         '</div>';
     }).join('');
 
@@ -977,10 +1079,10 @@ function buildCsv() {
     if (c.errors && Array.isArray(c.errors.recent)) {
         sections.push(csvRows([
             ['JS errors'],
-            ['ts', 'name', 'path', 'message', 'file'],
+            ['ts', 'name', 'path', 'message', 'file', 'line'],
             ...c.errors.recent.map(e => {
                 const d = toDate(e.ts);
-                return [d ? d.toISOString() : '', e.name || '', e.path || '', e.message || '', e.file || ''];
+                return [d ? d.toISOString() : '', e.name || '', e.path || '', e.message || '', e.file || '', e.line ?? ''];
             })
         ]));
     }
@@ -1040,6 +1142,18 @@ function bindEvents() {
     if (refresh) refresh.addEventListener('click', () => loadAll());
     const exportBtn = $('#an-export');
     if (exportBtn) exportBtn.addEventListener('click', exportCsv);
+
+    // Per-panel retry buttons (rendered inside failed panels) + errors-head refresh
+    const body = document.getElementById('an-body');
+    if (body) {
+        body.addEventListener('click', (e) => {
+            const btn = e.target.closest('.an-retry');
+            if (!btn) return;
+            retryReport(btn.dataset.report);
+        });
+    }
+    const errRefresh = $('#an-errors-refresh');
+    if (errRefresh) errRefresh.addEventListener('click', () => retryReport('errors'));
 
     // Top-games drill-down (delegated)
     const tg = panelEl('an-topgames');
