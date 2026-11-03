@@ -130,6 +130,7 @@ function setupPlayButtonCapture() {
       const el = e.target.closest('button, a, [role="button"]');
       if (!el) return;
       if (el.closest('[data-game-launch]')) return; // handled by game-launcher integration
+      if (el.closest('[data-play-url]')) return;    // page code launches + stamps these itself
 
       const card = el.closest('.game-card, [data-game-id], .card');
       const idEl = card && (card.matches('[data-game-id]') ? card : card.querySelector('[data-game-id]'));
