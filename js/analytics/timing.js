@@ -9,7 +9,7 @@
  *   - outbound_click, error : interaction + failure tracking
  */
 
-import { track } from './core.js';
+import { track, ctx } from './core.js';
 
 const FLUSH_MS = 15000;
 
@@ -177,6 +177,12 @@ export function init() {
   navigationTiming();
 
   setInterval(() => flushEngagement(false), FLUSH_MS);
+
+  // session presence ping — analytics-collect uses it to keep "active now"
+  // fresh; closing the tab stops the pings so visitors age out immediately
+  setInterval(() => {
+    if (ctx.started && document.visibilityState === 'visible') track('session_ping', {});
+  }, 60000);
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {

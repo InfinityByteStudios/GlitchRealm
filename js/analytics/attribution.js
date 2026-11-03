@@ -267,9 +267,9 @@ export function attachGameParams(url, snapshot) {
   try {
     const u = new URL(url, window.location.origin);
     if (snapshot) {
-      u.searchParams.set('gr_sid', String(snapshot.sessionId || '').slice(0, 40));
-      u.searchParams.set('gr_pid', String(snapshot.playId || '').slice(0, 40));
-      u.searchParams.set('gr_gid', String(snapshot.gameId || '').slice(0, 60));
+      if (snapshot.sessionId) u.searchParams.set('gr_sid', String(snapshot.sessionId).slice(0, 40));
+      if (snapshot.playId) u.searchParams.set('gr_pid', String(snapshot.playId).slice(0, 40));
+      if (snapshot.gameId) u.searchParams.set('gr_gid', String(snapshot.gameId).slice(0, 60));
       if (snapshot.source) u.searchParams.set('gr_src', String(snapshot.source).slice(0, 100));
       if (snapshot.campaign) u.searchParams.set('gr_cmp', String(snapshot.campaign).slice(0, 100));
     }
