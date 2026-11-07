@@ -15,16 +15,18 @@ const success = [];
 
 // Check 1: Verify critical files exist
 const criticalFiles = [
-  'game-detail.html',
   'index.html',
-  'games.html',
-  'footer.html',
+  'subdomains/pages/games/game-detail.html',
+  'subdomains/pages/games/games.html',
+  'components/footer.html',
   'robots.txt',
   'netlify.toml',
-  'functions/prerender.js',
-  'generate-sitemap.js',
-  'privacy-policy.html',
-  'terms-of-service.html'
+  'netlify/edge-functions/prerender.js',
+  'scripts/generate-prerendered-content.js',
+  'scripts/generate-sitemap.js',
+  'sitemap.xml',
+  'subdomains/pages/legal/privacy-policy.html',
+  'subdomains/pages/legal/terms-of-service.html'
 ];
 
 criticalFiles.forEach(file => {
@@ -37,7 +39,7 @@ criticalFiles.forEach(file => {
 
 // Check 2: Validate game-detail.html has semantic structure
 try {
-  const gameDetailContent = fs.readFileSync('game-detail.html', 'utf8');
+  const gameDetailContent = fs.readFileSync('subdomains/pages/games/game-detail.html', 'utf8');
   
   // Check for article tag
   if (gameDetailContent.includes('<article')) {
@@ -134,7 +136,7 @@ try {
 
 // Check 5: Validate prerender edge function
 try {
-  const prerenderContent = fs.readFileSync('functions/prerender.js', 'utf8');
+  const prerenderContent = fs.readFileSync('netlify/edge-functions/prerender.js', 'utf8');
   
   if (prerenderContent.includes('export default')) {
     success.push('✅ Edge function exports default handler');
@@ -155,12 +157,61 @@ try {
   }
   
 } catch (err) {
-  errors.push(`❌ Error reading functions/prerender.js: ${err.message}`);
+  errors.push(`❌ Error reading netlify/edge-functions/prerender.js: ${err.message}`);
+}
+
+// Check 5b: Validate build-time prerendered content (crawler-visible HTML)
+try {
+  const indexContent = fs.readFileSync('index.html', 'utf8');
+  const newestInfo = /<div class="featured-info" id="newest-game-info">([\s\S]*?)<\/div>/.exec(indexContent);
+  if (newestInfo && /<h3>[^<]+<\/h3>/.test(newestInfo[1]) && !newestInfo[1].includes('Loading...')) {
+    success.push('✅ Homepage ships a server-rendered "Newest Game" card');
+  } else {
+    errors.push('❌ Homepage "Newest Game" card has no server-rendered content');
+  }
+
+  if (/game-detail\.html\?id=/.test(indexContent)) {
+    success.push('✅ Homepage links to the newest game detail page');
+  } else {
+    errors.push('❌ Homepage does not link to the newest game detail page');
+  }
+
+  const gamesContent = fs.readFileSync('subdomains/pages/games/games.html', 'utf8');
+  const bakedCards = (gamesContent.match(/class="game-card is-submission"/g) || []).length;
+  if (bakedCards > 0) {
+    success.push(`✅ Games page ships ${bakedCards} server-rendered community game cards`);
+  } else {
+    errors.push('❌ Games page has no server-rendered community game cards');
+  }
+
+  const gameDetailContent = fs.readFileSync('subdomains/pages/games/game-detail.html', 'utf8');
+  if (gameDetailContent.includes('pagead2.googlesyndication.com/pagead/js/adsbygoogle.js')) {
+    success.push('✅ Game detail page loads adsbygoogle.js');
+  } else {
+    errors.push('❌ Game detail page does not load adsbygoogle.js');
+  }
+
+  const adUnits = (gameDetailContent.match(/class="adsbygoogle"/g) || []).length;
+  if (adUnits >= 3) {
+    success.push(`✅ Game detail page has ${adUnits} AdSense units`);
+  } else {
+    errors.push('❌ Game detail page is missing AdSense units');
+  }
+
+  const sitemapContent = fs.readFileSync('sitemap.xml', 'utf8');
+  const gameUrls = (sitemapContent.match(/game-detail\.html\?id=/g) || []).length;
+  if (gameUrls > 0) {
+    success.push(`✅ sitemap.xml lists ${gameUrls} game detail URLs`);
+  } else {
+    errors.push('❌ sitemap.xml lists no game detail URLs');
+  }
+} catch (err) {
+  errors.push(`❌ Error validating prerendered content: ${err.message}`);
 }
 
 // Check 6: Validate footer exists and has legal links
 try {
-  const footerContent = fs.readFileSync('footer.html', 'utf8');
+  const footerContent = fs.readFileSync('components/footer.html', 'utf8');
   
   const requiredLinks = [
     'privacy-policy.html',
@@ -216,15 +267,15 @@ try {
 // Print Results
 
 if (success.length > 0) {
-  success.forEach(s => {});
+  success.forEach(s => console.log(s));
 }
 
 if (warnings.length > 0) {
-  warnings.forEach(w => {});
+  warnings.forEach(w => console.log(w));
 }
 
 if (errors.length > 0) {
-  errors.forEach(e => {});
+  errors.forEach(e => console.log(e));
 }
 
 

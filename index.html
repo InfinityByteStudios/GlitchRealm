@@ -112,13 +112,19 @@
             <div class="container">
                 <h2 class="section-title">Newest Game</h2>                
                 <div class="featured-card" id="newest-game-card">
-                    <div class="featured-image" id="newest-game-image">
+                    <div class="featured-image" id="newest-game-image" style="background-image:url('https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/game-covers/238f4370-ad42-4563-ae1c-2a52e18d47d4/1794079127290_cover.webp');background-size:cover;background-position:center;">
                         <div class="game-badge new">NEW</div>
-                    </div>                    
-                    <div class="featured-info" id="newest-game-info">                        
-                        <h3>Loading...</h3>
-                        <p>Fetching the newest game from the database...</p>
-                        <p class="featured-developer">Made by <strong>...</strong></p>
+                    </div>
+                    <div class="featured-info" id="newest-game-info">
+                        <h3>RoadRival</h3>
+                        <p class="featured-description">Build strategic roads, place defensive towers, and protect your castle against rival opponents in this fast-paced browser strategy game.</p>
+                        <p class="featured-developer">Made by <strong>Blink Online</strong></p>
+                        <a href="/game-detail.html?id=bChDdII0w7PEgCLkBzEM" class="play-btn featured-play-btn">
+                            <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" style="flex-shrink: 0;">
+                                <polygon points="0,0 10,6 0,12"/>
+                            </svg>
+                            <span>Play Now</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -340,12 +346,14 @@
                 }
                 const db = window.firebaseFirestore || getFirestore(window.firebaseApp);
                 
-                // Query for the newest published games (a few, so excluded games can be skipped)
+                // Query for the newest published games. Status matching is done
+                // in memory (and without a server-side orderBy) so the read works
+                // with either "published" or "Published" and without relying on a
+                // composite Firestore index.
                 const gamesQuery = query(
                     collection(db, 'game_submissions'),
-                    where('status', '==', 'published'),
-                    orderBy('createdAt', 'desc'),
-                    limit(10)
+                    where('status', 'in', ['published', 'Published']),
+                    limit(30)
                 );
                 
                 const snapshot = await getDocs(gamesQuery);
@@ -357,7 +365,14 @@
                 }
                 
                 // Skip games excluded from the "Newest Game" slot
-                const gameDoc = snapshot.docs.find(d => !NEWEST_GAME_EXCLUDED_IDS.has(d.id));
+                const gameDoc = snapshot.docs
+                    .slice()
+                    .sort((a, b) => {
+                        const at = a.data()?.createdAt?.toMillis?.() || 0;
+                        const bt = b.data()?.createdAt?.toMillis?.() || 0;
+                        return bt - at;
+                    })
+                    .find(d => !NEWEST_GAME_EXCLUDED_IDS.has(d.id));
                 if (!gameDoc) {
                     try { localStorage.removeItem(NEWEST_GAME_CACHE_KEY); } catch (e) {}
                     document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
