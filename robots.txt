@@ -5,13 +5,27 @@
 User-agent: *
 Allow: /
 
-# Disallow admin and private areas
+# Disallow internal, admin, and private areas (never indexed)
 Disallow: /admin*
 Disallow: /functions/
 Disallow: /.well-known/
 Disallow: /auth-bridge*
 Disallow: /portal-auth.js
 Disallow: /delete-account.html
+Disallow: /maintenance.html
+Disallow: /offline.html
+Disallow: /blank.html
+Disallow: /404.html
+Disallow: /subdomains/
+Disallow: /node_modules/
+Disallow: /utilities/
+Disallow: /components/
+Disallow: /v2/
+Disallow: /netlify/
+Disallow: /scripts/
+Disallow: /docs/
+Disallow: /supabase/
+Disallow: /config/
 
 # Disallow auth pages (separate subdomain)
 Disallow: /signin.html
@@ -32,8 +46,16 @@ User-agent: Googlebot
 Allow: /
 Crawl-delay: 0
 
-# Google AdSense bot
+# Google AdSense bot (must be able to see content)
 User-agent: Mediapartners-Google
+Allow: /
+
+# Google AdSense ads bot
+User-agent: AdsBot-Google
+Allow: /
+
+# Google AdSense ads bot (mobile)
+User-agent: AdsBot-Google-Mobile
 Allow: /
 
 # Bing

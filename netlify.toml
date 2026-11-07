@@ -1,7 +1,7 @@
 # Enable Netlify's new AI-powered features
 [build]
-  # Enable AI-powered build failure explanations
-  command = "echo 'Static site - no build command needed'"
+  # Curated sitemap.xml generation (static pages + published game detail pages)
+  command = "node scripts/generate-sitemap.js"
 
 [build.environment]
   # Firebase API keys are public by design and secured by Firestore rules
@@ -107,19 +107,10 @@
 
 # Prerendering plugin for SEO optimization
 # Generates static HTML for dynamic game pages
-[[plugins]]
-  package = "@netlify/plugin-sitemap"
-  
-  [plugins.inputs]
-    buildDir = "."
-    exclude = [
-      '/admin*',
-      '/Games/**/*',
-      '/functions/**/*'
-    ]
-    # Add dynamic game detail pages
-    prettyURLs = true
-    trailingSlash = false
+# NOTE: Replaced by scripts/generate-sitemap.js which builds a curated sitemap.xml
+# (including published game detail pages from Firestore) during the build.
+# The @netlify/plugin-sitemap plugin was removed because it crawled the raw
+# repo and published internal URLs (node_modules, tests, admin, auth, etc.)
 
 # Lighthouse plugin disabled - causing build failures
 # Re-enable once performance optimizations are fully deployed
@@ -163,7 +154,7 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.gstatic.com https://cdnjs.buymeacoffee.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://pagead2.googlesyndication.com https://apis.google.com https://www.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' blob: https: wss:; frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://badge.uptimerobot.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self' blob: data: https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.gstatic.com https://cdnjs.buymeacoffee.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://apis.google.com https://www.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' blob: https: wss:; frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://badge.uptimerobot.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self' blob: data: https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     # Enable Brotli/Gzip
     Vary = "Accept-Encoding"
