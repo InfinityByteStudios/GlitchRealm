@@ -1,110 +1,103 @@
 /**
  * Sitemap Generator for GlitchRealm
- * 
- * This script generates a dynamic sitemap.xml including all game detail pages.
- * Should be run periodically or triggered after game submissions.
+ *
+ * Produces a curated sitemap.xml at build time:
+ *   - Hand-picked static pages (only public, indexable ones)
+ *   - Published game detail pages fetched from Firestore (no auth needed —
+ *     the collection is publicly readable, same as the client JS)
+ *
+ * Replaces the @netlify/plugin-sitemap crawl, which was publishing internal
+ * URLs (node_modules, tests, admin, auth, components, etc.) into the sitemap.
  */
 
-const admin = require('firebase-admin');
-const fs = require('fs');
+const FIREBASE_PROJECT_ID = 'shared-sign-in';
+const FIRESTORE_RUN_QUERY =
+  `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`;
 
-// Initialize Firebase Admin (use service account in production)
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    projectId: 'shared-sign-in'
-  });
-}
+const BASE_URL = 'https://glitchrealm.ca';
+const TODAY = new Date().toISOString().split('T')[0];
 
-const db = admin.firestore();
+// ---------------------------------------------------------------------------
+// Curated static pages (only public, indexable ones)
+// ---------------------------------------------------------------------------
 
-async function generateSitemap() {
-  const baseUrl = 'https://glitchrealm.ca';
-  const currentDate = new Date().toISOString().split('T')[0];
-  
-  // Static pages with priority and change frequency
-  const staticPages = [
-    { url: '', priority: '1.0', changefreq: 'daily' }, // Homepage
-    { url: '/games.html', priority: '0.9', changefreq: 'daily' },
-    { url: '/community.html', priority: '0.8', changefreq: 'weekly' },
-    { url: '/about.html', priority: '0.7', changefreq: 'monthly' },
-    { url: '/submit-game.html', priority: '0.8', changefreq: 'monthly' },
-    { url: '/news.html', priority: '0.7', changefreq: 'weekly' },
-    { url: '/legal.html', priority: '0.5', changefreq: 'monthly' },
-    { url: '/privacy-policy.html', priority: '0.5', changefreq: 'monthly' },
-    { url: '/terms-of-service.html', priority: '0.5', changefreq: 'monthly' },
-    { url: '/cookie-policy.html', priority: '0.5', changefreq: 'monthly' },
-    { url: '/contact.html', priority: '0.6', changefreq: 'monthly' },
-    { url: '/donate.html', priority: '0.6', changefreq: 'monthly' },
-    { url: '/credits.html', priority: '0.5', changefreq: 'monthly' }
-  ];
-  
-  let sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-`;
+const STATIC_PAGES = [
+  { url: '/', priority: '1.0', changefreq: 'daily' },
+  { url: '/games.html', priority: '0.9', changefreq: 'daily' },
+  { url: '/about.html', priority: '0.7', changefreq: 'monthly' },
+  { url: '/community.html', priority: '0.8', changefreq: 'weekly' },
+  { url: '/submit-game.html', priority: '0.8', changefreq: 'monthly' },
+  { url: '/news.html', priority: '0.7', changefreq: 'weekly' },
+  { url: '/contact.html', priority: '0.6', changefreq: 'monthly' },
+  { url: '/donate.html', priority: '0.6', changefreq: 'monthly' },
+  { url: '/credits.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/support.html', priority: '0.6', changefreq: 'monthly' },
+  { url: '/legal.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/privacy-policy.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/terms-of-service.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/cookie-policy.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/eula.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/coppa.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/accessibility-statement.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/Games/UnderYourSkin/', priority: '0.8', changefreq: 'weekly' },
+];
 
-  // Add static pages
-  staticPages.forEach(page => {
-    sitemapContent += `  <url>
-    <loc>${baseUrl}${page.url}</loc>
-    <lastmod>${currentDate}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>
-`;
-  });
+// ---------------------------------------------------------------------------
+// Firestore REST helpers
+// ---------------------------------------------------------------------------
 
+async function fetchPublishedGames(limit = 200) {
   try {
-    // Fetch all published game submissions
-    const gamesSnapshot = await db.collection('game_submissions')
-      .where('status', '==', 'published')
-      .get();
-    
-    
-    // Add dynamic game detail pages
-    gamesSnapshot.forEach(doc => {
-      const game = doc.data();
-      const gameId = doc.id;
-      
-      sitemapContent += `  <url>
-    <loc>${baseUrl}/game-detail.html?id=${gameId}</loc>
-    <lastmod>${currentDate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>`;
-      
-      // Add image sitemap data if cover image exists
-      if (game.coverImageUrl) {
-        sitemapContent += `
-    <image:image>
-      <image:loc>${escapeXml(game.coverImageUrl)}</image:loc>
-      <image:title>${escapeXml(game.title || 'Untitled Game')}</image:title>
-      <image:caption>${escapeXml(game.description || '')}</image:caption>
-    </image:image>`;
-      }
-      
-      sitemapContent += `
-  </url>
-`;
+    const query = {
+      structuredQuery: {
+        from: [{ collectionId: 'game_submissions' }],
+        where: {
+          fieldFilter: {
+            field: { fieldPath: 'status' },
+            op: 'IN',
+            value: { arrayValue: { values: [{ stringValue: 'published' }, { stringValue: 'Published' }] } },
+          },
+        },
+        orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }],
+        limit: { value: limit },
+      },
+    };
+    const resp = await fetch(FIRESTORE_RUN_QUERY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(query),
+      signal: AbortSignal.timeout(15000),
     });
-
-    // Close sitemap
-    sitemapContent += `</urlset>`;
-    
-    // Write to file
-    fs.writeFileSync('sitemap.xml', sitemapContent, 'utf8');
-    
-    return sitemapContent;
-    
-  } catch (error) {
-    console.error('Error generating sitemap:', error);
-    throw error;
+    if (!resp.ok) {
+      console.warn(`[sitemap] Firestore runQuery failed (${resp.status}) — using static pages only`);
+      return [];
+    }
+    const data = await resp.json();
+    const games = [];
+    for (const row of data) {
+      if (!row.document) continue;
+      const fields = row.document.fields || {};
+      const game = {
+        id: row.document.name.split('/').pop(),
+        title: fields.title?.stringValue || '',
+        updatedAt: fields.updatedAt?.timestampValue || fields.createdAt?.timestampValue || '',
+      };
+      games.push(game);
+    }
+    return games;
+  } catch (err) {
+    console.warn(`[sitemap] Firestore fetch failed (${err.message}) — using static pages only`);
+    return [];
   }
 }
 
+// ---------------------------------------------------------------------------
+// XML helpers
+// ---------------------------------------------------------------------------
+
 function escapeXml(text) {
   if (!text) return '';
-  return text
+  return String(text)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -112,16 +105,57 @@ function escapeXml(text) {
     .replace(/'/g, '&apos;');
 }
 
-// Run if executed directly
-if (require.main === module) {
-  generateSitemap()
-    .then(() => {
-      process.exit(0);
-    })
-    .catch(err => {
-      console.error('Failed:', err);
-      process.exit(1);
-    });
+function isoDate(value) {
+  if (!value) return TODAY;
+  try {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return TODAY;
+    return d.toISOString().split('T')[0];
+  } catch {
+    return TODAY;
+  }
 }
 
-module.exports = { generateSitemap };
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function generateSitemap() {
+  const games = await fetchPublishedGames();
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+`;
+
+  for (const page of STATIC_PAGES) {
+    xml += `  <url>
+    <loc>${escapeXml(BASE_URL + page.url)}</loc>
+    <lastmod>${TODAY}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>
+`;
+  }
+
+  for (const game of games) {
+    xml += `  <url>
+    <loc>${escapeXml(`${BASE_URL}/game-detail.html?id=${encodeURIComponent(game.id)}`)}</loc>
+    <lastmod>${isoDate(game.updatedAt)}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+  }
+
+  xml += `</urlset>
+`;
+
+  const fs = require('fs');
+  fs.writeFileSync('sitemap.xml', xml);
+  console.log(`[sitemap] wrote ${STATIC_PAGES.length} static pages + ${games.length} game detail pages to sitemap.xml`);
+}
+
+generateSitemap().catch((err) => {
+  console.error('[sitemap] failed:', err);
+  process.exit(0); // Don't fail the deploy — the sitemap is not critical
+});
