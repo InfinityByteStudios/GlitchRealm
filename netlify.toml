@@ -1,7 +1,8 @@
 # Enable Netlify's new AI-powered features
 [build]
-  # Curated sitemap.xml generation (static pages + published game detail pages)
-  command = "node scripts/generate-sitemap.js"
+  # Bake live game content into the static HTML for crawlers, then publish a
+  # curated sitemap.xml (static pages + published game detail pages)
+  command = "node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.js"
 
 [build.environment]
   # Firebase API keys are public by design and secured by Firestore rules

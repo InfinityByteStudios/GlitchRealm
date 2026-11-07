@@ -97,15 +97,52 @@ async function fetchPublishedGames(limit = 10) {
       limit: { value: limit },
     },
   };
-  const resp = await fetch(`${FIRESTORE_BASE}:runQuery`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(query),
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!resp.ok) return [];
-  const data = await resp.json();
-  if (!Array.isArray(data)) return [];
+
+  const runQuery = async (body) => {
+    const resp = await fetch(`${FIRESTORE_BASE}:runQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return Array.isArray(data) ? data : null;
+  };
+
+  let data = null;
+  for (let attempt = 0; attempt < 2 && !data; attempt += 1) {
+    try {
+      data = await runQuery(query);
+    } catch {
+      data = null;
+    }
+  }
+
+  // Fallback: query without the orderBy clause so a missing composite index
+  // can never hide every published game from crawlers.
+  if (!data) {
+    try {
+      const fallback = {
+        structuredQuery: {
+          from: [{ collectionId: 'game_submissions' }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: 'status' },
+              op: 'IN',
+              value: { arrayValue: { values: [{ stringValue: 'published' }, { stringValue: 'Published' }] } },
+            },
+          },
+          limit: { value: limit },
+        },
+      };
+      data = await runQuery(fallback);
+    } catch {
+      data = null;
+    }
+  }
+
+  if (!data) return [];
   const games = [];
   for (const row of data) {
     if (!row.document || !row.document.fields) continue;
@@ -132,6 +169,56 @@ function escapeHtml(text) {
 
 function escapeAttr(text) {
   return escapeHtml(text).replace(/`/g, '&#96;');
+}
+
+// ---------------------------------------------------------------------------
+// Balanced-tag HTML helpers
+//
+// A plain regex cannot match a container div that holds nested divs, which is
+// why the homepage injection used to silently fail. These helpers scan for
+// the matching closing tag instead.
+// ---------------------------------------------------------------------------
+
+function replaceElement(html, openTag, replacement) {
+  const start = html.indexOf(openTag);
+  if (start === -1) return null;
+
+  const tagName = openTag.match(/^<([a-zA-Z0-9-]+)/)[1];
+  const openPattern = new RegExp(`<${tagName}\\b`, 'gi');
+  const closePattern = new RegExp(`</${tagName}\\s*>`, 'gi');
+
+  let depth = 0;
+  let index = start;
+  while (index < html.length) {
+    openPattern.lastIndex = index;
+    closePattern.lastIndex = index;
+    const nextOpen = openPattern.exec(html);
+    const nextClose = closePattern.exec(html);
+    if (!nextClose) return null;
+    if (nextOpen && nextOpen.index < nextClose.index) {
+      depth += 1;
+      index = nextOpen.index + nextOpen[0].length;
+      continue;
+    }
+    depth -= 1;
+    index = nextClose.index + nextClose[0].length;
+    if (depth === 0) {
+      return html.slice(0, start) + replacement + html.slice(index);
+    }
+  }
+  return null;
+}
+
+function removeElements(html, openTag) {
+  let output = html;
+  let guard = 0;
+  while (output.includes(openTag) && guard < 200) {
+    const replaced = replaceElement(output, openTag, '');
+    if (replaced === null) break;
+    output = replaced;
+    guard += 1;
+  }
+  return output;
 }
 
 // ---------------------------------------------------------------------------
@@ -197,6 +284,12 @@ function buildDetailContent(game, gameId) {
   const desc = game.description || 'No description provided.';
   const url = `https://glitchrealm.ca/game-detail.html?id=${encodeURIComponent(gameId)}`;
 
+  const adSlot = (id, minHeight) => `
+          <div id="${id}" class="adsense-container" style="margin: 40px 0; min-height: ${minHeight}px; text-align: center;">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7271783548299942" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          </div>`;
+
   return `
     <article id="gameContent" itemscope itemtype="https://schema.org/VideoGame" style="display:block;">
       <div class="detail-header">
@@ -211,6 +304,7 @@ function buildDetailContent(game, gameId) {
           </div>
           <div id="gameTags" class="detail-tags" itemprop="genre">${tagsHtml}</div>
           <p id="gameDescription" class="detail-description" itemprop="description">${escapeHtml(desc)}</p>
+          ${adSlot('adsense-top-cta', 90)}
           <div class="action-buttons">
             ${game.playUrl ? `<a id="playButton" href="${escapeAttr(game.playUrl)}" target="_blank" rel="noopener" class="play-btn">▶ Play Now</a>` : ''}
             <a href="${escapeAttr(url)}" class="play-btn" style="display:none;">View Details</a>
@@ -222,11 +316,13 @@ function buildDetailContent(game, gameId) {
         <h2>About This Game</h2>
         <div id="extendedDescription">${escapeHtml(game.extendedDescription)}</div>
       </section>` : ''}
+      ${adSlot('adsense-mid-content', 250)}
       ${game.howToPlay ? `
       <section id="howToPlaySection" class="detail-section">
         <h2>How to Play</h2>
         <div id="howToPlay">${escapeHtml(game.howToPlay)}</div>
       </section>` : ''}
+      ${adSlot('adsense-bottom', 250)}
     </article>`;
 }
 
@@ -281,14 +377,15 @@ function buildNewestGameHtml(game) {
 
 function injectHomepage(html, game) {
   const cardHtml = buildNewestGameHtml(game);
-  // Replace the loading placeholder inside #newest-game-card
-  const m = /<div class="featured-card" id="newest-game-card">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<\/section>/.exec(html);
-  if (m) {
-    return html.replace(
-      m[0],
-      `<div class="featured-card" id="newest-game-card">${cardHtml}\n</div>\n</div>\n</section>`,
-    );
-  }
+
+  // Replace the whole featured card (cover image + title + description + link).
+  const replaced = replaceElement(
+    html,
+    '<div class="featured-card" id="newest-game-card">',
+    `<div class="featured-card" id="newest-game-card">${cardHtml}\n</div>`,
+  );
+  if (replaced) return replaced;
+
   // Fallback: replace just the loading info div
   return html.replace(
     /<div class="featured-info" id="newest-game-info">[\s\S]*?<\/div>/,
@@ -327,7 +424,7 @@ function buildGameCard(game) {
         </div>
       </div>
       <div class="card-content">
-        <h3 class="card-title">${title}</h3>
+        <h3 class="card-title"><a href="${escapeAttr(detailUrl)}">${title}</a></h3>
         <p class="card-description">${desc || 'No description provided.'}</p>
         <p class="card-developer">Made by <strong>${ownerUsername}</strong>
           <button class="review-btn" data-review-id="${escapeAttr(id)}" data-review-title="${escapeAttr(game.title || 'Untitled')}">⭐ Review</button>
@@ -339,13 +436,17 @@ function buildGameCard(game) {
         ${playUrl
           ? `<button class="btn btn-primary card-btn play-now-btn" data-play-url="${escapeAttr(playUrl)}">Play Now</button>`
           : `<button class="btn btn-disabled card-btn" disabled>Play link pending</button>`}
-        <a href="${escapeAttr(detailUrl)}" class="game-card-link" style="position:absolute;inset:0;z-index:1;" aria-label="${title} details"></a>
       </div>
     </div>`;
 }
 
 function injectGamesPage(html, games) {
   if (!games.length) return html;
+
+  // Drop any cards that were baked into the static HTML at build time (or
+  // injected by an earlier request) so the grid is never duplicated.
+  html = removeElements(html, '<div class="game-card is-submission"');
+
   const cards = games.map(buildGameCard).join('\n');
   // Insert the submission cards before the "More Games Coming Soon" card.
   const m = /<div class="game-card coming-soon"/.exec(html);
