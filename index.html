@@ -111,7 +111,7 @@
         <section class="featured-game">
             <div class="container">
                 <h2 class="section-title">Newest Game</h2>                
-                <div class="featured-card" id="newest-game-card">
+                <div class="featured-card" id="newest-game-card" data-prerendered="1">
                     <div class="featured-image" id="newest-game-image" style="background-image:url('https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/game-covers/238f4370-ad42-4563-ae1c-2a52e18d47d4/1794079127290_cover.webp');background-size:cover;background-position:center;">
                         <div class="game-badge new">NEW</div>
                     </div>
@@ -322,11 +322,20 @@
             }
         } catch (e) {}
 
+        // Never overwrite a rendered/baked newest-game card with an empty or error
+        // state: crawler and headless renders (e.g. Netlify Prerender) can receive
+        // an empty or failed Firestore response, and replacing the card then would
+        // publish "No games yet" to search engines. Visitors with live data always
+        // get the live result.
+        function keepBakedNewestGame() {
+            const card = document.getElementById('newest-game-card');
+            return !!(card && card.hasAttribute('data-prerendered'));
+        }
         async function loadNewestGame() {
             try {
                 await (window.firebaseReady || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true })));
             } catch {
-                if (!renderedFromCache) document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
+                if (!renderedFromCache) if (!keepBakedNewestGame()) document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
                 return;
             }
             
@@ -360,7 +369,7 @@
                 
                 if (snapshot.empty) {
                     try { localStorage.removeItem(NEWEST_GAME_CACHE_KEY); } catch (e) {}
-                    document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
+                    if (!keepBakedNewestGame()) document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
                     return;
                 }
                 
@@ -375,7 +384,7 @@
                     .find(d => !NEWEST_GAME_EXCLUDED_IDS.has(d.id));
                 if (!gameDoc) {
                     try { localStorage.removeItem(NEWEST_GAME_CACHE_KEY); } catch (e) {}
-                    document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
+                    if (!keepBakedNewestGame()) document.getElementById('newest-game-info').innerHTML = '<h3>No games yet</h3><p>Be the first to submit a game!</p>';
                     return;
                 }
                 const data = gameDoc.data();
@@ -396,7 +405,7 @@
             } catch (err) {
                 console.error('Error loading newest game:', err);
                 if (!renderedFromCache) {
-                    document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
+                    if (!keepBakedNewestGame()) document.getElementById('newest-game-info').innerHTML = '<h3>Error loading game</h3><p>Please refresh the page.</p>';
                 }
             }
         }

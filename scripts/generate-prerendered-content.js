@@ -170,7 +170,7 @@ function buildNewestGameCard(game) {
   const description = escapeHtml(game.description || 'No description available.');
   const owner = escapeHtml(game.ownerUsername || 'Community Creator');
 
-  return `<div class="featured-card" id="newest-game-card">
+  return `<div class="featured-card" id="newest-game-card" data-prerendered="1">
                     <div class="featured-image" id="newest-game-image" ${cover}>
                         <div class="game-badge new">NEW</div>
                     </div>
@@ -224,7 +224,7 @@ function buildGameCard(game) {
 
 function injectNewestGame(html, game) {
   const card = buildNewestGameCard(game);
-  const replaced = replaceElement(html, '<div class="featured-card" id="newest-game-card">', card);
+  const replaced = replaceElement(html, '<div class="featured-card" id="newest-game-card"', card);
   if (replaced) return replaced;
 
   // Fallback: swap the placeholder info block only.
