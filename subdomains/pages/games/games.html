@@ -1624,6 +1624,16 @@
                     
                     
                     
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     <div class="game-card is-submission" data-prerendered="1" data-game="bChDdII0w7PEgCLkBzEM">
                         <div class="card-image">
                             <img src="https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/game-covers/238f4370-ad42-4563-ae1c-2a52e18d47d4/1794079127290_cover.webp" srcset="https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/game-covers/238f4370-ad42-4563-ae1c-2a52e18d47d4/1794079127290_cover.webp 320w, https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/game-covers/238f4370-ad42-4563-ae1c-2a52e18d47d4/1794079127290_cover.webp 640w, https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/game-covers/238f4370-ad42-4563-ae1c-2a52e18d47d4/1794079127290_cover.webp 960w" sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px" alt="RoadRival" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
@@ -3946,6 +3956,14 @@
                                 const bt = (b.updatedAt?.toMillis?.() || b.createdAt?.toMillis?.() || 0);
                                 return bt - at;
                             });
+
+                            // Never wipe rendered/baked cards without replacement data: crawler and
+                            // headless renders (e.g. Netlify Prerender) can receive an empty or failed
+                            // Firestore result, and wiping the grid then would publish an empty games
+                            // library to search engines. Visitors with live data always get a rebuild.
+                            if (!list.length && container.querySelector('.game-card.is-submission')) {
+                                return;
+                            }
 
                             // Remove previously rendered submission cards
                             container.querySelectorAll('.game-card.is-submission').forEach(el => el.remove());

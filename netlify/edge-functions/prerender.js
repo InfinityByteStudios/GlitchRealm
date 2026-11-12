@@ -22,6 +22,10 @@ const FIRESTORE_BASE =
 // Mirrors NEWEST_GAME_EXCLUDED_IDS in index.html.
 const NEWEST_GAME_EXCLUDED_IDS = new Set(['YxnZNN7g1gT0ih5Q1wqo']);
 
+// Status values that count as publicly published.
+// Mirrors PUBLISHED_STATUSES in scripts/generate-prerendered-content.js.
+const PUBLISHED_STATUSES = ['published', 'Published'];
+
 // ---------------------------------------------------------------------------
 // Bot detection
 // ---------------------------------------------------------------------------
@@ -40,6 +44,12 @@ const BOT_UA_FRAGMENTS = [
   'Screaming Frog', 'Majestic-SEO', 'Sistrix', 'rogerbot',
   'HeadlessChrome', 'Lighthouse', 'PageSpeed', 'WPT-Bot',
   'Netlify', 'BetterUptime', 'UptimeRobot', 'Pingdom', 'StatusCake',
+  // AI search assistants and AI crawlers
+  'GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'PerplexityBot', 'Perplexity-User',
+  'ClaudeBot', 'Claude-Web', 'Claude-User', 'Claude-SearchBot', 'anthropic-ai',
+  'Applebot-Extended', 'Bytespider', 'Amazonbot', 'Meta-ExternalAgent',
+  'Meta-ExternalAgent-Scraper', 'YouBot', 'cohere-ai', 'Diffbot',
+  'ImagesiftBot', 'PanguBot', 'Kangaroo Bot', 'Timpibot', 'WebCrawler',
 ];
 
 function isBot(ua) {
@@ -235,7 +245,7 @@ function buildMetaTags(game, gameId) {
     <meta property="og:title" content="${escapeAttr(game.title)} - GlitchRealm">
     <meta property="og:description" content="${escapeAttr(desc)}">
     <meta property="og:image" content="${escapeAttr(cover)}">
-    <meta property="og:type" content="website">
+    <link rel="canonical" href="${escapeAttr(url)}">
     <meta property="og:url" content="${escapeAttr(url)}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeAttr(game.title)} - GlitchRealm">
@@ -330,20 +340,22 @@ function injectGameDetail(html, game, gameId) {
   let out = html;
 
   // Replace the static title with the game-specific one
-  out = out.replace('<title>Game Details - GlitchRealm</title>', buildMetaTags(game, gameId));
+  // Drop the generic static description/canonical so each game has exactly one
+  out = out.replace(/<meta name="description"[^>]*>\s*/i, '').replace(/<link rel="canonical"[^>]*>\s*/i, '');
+  out = out.replace('<title>Game Details - GlitchRealm</title>', () => buildMetaTags(game, gameId));
 
   // Inject JSON-LD before </head>
-  out = out.replace('</head>', `${buildJsonLd(game, gameId)}</head>`);
+  out = out.replace('</head>', () => `${buildJsonLd(game, gameId)}</head>`);
 
   // Replace the loading state (and notFound/gameContent placeholders) with the
   // prerendered content. The JS then just fills in the same data on top.
   const loadingState = /<div id="loadingState" class="loading-state">[\s\S]*?<\/div>\s*<div id="notFoundState"[\s\S]*?<\/div>\s*<article id="gameContent"[\s\S]*?<\/article>/.exec(out);
   if (loadingState) {
-    out = out.replace(loadingState[0], buildDetailContent(game, gameId));
+    out = out.replace(loadingState[0], () => buildDetailContent(game, gameId));
   } else {
     // Fallback: hide loading state, inject content before </main>
     out = out.replace('<div id="loadingState" class="loading-state">', '<div id="loadingState" class="loading-state" style="display:none;">');
-    out = out.replace('</main>', `${buildDetailContent(game, gameId)}</main>`);
+    out = out.replace('</main>', () => `${buildDetailContent(game, gameId)}</main>`);
   }
 
   return out;
@@ -381,8 +393,8 @@ function injectHomepage(html, game) {
   // Replace the whole featured card (cover image + title + description + link).
   const replaced = replaceElement(
     html,
-    '<div class="featured-card" id="newest-game-card">',
-    `<div class="featured-card" id="newest-game-card">${cardHtml}\n</div>`,
+    '<div class="featured-card" id="newest-game-card"',
+    `<div class="featured-card" id="newest-game-card" data-prerendered="1">${cardHtml}\n</div>`,
   );
   if (replaced) return replaced;
 
@@ -410,7 +422,7 @@ function buildGameCard(game) {
   const detailUrl = `https://glitchrealm.ca/game-detail.html?id=${encodeURIComponent(id)}`;
 
   return `
-    <div class="game-card is-submission" data-game="${escapeAttr(id)}">
+    <div class="game-card is-submission" data-prerendered="1" data-game="${escapeAttr(id)}">
       <div class="card-image">
         <img src="${escapeAttr(cover)}" srcset="${escapeAttr(cover)} 320w, ${escapeAttr(cover)} 640w, ${escapeAttr(cover)} 960w" sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px" alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
         <div class="card-overlay"></div>
@@ -451,12 +463,12 @@ function injectGamesPage(html, games) {
   // Insert the submission cards before the "More Games Coming Soon" card.
   const m = /<div class="game-card coming-soon"/.exec(html);
   if (m) {
-    return html.replace(m[0], `${cards}\n${m[0]}`);
+    return html.replace(m[0], () => `${cards}\n${m[0]}`);
   }
   // Fallback: append before the closing of .game-cards
   const container = /<div class="game-cards">/.exec(html);
   if (container) {
-    return html.replace(container[0], `${container[0]}\n${cards}`);
+    return html.replace(container[0], () => `${container[0]}\n${cards}`);
   }
   return html;
 }
@@ -487,7 +499,9 @@ export default async (req, context) => {
       const gameId = url.searchParams.get('id');
       if (!gameId) return;
       const game = await fetchGameDoc(gameId);
-      if (!game) return;
+      // Only publicly published games may be rendered to crawlers; drafts,
+      // rejected, private or removed games keep the original (empty) page.
+      if (!game || !PUBLISHED_STATUSES.includes(game.status)) return;
       const out = injectGameDetail(html, game, gameId);
       return new Response(out, {
         headers: {
