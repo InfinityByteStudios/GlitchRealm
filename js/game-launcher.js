@@ -146,7 +146,7 @@ class GameLauncher {
             } else {
                 // Redirect to standalone sign in with redirect back
                 try { sessionStorage.setItem('gr.returnTo', window.location.href); } catch {}
-                window.location.href = `/Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}`;
+                window.location.href = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(window.location.href)}`;
             }
         }
     }

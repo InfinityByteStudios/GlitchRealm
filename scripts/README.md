@@ -90,7 +90,7 @@ const config = {
     compressionLevel: 8
   },
   // Directories to process (Games folder excluded)
-  inputDirs: ['assets', 'auth/assets', 'news/assets']
+  inputDirs: ['assets', 'auth/assets']
 };
 ```
 

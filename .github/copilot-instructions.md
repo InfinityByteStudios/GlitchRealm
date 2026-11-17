@@ -35,7 +35,6 @@ window.firestoreDoc
 - `reviews`: Game reviews with moderation
 - `playtime`: Per-user playtime tracking with `/playtime/{userId}/games/{gameId}` subcollection
 - `community_posts`: Community discussions
-- `news_articles`: News/blog posts
 
 **Firestore Rules Pattern:**
 - 3 update paths: owner-claim (legacy), owner-update (content only), admin/dev-update (everything)

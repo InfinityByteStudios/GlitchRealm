@@ -37,7 +37,7 @@ jobs:
             http://localhost:5000/
             http://localhost:5000/games.html
             http://localhost:5000/community.html
-            http://localhost:5000/submit-game.html
+            http://localhost:5000/game-detail.html
           budgetPath: ./lighthouse-budget.json
           configPath: ./lighthouserc.json
           uploadArtifacts: true

@@ -45,7 +45,7 @@ class AuthRedirectHandler {
     // Check if URL is auth-related
     isAuthUrl(url) {
         const authPaths = [
-            '/Sign In/',
+            'auth.glitchrealm.ca',
             '/auth-bridge.html',
             'auth.glitchrealm.ca',
             'shared-sign-in.firebaseapp.com'
@@ -126,7 +126,7 @@ class AuthRedirectHandler {
         } catch (e) { }
 
         // Redirect to sign in page with return parameter
-        const signInUrl = `/Sign In/index.html?redirect=${encodeURIComponent(targetUrl)}`;
+        const signInUrl = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(targetUrl)}`;
         window.location.href = signInUrl;
     }
 

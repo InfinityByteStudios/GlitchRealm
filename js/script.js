@@ -86,225 +86,20 @@ function showAuthMessage(message, type) {
     }, 4000);
 }
 
-// Check for password change success notification
-function checkPasswordChangeSuccess() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('passwordChanged') === 'true') {
-        showPasswordChangeSuccessNotification();
-        
-        // Clean up URL
-        const url = new URL(window.location);
-        url.searchParams.delete('passwordChanged');
-        window.history.replaceState({}, document.title, url.toString());
-    }
-}
-
-// Show password change success notification
-function showPasswordChangeSuccessNotification() {
-    const notification = document.createElement('div');
-    notification.className = 'gr-password-change-toast';
-    notification.innerHTML = `
-        <div class="gr-toast-inner">
-            <div class="gr-toast-icon">✅</div>
-            <div class="gr-toast-body">
-                <strong>Password Successfully Changed!</strong>
-                <p>Your account credentials have been updated.</p>
-            </div>
-            <button onclick="this.closest('.gr-password-change-toast').remove()" class="gr-toast-close" aria-label="Dismiss">&times;</button>
-        </div>
-    `;
-    document.body.appendChild(notification);
-    requestAnimationFrame(() => { notification.classList.add('visible'); });
-    setTimeout(() => { if (notification.parentNode) notification.remove(); }, 5000);
-}
-
-// Error message mapping for Firebase auth errors
-function getErrorMessage(errorCode) {
-    const errorMessages = {
-        'auth/user-not-found': 'USER NOT FOUND',
-        'auth/wrong-password': 'INVALID PASSWORD',
-        'auth/email-already-in-use': 'EMAIL ALREADY REGISTERED',
-        'auth/weak-password': 'PASSWORD TOO WEAK',
-        'auth/invalid-email': 'INVALID EMAIL FORMAT',
-        'auth/too-many-requests': 'TOO MANY ATTEMPTS',
-        'auth/network-request-failed': 'NETWORK ERROR',
-        'auth/popup-closed-by-user': 'POPUP CLOSED',
-        'auth/cancelled-popup-request': 'POPUP CANCELLED'
-    };
-    
-    return errorMessages[errorCode] || 'UNKNOWN ERROR';
-}
-
-// Auth loading state functions
-function showAuthLoading(button, loadingText) {
-    if (button) {
-        // Special handling for Google and GitHub buttons which have text in child spans
-        if (button.id === 'google-signin') {
-            const googleButtonText = document.getElementById('google-button-text');
-            if (googleButtonText) {
-                button.dataset.originalText = googleButtonText.textContent;
-                googleButtonText.textContent = loadingText;
-            }
-        } else if (button.id === 'github-signin') {
-            const githubButtonText = document.getElementById('github-button-text');
-            if (githubButtonText) {
-                button.dataset.originalText = githubButtonText.textContent;
-                githubButtonText.textContent = loadingText;
-            }
-        } else {
-            // For other buttons, set the button text directly
-            button.dataset.originalText = button.textContent;
-            button.textContent = loadingText;
-        }
-        
-        button.disabled = true;
-        button.classList.add('loading');
-    }
-}
-
-function hideAuthLoading(button, originalText) {
-    if (button) {
-        // Special handling for Google and GitHub buttons which have text in child spans
-        if (button.id === 'google-signin') {
-            const googleButtonText = document.getElementById('google-button-text');
-            if (googleButtonText) {
-                googleButtonText.textContent = originalText || 'Sign in with Google';
-            }
-        } else if (button.id === 'github-signin') {
-            const githubButtonText = document.getElementById('github-button-text');
-            if (githubButtonText) {
-                githubButtonText.textContent = originalText || 'Sign in with GitHub';
-            }
-        } else {
-            // For other buttons, set the button text directly
-            button.textContent = originalText || button.dataset.originalText || button.textContent;
-        }
-        
-        button.disabled = false;
-        button.classList.remove('loading');
-        delete button.dataset.originalText;
-    }
-}
-
-// Reset all auth button text to default state
-function resetAuthButtonsText() {
-    const googleButtonText = document.getElementById('google-button-text');
-    const githubButtonText = document.getElementById('github-button-text');
-    const googleSignIn = document.getElementById('google-signin');
-    const githubSignIn = document.getElementById('github-signin');
-    const anonymousSignIn = document.getElementById('anonymous-signin');
-    const activeTab = document.querySelector('.auth-tab.active');
-    
-    // Reset Google button
-    if (googleSignIn) {
-        googleSignIn.disabled = false;
-        googleSignIn.classList.remove('loading');
-        delete googleSignIn.dataset.originalText;
-    }
-    
-    // Reset GitHub button
-    if (githubSignIn) {
-        githubSignIn.disabled = false;
-        githubSignIn.classList.remove('loading');
-        delete githubSignIn.dataset.originalText;
-    }
-    
-    // Reset anonymous button
-    if (anonymousSignIn) {
-        anonymousSignIn.disabled = false;
-        anonymousSignIn.classList.remove('loading');
-        anonymousSignIn.textContent = 'ANONYMOUS MODE';
-        delete anonymousSignIn.dataset.originalText;
-    }
-    
-    // Reset email form buttons
-    const emailSigninBtn = document.querySelector('#email-signin-form .neural-button');
-    const emailSignupBtn = document.querySelector('#email-signup-form .neural-button');
-    
-    if (emailSigninBtn) {
-        emailSigninBtn.disabled = false;
-        emailSigninBtn.classList.remove('loading');
-        const defaultText = emailSigninBtn.querySelector('.button-text');
-        if (defaultText) defaultText.textContent = 'INITIATE CONNECTION';
-        delete emailSigninBtn.dataset.originalText;
-    }
-    
-    if (emailSignupBtn) {
-        emailSignupBtn.disabled = false;
-        emailSignupBtn.classList.remove('loading');
-        const defaultText = emailSignupBtn.querySelector('.button-text');
-    if (defaultText) defaultText.textContent = 'CREATE ACCOUNT';
-        delete emailSignupBtn.dataset.originalText;
-    }
-    
-    // Reset button text based on active tab - use proper case
-    if (googleButtonText && activeTab) {
-        const tabType = activeTab.getAttribute('data-tab');
-        if (tabType === 'signin') {
-            googleButtonText.textContent = 'Sign in with Google';
-        } else if (tabType === 'signup') {
-            googleButtonText.textContent = 'Sign up with Google';
-        }
-    }
-    
-    if (githubButtonText && activeTab) {
-        const tabType = activeTab.getAttribute('data-tab');
-        if (tabType === 'signin') {
-            githubButtonText.textContent = 'Sign in with GitHub';
-        } else if (tabType === 'signup') {
-            githubButtonText.textContent = 'Sign up with GitHub';
-        }
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // Set up sign-in button with localhost support
-    const setupSignInButton = function() {
-        const signInBtn = document.getElementById('sign-in-btn');
-        if (signInBtn && !signInBtn.dataset.listenerAttached) {
-            
-            signInBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Detect localhost vs production
-                const isDev = window.location.hostname === 'localhost' || 
-                             window.location.hostname === '127.0.0.1' || 
-                             window.location.hostname.startsWith('192.168.');
-                
-                // Store current URL as return destination
-                const returnUrl = window.location.href;
-                sessionStorage.setItem('gr.returnTo', returnUrl);
-                
-                // Redirect to auth (local folder or subdomain)
-                if (isDev) {
-                    const authUrl = `/subdomains/auth/?return=${encodeURIComponent(returnUrl)}`;
-                    window.location.href = authUrl;
-                } else {
-                    const authUrl = `https://auth.glitchrealm.ca/?return=${encodeURIComponent(returnUrl)}`;
-                    window.location.href = authUrl;
-                }
-            });
-            
-            signInBtn.dataset.listenerAttached = 'true';
-        }
-    };
-    
-    // Set up immediately (may not exist yet if header loads dynamically)
-    setupSignInButton();
-    // Expose globally so header-load callback can call it immediately
-    window._setupSignInButton = setupSignInButton;
     
     // IMMEDIATELY restore UI from cached auth state if available
     try {
         if (window.__cachedAuthState) {
-            const signInBtn = document.getElementById('sign-in-btn');
             const userProfile = document.getElementById('user-profile');
             const userName = document.getElementById('user-name');
+            const userPortalLink = document.getElementById('user-portal-link');
             
-            if (signInBtn && userProfile) {
-                signInBtn.style.display = 'none';
+            // Anonymous sessions are guest identities, not a signed-in account:
+            // they must never make the header look signed in.
+            if (!window.__cachedAuthState.isAnonymous && userProfile) {
                 userProfile.style.display = 'flex';
+                if (userPortalLink) userPortalLink.style.display = 'block';
                 
                 if (userName) {
                     userName.textContent = window.__cachedAuthState.displayName || 
@@ -323,16 +118,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Check for Supabase custom avatar asynchronously (higher priority than cached photoURL)
                 loadSupabaseAvatarIfAvailable(window.__cachedAuthState.uid).catch(err => {
-                    console.warn('[News Auth] Could not check for Supabase avatar:', err);
+                    console.warn('[Auth] Could not check for Supabase avatar:', err);
                 });
             }
         }
     } catch(e) {
-        console.warn('[News Auth] Failed to restore UI from cache:', e);
+        console.warn('[Auth] Failed to restore UI from cache:', e);
     }
-    
-    // Check for password change success notification
-    checkPasswordChangeSuccess();
     
     // Initialize all effects
     initGlitchEffects();
@@ -443,11 +235,6 @@ document.addEventListener('DOMContentLoaded', function() {
         function ensureGameOptionsMenu(card){
             if (!card) return;
             let menu = card.querySelector('.game-options-menu');
-            const computeOwnerState = () => {
-                const ownerId = card.getAttribute('data-owner') || '';
-                const currentUid = window.firebaseAuth?.currentUser?.uid || '';
-                return !!(currentUid && ownerId && currentUid === ownerId);
-            };
             if (!menu) {
                 const imgWrap = card.querySelector('.card-image');
                 if (!imgWrap) return;
@@ -457,27 +244,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 menu.setAttribute('aria-hidden','true');
                 menu.style.display = 'none';
                 const gameId = card.getAttribute('data-game') || '';
-                const isOwner = computeOwnerState();
                 menu.innerHTML = `
-                    ${isOwner ? '<button class="menu-item edit" role="menuitem">Edit</button>' : ''}
                     <button class="menu-item star" role="menuitem">Star</button>
                     <button class="menu-item report" role="menuitem">Report</button>
                 `;
                 imgWrap.appendChild(menu);
-            } else {
-                // Menu exists: ensure Edit presence matches current ownership state
-                const isOwner = computeOwnerState();
-                const hasEdit = !!menu.querySelector('.menu-item.edit');
-                if (isOwner && !hasEdit) {
-                    const first = menu.querySelector('.menu-item');
-                    const btn = document.createElement('button');
-                    btn.className = 'menu-item edit';
-                    btn.setAttribute('role','menuitem');
-                    btn.textContent = 'Edit';
-                    if (first) menu.insertBefore(btn, first); else menu.appendChild(btn);
-                } else if (!isOwner && hasEdit) {
-                    menu.querySelector('.menu-item.edit').remove();
-                }
             }
             // Sync Star/Unstar label
             const gameId = card.getAttribute('data-game') || '';
@@ -552,12 +323,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (menu) {
                 const card = menu.closest('.game-card');
                 const gameId = card?.getAttribute('data-game');
-                if (e.target.closest('.menu-item.edit')) {
-                    closeAllGameMenus();
-                    // Redirect to submit-game.html edit page instead of opening modal
-                    window.location.href = `submit-game.html?edit=${gameId}&step=2`;
-                    return;
-                }
                 if (e.target.closest('.menu-item.report')) {
                     closeAllGameMenus();
                     openReportGameModal(gameId);
@@ -580,10 +345,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const card = btn.closest('.game-card');
                 const gameId = card?.getAttribute('data-game');
                 switch (action) {
-                    case 'edit':
-                        // Redirect to submit-game.html edit page instead of opening modal
-                        window.location.href = `submit-game.html?edit=${gameId}&step=2`;
-                        break;
                     case 'delete':
                         (async () => {
                             const card = btn.closest('.game-card');
@@ -626,194 +387,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Close on Escape
         document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape') closeAllGameMenus(); });
         
-        // --- Edit Submission Modal logic ---
-        (function(){
-            const modalId = 'edit-submission-modal';
-            const idEl = () => document.getElementById('edit-submission-id');
-            const titleEl = () => document.getElementById('edit-title');
-            const descEl = () => document.getElementById('edit-description');
-            const tagsEl = () => document.getElementById('edit-tags');
-            const badgeEl = () => document.getElementById('edit-badge');
-
-            async function ensureFirestoreLight(){
-                if (window.firebaseFirestore && window.firestoreDoc && window.firestoreUpdateDoc) return;
-                const mod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                const { getFirestore, doc, getDoc, updateDoc, serverTimestamp, deleteField } = mod;
-                window.firebaseFirestore = window.firebaseFirestore || getFirestore();
-                window.firestoreDoc = window.firestoreDoc || doc;
-                window.firestoreGetDoc = window.firestoreGetDoc || getDoc;
-                window.firestoreUpdateDoc = window.firestoreUpdateDoc || updateDoc;
-                window.firestoreServerTimestamp = window.firestoreServerTimestamp || serverTimestamp;
-                window.firestoreDeleteField = window.firestoreDeleteField || deleteField;
-            }
-
-            function close(){
-                const m = document.getElementById(modalId);
-                if (!m) return;
-                m.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-
-            async function open(gameId){
-                const m = document.getElementById(modalId);
-                if (!m) { alert('Edit UI not available.'); return; }
-                if (!window.firebaseAuth?.currentUser) { alert('Please sign in.'); return; }
-                const card = document.querySelector(`.game-card[data-game="${CSS.escape(gameId)}"]`);
-                const owner = card?.getAttribute('data-owner') || '';
-                const uid = window.firebaseAuth.currentUser.uid;
-                try {
-                    await ensureFirestoreLight();
-                    const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', gameId);
-                    const snap = await window.firestoreGetDoc(dref);
-                    if (!snap.exists()) { alert('Submission not found.'); return; }
-                    const data = snap.data();
-                    // Verify ownership from source of truth (Firestore)
-                    const docOwner = typeof data.ownerId === 'string' ? data.ownerId : '';
-                    if (!docOwner) {
-                        // Unassigned: offer to claim
-                        if (confirm('This submission has no owner yet. Claim ownership with your account now?')) {
-                            try {
-                                await window.firestoreUpdateDoc(dref, { ownerId: uid, updatedAt: window.firestoreServerTimestamp ? window.firestoreServerTimestamp() : new Date() });
-                                try { card?.setAttribute('data-owner', String(uid)); } catch {}
-                                showAuthMessage('Ownership claimed for this submission.', 'success');
-                            } catch (claimErr) {
-                                console.error('Ownership claim failed:', claimErr);
-                                alert('Unable to claim ownership (rules may block setting ownerId). Please share the game ID so we can backfill ownerId manually: ' + gameId);
-                                return;
-                            }
-                        } else {
-                            alert('Cannot edit until an owner is assigned.');
-                            return;
-                        }
-                    } else if (docOwner !== uid) {
-                        const short = docOwner.length > 10 ? (docOwner.slice(0,6)+'...'+docOwner.slice(-4)) : docOwner;
-                        alert('You can only edit your own submission. Current owner: ' + short);
-                        return;
-                    }
-                    idEl().value = gameId;
-                    titleEl().value = data.title || '';
-                    descEl().value = data.description || '';
-                    const tags = Array.isArray(data.tags) ? data.tags.join(', ') : '';
-                    tagsEl().value = tags;
-                    const b = (typeof data.badge === 'string' && ['new','updated','beta'].includes(data.badge)) ? data.badge : '';
-                    badgeEl().value = b;
-                    m.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                } catch (e) {
-                    console.error('Open edit modal failed:', e);
-                    alert('Failed to load submission.');
-                }
-            }
-
-            async function submit(e){
-                e && e.preventDefault && e.preventDefault();
-                try {
-                    if (!window.firebaseAuth?.currentUser) { alert('Please sign in.'); return; }
-                    await ensureFirestoreLight();
-                    const gameId = idEl().value;
-                    if (!gameId) return;
-                    const card = document.querySelector(`.game-card[data-game="${CSS.escape(gameId)}"]`);
-                    const owner = card?.getAttribute('data-owner') || '';
-                    const uid = window.firebaseAuth.currentUser.uid;
-                    if (!owner || owner !== uid) { alert('You can only edit your own submission.'); return; }
-
-                    // Collect fields with validation per rules
-                    const title = String(titleEl().value || '').trim().slice(0, 120);
-                    const description = String(descEl().value || '').trim();
-                    if (!title || !description) { alert('Title and description are required.'); return; }
-                    if (description.length > 1000) { alert('Description too long (max 1000).'); return; }
-                    let tagsStr = String(tagsEl().value || '').trim();
-                    let tags = tagsStr ? tagsStr.split(',').map(s=>s.trim()).filter(Boolean) : [];
-                    if (tags.length > 3) tags = tags.slice(0,3);
-                    // Enforce per-tag length similar to submit form
-                    if (tags.some(t => t.length > 20)) { alert('Each tag must be 20 characters or less.'); return; }
-                    const badgeRaw = String(badgeEl().value || '').trim();
-                    const badge = ['new','updated','beta'].includes(badgeRaw) ? badgeRaw : '';
-
-                    const dref = window.firestoreDoc(window.firebaseFirestore, 'game_submissions', gameId);
-                    const patch = {
-                        title,
-                        description,
-                        updatedAt: window.firestoreServerTimestamp ? window.firestoreServerTimestamp() : new Date(),
-                    };
-                    if (tags.length) patch.tags = tags;
-                    else patch.tags = window.firestoreDeleteField ? window.firestoreDeleteField() : undefined;
-                    if (badge) patch.badge = badge; else patch.badge = window.firestoreDeleteField ? window.firestoreDeleteField() : undefined;
-
-                    await window.firestoreUpdateDoc(dref, patch);
-
-                    // Update DOM
-                    if (card) {
-                        const titleNode = card.querySelector('.card-title');
-                        if (titleNode) titleNode.textContent = title;
-                        const descNode = card.querySelector('.card-description');
-                        if (descNode) descNode.textContent = description.slice(0,180) || 'No description provided.';
-                        const tagsWrap = card.querySelector('.card-tags');
-                        if (tagsWrap) {
-                            tagsWrap.innerHTML = (tags||[]).map(t=>`<span class="tag"></span>`).join('');
-                            const spans = tagsWrap.querySelectorAll('.tag');
-                            spans.forEach((sp,i)=> sp.textContent = tags[i] || '');
-                        }
-                        const imgWrap = card.querySelector('.card-image');
-                        if (imgWrap) {
-                            let badgeDiv = imgWrap.querySelector('.game-badge');
-                            if (!badge && badgeDiv) {
-                                // If featured NEW fallback exists, keep it; otherwise hide
-                                if (!badgeDiv.classList.contains('new') || badgeDiv.textContent.trim().toUpperCase() !== 'NEW') {
-                                    badgeDiv.remove();
-                                }
-                            } else if (badge) {
-                                const label = badge === 'new' ? 'NEW' : (badge === 'updated' ? 'UPDATED' : 'BETA');
-                                if (!badgeDiv || !badgeDiv.classList.contains(badge)) {
-                                    // Replace existing badge
-                                    if (badgeDiv) badgeDiv.remove();
-                                    badgeDiv = document.createElement('div');
-                                    badgeDiv.className = `game-badge ${badge}`;
-                                    badgeDiv.textContent = label;
-                                    imgWrap.appendChild(badgeDiv);
-                                } else {
-                                    // Update label just in case
-                                    badgeDiv.textContent = label;
-                                }
-                            }
-                        }
-                    }
-
-                    showAuthMessage('Submission updated.', 'success');
-                    close();
-                } catch (err) {
-                    try { console.error('Save submission failed:', err); } catch {}
-                    const code = (err && (err.code || err.name)) ? String(err.code || err.name) : 'unknown-error';
-                    const msg = (err && err.message) ? String(err.message) : 'Unknown error';
-                    if (/permission-denied/i.test(code) || /permission denied/i.test(msg)) {
-                        showAuthMessage('Permission denied: you can only edit your own submission.', 'error');
-                        alert('Permission denied: you can only edit your own submission.');
-                    } else if (/invalid-argument|invalid data|unsupported field value/i.test(code + ' ' + msg)) {
-                        showAuthMessage('Invalid data. Check title/description length and tags (max 3).', 'error');
-                        alert('Invalid data. Ensure title ≤ 120, description ≤ 1000, and up to 3 tags.');
-                    } else {
-                        showAuthMessage('Failed to save changes: ' + msg, 'error');
-                        alert('Failed to save changes: ' + msg + (code ? ' [' + code + ']' : ''));
-                    }
-                }
-            }
-
-            // Wire buttons once
-            setTimeout(() => {
-                const closeBtn = document.getElementById('close-edit-submission');
-                const cancelBtn = document.getElementById('cancel-edit-submission');
-                const form = document.getElementById('edit-submission-form');
-                const modal = document.getElementById(modalId);
-                closeBtn && closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); close(); });
-                cancelBtn && cancelBtn.addEventListener('click', (e)=>{ e.preventDefault(); close(); });
-                modal && modal.addEventListener('click', (e)=>{ if (e.target === modal) close(); });
-                form && form.addEventListener('submit', submit);
-            }, 0);
-
-            // Expose
-            window.openEditSubmissionModal = open;
-            window.closeEditSubmissionModal = close;
-        })();
     const TERMS_UPDATE_VERSION = window.GR_TERMS_UPDATE_VERSION || '2025-09-05';
 
     const providers = [
@@ -1008,18 +581,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Service worker not available on news subdomain (no sw.js)
     // Main site handles caching and offline support
     
-    // Initialize modal functionality immediately
-    document.body.addEventListener('click', function(e) {
-        const closeModal = document.getElementById('close-modal');
-        const signInModal = document.getElementById('signin-modal');
-        if (closeModal && signInModal && (e.target === closeModal || closeModal.contains(e.target))) {
-            e.preventDefault();
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            if (typeof resetAuthButtonsText === 'function') resetAuthButtonsText();
-        }
-    });
-    initializeBasicModal();
+    // Initialize input focus effects (the traditional sign-in / registration
+    // modal has been retired, so only the shared form styling remains here).
+    initializeInputFocusEffects();
     
     // Initialize shared authentication system for SSO
     initializeSharedAuth();
@@ -1234,89 +798,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Firebase Authentication - called from main DOMContentLoaded
 
-// Basic modal functionality that works without Firebase
-function initializeBasicModal() {
-    // DOM elements
-    const signInBtn = document.getElementById('sign-in-btn');
-    const signInModal = document.getElementById('signin-modal');
-    const closeModal = document.getElementById('close-modal');
-
-    if (closeModal) {
-        // Remove all previous click listeners to avoid duplicate/conflicting handlers
-        const newCloseModal = closeModal.cloneNode(true);
-        closeModal.parentNode.replaceChild(newCloseModal, closeModal);
-        newCloseModal.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (signInModal) {
-                signInModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                resetAuthButtonsText();
-            }
-        });
-    }
-
-    signInModal?.addEventListener('click', (e) => {
-        if (e.target === signInModal) {
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            resetAuthButtonsText();
-        }
-    });    // Close modal with Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && signInModal && signInModal.style.display === 'flex') {
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            resetAuthButtonsText();
-        }
-    });    // Tab switching functionality for neural modal
-    const authTabs = document.querySelectorAll('.auth-tab');
-    const authForms = document.querySelectorAll('.auth-form-container');
-    const googleButtonText = document.getElementById('google-button-text');
-    const githubButtonText = document.getElementById('github-button-text');
-    
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabType = tab.getAttribute('data-tab');
-            
-            // Update tab states
-            authTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Update form visibility
-            authForms.forEach(form => {
-                form.classList.remove('active');
-                if (form.id === `${tabType}-form`) {
-                    form.classList.add('active');
-                }
-            });
-            
-            // Update Google button text based on active tab
-            if (googleButtonText) {
-                if (tabType === 'signin') {
-                    googleButtonText.textContent = 'Sign in with Google';
-                } else if (tabType === 'signup') {
-                    googleButtonText.textContent = 'Sign up with Google';
-                }
-            }
-            
-            // Update GitHub button text based on active tab
-            if (githubButtonText) {
-                if (tabType === 'signin') {
-                    githubButtonText.textContent = 'Sign in with GitHub';
-                } else if (tabType === 'signup') {
-                    githubButtonText.textContent = 'Sign up with GitHub';
-                }
-            }
-        });
-    });
-
-    // Input focus effects for neural inputs
+// Input focus effects for the shared neural form styling.
+// (The traditional sign-in / registration modal has been retired from the
+//  public site; the underlying authentication implementation is retained.)
+function initializeInputFocusEffects() {
     const neuralInputs = document.querySelectorAll('.neural-input');
     neuralInputs.forEach(input => {
         input.addEventListener('focus', function() {
             this.parentElement.classList.add('focused');
         });
-        
+
         input.addEventListener('blur', function() {
             this.parentElement.classList.remove('focused');
         });
@@ -1352,247 +843,40 @@ async function initializeAuth() {
         } catch (e) {
         }
 
-        const { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        // The Firebase authentication implementation is retained; only the
+        // public sign-in / registration UI has been retired.
+        const { getRedirectResult, signInAnonymously, signOut, onAuthStateChanged, deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
     
     // Expose deleteUser to global scope for account deletion
     window.deleteUser = deleteUser;
+
+    // Retain the anonymous-auth capability: visitors receive an anonymous
+    // Firebase identity automatically (no sign-in UI) so they can leave reviews.
+    window.signInAnonymously = signInAnonymously;
     
     const auth = window.firebaseAuth;
     try { auth.languageCode = navigator.language || 'en'; } catch {}
-    const forceRedirect = !!window.GR_AUTH_FORCE_REDIRECT;
-    const googleProvider = new GoogleAuthProvider();
-    const githubProvider = new GithubAuthProvider();
-    try { githubProvider.setCustomParameters({ allow_signup: 'true' }); } catch {}
 
     // DOM elements (with null checks for dynamic loading)
-    const signInBtn = document.getElementById('sign-in-btn');
     const signOutBtn = document.getElementById('sign-out-btn');
-    const signInModal = document.getElementById('signin-modal');
-    const closeModal = document.getElementById('close-modal');
     const userProfile = document.getElementById('user-profile');
 
     // If we returned from a redirect sign-in, complete the flow
     try {
         const redirectResult = await getRedirectResult(auth);
         if (redirectResult && redirectResult.user) {
-            // Close modal if present and restore scrolling
-            if (signInModal) {
-                signInModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
             showAuthMessage('Signed in successfully!', 'success');
-
         }
     } catch (redirectErr) {
         console.warn('getRedirectResult error (safe to ignore if no redirect happened):', redirectErr);
     }
-    const userName = document.getElementById('user-name');
     
     // If header elements aren't loaded yet, store auth function for later
-    if (!signInBtn || !signInModal || !userProfile) {
+    if (!userProfile) {
         window.pendingAuthInit = () => initializeAuth();
         return;
     }
     
-    // Auth tabs and forms
-    const authTabs = document.querySelectorAll('.auth-tab');
-    const signinForm = document.getElementById('signin-form');
-    const signupForm = document.getElementById('signup-form');
-      // Sign-in buttons
-    const googleSignIn = document.getElementById('google-signin');
-    const githubSignIn = document.getElementById('github-signin');
-    const anonymousSignIn = document.getElementById('anonymous-signin');
-    const emailSigninForm = document.getElementById('email-signin-form');
-    const emailSignupForm = document.getElementById('email-signup-form');// Tab switching functionality
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const targetTab = tab.dataset.tab;
-            
-            // Update active tab
-            authTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Show corresponding form
-            if (targetTab === 'signin') {
-                signinForm.classList.add('active');
-                signupForm.classList.remove('active');
-            } else if (targetTab === 'signup') {
-                signupForm.classList.add('active');
-                signinForm.classList.remove('active');
-            }
-              // Update Google button text based on active tab
-            const googleButtonText = document.getElementById('google-button-text');
-            const githubButtonText = document.getElementById('github-button-text');
-            if (googleButtonText) {
-                if (targetTab === 'signin') {
-                    googleButtonText.textContent = 'Sign in with Google';
-                } else if (targetTab === 'signup') {
-                    googleButtonText.textContent = 'Sign up with Google';
-                }
-            }
-            if (githubButtonText) {
-                if (targetTab === 'signin') {
-                    githubButtonText.textContent = 'Sign in with GitHub';
-                } else if (targetTab === 'signup') {
-                    githubButtonText.textContent = 'Sign up with GitHub';
-                }
-            }
-        });
-    });
-
-    // Authentication methods (Firebase-dependent)
-    googleSignIn?.addEventListener('click', async () => {
-        let finalized = false;
-        try {
-            showAuthLoading(googleSignIn, 'CONNECTING...');
-            if (forceRedirect) {
-                console.warn('Forcing Google sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
-                await signInWithRedirect(auth, googleProvider);
-                return;
-            }
-            await signInWithPopup(auth, googleProvider);
-            finalized = true;
-            if (signInModal) signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('Neural sync successful!', 'success');
-        } catch (error) {
-            console.error('Google sign-in error:', error);
-            const code = String(error?.code || error?.message || '');
-            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
-            if (shouldRedirect) {
-                try {
-                    console.warn('Falling back to redirect for Google sign-in...');
-                    await signInWithRedirect(auth, googleProvider);
-                    return; // Will navigate and complete via getRedirectResult()
-                } catch (redirectErr) {
-                    console.error('Google redirect sign-in failed:', redirectErr);
-                }
-            }
-            showAuthMessage('Connection failed. Please try again.', 'error');
-        } finally {
-            if (!finalized) {
-                // Reset to proper default text based on active tab
-                const activeTab = document.querySelector('.auth-tab.active');
-                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-                const defaultText = tabType === 'signup' ? 'Sign up with Google' : 'Sign in with Google';
-                hideAuthLoading(googleSignIn, defaultText);
-            }
-        }
-    });
-
-    // GitHub sign-in (with redirect fallback for popup/internal errors)
-    githubSignIn?.addEventListener('click', async () => {
-        let finalized = false;
-        try {
-            showAuthLoading(githubSignIn, 'CONNECTING...');
-            if (forceRedirect) {
-                console.warn('Forcing GitHub sign-in via redirect (GR_AUTH_FORCE_REDIRECT=true)');
-                await signInWithRedirect(auth, githubProvider);
-                return;
-            }
-            await signInWithPopup(auth, githubProvider);
-            finalized = true;
-            if (signInModal) signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('GitHub sync successful!', 'success');
-        } catch (error) {
-            console.error('GitHub sign-in error:', error);
-            const code = String(error?.code || error?.message || '');
-            const shouldRedirect = /popup-blocked|operation-not-supported-in-this-environment|internal-error|unauthorized-domain/i.test(code);
-            if (shouldRedirect) {
-                try {
-                    console.warn('Falling back to redirect for GitHub sign-in...');
-                    // Keep loading state; navigation should occur
-                    await signInWithRedirect(auth, githubProvider);
-                    return; // Will navigate away; getRedirectResult will complete later
-                } catch (redirectErr) {
-                    console.error('GitHub redirect sign-in failed:', redirectErr);
-                }
-            }
-            showAuthMessage('GitHub connection failed. Please try again.', 'error');
-        } finally {
-            // Reset to proper default text based on active tab unless we’ve navigated/finished
-            if (!finalized) {
-                const activeTab = document.querySelector('.auth-tab.active');
-                const tabType = activeTab ? activeTab.getAttribute('data-tab') : 'signin';
-                const defaultText = tabType === 'signup' ? 'Sign up with GitHub' : 'Sign in with GitHub';
-                hideAuthLoading(githubSignIn, defaultText);
-            }
-        }
-    });
-
-    anonymousSignIn?.addEventListener('click', async () => {
-        try {
-            showAuthLoading(anonymousSignIn, 'INITIALIZING...');
-            await signInAnonymously(auth);
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('Anonymous mode activated!', 'success');
-        } catch (error) {
-            console.error('Anonymous sign-in error:', error);
-            const code = String(error?.code || error?.message || '');
-            if (/app-check/i.test(code) || /firebase-app-check-token-is-invalid/i.test(code)) {
-                showAuthMessage('App Check required. Configure App Check or disable enforcement.', 'error');
-                console.warn('App Check appears to be enforced for Auth. Provide GR_APPCHECK_SITE_KEY and initialize App Check, or temporarily disable enforcement for Authentication in Firebase Console.');
-            } else {
-                showAuthMessage('Initialization failed. Please try again.', 'error');
-            }
-        } finally {
-            hideAuthLoading(anonymousSignIn, 'ANONYMOUS MODE');
-        }
-    });
-
-    // Email/Password sign-in
-    emailSigninForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('signin-email').value;
-        const password = document.getElementById('signin-password').value;
-        const submitBtn = emailSigninForm.querySelector('.neural-button');
-
-        try {
-            showAuthLoading(submitBtn, 'AUTHENTICATING...');
-            await signInWithEmailAndPassword(auth, email, password);
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('Access granted!', 'success');
-        } catch (error) {
-            console.error('Email sign-in error:', error);
-            showAuthMessage('Authentication failed. Check your credentials.', 'error');
-        } finally {
-            hideAuthLoading(submitBtn, 'INITIATE CONNECTION');
-        }
-    });
-
-    // Create account
-    emailSignupForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        const submitBtn = emailSignupForm.querySelector('.neural-button');        if (password !== confirmPassword) {
-            showAuthMessage('Passwords do not match!', 'error');
-            return;
-        }
-
-        if (password.length < 6) {
-            showAuthMessage('Password must be at least 6 characters!', 'error');
-            return;
-        }
-
-        try {
-            showAuthLoading(submitBtn, 'CREATING LINK...');
-            await createUserWithEmailAndPassword(auth, email, password);
-            signInModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showAuthMessage('Account established!', 'success');
-        } catch (error) {
-            console.error('Account creation error:', error);
-            showAuthMessage('Link creation failed: ' + getErrorMessage(error.code), 'error');
-        } finally {
-            hideAuthLoading(submitBtn, 'CREATE ACCOUNT');
-        }
-    });
-
     // Sign out
     signOutBtn?.addEventListener('click', async () => {
         try {
@@ -1600,12 +884,6 @@ async function initializeAuth() {
             showAuthMessage('Account deleted.', 'info');
         } catch (error) {
             console.error('Sign-out error:', error);        }
-    });
-
-    // Forgot password functionality
-    const forgotPasswordBtn = document.querySelector('.forgot-link');
-    forgotPasswordBtn?.addEventListener('click', () => {
-        window.location.href = 'forgot-password.html';
     });
 
     // Check for existing authentication in other games (NEW FEATURE)
@@ -1644,13 +922,17 @@ async function initializeAuth() {
         const user = rawUser && rawUser.isAnonymous ? null : rawUser;
         const notificationBell = document.getElementById('notification-bell');
         const moderationMenuBtn = document.getElementById('moderation-menu-btn');
+        const userPortalLink = document.getElementById('user-portal-link');
         
         if (user) {
             // User is signed in
             updateUserProfile(user);
-            if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
             if (notificationBell) notificationBell.style.display = 'flex';
+            // The User Portal is an account feature: only surface it once a real
+            // (non-anonymous) session exists so navigation never implies that a
+            // traditional sign-in is required to browse.
+            if (userPortalLink) userPortalLink.style.display = 'block';
             // Toggle Moderation menu visibility for dev UIDs only
             try {
                 const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
@@ -1697,10 +979,10 @@ async function initializeAuth() {
             }
         } else {
             // User is signed out
-            if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
             if (notificationBell) notificationBell.style.display = 'none';
             if (moderationMenuBtn) moderationMenuBtn.remove();
+            if (userPortalLink) userPortalLink.style.display = 'none';
             
             // Clear auth state for SSO
             if (window.sharedAuth) {
@@ -1747,28 +1029,10 @@ async function initializeAuth() {
         }
     });
 
-    // Delete anonymous accounts when tab is closed or becomes hidden
-    function handleAnonymousAccountCleanup() {
-        const user = auth.currentUser;
-        if (user && user.isAnonymous) {
-            try {
-                deleteUser(user).then(() => {
-                }).catch((error) => {
-                });
-            } catch (error) {
-            }
-        }
-    }
-
-    // Handle tab close/hide events
-    window.addEventListener('beforeunload', handleAnonymousAccountCleanup);
-    
-    // Also handle when tab becomes hidden (more reliable on mobile)
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
-            handleAnonymousAccountCleanup();
-        }
-    });
+    // Anonymous Firebase sessions are intentionally NOT deleted when the tab is
+    // closed or hidden. Firebase LOCAL persistence keeps the anonymous identity
+    // stable across refreshes and returning visits, so a guest's review
+    // attribution and the per-identity review rate limit stay meaningful.
 
     // Update user profile with data and photo
     function updateUserProfile(user) {
@@ -1814,17 +1078,15 @@ async function initializeAuth() {
     
     // Update UI for external auth state (for SSO)
     function updateUIForUser(user) {
+        const userProfile = document.getElementById('user-profile');
+        const userPortalLink = document.getElementById('user-portal-link');
         if (user) {
             updateUserProfile(user);
-            const signInBtn = document.getElementById('sign-in-btn');
-            const userProfile = document.getElementById('user-profile');
-            if (signInBtn) signInBtn.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
+            if (userPortalLink) userPortalLink.style.display = 'block';
         } else {
-            const signInBtn = document.getElementById('sign-in-btn');
-            const userProfile = document.getElementById('user-profile');
-            if (signInBtn) signInBtn.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
+            if (userPortalLink) userPortalLink.style.display = 'none';
         }
     }
       // Make updateUIForUser available globally for SharedAuthSystem
@@ -2588,9 +1850,12 @@ function initializeProfileActions() {
         signOutBtn.addEventListener('click', () => { closeDropdown(); signOut(); });
     }
 
+    // Account deletion is requested by email now (self-service deletion UI was
+    // retired). The entry is an anchor with a mailto: href, so no navigation
+    // handler is needed here.
     const deleteAccountBtn = document.getElementById('delete-account-btn');
     if (deleteAccountBtn) {
-        deleteAccountBtn.addEventListener('click', () => { closeDropdown(); window.location.href = '/delete-account.html'; });
+        deleteAccountBtn.addEventListener('click', () => { closeDropdown(); });
     }
 
     const settingsBtn = document.getElementById('settings-btn');
@@ -2608,8 +1873,9 @@ function initializeProfileActions() {
     }
 }
 
-// Delete user account - redirects to dedicated delete-account.html page
-// (Actual deletion logic lives on the delete-account.html page)
+// Account deletion is now requested by email (the self-service deletion UI
+// was retired). The underlying deleteUser / deleteUserAccount implementation
+// is retained for administrative use.
 
 // Terms Agreement Popup Functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -2835,37 +2101,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeAuthElements() {
     
     // Re-get DOM elements after header is loaded
-    const signInBtn = document.getElementById('sign-in-btn');
-    const signOutBtn = document.getElementById('sign-out-btn');
     const userProfile = document.getElementById('user-profile');
-    
-    // Find and handle close modal button (specific to sign-in modal)
-    const closeModal = document.querySelector('#close-modal');
-        if (closeModal) {
-            const newCloseModal = closeModal.cloneNode(true);
-            closeModal.parentNode.replaceChild(newCloseModal, closeModal);
-            
-            newCloseModal.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-        // Get the sign-in auth overlay explicitly by id to avoid other overlays
-        const authOverlay = document.getElementById('signin-modal');
-                if (authOverlay) {
-                    authOverlay.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                }
-            });
-        }
-        
-        // Close modal on backdrop click
-    document.addEventListener('click', function(e) {
-        const authOverlay = document.getElementById('signin-modal');
-        if (authOverlay && e.target === authOverlay) {
-                authOverlay.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        });
-        
+    const userPortalLink = document.getElementById('user-portal-link');
         
         // Re-initialize dropdown functionality
         initializeDropdownFunctionality();
@@ -2879,9 +2116,15 @@ function initializeAuthElements() {
         // Re-initialize auth state check
         if (window.firebaseAuth && window.firebaseAuth.currentUser) {
             const user = window.firebaseAuth.currentUser;
-            updateUserProfile(user);
-            if (signInBtn) signInBtn.style.display = 'none';
-            if (userProfile) userProfile.style.display = 'flex';
+            if (user.isAnonymous) {
+                // Guest identities are not a signed-in account.
+                if (userProfile) userProfile.style.display = 'none';
+                if (userPortalLink) userPortalLink.style.display = 'none';
+            } else {
+                updateUserProfile(user);
+                if (userProfile) userProfile.style.display = 'flex';
+                if (userPortalLink) userPortalLink.style.display = 'block';
+            }
         }
 }
 

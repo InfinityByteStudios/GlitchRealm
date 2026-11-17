@@ -288,14 +288,14 @@ const authStateRecovery = {
       // Anonymous sessions are created silently for guest reviews; they must
       // not make the header look "logged in".
       const user = rawUser && rawUser.isAnonymous ? null : rawUser;
-      const signInBtn = document.getElementById('sign-in-btn');
       const userProfile = document.getElementById('user-profile');
       const userName = document.getElementById('user-name');
+      const userPortalLink = document.getElementById('user-portal-link');
       
       if (user) {
         // User is signed in
-        if (signInBtn) signInBtn.style.display = 'none';
         if (userProfile) userProfile.style.display = 'flex';
+        if (userPortalLink) userPortalLink.style.display = 'block';
         if (userName) {
           userName.textContent = user.displayName || 
                                 user.email?.split('@')[0] || 
@@ -313,8 +313,8 @@ const authStateRecovery = {
         logger.debug('[AuthRecovery] UI updated for signed-in user');
       } else {
         // User is signed out
-        if (signInBtn) signInBtn.style.display = 'block';
         if (userProfile) userProfile.style.display = 'none';
+        if (userPortalLink) userPortalLink.style.display = 'none';
         
         logger.debug('[AuthRecovery] UI updated for signed-out state');
       }

@@ -171,17 +171,8 @@
   status = 301
   force = true
 
-[[redirects]]
-  from = "/signin"
-  to = "https://auth.glitchrealm.ca"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/login"
-  to = "https://auth.glitchrealm.ca"
-  status = 301
-  force = true
+# NOTE: /signin, /login, /signin.html, /forgot-password and /reset-password are
+# handled in _redirects (single source of truth for the retired auth UI).
 
 [[redirects]]
   from = "/edu/*"

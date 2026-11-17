@@ -11,7 +11,6 @@ Disallow: /functions/
 Disallow: /.well-known/
 Disallow: /auth-bridge*
 Disallow: /portal-auth.js
-Disallow: /delete-account.html
 Disallow: /maintenance.html
 Disallow: /offline.html
 Disallow: /blank.html
@@ -20,17 +19,12 @@ Disallow: /subdomains/
 Disallow: /node_modules/
 Disallow: /utilities/
 Disallow: /components/
-Disallow: /v2/
 Disallow: /netlify/
 Disallow: /scripts/
 Disallow: /docs/
 Disallow: /supabase/
 Disallow: /config/
 
-# Disallow auth pages (separate subdomain)
-Disallow: /signin.html
-Disallow: /signup.html
-Disallow: /forgot-password.html
 
 # Allow important assets for rendering
 Allow: /assets/

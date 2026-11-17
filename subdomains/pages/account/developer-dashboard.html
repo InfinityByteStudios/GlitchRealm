@@ -117,7 +117,7 @@
         <div id="games-content" class="dashboard-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="color: #00fff9; font-family: 'Orbitron', monospace; margin: 0;">My Games</h2>
-                <button class="btn btn-primary" onclick="window.location.href='/submit-game.html'">Submit New Game</button>
+                <button class="btn btn-primary" onclick="window.open('https://submit-game.forms.glitchrealm.ca/','_blank','noopener')">Submit New Game</button>
             </div>
             
             <div id="games-grid" class="games-grid">
@@ -469,7 +469,7 @@
                     <div class="empty-state">
                         <h3>No Games Yet</h3>
                         <p>You haven't submitted any games yet. Start by submitting your first game!</p>
-                        <button class="btn btn-primary" onclick="window.location.href='/submit-game.html'">Submit Your First Game</button>
+                        <button class="btn btn-primary" onclick="window.open('https://submit-game.forms.glitchrealm.ca/','_blank','noopener')">Submit Your First Game</button>
                     </div>
                 `;
                 return;
@@ -485,7 +485,6 @@
                         <span>⭐ ${game.rating.toFixed(1)} (${game.reviews})</span>
                     </div>
                     <div class="game-actions">
-                        <button class="btn btn-primary" onclick="editGame('${game.id}')">Edit</button>
                         <button class="btn btn-secondary" onclick="viewGame('${game.id}')">View</button>
                         <button class="btn btn-danger" onclick="deleteGame('${game.id}')">Delete</button>
                     </div>
@@ -518,7 +517,6 @@
                         Submitted: ${game.submittedAt.toLocaleDateString()}
                     </p>
                     <div class="game-actions">
-                        <button class="btn btn-primary" onclick="editGame('${game.id}')">Edit</button>
                         <button class="btn btn-secondary" onclick="viewSubmissionDetails('${game.id}')">Details</button>
                     </div>
                 </div>
@@ -659,10 +657,6 @@
         }
         
         // Game management functions
-        function editGame(gameId) {
-            console.log('Editing game:', gameId);
-            window.location.href = `/submit-game.html?edit=${gameId}`;
-        }
         
         function viewGame(gameId) {
             console.log('Viewing game:', gameId);
@@ -720,7 +714,6 @@
                         ${game.description ? `<p><strong>Description:</strong> ${game.description}</p>` : ''}
                     </div>
                     <div class="modal-actions">
-                        <button class="btn btn-primary" onclick="editGame('${game.id}')">Edit Game</button>
                         <button class="btn btn-secondary" onclick="this.closest('.submission-modal').remove()">Close</button>
                     </div>
                 </div>

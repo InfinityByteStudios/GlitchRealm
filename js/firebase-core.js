@@ -92,6 +92,7 @@
               email: user.email,
               displayName: user.displayName,
               photoURL: user.photoURL,
+              isAnonymous: !!user.isAnonymous,
               timestamp: Date.now()
             }));
           } catch(e) {

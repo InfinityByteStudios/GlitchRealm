@@ -275,7 +275,6 @@
      */
     function initModalFocusTrap() {
         const modals = [
-            { selector: '#signin-modal', closeBtn: '#close-modal' },
             { selector: '#crop-modal', closeBtn: '#crop-modal-close' }
         ];
 

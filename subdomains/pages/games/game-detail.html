@@ -737,7 +737,6 @@
       <div class="menu-container" id="menuContainer" style="display:none;">
         <button class="menu-button" id="menuButton" aria-label="Game options">⋯</button>
         <div class="menu-dropdown" id="menuDropdown">
-          <a href="#" class="menu-item" id="editMenuItem">Edit Game</a>
         </div>
       </div>
       
@@ -1135,10 +1134,8 @@
       
       if (isDeveloper || isOwner) {
         const menuContainer = document.getElementById('menuContainer');
-        const editMenuItem = document.getElementById('editMenuItem');
         
         menuContainer.style.display = '';
-        editMenuItem.href = `/submit-game.html?edit=${gameId}&step=3`;
         
         // Set up menu functionality
         setupMenu();

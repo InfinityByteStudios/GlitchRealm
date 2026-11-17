@@ -1065,7 +1065,7 @@
             </svg>
             <h2>Sign In Required</h2>
             <p>Please sign in to access your user portal and game statistics.</p>
-            <button class="btn-portal" onclick="(function(){try{sessionStorage.setItem('gr.returnTo', window.location.href);}catch(e){};window.location.href=`Sign In/index.html?redirect=${encodeURIComponent(window.location.href)}`;})()">Sign In Now</button>
+            <button class="btn-portal" onclick="(function(){try{sessionStorage.setItem('gr.returnTo', window.location.href);}catch(e){};window.location.href=`https://auth.glitchrealm.ca/?return=${encodeURIComponent(window.location.href)}`;})()">Sign In Now</button>
         </div>
         
         <div id="portal-content" class="portal-sections" style="display: none;">
@@ -1294,9 +1294,9 @@
                         <button id="sign-out-all-btn" class="btn-portal" style="background: rgba(255,184,0,0.1); border-color: rgba(255,184,0,0.3); color: #ffb800; width: 100%; margin-bottom: 16px;">
                             Sign Out
                         </button>
-                        <button id="delete-account-btn" class="btn-portal" style="background: rgba(255,0,128,0.1); border-color: rgba(255,0,128,0.3); color: #ff0080; width: 100%;">
+                        <a id="delete-account-btn" class="btn-portal" href="mailto:support@glitchrealm.ca?subject=GlitchRealm%20Account%20Deletion%20Request" style="background: rgba(255,0,128,0.1); border-color: rgba(255,0,128,0.3); color: #ff0080; width: 100%; text-align: center; text-decoration: none;">
                             Delete Account Permanently
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1825,7 +1825,7 @@ Thank you for being an early tester! 🚀
                 if (!email) {
                     // If we can't determine an email, route to the dedicated Forgot Password page
                     showAuthMessage('Please use the Forgot Password page to request a reset.', 'info');
-                    setTimeout(() => { window.location.href = 'forgot-password.html'; }, 250);
+                    setTimeout(() => { window.location.href = 'https://auth.glitchrealm.ca/'; }, 250);
                     return;
                 }
 

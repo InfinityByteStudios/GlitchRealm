@@ -810,36 +810,6 @@
     
     </div>
 
-    <!-- Account Deletion Confirmation Modal -->
-    <div id="delete-account-modal" class="auth-overlay" style="display: none;">
-        <div class="auth-panel danger">
-            <div class="auth-header">
-                <div class="auth-logo">
-                    <span class="glitch" data-text="DELETE ACCOUNT">DELETE ACCOUNT</span>
-                </div>
-                <button class="auth-close" onclick="closeDeleteModal()">
-                    <span class="close-icon">×</span>
-                </button>
-            </div>
-            
-            <div class="auth-content">
-                <div class="delete-warning">
-                    <div class="warning-icon">
-                        <svg class="icon-svg" viewBox="0 0 24 24">
-                            <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
-                        </svg>
-            </div>
-                    <h3>Are you sure you want to delete your account?</h3>
-                    <p>This action cannot be undone. All your game progress, achievements, and data will be permanently lost.</p>
-                    
-                    <div class="delete-actions">
-                        <button onclick="closeDeleteModal()" class="neural-button secondary">Cancel</button>
-                        <button onclick="confirmDeleteAccount()" class="neural-button danger">Delete Forever</button>
-            </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div id="auth-message" class="auth-message" style="display: none;"></div>
     <div id="auth-loading" class="auth-loading" style="display: none;">

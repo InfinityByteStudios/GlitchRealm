@@ -491,7 +491,7 @@
                 console.log('No user signed in - redirecting to sign in page...');
                 // Redirect to sign in page if not authenticated
                 setTimeout(() => {
-                    window.location.href = 'signin.html?redirect=' + encodeURIComponent(window.location.pathname);
+                    window.location.href = 'https://auth.glitchrealm.ca/?return=' + encodeURIComponent(window.location.pathname);
                 }, 2000);
             }
 

@@ -57,15 +57,6 @@
                 .nav-container { padding-top: 1rem; padding-bottom: 1rem; }
             }
 
-                /* Auth modal hardening (Community)
-                    Avoid enlarging all images; target header-only if used */
-                #signin-modal .auth-header img { max-width: 48px; max-height: 48px; width: auto; height: auto; object-fit: contain; }
-            #signin-modal .social-icon { width: 24px; height: 24px; }
-                /* Ensure any provider <img> inside social buttons remains consistent */
-                #signin-modal .social-button img { width: 24px; height: 24px; object-fit: contain; }
-            #signin-modal .auth-panel { max-width: 440px; }
-            #signin-modal.auth-overlay { z-index: 4000; }
-
             /* Community post card polish */
             .community-card { border-radius: 12px; content-visibility: auto; contain-intrinsic-size: 360px 560px; }
             .community-card .card-title { margin-bottom: 6px; font-size: 1.1rem; }
@@ -509,62 +500,7 @@
                 else init();
             })();
         </script>
-        <script>
-            // Fallback: ensure header Sign In opens this page's #signin-modal
-            (function(){
-                function bindSignIn(){
-                    const btn = document.getElementById('sign-in-btn');
-                    const modal = document.getElementById('signin-modal');
-                    if (!btn || !modal) return false;
-                    // Ensure modal is a direct child of body and sits on top
-                    try {
-                        if (modal.parentNode !== document.body) {
-                            document.body.appendChild(modal);
-                        }
-                        modal.style.zIndex = '4000';
-                    } catch (e) {}
-                    // Avoid duplicate handlers
-                    const newBtn = btn.cloneNode(true);
-                    btn.parentNode.replaceChild(newBtn, btn);
-                    newBtn.addEventListener('click', function(e){
-                        e.preventDefault();
-                        // Close any other overlays to avoid conflicts
-                        document.querySelectorAll('.auth-overlay').forEach(el => {
-                            if (el !== modal) el.style.display = 'none';
-                        });
-                        modal.style.display = 'flex';
-                        document.body.style.overflow = 'hidden';
-                    });
-                    // Close handlers
-                    const close = document.getElementById('close-modal');
-                    if (close) {
-                        const newClose = close.cloneNode(true);
-                        close.parentNode.replaceChild(newClose, close);
-                        newClose.addEventListener('click', function(e){
-                            e.preventDefault();
-                            modal.style.display = 'none';
-                            document.body.style.overflow = 'auto';
-                        });
-                    }
-                    // Backdrop click close for this modal only
-                    modal.addEventListener('click', function(e){
-                        if (e.target === modal) {
-                            modal.style.display = 'none';
-                            document.body.style.overflow = 'auto';
-                        }
-                    });
-                    return true;
-                }
-                function init(){
-                    if (bindSignIn()) return;
-                    const host = document.getElementById('header-placeholder') || document.body;
-                    const mo = new MutationObserver(() => { if (bindSignIn()) mo.disconnect(); });
-                    mo.observe(host, { childList: true, subtree: true });
-                }
-                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-                else init();
-            })();
-        </script>
+
 
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "892ed403e03340bea2db911f5d5ceb5c"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

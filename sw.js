@@ -1,5 +1,5 @@
 /* GlitchRealm Service Worker - Advanced Optimizations */
-const CACHE_PREFIX = 'gr-v11'; // v11: Fix SW intercepting Firebase CDN + auth bridge hang
+const CACHE_PREFIX = 'gr-v12'; // v12: Drop retired News/V2/auth-UI paths from the never-cache list
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 const IMAGE_CACHE = `${CACHE_PREFIX}-images`;
@@ -18,9 +18,7 @@ const BMC_WIDGET_URL = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js'
 // Same-origin paths that should NEVER be cached (always fetch fresh)
 const NEVER_CACHE_PATHS = [
   '/js/firebase-core.js',
-  '/subdomains/news/firebase-core.js',
   '/js/script.js',
-  '/subdomains/news/script.js',
   '/js/portal-auth.js',
   '/js/signin.js',
   '/js/auth-redirect-handler.js',
@@ -90,7 +88,6 @@ async function cacheFirst(request, cacheName = RUNTIME_CACHE) {
     if (request.destination === 'image') {
       const FALLBACK_IMAGES = [
         '/assets/Favicon and Icons/favicon.ico',
-        '/subdomains/news/assets/Favicon and Icons/favicon.ico',
         '/favicon.ico',
         '/assets/Favicon and Icons/favicon.svg'
       ];

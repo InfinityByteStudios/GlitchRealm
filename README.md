@@ -59,7 +59,7 @@ GlitchRealm is a browser-based gaming platform with a distinctive cyberpunk aest
 - **Playtime Tracking** — automatic session tracking across every game
 - **Custom Avatars** — profile images powered by Supabase Storage
 - **Reviews & Ratings** — rate games and read community feedback
-- **Community Hub** — discussions, news articles, and platform updates
+- **Community Hub** — discussions and platform updates
 - **PWA Support** — install GlitchRealm as a desktop or mobile app
 
 ### Developers
@@ -104,7 +104,7 @@ verified_users/               # Verified creator records
 playtime/{userId}/games/      # Per-user, per-game session data
 reviews/                      # Game reviews with moderation flags
 community_posts/              # Discussion threads
-news_articles/                # Platform announcements
+game_submissions/              # Game submissions (drafts + published)
 ```
 
 Security rules enforce a three-tier update model (owner, owner-content-only, admin) with validators that check the final merged document state. See `config/firestore.rules` for details.

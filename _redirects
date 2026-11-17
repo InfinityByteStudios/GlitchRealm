@@ -9,22 +9,19 @@
 /header.html    /components/header.html   200
 /footer.html    /components/footer.html   200
 
-# V2 portal routes
-/v2                  /v2/index.html            200
-/v2/                 /v2/index.html            200
-/v2/games            /v2/games.html            200
-/v2/game-detail      /v2/game-detail.html      200
-/v2/submit-game      /v2/submit-game.html      200
-/v2/legal            /v2/legal.html            200
+# V2 website has been retired - redirect to the live equivalents
+/v2                  /                                                301
+/v2/                 /                                                301
+/v2/games            /games.html                                      301
+/v2/game-detail      /game-detail.html                                301
+/v2/submit-game      https://submit-game.forms.glitchrealm.ca/        301
+/v2/legal            https://legal.glitchrealm.ca/                    301
 
 # Portal subdomain rewrite - serve the User Portal for portal.glitchrealm.ca
 https://portal.glitchrealm.ca/*  /subdomains/pages/account/user-portal.html  200
 
 # Admin subdomain - serve the Admin Control Panel
 https://admin.glitchrealm.ca/*   /subdomains/admin/:splat  200
-
-# Developers subdomain - serve the Developer API page
-https://developers.glitchrealm.ca/*  /subdomains/developers/:splat  200
 
 # Legal subdomain - serve the Legal Hub
 https://legal.glitchrealm.ca       /subdomains/legal/index.html  200
@@ -59,14 +56,11 @@ https://legal.glitchrealm.ca/*     /subdomains/legal/:splat      200
 /community-games        /games.html   301
 /community-games.html   /games.html   301
 
-# News section
-/news                   /subdomains/news/index.html   200
-/subdomains/news/                  /subdomains/news/index.html   200
-/feed                   /subdomains/news/feed.rss   200
-/feed.rss               /subdomains/news/feed.rss   200
-/subdomains/news/feed              /subdomains/news/feed.rss   200
-/subdomains/news/rss               /subdomains/news/feed.rss   200
-/api/news-feed          /subdomains/news/feed.rss   200
+# News section has been discontinued
+/news                   https://glitchrealm.ca/games.html   301
+/feed                   https://glitchrealm.ca/games.html   301
+/feed.rss               https://glitchrealm.ca/games.html   301
+/api/news-feed          https://glitchrealm.ca/games.html   301
 # =============================================================================
 # URL-preserving rewrites - pages/legal/
 # =============================================================================
@@ -116,8 +110,8 @@ https://legal.glitchrealm.ca/*     /subdomains/legal/:splat      200
 # =============================================================================
 # URL-preserving rewrites - pages/admin/
 # =============================================================================
-/admin.html                             /subdomains/pages/admin/admin.html   200
-/admin                                  /subdomains/pages/admin/admin.html   200
+/admin.html                             https://admin.glitchrealm.ca/   301
+/admin                                  https://admin.glitchrealm.ca/   301
 /admin-panel.html                       /subdomains/pages/admin/admin-panel.html   200
 /admin-panel                            /subdomains/pages/admin/admin-panel.html   200
 /admin-status.html                      /subdomains/pages/admin/admin-status.html   200
@@ -129,62 +123,62 @@ https://legal.glitchrealm.ca/*     /subdomains/legal/:splat      200
 /admin-console                          /subdomains/admin/index.html   200
 
 # =============================================================================
-# URL-preserving rewrites - pages/auth/
+# Traditional sign-in / registration UI has been removed from the main site.
+# The underlying authentication implementation is retained on auth.glitchrealm.ca
+# and the auth-bridge infrastructure below is untouched.
 # =============================================================================
 /auth-bridge.html                       /subdomains/pages/auth/auth-bridge.html   200
 /auth-bridge                            /subdomains/pages/auth/auth-bridge.html   200
 /auth-bridge-template.html              /subdomains/pages/auth/auth-bridge-template.html   200
 /auth-bridge-template                   /subdomains/pages/auth/auth-bridge-template.html   200
-/delete-account.html                    /subdomains/pages/auth/delete-account.html   200
-/delete-account                         /subdomains/pages/auth/delete-account.html   200
-/forgot-password.html                   /subdomains/pages/auth/forgot-password.html   200
-/forgot-password                        /subdomains/pages/auth/forgot-password.html   200
-/migrate-usernames.html                 /subdomains/pages/auth/migrate-usernames.html   200
-/migrate-usernames                      /subdomains/pages/auth/migrate-usernames.html   200
-/reset-password.html                    /subdomains/pages/auth/reset-password.html   200
-/reset-password                         /subdomains/pages/auth/reset-password.html   200
-/signin.html                            /subdomains/pages/auth/signin.html   200
-/signin                                 /subdomains/pages/auth/signin.html   200
+
+# Retired account/auth pages - send visitors to the retained auth host
+/signin                                 https://auth.glitchrealm.ca   301
+/login                                  https://auth.glitchrealm.ca   301
+/signin.html                            https://auth.glitchrealm.ca   301
+/forgot-password.html                   https://auth.glitchrealm.ca   301
+/forgot-password                        https://auth.glitchrealm.ca   301
+/reset-password.html                    https://auth.glitchrealm.ca   301
+/reset-password                         https://auth.glitchrealm.ca   301
+/delete-account.html                    /contact.html   301
+/delete-account                         /contact.html   301
 
 # =============================================================================
 # URL-preserving rewrites - pages/games/
 # =============================================================================
-/community-games.html                   /subdomains/pages/games/community-games.html   200
-/community-games                        /subdomains/pages/games/community-games.html   200
 /game-detail.html                       /subdomains/pages/games/game-detail.html   200
 /game-detail                            /subdomains/pages/games/game-detail.html   200
 /games.html                             /subdomains/pages/games/games.html   200
 /games                                  /subdomains/pages/games/games.html   200
 /leaderboards.html                      /subdomains/pages/games/leaderboards.html   200
 /leaderboards                           /subdomains/pages/games/leaderboards.html   200
-/publish.html                           /subdomains/pages/games/publish.html   200
-/publish                                /subdomains/pages/games/publish.html   200
 /reviews.html                           /subdomains/pages/games/reviews.html   200
 /reviews                                /subdomains/pages/games/reviews.html   200
-/submit-game.html                       /subdomains/pages/games/submit-game.html   200
-/submit-game                            /subdomains/pages/games/submit-game.html   200
+
+# The on-site submission form is retired - the official submission website is
+# the only public way to submit a game.
+/submit-game.html                       https://submit-game.forms.glitchrealm.ca/   301
+/submit-game                            https://submit-game.forms.glitchrealm.ca/   301
 
 # =============================================================================
 # URL-preserving rewrites - pages/account/
 # =============================================================================
 /developer-dashboard.html               /subdomains/pages/account/developer-dashboard.html   200
 /developer-dashboard                    /subdomains/pages/account/developer-dashboard.html   200
-/request-verification.html              /subdomains/pages/account/request-verification.html   200
-/request-verification                   /subdomains/pages/account/request-verification.html   200
 /settings.html                          /subdomains/pages/account/settings.html   200
 /settings                               /subdomains/pages/account/settings.html   200
 /user-portal.html                       /subdomains/pages/account/user-portal.html   200
 /user-portal                            /subdomains/pages/account/user-portal.html   200
-/user-portal-revamp.html                /subdomains/pages/account/user-portal-revamp.html   200
-/user-portal-revamp                     /subdomains/pages/account/user-portal-revamp.html   200
+
+# The writer-verification flow existed only to publish News articles.
+/request-verification.html              /support.html   301
+/request-verification                   /support.html   301
 
 # =============================================================================
 # URL-preserving rewrites - pages/community/
 # =============================================================================
 /community.html                         /subdomains/pages/community/community.html   200
 /community                              /subdomains/pages/community/community.html   200
-/news-article.html                      /subdomains/pages/community/news-article.html   200
-/news-article                           /subdomains/pages/community/news-article.html   200
 
 # =============================================================================
 # URL-preserving rewrites - pages/newsletter/
@@ -195,6 +189,9 @@ https://legal.glitchrealm.ca/*     /subdomains/legal/:splat      200
 /newsletter-modal                       /subdomains/pages/newsletter/newsletter-modal.html   200
 /newsletter-success.html                /subdomains/pages/newsletter/newsletter-success.html   200
 /newsletter-success                     /subdomains/pages/newsletter/newsletter-success.html   200
+
+# News has been discontinued - retired News URLs point at the games directory
+/news.html                              /games.html   301
 
 # =============================================================================
 # URL-preserving rewrites - pages/info/

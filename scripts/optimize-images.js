@@ -23,7 +23,7 @@ const config = {
     compressionLevel: 8
   },
   // Directories to process (excluding Games folder per requirements)
-  inputDirs: ['assets', 'auth/assets', 'news/assets'],
+  inputDirs: ['assets', 'auth/assets', ],
   outputDir: 'optimized',
   // File extensions to process
   extensions: ['.jpg', '.jpeg', '.png', '.webp'],
