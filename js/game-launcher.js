@@ -87,16 +87,14 @@ class GameLauncher {
             if (res) playId = res.playId;
         } catch (e) { /* analytics must never block launching */ }
 
-        // Trigger game start event for playtime tracking
-        const gameStartEvent = new CustomEvent('gameStarted', { 
-            detail: { gameId: game.id, gameName: game.name }
-        });
-        window.dispatchEvent(gameStartEvent);
-        
         // Open the game
         const gameWindow = window.open(gameUrl, `_blank`);
 
-        // Start playtime accounting (uses the window handle to detect the end)
+        // Start playtime accounting (uses the window handle to detect the end).
+        // This must run BEFORE the gameStarted event below — the analytics
+        // compat bridge also listens for that event, but skips it once a play
+        // is already active. Dispatching first used to create a duplicate
+        // play session that was immediately ended as "superseded".
         try {
             window.grAnalytics && window.grAnalytics.startPlay && window.grAnalytics.startPlay({
                 gameId: game.id,
@@ -105,6 +103,13 @@ class GameLauncher {
                 gameWindow: gameWindow
             });
         } catch (e) { /* ignore */ }
+
+        // Trigger game start event for other listeners (compat bridge no-ops
+        // because a play is already active)
+        const gameStartEvent = new CustomEvent('gameStarted', { 
+            detail: { gameId: game.id, gameName: game.name }
+        });
+        window.dispatchEvent(gameStartEvent);
         
         // Set up event listener for when the game window closes
         if (gameWindow) {

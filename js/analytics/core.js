@@ -180,6 +180,9 @@ let flushing = false;
 
 function enqueue(event) {
   queue.push(event);
+  // hard cap the in-memory queue too — if the collector is unreachable for a
+  // long stretch, retry re-queues would otherwise grow it without bound
+  if (queue.length > ctx.maxPayloadEvents * 4) queue.splice(0, queue.length - ctx.maxPayloadEvents * 4);
   if (local) {
     try { local.set(KEYS.queue, JSON.stringify(queue.slice(-ctx.maxPayloadEvents * 2))); } catch (e) { /* quota */ }
   }
@@ -249,11 +252,28 @@ function dispatchToGtag(name, props, base) {
   } catch (e) { /* ignore */ }
 }
 
+// Firebase Analytics logEvent mirror. logEvent is imported lazily (once) from
+// the same CDN build the site already loads, so no extra script tag is needed
+// and nothing runs until an event is actually tracked.
+let firebaseLogEvent = null;
+let firebaseLogEventFailed = false;
+
 function dispatchToFirebase(name, props) {
   try {
-    if (window.firebaseApp && typeof window.firebaseAnalyticsLogEvent === 'function') {
-      window.firebaseAnalyticsLogEvent(window.firebaseApp, name, sanitizeProps(props));
+    if (firebaseLogEventFailed || !window.firebaseApp) return;
+    if (!firebaseLogEvent) {
+      // kick off the import once; events before it resolves are skipped
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js')
+        .then(m => {
+          firebaseLogEvent = m.logEvent;
+          if (window.firebaseApp && !window.firebaseAnalytics) {
+            window.firebaseAnalytics = m.getAnalytics(window.firebaseApp);
+          }
+        })
+        .catch(() => { firebaseLogEventFailed = true; });
+      return;
     }
+    firebaseLogEvent(window.firebaseAnalytics || window.firebaseApp, name, sanitizeProps(props));
   } catch (e) { /* ignore */ }
 }
 

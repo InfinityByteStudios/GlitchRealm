@@ -180,16 +180,33 @@ function setupGamePageHeartbeat() {
     const playId = gr.gr_pid;
     if (!playId) return;
 
-    core.track('game_loaded', { ...gr, path: window.location.pathname });
+    // full attribution snapshot persisted by the parent tab right before it
+    // launched this game (takePendingPlay consumes + clears the key)
+    const pending = attribution.takePendingPlay();
+    const pendingSnap = pending && pending.playId === playId ? pending : null;
 
-    // keep the parent's play alive while the game tab is being played
+    core.track('game_loaded', {
+      ...gr,
+      path: window.location.pathname,
+      attribution: pendingSnap || null
+    });
+
+    // keep the parent's play alive while the game tab is being played.
+    // IMPORTANT: preserve the parent's accrued seconds — writing 0 here used
+    // to wipe the real total, so a play recovered after a mid-session reload
+    // was always reported as duration 0.
     setInterval(() => {
       try {
+        let seconds = 0;
+        try {
+          const prev = JSON.parse(localStorage.getItem('gr_active_play') || 'null');
+          if (prev && prev.playId === playId && Number.isFinite(prev.seconds)) seconds = prev.seconds;
+        } catch (e) { /* ignore */ }
         localStorage.setItem('gr_active_play', JSON.stringify({
           playId,
           gameId: gr.gr_gid || null,
           lastBeat: Date.now(),
-          seconds: 0
+          seconds
         }));
       } catch (e) { /* ignore */ }
     }, 15000);

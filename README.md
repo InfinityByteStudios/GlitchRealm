@@ -180,7 +180,8 @@ The site will be available at `http://localhost:8888`.
 | `firebase-core.js` | Initializes Firebase and exposes services globally |
 | `config/firestore.rules` | Firestore security rules |
 | `js/game-launcher.js` | Game window management and playtime events |
-| `js/game-playtime-tracker.js` | Playtime tracking SDK for game developers |
+| `js/analytics/index.js` | First-party analytics + playtime tracking (consent-gated) |
+| `js/analytics/playtime.js` | Play-session timing, heartbeats, and Firestore write-back |
 | `css/styles.css` | Global theme with CSS custom properties |
 | `netlify.toml` | Netlify build settings, headers, and redirects |
 
@@ -203,16 +204,14 @@ Key utility classes: `.glitch` (animated text effect), `.neural-button` (primary
 
 ## Game Integration
 
-Integrate playtime tracking into your game with a single script import:
+Playtime is tracked automatically by the site's first-party analytics for every
+game launched through the Play flow (attribution params `?gr_sid=...&gr_pid=...`
+are stamped onto the game URL). Same-origin games hosted under `/Games/` only
+need to include the tracker to report a precise in-game heartbeat:
 
 ```html
 <script type="module">
-  import { trackPlaytime } from 'https://glitchrealm.ca/game-playtime-tracker.js';
-
-  const user = window.firebaseAuth?.currentUser;
-  if (user) {
-    trackPlaytime('your-game-id', user.uid);
-  }
+  import '/js/analytics/index.js';
 </script>
 ```
 

@@ -29,9 +29,6 @@
     <!-- Performance optimization script -->
     <script src="js/performance-optimization.js"></script>
     
-    <!-- Game analytics tracker -->
-    <script src="js/game-analytics-tracker.js"></script>
-
 </head>
 <body>
     <!-- Header placeholder -->
@@ -347,17 +344,30 @@
         }
         
         async function loadAnalytics() {
-            if (!currentUser || !window.gameAnalyticsTracker) {
-                console.log('No user or analytics tracker not available');
+            if (!currentUser) {
+                console.log('No user; skipping analytics load');
                 return;
             }
             
             try {
+                // Read the game_analytics aggregate doc directly (the legacy
+                // client tracker that used to write these docs was removed;
+                // aggregates are now maintained server-side by
+                // netlify/functions/analytics-collect.mjs on game_end).
+                const { getFirestore, doc: fdoc, getDoc } =
+                    await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                
                 // Load analytics for all user games
                 const gameAnalytics = await Promise.all(
-                    userGames.map(game => 
-                        window.gameAnalyticsTracker.getGameAnalytics(game.id)
-                    )
+                    userGames.map(async (game) => {
+                        try {
+                            const snap = await getDoc(fdoc(window.firebaseFirestore, 'game_analytics', game.id));
+                            return snap.exists() ? snap.data() : null;
+                        } catch (e) {
+                            console.error('Error reading analytics for', game.id, e);
+                            return null;
+                        }
+                    })
                 );
                 
                 // Process analytics data

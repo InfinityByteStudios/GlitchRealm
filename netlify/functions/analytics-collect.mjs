@@ -39,7 +39,9 @@ const EVENT_ALLOWLIST = new Set([
 const STRING_PROPS = new Set(['gameId', 'gameName', 'source', 'medium', 'campaign', 'term',
   'content', 'clickId', 'firstTouchSource', 'firstTouchCampaign', 'button', 'section',
   'referrerHost', 'referrerPath', 'referrerKind', 'clickPage', 'playId', 'reason',
-  'locationOnPage', 'message', 'stack', 'file', 'href', 'path', 'gameParam']);
+  'locationOnPage', 'message', 'stack', 'file', 'href', 'path', 'gameParam', 'text']);
+
+const BOOL_PROPS = new Set(['final']);
 
 const NUM_PROPS = new Set(['seconds', 'maxScrollPct', 'duration_s', 'playSeconds', 'gained',
   'pageviews', 'lcp', 'cls', 'inp', 'ttfb', 'domReady', 'load', 'position', 'firstTouchAt',
@@ -103,6 +105,8 @@ function sanitizeProps(raw) {
   for (const [key, value] of Object.entries(raw)) {
     if (STRING_PROPS.has(key) && (typeof value === 'string' || typeof value === 'number')) {
       out[key] = sanitizeString(value, 240);
+    } else if (BOOL_PROPS.has(key) && typeof value === 'boolean') {
+      out[key] = value;
     } else if (NUM_PROPS.has(key) && typeof value === 'number' && Number.isFinite(value)) {
       out[key] = Math.max(-1, Math.min(86400, Math.round(value * 1000) / 1000));
     } else if (key === 'clickPath' && Array.isArray(value)) {
@@ -233,9 +237,14 @@ export default async (request, context) => {
     });
   }
 
+  // identity for rate limiting: prefer the real client IP; if Netlify doesn't
+  // supply one (e.g. proxied requests), fall back to UA+origin so those
+  // clients at least get separate buckets instead of all sharing one.
   const clientIp = request.headers.get('x-nf-client-connection-ip') || '';
   const minute = new Date().toISOString().slice(0, 16);
-  const identity = hashKey(clientIp, ipSalt).slice(0, 12);
+  const identity = clientIp
+    ? hashKey(clientIp, ipSalt).slice(0, 12)
+    : hashKey(`${ua}|${origin}`, ipSalt).slice(0, 12);
   const allowed = await checkRate(db, identity, minute.replace(/[-:T]/g, ''));
   if (!allowed) return new Response(null, { status: 204, headers: cors });
 
@@ -353,6 +362,16 @@ export default async (request, context) => {
           seconds: admin.firestore.FieldValue.increment(Math.max(0, Math.round(Number(props.duration_s) || 0))),
           plays: admin.firestore.FieldValue.increment(1),
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        writeCount++;
+
+        // maintain the game_analytics aggregate doc consumed by the developer
+        // dashboard (this replaced the removed legacy client-side tracker)
+        batch.set(db.collection('game_analytics').doc(String(props.gameId).slice(0, 60)), {
+          gameId: String(props.gameId).slice(0, 60),
+          totalPlays: admin.firestore.FieldValue.increment(1),
+          [`dailyPlays.${ev.day}`]: admin.firestore.FieldValue.increment(1),
+          lastPlayed: ev.ts
         }, { merge: true });
         writeCount++;
       }

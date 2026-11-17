@@ -105,6 +105,20 @@ service cloud.firestore {
       // Delete: Admins only
       allow delete: if isAdmin(request.auth.uid);
     }
+
+    // ================================
+    // Game Analytics (aggregate counters, written server-side by
+    // netlify/functions/analytics-collect.mjs via Admin SDK — Admin SDK
+    // writes bypass these rules, so only reads are allowed here)
+    // ================================
+    match /game_analytics/{gameId} {
+      // Read: any signed-in user (developer dashboard reads stats for their games)
+      allow read: if request.auth != null;
+
+      // Delete: Admins only
+      allow delete: if isAdmin(request.auth.uid);
+    }
+
     
     // ================================
     // System Status (Public read, developer write)

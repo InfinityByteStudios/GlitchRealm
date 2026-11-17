@@ -57,6 +57,7 @@ All events carry: `ts`, `visitorId`, `sessionId`, `userId|`, `path`,
 | `play_attribution` | one doc per `play_click`: full source snapshot |
 | `play_sessions/{playId}` | per-play: attribution, `startedAt`, `duration_s`, `endReason` |
 | `play_daily/{day}_{gameId}` | per-day per-game `seconds` + `plays` rollups |
+| `game_analytics/{gameId}` | per-game aggregate for the developer dashboard (`totalPlays`, `dailyPlays`, `lastPlayed`); written server-side on `game_end` |
 | `analytics_rate_limits` | per-minute ingest counters |
 
 Identifiers are hashed with a daily-rotating salt; raw IP is never stored.
@@ -67,4 +68,8 @@ Identifiers are hashed with a daily-rotating salt; raw IP is never stored.
 - Listens for the new `gr:consentchange` window event; revocation stops collection.
 - Visitor id expires after 30 days; resettable via the consent manager.
 - No emails/PII in props (regex-scrubbed), no cross-site tracking, no cookies.
-- Retention of raw events should be handled by a scheduled cleanup job (TBD).
+- Retention is handled by the scheduled `netlify/functions/analytics-cleanup.mjs`
+  job (runs daily via Netlify `config.schedule`): deletes raw `analytics_events`
+  and `play_attribution` older than 90 days, stale `session_state` older than
+  30 days, and `analytics_rate_limits` older than 2 days. Small rollup
+  collections (`event_daily`, `play_daily`, `play_sessions`) are kept.

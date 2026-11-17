@@ -79,7 +79,6 @@ function writeBack(reason) {
     // write-back via the global Firestore helpers (rules allow owner writes)
     const doWrite = async () => {
       const db = window.firebaseFirestore;
-      const doc = window.firestoreDoc;
       const { getFirestore, doc: fdoc, getDoc, setDoc } =
         await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
       const ref = fdoc(db, 'playtime', uid, 'games', String(active.gameId));

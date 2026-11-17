@@ -154,8 +154,8 @@ function startErrorTracking() {
         message: String(message || '').slice(0, 240),
         stack: String(extra && extra.stack ? extra.stack : '').slice(0, 600),
         file: String((extra && extra.filename) || '').slice(0, 160),
-        line: (extra && extra.lineno) || null,
-        userAgent: navigator.userAgent.slice(0, 160)
+        line: (extra && extra.lineno) || null
+        // UA is stamped server-side (ev.ua) from the request header — no need to send it
       });
     } catch (e) { /* ignore */ }
   };

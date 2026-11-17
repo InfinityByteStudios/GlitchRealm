@@ -38,6 +38,12 @@ const FALLBACK_ADMINS = [
 const RAW_SCAN_LIMIT = 2000; // bounded raw scan per report
 const SCAN_PAGE_SIZE = 1000; // Firestore caps a single get() page
 const MAX_DAYS = 90;
+const REPORT_CACHE_TTL_MS = 60 * 1000; // warm instances reuse recent report results
+const LIVE_CACHE_TTL_MS = 10 * 1000;   // "live" must stay fresh
+
+// tiny in-instance cache (serverless functions are reused across requests);
+// keyed by report + params so repeated dashboard polls don't re-scan Firestore
+const reportCache = new Map(); // key -> { at, body }
 
 let adminApp = null;
 
@@ -176,7 +182,7 @@ function topN(obj, n = 15) {
     .map(([key, count]) => ({ key, count }));
 }
 
-async function reportOverview(db, { since, days, gameId }) {
+async function reportOverview(db, { since, days, gameId, skipPlaytime = false }) {
   const evs = await scanEvents(db, { since, gameId });
   const visitors = new Set();
   const sessions = new Set();
@@ -195,16 +201,19 @@ async function reportOverview(db, { since, days, gameId }) {
     if (ev.name === 'newsletter_subscribe') newsletter++;
     if (ev.visitorHash) perDayVisitors[day] = perDayVisitors[day] || new Set(), perDayVisitors[day].add(ev.visitorHash);
   }
-  // playtime from play_daily rollups
-  const playDaily = await db.collection('play_daily').where('day', '>=', dayKey(since)).get();
+  // playtime from play_daily rollups (skipped for the timeseries report,
+  // which only needs the per-day event counts)
   let playtime = 0;
   const playtimeByGame = {};
-  playDaily.forEach(d => {
-    const data = d.data();
-    if (gameId && data.gameId !== gameId) return;
-    playtime += Number(data.seconds || 0);
-    playtimeByGame[data.gameId] = (playtimeByGame[data.gameId] || 0) + Number(data.seconds || 0);
-  });
+  if (!skipPlaytime) {
+    const playDaily = await db.collection('play_daily').where('day', '>=', dayKey(since)).get();
+    playDaily.forEach(d => {
+      const data = d.data();
+      if (gameId && data.gameId !== gameId) return;
+      playtime += Number(data.seconds || 0);
+      playtimeByGame[data.gameId] = (playtimeByGame[data.gameId] || 0) + Number(data.seconds || 0);
+    });
+  }
 
   const timeseries = [];
   for (let i = days - 1; i >= 0; i--) {
@@ -229,7 +238,8 @@ async function reportOverview(db, { since, days, gameId }) {
 }
 
 async function reportTimeseries(db, { since, days }) {
-  const o = await reportOverview(db, { since, days });
+  // skipPlaytime: this report only consumes overview.timeseries
+  const o = await reportOverview(db, { since, days, skipPlaytime: true });
   return { days, timeseries: o.timeseries };
 }
 
@@ -296,14 +306,17 @@ async function reportReferrers(db, { since }) {
 }
 
 async function reportPages(db, { since }) {
-  const evs = await scanEvents(db, { names: ['page_view'], since });
-  const paths = groupCount(evs, ev => (ev.path || '/').split('?')[0]);
-  // engagement seconds per path
+  // one scan for both event names (page_view + page_engagement) instead of two
+  const evs = await scanEvents(db, { names: ['page_view', 'page_engagement'], since });
+  const paths = {};
   const eng = {};
-  const evs2 = await scanEvents(db, { names: ['page_engagement'], since });
-  for (const ev of evs2) {
+  for (const ev of evs) {
     const p = (ev.path || '/').split('?')[0];
-    eng[p] = (eng[p] || 0) + (ev.props?.seconds || 0);
+    if (ev.name === 'page_view') {
+      paths[p] = (paths[p] || 0) + 1;
+    } else {
+      eng[p] = (eng[p] || 0) + (ev.props?.seconds || 0);
+    }
   }
   return {
     pages: topN(paths).map(p => ({ ...p, engaged_s: Math.round(eng[p.key] || 0) }))
@@ -388,7 +401,6 @@ async function reportLive(db) {
   } catch (e) { /* live panel degrades gracefully */ }
 
   return {
-    visitorsLast5Min: activeVisitors.size,
     activeVisitors: activeVisitors.size,
     activeSessions: activeSessions.size,
     recentEvents: recent.length,
@@ -425,6 +437,15 @@ export default async (request) => {
   const { start: since } = rangeStart(days);
   const nDays = Math.max(1, Math.min(MAX_DAYS, days));
 
+  // serve cached results to warm instances — repeated dashboard polls (and
+  // simultaneous chart fetches) should not each re-scan Firestore
+  const ttl = report === 'live' ? LIVE_CACHE_TTL_MS : REPORT_CACHE_TTL_MS;
+  const cacheKey = `${report}:${nDays}:${gameId || ''}`;
+  const cached = reportCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < ttl) {
+    return json({ ok: true, report, generatedAt: new Date(cached.at).toISOString(), cached: true, ...cached.body }, 200, origin);
+  }
+
   try {
     let body;
     switch (report) {
@@ -438,6 +459,12 @@ export default async (request) => {
       case 'live': body = await reportLive(db); break;
       case 'recent': body = await reportRecent(db, { since }); break;
       default: return json({ error: 'unknown_report' }, 400, origin);
+    }
+    reportCache.set(cacheKey, { at: Date.now(), body });
+    if (reportCache.size > 64) {
+      // keep the cache small: drop the oldest entries
+      const oldest = reportCache.keys().next().value;
+      reportCache.delete(oldest);
     }
     return json({ ok: true, report, generatedAt: new Date().toISOString(), ...body }, 200, origin);
   } catch (e) {

@@ -74,8 +74,6 @@
         <script type="module" src="js/wishlist-manager.js"></script>
         <!-- Enhanced auth redirect handler -->
         <script src="js/auth-redirect-handler.js"></script>
-        <!-- Game analytics tracker -->
-        <script src="js/game-analytics-tracker.js"></script>
             <!-- Firebase SDK (page-specific usage; reuses shared app/auth if present) -->
         <script type="module">        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -2719,22 +2717,54 @@
         };
 
         window.showGameOptionsModal = function(gameId, gameName, localPath, externalUrl) {
+            // First-party tracked launch: stamps attribution params onto the
+            // game URL (gr_sid/gr_pid/...) and records playtime. Replaces the
+            // removed legacy game-analytics-tracker calls.
+            function launchTracked(url, openInNewTab) {
+                let playId = null, snapshot = null;
+                try {
+                    const res = window.grAnalytics && window.grAnalytics.playClick && window.grAnalytics.playClick({
+                        gameId: gameId,
+                        gameName: gameName,
+                        gameUrl: url,
+                        locationOnPage: window.location.pathname
+                    });
+                    if (res && res.url) url = res.url;
+                    if (res) { playId = res.playId; snapshot = res.snapshot; }
+                } catch (err) { /* analytics must never block launching */ }
+                if (openInNewTab) {
+                    const gameWindow = window.open(url, '_blank');
+                    try {
+                        window.grAnalytics && window.grAnalytics.startPlay && window.grAnalytics.startPlay({
+                            gameId: gameId,
+                            gameName: gameName,
+                            playId: playId,
+                            gameWindow: gameWindow,
+                            attribution: snapshot
+                        });
+                    } catch (err) { /* ignore */ }
+                } else {
+                    // same-tab navigation: pagehide flushes the partial play
+                    try {
+                        window.grAnalytics && window.grAnalytics.startPlay && window.grAnalytics.startPlay({
+                            gameId: gameId,
+                            gameName: gameName,
+                            playId: playId,
+                            attribution: snapshot
+                        });
+                    } catch (err) { /* ignore */ }
+                    window.location.href = url;
+                }
+            }
+
             // Check if user has a remembered preference
             const rememberedChoice = localStorage.getItem('gamePlayPreference');
             if (rememberedChoice) {
                 if (rememberedChoice === 'local') {
-                    // Track game play analytics
-                    if (window.trackGamePlay) {
-                        window.trackGamePlay(gameId, gameName, localPath);
-                    }
-                    window.location.href = localPath;
+                    launchTracked(localPath, false);
                     return;
                 } else if (rememberedChoice === 'external') {
-                    // Track game play analytics
-                    if (window.trackGamePlay) {
-                        window.trackGamePlay(gameId, gameName, externalUrl);
-                    }
-                    window.open(externalUrl, '_blank');
+                    launchTracked(externalUrl, true);
                     return;
                 }
             }
@@ -2755,12 +2785,7 @@
                     localStorage.setItem('gamePlayPreference', 'local');
                 }
                 
-                // Track game play analytics
-                if (window.trackGamePlay) {
-                    window.trackGamePlay(gameId, gameName, localPath);
-                }
-                
-                window.location.href = localPath;
+                launchTracked(localPath, false);
             };
             
             document.getElementById('externalGameBtn').onclick = function() {
@@ -2769,12 +2794,7 @@
                     localStorage.setItem('gamePlayPreference', 'external');
                 }
                 
-                // Track game play analytics
-                if (window.trackGamePlay) {
-                    window.trackGamePlay(gameId, gameName, externalUrl);
-                }
-                
-                window.open(externalUrl, '_blank');
+                launchTracked(externalUrl, true);
                 closeGameOptionsModal();
             };
         };

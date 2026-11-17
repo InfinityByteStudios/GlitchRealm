@@ -161,10 +161,10 @@ class OptimizationValidator {
         throw new Error(`Missing game folders: ${missingGames.join(', ')}`);
       }
       
-      // Check for game-playtime-tracker.js
-      const playtimeTracker = join(gamesPath, 'game-playtime-tracker.js');
+      // Check for the analytics playtime module
+      const playtimeTracker = join('js', 'analytics', 'playtime.js');
       if (!existsSync(playtimeTracker)) {
-        throw new Error('game-playtime-tracker.js missing from Games folder');
+        throw new Error('js/analytics/playtime.js missing from js/analytics folder');
       }
       
       // Verify no optimization files were added to Games folder
