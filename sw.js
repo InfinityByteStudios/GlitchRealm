@@ -148,15 +148,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Supabase storage: Cache images from Supabase CDN (cross-origin with mode: 'no-cors')
+  // Supabase storage: Cache images from Supabase CDN.
+  // Prefer a CORS fetch so the real HTTP status is visible (opaque no-cors
+  // responses hide it, which previously let 4xx/5xx bodies poison the cache).
   if (url.hostname.includes('supabase.co')) {
     event.respondWith(
       (async () => {
         try {
-          const response = await fetch(request, { mode: 'no-cors' });
-          // Cache the opaque response
-          const cache = await caches.open(IMAGE_CACHE);
-          cache.put(request, response.clone());
+          let response;
+          try {
+            response = await fetch(request);
+          } catch (corsErr) {
+            response = await fetch(request, { mode: 'no-cors' });
+          }
+          if (response && (response.status === 200 || response.type === 'opaque')) {
+            const cache = await caches.open(IMAGE_CACHE);
+            cache.put(request, response.clone());
+          }
           return response;
         } catch (e) {
           // Try cached version if network fails

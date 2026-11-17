@@ -223,7 +223,11 @@
             if (!imageDiv || !infoDiv || !cardDiv) return;
 
             if (game.coverImageUrl) {
-                imageDiv.style.backgroundImage = `url("${encodeURI(game.coverImageUrl)}")`;
+                // coverImageUrl is already a complete URL (usually percent-encoded by the
+                // submission pipeline). Do NOT re-encode it: encodeURI() re-encodes the
+                // '%' of existing %XX escapes (e.g. "%20" -> "%2520"), which breaks any
+                // cover whose filename contains spaces.
+                imageDiv.style.backgroundImage = `url("${game.coverImageUrl.replace(/"/g, '%22')}")`;
                 imageDiv.style.backgroundSize = 'cover';
                 imageDiv.style.backgroundPosition = 'center';
             }
