@@ -2204,6 +2204,10 @@ button:disabled,
     color: var(--text-3);
     margin-top: 2px;
 }
+.an-spark-cell svg { vertical-align: middle; }
+.an-spark { width: 120px; height: 18px; }
+.an-spark-bar { fill: var(--accent, #00fff9); opacity: 0.75; }
+.an-spark-bar:hover { opacity: 1; }
 
 /* Live */
 .an-live-head { display: flex; align-items: center; gap: 8px; }
