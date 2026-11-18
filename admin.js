@@ -1,5 +1,8 @@
 // GlitchRealm Admin Panel - Core Logic
 // Requires Firebase globals set by index.html module script
+// Note: the authoritative admin UID list lives on the SERVER
+// (env GLITCHREALM_ADMIN_UIDS + the function's fallback list). The local
+// list below is only a pre-check hint — the server is the authority.
 
 const DEV_UIDS = new Set();
 const FALLBACK_ADMIN_UIDS = [

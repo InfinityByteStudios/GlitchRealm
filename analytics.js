@@ -2,11 +2,16 @@
 // Data source: GET https://glitchrealm.ca/.netlify/functions/analytics-query?report=<name>&days=<N>&gameId=<id>
 // Hosted by the main site — this admin site has no analytics functions, so the API is called
 // cross-origin (CORS is handled server-side; auth is the Firebase ID token, sent as a Bearer header).
-// Auth: Firebase ID token of a signed-in admin (same UID list as admin.js).
+// Auth: Firebase ID token of a signed-in admin. The admin UID list lives on the SERVER
+// (env GLITCHREALM_ADMIN_UIDS + the function's fallback list) and is the only authority —
+// the local FALLBACK_ADMIN_UIDS below is just a pre-check hint.
 // Fail closed: nothing renders or fetches until an authorized admin is signed in.
+// Responses may include `cached: true` (server-side in-instance cache) — the authoritative
+// freshness stamp is the top-level `generatedAt` field, which drives the status line.
 
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
+// Pre-check hint only — never an authorization decision. The server decides.
 const FALLBACK_ADMIN_UIDS = [
     '6iZDTXC78aVwX22qrY43BOxDRLt1',
     'YR3c4TBw09aK7yYxd7vo0AmI6iG3',
@@ -29,10 +34,18 @@ const state = {
     liveTimer: null,
     liveUpdating: false,
     retrying: false,
-    lastUpdated: null
+    lastUpdated: null,
+    lastUpdatedCached: false
 };
 
 const gameNames = new Map(); // gameId -> display name (best effort)
+
+// Extract the top-level generatedAt freshness stamp (authoritative — the server
+// may serve a cached result whose data is older than the client's fetch time).
+function stampFrom(res) {
+    if (!res || res.status !== 'fulfilled') return null;
+    return toDate(res.value && res.value.generatedAt) || new Date();
+}
 
 // ================================================================
 // TINY DOM + FORMAT HELPERS
@@ -365,7 +378,7 @@ async function loadAll() {
     renderKpis(out.overview, out.overviewPrev);
     renderTraffic(out.overview);
     renderAttribution(out.attribution);
-    renderTopGames(out.topGames);
+    await renderTopGames(out.topGames);
     renderReferrers(out.referrers);
     renderPages(out.pages);
     renderLive(out.live);
@@ -381,7 +394,8 @@ async function loadAll() {
     } else {
         if (failCount > 0) toast(failCount + ' analytics report' + (failCount === 1 ? '' : 's') + ' failed to load', 'error');
         state.loaded = true;
-        state.lastUpdated = new Date();
+        state.lastUpdated = stampFrom(out.overview) || stampFrom(Object.values(out).find(r => r.status === 'fulfilled'));
+        state.lastUpdatedCached = !!state.cache.overview?.cached;
         updateStatusLine();
     }
 
@@ -413,7 +427,7 @@ const RETRY_DEFS = {
     },
     topGames: async () => {
         const r = await refetchReport('topGames', 'top-games', state.days, null);
-        renderTopGames(r);
+        await renderTopGames(r);
         return r.status === 'fulfilled' ? null : r.reason;
     },
     attribution: async () => {
@@ -463,7 +477,8 @@ async function retryReport(key) {
                 toast('Retry failed — ' + describeApiError(err), 'error');
             }
         } else {
-            state.lastUpdated = new Date();
+            state.lastUpdated = stampFrom(state.cache && state.cache[key]);
+            state.lastUpdatedCached = !!(state.cache && state.cache[key] && state.cache[key].cached);
             if (!state.loaded) state.loaded = true;
             updateStatusLine();
             updateExportButton();
@@ -478,7 +493,11 @@ function updateStatusLine(override) {
     if (!el) return;
     if (override) { el.textContent = override; return; }
     const parts = [];
-    if (state.lastUpdated) parts.push('Updated ' + relTime(state.lastUpdated));
+    if (state.lastUpdated) {
+        // generatedAt is the server's freshness stamp; a cached response may be
+        // older than this fetch, so surface that subtly rather than as an error.
+        parts.push('Updated ' + relTime(state.lastUpdated) + (state.lastUpdatedCached ? ' (cached)' : ''));
+    }
     if (state.gameId) parts.push('game: ' + gameLabel(state.gameId));
     el.textContent = parts.join(' · ') || '';
 }
@@ -724,7 +743,7 @@ function renderAttribution(res) {
 }
 
 // ================================================================
-// TOP GAMES + drill-down
+// TOP GAMES + all-time aggregates (game_analytics) + drill-down
 // ================================================================
 async function enrichGameNames() {
     // Best-effort: pull published game titles from Firestore for friendlier labels.
@@ -743,11 +762,63 @@ async function enrichGameNames() {
     }
 }
 
+// game_analytics/{gameId} is maintained server-side by
+// netlify/functions/analytics-collect.mjs on every game_end (the legacy
+// client-side tracker that used to write these docs was removed in the
+// Nov 16 analytics overhaul). Signed-in users may read it directly.
+// totalPlays includes pre-overhaul history recorded by the legacy system —
+// distinct from the range-filtered plays above. averageRating/totalReviews
+// on these docs are frozen legacy values and are deliberately not shown.
+const gameAggregates = new Map(); // gameId -> { data, at }
+
+async function loadGameAggregates(ids) {
+    if (!window.firestoreGetDoc || !window.firestoreDoc || !window.firebaseDb) return;
+    const now = Date.now();
+    const wanted = ids.filter(id => id && id !== '—' && (!gameAggregates.has(id) || now - gameAggregates.get(id).at > 60000));
+    if (!wanted.length) return;
+    await Promise.allSettled(wanted.map(async (id) => {
+        try {
+            const snap = await window.firestoreGetDoc(window.firestoreDoc(window.firebaseDb, 'game_analytics', id));
+            gameAggregates.set(id, { data: snap.exists() ? (snap.data() || {}) : null, at: Date.now() });
+        } catch (e) {
+            // No doc or read denied — render 0 / — rather than erroring.
+            gameAggregates.set(id, { data: null, at: Date.now() });
+        }
+    }));
+}
+
+function gameAgg(gameId) {
+    const entry = gameAggregates.get(gameId);
+    return entry && entry.data ? entry.data : null;
+}
+
+// 30-day sparkline from the dailyPlays.{YYYY-MM-DD} map (last 30 days).
+function sparklineSVG(dailyPlays) {
+    if (!dailyPlays || typeof dailyPlays !== 'object') return '';
+    const dayKey = (dt) => dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+    const now = new Date();
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+        days.push(dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)));
+    }
+    const counts = days.map(k => num(dailyPlays[k]));
+    if (!counts.some(c => c > 0)) return '';
+    const max = Math.max(...counts);
+    const total = counts.reduce((a, b) => a + b, 0);
+    const W = 120, H = 18, STEP = 4, BAR = 3;
+    const bars = counts.map((c, i) => {
+        const h = 2 + (c / max) * (H - 2);
+        return '<rect x="' + (i * STEP) + '" y="' + (H - h).toFixed(1) + '" width="' + BAR + '" height="' + h.toFixed(1) + '" class="an-spark-bar"><title>' + days[i] + ': ' + fmtInt(c) + '</title></rect>';
+    }).join('');
+    return '<svg class="an-spark" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Plays per day, last 30 days: ' + fmtInt(total) + '">' +
+        '<title>' + fmtInt(total) + ' plays in the last 30 days</title>' + bars + '</svg>';
+}
+
 function gameLabel(id) {
     return gameNames.get(id) || id;
 }
 
-function renderTopGames(res) {
+async function renderTopGames(res) {
     const el = panelEl('an-topgames');
     if (!el) return;
 
@@ -768,19 +839,35 @@ function renderTopGames(res) {
         return;
     }
 
+    // All-time aggregates from game_analytics (server-maintained; missing docs render 0 / —).
+    await loadGameAggregates(games.map(g => g.gameId));
+
     const rows = games.map(g => {
+        const agg = gameAgg(g.gameId);
+        const allTime = agg ? num(agg.totalPlays) : 0;
+        const lastPlayed = agg ? toDate(agg.lastPlayed) : null;
         const avg = g.plays > 0 ? g.seconds / g.plays : null;
+        const spark = sparklineSVG(agg && agg.dailyPlays);
         return '<tr data-game="' + escapeAttr(g.gameId) + '" tabindex="0" title="Filter dashboard by this game">' +
             '<td>' + escapeHTML(gameLabel(g.gameId)) + '<span class="an-sub mono">' + escapeHTML(g.gameId) + '</span></td>' +
+            '<td class="num">' + fmtInt(allTime) + '</td>' +
             '<td class="num">' + fmtInt(g.plays) + '</td>' +
             '<td class="num">' + escapeHTML(fmtHours(g.seconds)) + '</td>' +
             '<td class="num">' + (avg === null ? '—' : escapeHTML(fmtMinutes(avg))) + '</td>' +
+            '<td class="num">' + (lastPlayed ? escapeHTML(relTime(lastPlayed)) : '—') + '</td>' +
+            '<td class="num an-spark-cell">' + (spark || '<span class="an-sub">—</span>') + '</td>' +
         '</tr>';
     }).join('');
 
     panelContent(el,
         '<table class="an-table"><thead><tr>' +
-            '<th>Game</th><th class="num">Plays</th><th class="num">Playtime</th><th class="num">Avg/play</th>' +
+            '<th>Game</th>' +
+            '<th class="num" title="All-time plays (game_analytics) — includes pre-overhaul history recorded by the legacy system">All-time plays</th>' +
+            '<th class="num" title="Plays within the selected range (first-party analytics)">Plays (' + state.days + 'd)</th>' +
+            '<th class="num">Playtime</th>' +
+            '<th class="num">Avg/play</th>' +
+            '<th class="num" title="Last played, from game_analytics">Last played</th>' +
+            '<th class="num" title="Plays per day over the last 30 days, from game_analytics.dailyPlays">30d trend</th>' +
         '</tr></thead><tbody>' + rows + '</tbody></table>'
     );
 }
@@ -870,12 +957,15 @@ function renderLive(res) {
 
     const data = res.value || {};
     const plays = Array.isArray(data.activePlays) ? data.activePlays : [];
-    // activeVisitors is the current name for the ~3-minute ping window; visitorsLast5Min is the legacy alias.
+    // The live report exposes activeVisitors (the ~3-minute ping window). The
+    // visitorsLast5Min fallback is kept for safety against older cached payloads.
     const visitors = num(data.activeVisitors !== undefined && data.activeVisitors !== null ? data.activeVisitors : data.visitorsLast5Min);
     const sessions = num(data.activeSessions);
 
     if (meta) {
         const checked = state.lastLiveCheck ? ' · checked ' + relTime(state.lastLiveCheck) : '';
+        // The server caches the live report for ~10s, so polling much faster than
+        // this just hits the cache — the 30s cadence is intentionally conservative.
         meta.textContent = 'Auto-refreshes every 30s' + checked;
     }
 
@@ -1046,8 +1136,12 @@ function buildCsv() {
     if (c.topGames && Array.isArray(c.topGames.games)) {
         sections.push(csvRows([
             ['Top games'],
-            ['gameId', 'plays', 'playtimeSeconds'],
-            ...c.topGames.games.map(g => [g.gameId, num(g.plays), num(g.seconds)])
+            ['gameId', 'playsInRange', 'allTimePlays', 'playtimeSeconds', 'lastPlayed'],
+            ...c.topGames.games.map(g => {
+                const agg = gameAgg(String(g.gameId));
+                const last = agg ? toDate(agg.lastPlayed) : null;
+                return [g.gameId, num(g.plays), agg ? num(agg.totalPlays) : 0, num(g.seconds), last ? last.toISOString() : ''];
+            })
         ]));
     }
 
