@@ -3,8 +3,8 @@
  *
  * <script type="module" src="/js/analytics/index.js"></script>
  *
- * Starts the first-party tracker when analytics consent is granted
- * (js/cookie-consent.js), then:
+ * Starts the first-party tracker on load — usage analytics is part of the
+ * essential cookie set and has no opt-out (see js/cookie-consent.js) — then:
  *   - captures URL/referrer attribution on every page
  *   - measures engagement time, scroll depth, web vitals
  *   - builds Play-click attribution snapshots and tracks playtime

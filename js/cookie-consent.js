@@ -3,6 +3,9 @@
  * Self-contained — injects its own HTML + CSS, no external dependencies.
  * Stores consent in localStorage under key "gr_cookie_consent".
  *
+ * Consent model: essential (auth, security, preferences, first-party usage
+ * analytics) plus optional advertising. Only advertising can be rejected.
+ *
  * Exposes:
  *   window.openConsentManager()  — open the full preferences modal
  *   window.getCookieConsent()    — returns stored consent object or null
@@ -24,22 +27,29 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       var obj = JSON.parse(raw);
-      if (obj && obj.version === CONSENT_VERSION) return obj;
+      if (obj && obj.version === CONSENT_VERSION) {
+        /* First-party usage analytics is part of the essential set now, so
+           records written back when it was optional are normalised on read. */
+        obj.analytics = true;
+        return obj;
+      }
       return null;
     } catch (e) { return null; }
   }
 
-  function saveConsent(analytics, advertising) {
+  function saveConsent(advertising) {
     var obj = {
       version: CONSENT_VERSION,
       essential: true,
-      analytics: !!analytics,
+      /* Analytics is essential: it is first-party usage measurement with no
+         advertising identifiers, and it carries no opt-out. */
+      analytics: true,
       advertising: !!advertising,
       timestamp: new Date().toISOString()
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch (e) { /* quota */ }
     /* notify listeners (e.g. js/analytics) that consent changed */
-    try { window.dispatchEvent(new CustomEvent('gr:consentchange', { detail: { analytics: !!analytics, advertising: !!advertising } })); } catch (e) { /* ignore */ }
+    try { window.dispatchEvent(new CustomEvent('gr:consentchange', { detail: { analytics: true, advertising: !!advertising } })); } catch (e) { /* ignore */ }
     return obj;
   }
 
@@ -137,7 +147,7 @@
     '<div id="gr-cookie-bar">',
       '<span>We use cookies to keep the site running and improve your experience. <a href="/cookie-policy">Learn more</a></span>',
       '<button id="gr-cb-accept">Accept All</button>',
-      '<button id="gr-cb-reject">Reject Non-Essential</button>',
+      '<button id="gr-cb-reject">Reject Ads</button>',
       '<button id="gr-cb-prefs">Preferences</button>',
     '</div>',
 
@@ -147,22 +157,13 @@
         '<h2>Cookie Preferences</h2>',
         '<p class="subtitle">Choose which cookies you allow. Essential cookies cannot be disabled.</p>',
 
-        /* Essential */
+        /* Essential — includes first-party usage analytics */
         '<div class="gr-cc-row">',
           '<div>',
             '<div class="gr-cc-label">Essential</div>',
-            '<div class="gr-cc-desc">Authentication, security & core site functionality.</div>',
+            '<div class="gr-cc-desc">Authentication, security, site preferences & first-party usage analytics.</div>',
           '</div>',
           '<label class="gr-toggle"><input type="checkbox" checked disabled><span class="slider"></span></label>',
-        '</div>',
-
-        /* Analytics */
-        '<div class="gr-cc-row">',
-          '<div>',
-            '<div class="gr-cc-label">Analytics</div>',
-            '<div class="gr-cc-desc">Anonymous usage stats to help us improve the platform.</div>',
-          '</div>',
-          '<label class="gr-toggle"><input type="checkbox" id="gr-cc-analytics"><span class="slider"></span></label>',
         '</div>',
 
         /* Advertising */
@@ -178,7 +179,7 @@
         '<div class="gr-cc-actions">',
           '<button id="gr-cc-save">Save Preferences</button>',
           '<button id="gr-cc-accept-all">Accept All</button>',
-          '<button id="gr-cc-reject-all">Reject All</button>',
+          '<button id="gr-cc-reject-all">Reject Ads</button>',
         '</div>',
       '</div>',
     '</div>'
@@ -189,7 +190,6 @@
   /* ── DOM refs ──────────────────────────────────────────── */
   var bar          = document.getElementById('gr-cookie-bar');
   var overlay      = document.getElementById('gr-consent-overlay');
-  var chkAnalytics = document.getElementById('gr-cc-analytics');
   var chkAds       = document.getElementById('gr-cc-advertising');
 
   /* ── actions ───────────────────────────────────────────── */
@@ -198,36 +198,33 @@
   function openModal() {
     var c = getConsent();
     if (c) {
-      chkAnalytics.checked = c.analytics;
-      chkAds.checked       = c.advertising;
+      chkAds.checked = c.advertising;
     }
     overlay.classList.add('open');
   }
   function closeModal() { overlay.classList.remove('open'); }
 
-  function accept(analytics, advertising) {
-    saveConsent(analytics, advertising);
+  function accept(advertising) {
+    saveConsent(advertising);
     hideBar();
     closeModal();
   }
 
   /* ── event listeners ───────────────────────────────────── */
-  document.getElementById('gr-cb-accept').addEventListener('click', function () { accept(true, true); });
-  document.getElementById('gr-cb-reject').addEventListener('click', function () { accept(false, false); });
+  document.getElementById('gr-cb-accept').addEventListener('click', function () { accept(true); });
+  document.getElementById('gr-cb-reject').addEventListener('click', function () { accept(false); });
   document.getElementById('gr-cb-prefs').addEventListener('click', function () { openModal(); });
 
   document.getElementById('gr-cc-save').addEventListener('click', function () {
-    accept(chkAnalytics.checked, chkAds.checked);
+    accept(chkAds.checked);
   });
   document.getElementById('gr-cc-accept-all').addEventListener('click', function () {
-    chkAnalytics.checked = true;
     chkAds.checked = true;
-    accept(true, true);
+    accept(true);
   });
   document.getElementById('gr-cc-reject-all').addEventListener('click', function () {
-    chkAnalytics.checked = false;
     chkAds.checked = false;
-    accept(false, false);
+    accept(false);
   });
 
   /* close modal on overlay click */

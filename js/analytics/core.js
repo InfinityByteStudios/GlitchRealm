@@ -68,20 +68,11 @@ export function doNotTrack() {
 }
 
 export function consentGranted() {
-  try {
-    if (typeof window.getCookieConsent === 'function') {
-      const c = window.getCookieConsent();
-      if (c) return c.analytics === true;
-      return false; // banner present but no decision yet
-    }
-    // banner script not loaded on this page — honor a decision the visitor
-    // already stored elsewhere (e.g. accepted the banner on the homepage)
-    const raw = window.localStorage.getItem('gr_cookie_consent');
-    if (!raw) return false;
-    const obj = JSON.parse(raw);
-    return !!(obj && obj.analytics === true);
-  } catch (e) { /* fall through */ }
-  return false;
+  /* First-party usage analytics is part of the essential cookie set (see
+     js/cookie-consent.js): there is no analytics opt-out to wait for, so the
+     tracker may start as soon as the module loads. Do Not Track / Global
+     Privacy Control are still honoured separately via doNotTrack(). */
+  return true;
 }
 
 /* ── identity ────────────────────────────────────────────── */
