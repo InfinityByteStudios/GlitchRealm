@@ -552,6 +552,13 @@
       border: 1px solid rgba(255,255,255,.08);
       border-radius: 16px;
       margin: 40px 0;
+      /* Reserve roughly the height of the rendered header so replacing this
+         placeholder with real content doesn't shove the page around. */
+      min-height: 60vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     .loading-state h2 { 
       font-family: 'Orbitron', monospace; 
@@ -743,7 +750,7 @@
       <div class="detail-header">
         <!-- Left: Cover image -->
         <div class="detail-cover">
-          <img id="gameCover" src="" alt="Game Cover" itemprop="image" width="560" height="315" loading="eager">
+          <img id="gameCover" src="" alt="Game Cover" itemprop="image" width="560" height="315" loading="eager" fetchpriority="high">
         </div>
         
         <!-- Right: Game info -->
@@ -837,19 +844,19 @@
   <script src="/js/game-play-notices.js" defer></script>
   <script src="js/script.js" defer></script>
   <script type="module">
-    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    // Build-time cover thumbnails (see scripts/generate-cover-thumbs.js). Supabase
+    // serves the originals with `private, no-cache` at up to several MB, so the
+    // hero image prefers the 960px WebP when one exists.
+    const coverThumbsPromise = fetch('/assets/cover-thumbs/manifest.json', { cache: 'no-cache' })
+      .then(r => r.ok ? r.json() : {})
+      .catch(() => ({}));
 
-    // Wait for Firebase to be initialized by firebase-core.js
-    (window.firebaseReady || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true }))).then(() => {
-      initGameDetail();
-    });
+    // Render from the prerendered snapshot immediately; Firebase is only needed
+    // for ownership/edit affordances, so it must not gate first paint.
+    initGameDetail();
 
-    function initGameDetail() {
-      // Use globally initialized Firebase app from firebase-core.js
-      const db = getFirestore(window.firebaseApp);
-      const auth = getAuth(window.firebaseApp);
-
+    // async: the hero cover waits on the build-time thumbnail manifest.
+    async function initGameDetail() {
       // Developer UIDs
     const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
 
@@ -859,13 +866,47 @@
     let currentUser = null;
     let gameData = null;
 
-    // Listen for auth state
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      if (gameData) {
-        checkOwnership();
-      }
+    // Listen for auth state once firebase-core.js has finished loading.
+    const firebaseReady = window.firebaseReady
+      || new Promise(r => window.addEventListener('firebaseCoreReady', r, { once: true }));
+    firebaseReady.then(async () => {
+      const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+      const auth = getAuth(window.firebaseApp);
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (gameData) {
+          checkOwnership();
+        }
+      });
+    }).catch((error) => {
+      console.warn('[game-detail] auth unavailable:', error);
     });
+
+    /**
+     * Resolve the game record without blocking first paint on Firestore.
+     *
+     * scripts/generate-prerendered-content.js writes a snapshot per published
+     * game, so a normal visit paints from a same-origin JSON file. The SDK (and
+     * its ~100 KB download plus connection handshake) is only loaded for games
+     * published after the most recent deploy.
+     */
+    async function fetchGameData(id) {
+      try {
+        const res = await fetch(`/assets/game-data/${encodeURIComponent(id)}.json`, { cache: 'no-cache' });
+        if (res.ok) {
+          const snapshot = await res.json();
+          if (snapshot && typeof snapshot === 'object' && snapshot.title) {
+            return { id, ...snapshot };
+          }
+        }
+      } catch (error) {
+        /* fall through to Firestore */
+      }
+
+      const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      const snap = await getDoc(doc(getFirestore(window.firebaseApp), 'game_submissions', id));
+      return snap.exists() ? { id, ...snap.data() } : null;
+    }
 
     async function loadGameDetails() {
       const loadingState = document.getElementById('loadingState');
@@ -879,17 +920,15 @@
       }
 
       try {
-        const gameRef = doc(db, 'game_submissions', gameId);
-        const gameSnap = await getDoc(gameRef);
+        const game = await fetchGameData(gameId);
 
-        if (!gameSnap.exists()) {
+        if (!game) {
           loadingState.style.display = 'none';
           notFoundState.style.display = 'block';
           return;
         }
 
-        const game = gameSnap.data();
-        gameData = { id: gameId, ...game };
+        gameData = game;
         
         // Update page title and meta tags
         document.title = `${game.title || 'Game'} - GlitchRealm`;
@@ -934,7 +973,15 @@
         // Set cover image
         const coverImg = document.getElementById('gameCover');
         if (game.coverImageUrl) {
-          coverImg.src = game.coverImageUrl;
+          // The prerendered snapshot already carries a build-time thumbnail, so
+          // the image request starts without waiting on the manifest.
+          let displayCover = game.coverThumbUrl || '';
+          if (!displayCover) {
+            const thumbs = await coverThumbsPromise;
+            const thumb = thumbs[game.coverImageUrl];
+            displayCover = (thumb && (thumb.w960 || thumb.w480)) || game.coverImageUrl;
+          }
+          coverImg.src = displayCover;
           coverImg.alt = game.title || 'Game Cover';
         } else {
           coverImg.src = 'assets/game logos/ByteSurge.webp';

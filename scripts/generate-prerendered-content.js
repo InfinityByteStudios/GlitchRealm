@@ -27,6 +27,37 @@ const FIRESTORE_RUN_QUERY =
 const ROOT = path.resolve(__dirname, '..');
 const INDEX_HTML = path.join(ROOT, 'index.html');
 const GAMES_HTML = path.join(ROOT, 'subdomains', 'pages', 'games', 'games.html');
+const COVER_MANIFEST = path.join(ROOT, 'assets', 'cover-thumbs', 'manifest.json');
+
+/**
+ * Cover URL -> build-time thumbnail (see scripts/generate-cover-thumbs.js).
+ * Covers are full-size originals on Supabase with `private, no-cache`, so the
+ * grid must reference the generated WebP thumbnails instead.
+ */
+let coverThumbs = {};
+try {
+  coverThumbs = JSON.parse(fs.readFileSync(COVER_MANIFEST, 'utf8')) || {};
+} catch (e) {
+  coverThumbs = {};
+}
+
+function coverFor(game, preferred = 'w480') {
+  const original = typeof game.coverImageUrl === 'string' ? game.coverImageUrl : '';
+  const thumb = original ? coverThumbs[original] : null;
+  if (!thumb) {
+    return {
+      src: original || 'assets/icons/anonymous.png',
+      srcset: '',
+      thumb: null,
+    };
+  }
+  const src = thumb[preferred] || thumb.w480 || thumb.w960 || original;
+  return {
+    src,
+    srcset: thumb.w480 && thumb.w960 ? `${thumb.w480} 480w, ${thumb.w960} 960w` : '',
+    thumb,
+  };
+}
 
 // Games temporarily hidden from the "Newest Game" slot (Firestore doc IDs).
 // Mirrors NEWEST_GAME_EXCLUDED_IDS in index.html and the edge function.
@@ -61,6 +92,11 @@ function parseFirestoreFields(fields) {
   }
   if (fields.badge?.stringValue !== undefined) game.badge = fields.badge.stringValue;
   if (fields.ownerUsername?.stringValue !== undefined) game.ownerUsername = fields.ownerUsername.stringValue;
+  if (fields.ownerId?.stringValue !== undefined) game.ownerId = fields.ownerId.stringValue;
+  if (fields.trailerUrl?.stringValue !== undefined) game.trailerUrl = fields.trailerUrl.stringValue;
+  if (fields.screenshots?.arrayValue?.values) {
+    game.screenshots = fields.screenshots.arrayValue.values.map((v) => v.stringValue).filter(Boolean);
+  }
   if (fields.featured?.booleanValue !== undefined) game.featured = fields.featured.booleanValue;
   if (fields.status?.stringValue !== undefined) game.status = fields.status.stringValue;
   if (fields.createdAt?.timestampValue) game.createdAt = fields.createdAt.timestampValue;
@@ -105,6 +141,46 @@ async function fetchPublishedGames(limit = 200) {
     games.push(game);
   }
   return games;
+}
+
+// ---------------------------------------------------------------------------
+// Per-game JSON snapshots
+// ---------------------------------------------------------------------------
+
+/**
+ * game-detail.html used to wait on the Firestore SDK (100+ KB plus a handshake)
+ * before it could paint a hero image. These build-time snapshots let the page
+ * render immediately; Firestore remains the fallback for games published after
+ * the last deploy.
+ */
+const GAME_DATA_DIR = path.join(ROOT, 'assets', 'game-data');
+const GAME_DATA_FIELDS = [
+  'title', 'description', 'extendedDescription', 'howToPlay',
+  'coverImageUrl', 'playUrl', 'trailerUrl', 'screenshots',
+  'tags', 'badge', 'status', 'ownerId', 'ownerUsername', 'createdAt',
+];
+
+function writeGameDataJson(games) {
+  fs.mkdirSync(GAME_DATA_DIR, { recursive: true });
+  for (const file of fs.readdirSync(GAME_DATA_DIR)) {
+    if (file.endsWith('.json')) fs.unlinkSync(path.join(GAME_DATA_DIR, file));
+  }
+
+  let written = 0;
+  for (const game of games) {
+    if (!game.id) continue;
+    const data = { id: game.id };
+    for (const field of GAME_DATA_FIELDS) {
+      if (game[field] !== undefined) data[field] = game[field];
+    }
+    data.coverThumbUrl = coverFor(game, 'w960').src;
+    fs.writeFileSync(
+      path.join(GAME_DATA_DIR, `${game.id}.json`),
+      JSON.stringify(data)
+    );
+    written += 1;
+  }
+  console.log(`[prerender] assets/game-data: wrote ${written} game snapshot(s)`);
 }
 
 // ---------------------------------------------------------------------------
@@ -162,8 +238,9 @@ function removeElements(html, openTag) {
 }
 
 function buildNewestGameCard(game) {
-  const cover = game.coverImageUrl
-    ? `style="background-image:url('${escapeAttr(game.coverImageUrl)}');background-size:cover;background-position:center;"`
+  const cover = coverFor(game, 'w960');
+  const coverStyle = cover.src
+    ? `style="background-image:url('${escapeAttr(cover.src)}');background-size:cover;background-position:center;"`
     : '';
   const detailUrl = `/game-detail.html?id=${encodeURIComponent(game.id)}`;
   const title = escapeHtml(game.title || 'Untitled Game');
@@ -171,7 +248,7 @@ function buildNewestGameCard(game) {
   const owner = escapeHtml(game.ownerUsername || 'Community Creator');
 
   return `<div class="featured-card" id="newest-game-card" data-prerendered="1">
-                    <div class="featured-image" id="newest-game-image" ${cover}>
+                    <div class="featured-image" id="newest-game-image" data-baked-id="${escapeAttr(game.id)}" data-cover-url="${escapeAttr(game.coverImageUrl || '')}" ${coverStyle}>
                         <div class="game-badge new">NEW</div>
                     </div>
                     <div class="featured-info" id="newest-game-info">
@@ -192,7 +269,9 @@ function buildGameCard(game) {
   const id = game.id;
   const title = escapeHtml(game.title || 'Untitled');
   const description = escapeHtml((game.description || '').slice(0, 180));
-  const cover = game.coverImageUrl ? escapeAttr(game.coverImageUrl) : 'assets/icons/anonymous.png';
+  const cover = coverFor(game);
+  const coverSrc = escapeAttr(cover.src);
+  const coverSrcset = cover.srcset ? ` srcset="${escapeAttr(cover.srcset)}" sizes="(max-width: 480px) 100vw, (max-width: 900px) 50vw, 320px"` : '';
   const playUrl = /^https?:\/\//i.test(game.playUrl || '') ? escapeAttr(game.playUrl) : '';
   const tags = Array.isArray(game.tags) ? game.tags.slice(0, 4) : [];
   const owner = escapeHtml(game.ownerUsername || 'Community Creator');
@@ -208,7 +287,7 @@ function buildGameCard(game) {
 
   return `<div class="game-card is-submission" data-prerendered="1" data-game="${escapeAttr(id)}">
                         <div class="card-image">
-                            <img src="${cover}" srcset="${cover} 320w, ${cover} 640w, ${cover} 960w" sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px" alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
+                            <img src="${coverSrc}"${coverSrcset} alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
                             <div class="card-overlay"></div>
                             <div class="game-badge new" style="display:${game.featured ? 'block' : 'none'};">NEW</div>
                         </div>
@@ -234,6 +313,17 @@ function injectNewestGame(html, game) {
   );
 }
 
+/**
+ * Removing the baked cards leaves their indentation behind, so every build used
+ * to add another ~100 blank lines to games.html. Collapse runs of blank lines
+ * inside the games grid back to a single blank line.
+ */
+function collapseBakedWhitespace(html, from, to) {
+  if (from === -1 || to <= from) return html;
+  const region = html.slice(from, to).replace(/\r?\n(?:[ \t]*\r?\n)+/g, '\n\n');
+  return html.slice(0, from) + region + html.slice(to);
+}
+
 function injectGameCards(html, games) {
   if (!games.length) return html;
   const cards = games.map(buildGameCard).join('\n                    ');
@@ -244,7 +334,9 @@ function injectGameCards(html, games) {
   const marker = '<div class="game-card coming-soon"';
   const at = html.indexOf(marker);
   if (at !== -1) {
-    return html.slice(0, at) + cards + '\n                    ' + html.slice(at);
+    html = collapseBakedWhitespace(html, html.indexOf('<div class="game-cards">'), at);
+    const markerAt = html.indexOf(marker);
+    return html.slice(0, markerAt) + cards + '\n                    ' + html.slice(markerAt);
   }
 
   const container = '<div class="game-cards">';
@@ -268,6 +360,8 @@ async function main() {
     return;
   }
   console.log(`[prerender] Fetched ${games.length} published games`);
+
+  writeGameDataJson(games);
 
   const newest = games.find((g) => !NEWEST_GAME_EXCLUDED_IDS.has(g.id));
   if (newest) {

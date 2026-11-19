@@ -424,7 +424,7 @@ function buildGameCard(game) {
   return `
     <div class="game-card is-submission" data-prerendered="1" data-game="${escapeAttr(id)}">
       <div class="card-image">
-        <img src="${escapeAttr(cover)}" srcset="${escapeAttr(cover)} 320w, ${escapeAttr(cover)} 640w, ${escapeAttr(cover)} 960w" sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, 960px" alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
+        <img src="${escapeAttr(cover)}" alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
         <div class="card-overlay"></div>
         ${badge ? `<div class="game-badge ${badge}">${badgeLabel}</div>` : `<div class="game-badge new" style="display:${game.featured ? 'block' : 'none'};">NEW</div>`}
         <button class="wishlist-btn" data-game-id="${escapeAttr(id)}" data-game-title="${escapeAttr(game.title || '')}" data-cover-url="${escapeAttr(cover)}" data-play-url="${playUrl ? escapeAttr(playUrl) : ''}" title="Add to wishlist">♡</button>

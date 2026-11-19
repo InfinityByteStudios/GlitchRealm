@@ -247,10 +247,6 @@ body {
     .verified-badge.pending {
         animation: verifiedPulse 1.2s ease-in-out infinite alternate;
     }
-    @keyframes verifiedPulse {
-        0% { box-shadow:0 0 4px rgba(0,255,249,0.25); }
-        100% { box-shadow:0 0 10px rgba(0,255,249,0.55); }
-    }
     bottom: 20px !important;
     width: 56px !important;
     height: 56px !important;
@@ -332,6 +328,10 @@ body {
 @keyframes coachFadeIn {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes verifiedPulse {
+    0% { box-shadow: 0 0 4px rgba(0, 255, 249, 0.25); }
+    100% { box-shadow: 0 0 10px rgba(0, 255, 249, 0.55); }
 }
 @media (max-width: 500px) {
     .chatbot-coachmark { right: 12px; bottom: 80px; max-width: 70vw; }

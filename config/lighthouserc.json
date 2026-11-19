@@ -4,24 +4,31 @@
       "url": [
         "http://localhost:5000/",
         "http://localhost:5000/games.html",
-        "http://localhost:5000/community.html"
+        "http://localhost:5000/community.html",
+        "http://localhost:5000/about.html",
+        "http://localhost:5000/game-detail.html?id=bChDdII0w7PEgCLkBzEM"
       ],
-      "startServerCommand": "npx serve -s . -l 5000",
-      "startServerReadyPattern": "Local:",
-      "startServerReadyTimeout": 10000
+      "startServerCommand": "node scripts/serve-preview.mjs 5000",
+      "startServerReadyPattern": "Preview serving",
+      "startServerReadyTimeout": 20000,
+      "numberOfRuns": 3,
+      "settings": {
+        "chromeFlags": "--headless=new --no-sandbox --disable-gpu"
+      }
     },
     "assert": {
       "assertions": {
-        "categories:performance": ["warn", {"minScore": 0.75}],
-        "categories:accessibility": ["warn", {"minScore": 0.85}],
-        "categories:best-practices": ["warn", {"minScore": 0.85}],
-        "categories:seo": ["warn", {"minScore": 0.9}],
-        "first-contentful-paint": ["warn", {"maxNumericValue": 2000}],
-        "largest-contentful-paint": ["warn", {"maxNumericValue": 3500}],
-        "cumulative-layout-shift": ["warn", {"maxNumericValue": 0.15}],
-        "total-blocking-time": ["warn", {"maxNumericValue": 500}],
-        "speed-index": ["warn", {"maxNumericValue": 3000}],
-        "interactive": ["warn", {"maxNumericValue": 4500}]
+        "categories:performance": ["warn", { "minScore": 0.75 }],
+        "categories:accessibility": ["warn", { "minScore": 0.85 }],
+        "categories:best-practices": ["warn", { "minScore": 0.9 }],
+        "categories:seo": ["warn", { "minScore": 0.9 }],
+        "first-contentful-paint": ["warn", { "maxNumericValue": 2000 }],
+        "largest-contentful-paint": ["warn", { "maxNumericValue": 3500 }],
+        "cumulative-layout-shift": ["warn", { "maxNumericValue": 0.1 }],
+        "total-blocking-time": ["warn", { "maxNumericValue": 500 }],
+        "speed-index": ["warn", { "maxNumericValue": 3000 }],
+        "interactive": ["warn", { "maxNumericValue": 4500 }],
+        "total-byte-weight": ["warn", { "maxNumericValue": 3000000 }]
       }
     },
     "upload": {
@@ -29,5 +36,3 @@
     }
   }
 }
-
-

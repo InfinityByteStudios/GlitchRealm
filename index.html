@@ -109,14 +109,14 @@
             <div class="container">
                 <h2 class="section-title">Newest Game</h2>                
                 <div class="featured-card" id="newest-game-card" data-prerendered="1">
-                    <div class="featured-image" id="newest-game-image" style="background-image:url('https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/game-covers/238f4370-ad42-4563-ae1c-2a52e18d47d4/1794079127290_cover.webp');background-size:cover;background-position:center;">
+                    <div class="featured-image" id="newest-game-image" data-baked-id="gRYDA3jNsTOEASUxSHJx" data-cover-url="https://hkogcnxmrrkxggwcrqyh.supabase.co/storage/v1/object/public/game-covers/238f4370-ad42-4563-ae1c-2a52e18d47d4/No%20Map%20Home_%20Lanternbound%20Horizons.png" style="background-image:url('/assets/cover-thumbs/f3447a543400f4d0-960.webp');background-size:cover;background-position:center;">
                         <div class="game-badge new">NEW</div>
                     </div>
                     <div class="featured-info" id="newest-game-info">
-                        <h3>RoadRival</h3>
-                        <p class="featured-description">Build strategic roads, place defensive towers, and protect your castle against rival opponents in this fast-paced browser strategy game.</p>
-                        <p class="featured-developer">Made by <strong>Blink Online</strong></p>
-                        <a href="/game-detail.html?id=bChDdII0w7PEgCLkBzEM" class="play-btn featured-play-btn">
+                        <h3>No Map Home</h3>
+                        <p class="featured-description">No Map Home is a free cooperative fantasy RPG that runs in a web browser. Adventurers vanished beneath the world, and their families are still waiting. Cross a shared wilderness drawn in ink and watercolour, descend twenty-five dungeon depths alone or in a party of up to eight, and bring the missing home.</p>
+                        <p class="featured-developer">Made by <strong>nomaphome@webgrid.com</strong></p>
+                        <a href="/game-detail.html?id=gRYDA3jNsTOEASUxSHJx" class="play-btn featured-play-btn">
                             <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" style="flex-shrink: 0;">
                                 <polygon points="0,0 10,6 0,12"/>
                             </svg>
@@ -211,23 +211,46 @@
 
     <!-- Load newest game from Firestore -->
     <script type="module">
-        const NEWEST_GAME_CACHE_KEY = 'gr.newestGame.v1';
+        // v2: covers now resolve to build-time WebP thumbnails (see
+        // scripts/generate-cover-thumbs.js); older cached entries pointed at the
+        // multi-MB Supabase originals and are intentionally discarded.
+        const NEWEST_GAME_CACHE_KEY = 'gr.newestGame.v2';
         // Games temporarily hidden from the "Newest Game" slot (Firestore doc IDs).
         const NEWEST_GAME_EXCLUDED_IDS = new Set(['YxnZNN7g1gT0ih5Q1wqo']);
         const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-        function renderNewestGame(game) {
+        // Cover URL -> build-time thumbnail map. Fetched in parallel with Firebase
+        // and never blocks the prerendered (baked) card from painting.
+        const coverThumbsPromise = fetch('/assets/cover-thumbs/manifest.json', { cache: 'no-cache' })
+            .then(r => r.ok ? r.json() : {})
+            .catch(() => ({}));
+
+        function resolveCover(game, thumbs) {
+            const original = typeof game.coverImageUrl === 'string' ? game.coverImageUrl : '';
+            const thumb = original ? (thumbs || {})[original] : null;
+            if (thumb && (thumb.w960 || thumb.w480)) return thumb.w960 || thumb.w480;
+            if (typeof game.coverThumbUrl === 'string' && game.coverThumbUrl) return game.coverThumbUrl;
+            return original;
+        }
+
+        function renderNewestGame(game, coverUrl) {
             const imageDiv = document.getElementById('newest-game-image');
             const infoDiv = document.getElementById('newest-game-info');
             const cardDiv = document.getElementById('newest-game-card');
             if (!imageDiv || !infoDiv || !cardDiv) return;
 
-            if (game.coverImageUrl) {
-                // coverImageUrl is already a complete URL (usually percent-encoded by the
-                // submission pipeline). Do NOT re-encode it: encodeURI() re-encodes the
-                // '%' of existing %XX escapes (e.g. "%20" -> "%2520"), which breaks any
-                // cover whose filename contains spaces.
-                imageDiv.style.backgroundImage = `url("${game.coverImageUrl.replace(/"/g, '%22')}")`;
+            const displayCover = coverUrl || game.coverImageUrl;
+            // The build baked this exact game (with its small thumbnail) into the
+            // HTML — keep that image unless the newest game actually changed.
+            const bakedId = imageDiv.dataset.bakedId;
+            const isSameBakedGame = bakedId && String(bakedId) === String(game.id) && imageDiv.style.backgroundImage;
+
+            if (displayCover && !isSameBakedGame) {
+                // Cover URLs are already complete (usually percent-encoded by the
+                // submission pipeline). Do NOT re-encode them: encodeURI() re-encodes
+                // the '%' of existing %XX escapes (e.g. "%20" -> "%2520"), which breaks
+                // any cover whose filename contains spaces.
+                imageDiv.style.backgroundImage = `url("${displayCover.replace(/"/g, '%22')}")`;
                 imageDiv.style.backgroundSize = 'cover';
                 imageDiv.style.backgroundPosition = 'center';
             }
@@ -263,13 +286,14 @@
                     // Cached game is excluded from the "Newest Game" slot; drop the cache.
                     try { localStorage.removeItem(NEWEST_GAME_CACHE_KEY); } catch (e) {}
                 } else {
-                if (cached.coverImageUrl) {
+                const cachedCover = cached.coverDisplayUrl || cached.coverImageUrl;
+                if (cachedCover) {
                     const pre = document.createElement('link');
-                    pre.rel = 'preload'; pre.as = 'image'; pre.href = cached.coverImageUrl;
+                    pre.rel = 'preload'; pre.as = 'image'; pre.href = cachedCover;
                     pre.setAttribute('fetchpriority', 'high');
                     document.head.appendChild(pre);
                 }
-                const paint = () => { renderNewestGame(cached); renderedFromCache = true; };
+                const paint = () => { renderNewestGame(cached, cachedCover); renderedFromCache = true; };
                 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint, { once: true });
                 else paint();
                 }
@@ -347,13 +371,18 @@
                     title: data.title || '',
                     description: data.description || '',
                     ownerUsername: data.ownerUsername || '',
-                    coverImageUrl: data.coverImageUrl || ''
+                    coverImageUrl: data.coverImageUrl || '',
+                    coverThumbUrl: data.coverThumbUrl || ''
                 };
 
+                const thumbs = await coverThumbsPromise;
+                const coverDisplayUrl = resolveCover(game, thumbs);
+                const cacheEntry = { ...game, coverDisplayUrl };
+
                 const cachedRaw = localStorage.getItem(NEWEST_GAME_CACHE_KEY);
-                const fresh = JSON.stringify(game);
+                const fresh = JSON.stringify(cacheEntry);
                 // Skip re-rendering identical content to avoid needless DOM churn
-                if (!renderedFromCache || cachedRaw !== fresh) renderNewestGame(game);
+                if (!renderedFromCache || cachedRaw !== fresh) renderNewestGame(game, coverDisplayUrl);
                 try { localStorage.setItem(NEWEST_GAME_CACHE_KEY, fresh); } catch (e) {}
                 
             } catch (err) {

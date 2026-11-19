@@ -45,14 +45,47 @@ function validateString(v, name, max, pattern) {
 
 async function uploadCover(ownerId, filename, buffer, contentType) {
   const safeName = String(filename || 'cover').replace(/[^a-zA-Z0-9_.-]/g, '_');
-  const objectPath = `${ownerId}/${Date.now()}_${safeName}`;
+  const stamp = Date.now();
+  const objectPath = `${ownerId}/${stamp}_${safeName}`;
   const url = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${objectPath}`;
-  const resp = await fetch(url, {
+
+  await uploadObject(objectPath, buffer, contentType);
+
+  // Generate a small WebP thumbnail so grids never download the full-size
+  // original. Best-effort: if sharp is unavailable in the function runtime the
+  // upload still succeeds and clients fall back to the original cover.
+  let thumbUrl = null;
+  try {
+    const sharp = require('sharp');
+    const thumb = await sharp(buffer, { failOn: 'none' })
+      .rotate()
+      .resize({ width: 480, withoutEnlargement: true })
+      .webp({ quality: 72, effort: 4 })
+      .toBuffer();
+    const thumbPath = `${ownerId}/${stamp}_thumb.webp`;
+    await uploadObject(thumbPath, thumb, 'image/webp');
+    thumbUrl = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${thumbPath}`;
+  } catch (error) {
+    console.warn('[submit-game] thumbnail generation skipped:', error?.message || error);
+  }
+
+  return {
+    url: `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${objectPath}`,
+    thumbUrl,
+  };
+}
+
+async function uploadObject(objectPath, buffer, contentType) {
+  const resp = await fetch(`${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${objectPath}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': contentType || 'application/octet-stream',
-      'Cache-Control': '3600',
+      // Public covers are immutable in practice (each upload gets a fresh path),
+      // so they can be cached for a year. The previous value ("3600") was not a
+      // valid Cache-Control directive, which made Supabase serve every cover
+      // with `private, no-cache`.
+      'cache-control': 'max-age=31536000',
       'x-upsert': 'true'
     },
     body: buffer
@@ -61,7 +94,6 @@ async function uploadCover(ownerId, filename, buffer, contentType) {
     const text = await resp.text().catch(() => '');
     throw new Error(`Supabase upload failed (${resp.status}): ${text.slice(0, 300)}`);
   }
-  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${objectPath}`;
 }
 
 async function fetchRemoteCover(coverUrl) {
@@ -199,8 +231,11 @@ module.exports.handler = async (event) => {
         })()
       : (coverImageUrl && !coverImageUrl.startsWith(`${SUPABASE_URL}/storage/v1/object/public/`) ? await fetchRemoteCover(coverImageUrl) : null);
 
+    let coverThumbUrl = null;
     if (coverData) {
-      coverImageUrl = await uploadCover(externalOwnerId || 'external', coverData.filename, coverData.buffer, coverData.contentType);
+      const uploaded = await uploadCover(externalOwnerId || 'external', coverData.filename, coverData.buffer, coverData.contentType);
+      coverImageUrl = uploaded.url;
+      coverThumbUrl = uploaded.thumbUrl;
     }
 
     const doc = {
@@ -211,6 +246,7 @@ module.exports.handler = async (event) => {
       status: 'draft'
     };
     if (coverImageUrl) doc.coverImageUrl = coverImageUrl;
+    if (coverThumbUrl) doc.coverThumbUrl = coverThumbUrl;
     if (externalOwnerId) doc.externalOwnerId = externalOwnerId;
     if (extendedDescription) doc.extendedDescription = extendedDescription;
     if (howToPlay) doc.howToPlay = howToPlay;
@@ -238,7 +274,7 @@ module.exports.handler = async (event) => {
       id = await restWrite(doc);
     }
 
-    return json(200, { ok: true, id, coverImageUrl: coverImageUrl || null, status: 'draft' }, origin);
+    return json(200, { ok: true, id, coverImageUrl: coverImageUrl || null, coverThumbUrl: coverThumbUrl || null, status: 'draft' }, origin);
   } catch (err) {
     return fail(500, err && err.message ? err.message : 'Submission failed', origin);
   }

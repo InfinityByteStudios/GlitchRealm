@@ -1,12 +1,11 @@
 /* GlitchRealm Service Worker - Advanced Optimizations */
-const CACHE_PREFIX = 'gr-v12'; // v12: Drop retired News/V2/auth-UI paths from the never-cache list
+const CACHE_PREFIX = 'gr-v14'; // v14: images no longer proxied through Netlify Image CDN (build-time WebP)
 const STATIC_CACHE = `${CACHE_PREFIX}-static`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime`;
 const IMAGE_CACHE = `${CACHE_PREFIX}-images`;
 
 const PRECACHE_URLS = [
   '/offline.html',
-  '/css/styles.css',
   '/assets/Favicon and Icons/favicon.svg',
   '/assets/Favicon and Icons/favicon.ico',
   '/assets/Favicon and Icons/web-app-manifest-192x192.png'
@@ -221,52 +220,36 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Assets: images via Netlify Image Transformations when possible; fonts/images cache-first; CSS/JS SWR
+  // Prerendered per-game snapshots are regenerated on every deploy, so they
+  // must never be served from a cache (see scripts/generate-prerendered-content.js).
+  if (url.pathname.startsWith('/assets/game-data/')) {
+    event.respondWith(
+      fetch(request, { cache: 'no-cache' }).catch(() => new Response('', { status: 504 }))
+    );
+    return;
+  }
+
+  // Assets: fonts/images cache-first; CSS/JS SWR.
+  //
+  // Images used to be proxied through `/.netlify/images` for on-the-fly
+  // resizing, but the build now emits correctly sized WebP variants
+  // (assets/cover-thumbs + scripts/optimize-static-images.js). Re-encoding
+  // them server-side was both a wasted hop and a wasted re-compression, and it
+  // made local/CI renders diverge from production (no Image CDN available).
   if (request.destination === 'image' || url.pathname.startsWith('/assets/')) {
-    // Only transform same-origin /assets/ images; skip SVG/ICO/GIF
-    const isSameOrigin = url.origin === self.location.origin;
-    const underAssets = url.pathname.startsWith('/assets/');
-    const ext = url.pathname.split('.').pop().toLowerCase();
-    const transformable = ['jpg','jpeg','png','bmp','tiff','webp','avif'].includes(ext);
-
-    if (isSameOrigin && underAssets && transformable) {
-      const accept = request.headers.get('Accept') || '';
-      const prefersAvif = accept.includes('image/avif');
-      const prefersWebp = accept.includes('image/webp');
-      const fm = prefersAvif ? 'avif' : (prefersWebp ? 'webp' : null);
-
-      if (fm) {
-        const transformURL = new URL('/.netlify/images', self.location.origin);
-        transformURL.searchParams.set('url', url.pathname);
-        transformURL.searchParams.set('fm', fm);
-        transformURL.searchParams.set('q', '80'); // Increased quality to 80
-        transformURL.searchParams.set('w', '1200'); // Max width to reduce oversized images
-
-        const transformedRequest = new Request(transformURL.toString(), {
-          method: 'GET',
-          headers: request.headers,
-          credentials: request.credentials,
-          mode: 'cors'
-        });
-
-        event.respondWith(cacheFirst(transformedRequest, IMAGE_CACHE));
-        return;
-      }
-    }
-
-    // Fallback: standard cache-first for images and /assets
     event.respondWith(cacheFirst(request, IMAGE_CACHE));
     return;
   }
-  // CSS: stale-while-revalidate (cosmetic, safe to serve cached)
+  // CSS: fingerprinted URLs are immutable; unversioned ones stay SWR.
   if (request.destination === 'style') {
-    event.respondWith(staleWhileRevalidate(request));
+    event.respondWith(url.searchParams.has('v') ? cacheFirst(request) : staleWhileRevalidate(request));
     return;
   }
 
-  // JS: network-first so users always get fresh scripts (fixes ctrl+shift+r requirement)
+  // JS: fingerprinted URLs are immutable; unversioned ones stay network-first
+  // so users always get fresh scripts.
   if (request.destination === 'script') {
-    event.respondWith(networkFirst(request, RUNTIME_CACHE, 4000));
+    event.respondWith(url.searchParams.has('v') ? cacheFirst(request) : networkFirst(request, RUNTIME_CACHE, 4000));
     return;
   }
 

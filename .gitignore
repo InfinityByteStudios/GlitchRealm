@@ -6,3 +6,10 @@ node_modules
 
 # Netlify
 .netlify
+# Functions dependencies (installed by Netlify)
+functions/node_modules/
+
+# Build output (scripts/build.mjs)
+dist/
+# Per-game snapshots baked from Firestore on each deploy
+assets/game-data/

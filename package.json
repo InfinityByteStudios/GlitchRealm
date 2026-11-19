@@ -6,8 +6,9 @@
 	},
 	"main": "index.js",
 	"scripts": {
-		"build": "echo 'No build - static site'",
+		"build": "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.js && node scripts/build.mjs && node scripts/check-links.mjs",
 		"serve": "firebase emulators:start --only functions",
+		"serve:preview": "node scripts/serve-preview.mjs",
 		"deploy": "firebase deploy --only functions",
 		"lint": "eslint .",
 		"lint:html": "eslint . --ext .js,.html --config config/.eslintrc.json",
@@ -18,6 +19,9 @@
 		"serve:static": "serve -s . -l 5000",
 		"test:performance": "npm run serve:static & sleep 10 && npm run perf:budget && pkill -f serve",
 		"optimize:images": "node scripts/optimize-images.js",
+		"covers:thumbs": "node scripts/generate-cover-thumbs.js",
+		"images:static": "node scripts/optimize-static-images.js",
+		"build:assets": "npm run images:static && npm run covers:thumbs",
 		"update:html": "node scripts/update-html-images.js",
 		"add:preloads": "node scripts/add-critical-preloads.js",
 		"build:images": "npm run optimize:images && npm run update:html && npm run add:preloads"
@@ -30,10 +34,13 @@
 		"sharp": "^0.33.0"
 	},
 	"devDependencies": {
+		"@lhci/cli": "^0.12.0",
+		"esbuild": "^0.28.2",
 		"eslint": "^9.11.1",
 		"eslint-config-google": "^0.14.0",
+		"html-minifier-terser": "^7.2.0",
 		"lighthouse": "^11.7.0",
-		"@lhci/cli": "^0.12.0",
+		"lightningcss": "^1.33.0",
 		"serve": "^14.2.1"
 	},
 	"private": true

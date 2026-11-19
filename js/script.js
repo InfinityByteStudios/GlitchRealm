@@ -40,7 +40,7 @@ async function loadSupabaseAvatarIfAvailable(userId) {
     try {
         // Dynamically import Supabase avatar utilities if not already loaded
         if (!window.getProfile || !window.getAvatarUrl) {
-            const module = await import('../supabase-avatar.js');
+            const module = await import('./supabase-avatar.js');
             window.getProfile = module.getProfile;
             window.getAvatarUrl = module.getAvatarUrl;
         }
@@ -903,11 +903,11 @@ async function initializeAuth() {
                 showAuthMessage('Synced with existing account.', 'info');
             }
         } else {
-            // If no localStorage auth, actively check other games
-            window.sharedAuth.checkOtherGamesForAuth().then(foundAuth => {
+            // If no localStorage auth, probe other games — lazily and at most
+            // once per tab session (see probeOtherGamesOnce).
+            window.sharedAuth.probeOtherGamesOnce().then(foundAuth => {
                 if (foundAuth) {
                     showAuthMessage('Connected via cross-game account.', 'success');
-                } else {
                 }
             }).catch(error => {
                 console.error('Error checking other games for auth:', error);
@@ -1326,14 +1326,26 @@ class SharedAuthSystem {
 
     // Clear auth state when user signs out
     clearAuthState() {
+        // Firebase reports a null user on every signed-out page load, so this
+        // runs constantly. Broadcasting that "signed out" state loads four
+        // complete games in hidden iframes (tens of MB of music/sprites), so
+        // only broadcast when we actually had a session to end.
+        let wasSignedIn = false;
+        try {
+            const previous = JSON.parse(localStorage.getItem(this.storageKey) || 'null');
+            wasSignedIn = !!(previous && previous.isSignedIn);
+        } catch (e) {
+            wasSignedIn = false;
+        }
+
         const authData = {
             isSignedIn: false,
             timestamp: Date.now(),
             source: 'glitchRealm'
         };
-        
+
         localStorage.setItem(this.storageKey, JSON.stringify(authData));
-        this.broadcastAuthChange(authData);
+        if (wasSignedIn) this.broadcastAuthChange(authData);
     }
 
     // Broadcast auth changes to other tabs/games
@@ -1345,71 +1357,182 @@ class SharedAuthSystem {
         this.broadcastToGames(authData);
     }
 
-    // Broadcast to other games that might be running
+    // Broadcast auth changes to other games that are already open.
+    //
+    // This used to inject a hidden iframe per game origin on every call, which
+    // pulled in four full games (tens of MB) just to deliver one postMessage —
+    // and it ran on every signed-out page view. Games that are already running
+    // (opener, parent, or same-document frames) can be reached directly.
+    //
+    // Signing out is the one case where a game in an unrelated tab must be told
+    // promptly, and it only happens once per user action, so the iframe relay is
+    // kept for that path.
     broadcastToGames(authData) {
-        this.gameOrigins.forEach(origin => {
+        const targets = [];
+
+        try {
+            if (window.opener) targets.push(window.opener);
+        } catch (error) {
+            /* cross-origin opener access can throw */
+        }
+        try {
+            if (window.parent && window.parent !== window) targets.push(window.parent);
+        } catch (error) {
+            /* ignore */
+        }
+        for (let i = 0; i < window.frames.length; i++) {
+            targets.push(window.frames[i]);
+        }
+
+        targets.forEach((target) => {
             try {
-                // Send auth state to other games via postMessage
-                const iframe = document.createElement('iframe');
+                const origin = target.location.origin;
+                if (!this.gameOrigins.includes(origin)) return;
+                target.postMessage({ type: 'auth_update', data: authData }, origin);
+            } catch (error) {
+                /* cross-origin target: nothing to do without a reference */
+            }
+        });
+
+        if (authData.isSignedIn === false) this.relaySignOutToGames(authData);
+    }
+
+    relaySignOutToGames(authData) {
+        this.gameOrigins.forEach((origin) => {
+            let iframe;
+            const drop = () => {
+                if (iframe && document.body.contains(iframe)) document.body.removeChild(iframe);
+            };
+
+            try {
+                iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
+                iframe.setAttribute('aria-hidden', 'true');
+                iframe.setAttribute('tabindex', '-1');
                 iframe.src = origin;
                 iframe.onload = () => {
-                    iframe.contentWindow.postMessage({
-                        type: 'auth_update',
-                        data: authData
-                    }, origin);
-                    setTimeout(() => document.body.removeChild(iframe), 1000);
+                    try {
+                        iframe.contentWindow.postMessage({ type: 'auth_update', data: authData }, origin);
+                    } catch (error) {
+                        /* ignore */
+                    }
+                    setTimeout(drop, 1000);
                 };
                 document.body.appendChild(iframe);
+                setTimeout(drop, 15000);
             } catch (error) {
+                drop();
             }
         });
     }
 
     // NEW: Actively check other games for existing auth state
+    //
+    // Each probe loads four complete games in hidden iframes; their music and
+    // sprite assets add up to tens of MB. Doing that on page load was by far
+    // the largest cost on every page, so the check now waits for an explicit
+    // sign-in intent and runs at most once per tab session.
+    probeOtherGamesOnce() {
+        const KEY = 'gr.crossGameProbe';
+
+        try {
+            if (sessionStorage.getItem(KEY)) return Promise.resolve(null);
+        } catch (e) {
+            /* private mode: still bounded to a single probe per page */
+            if (this._probeStarted) return Promise.resolve(null);
+        }
+        this._probeStarted = true;
+
+        return new Promise((resolve) => {
+            const run = () => {
+                try {
+                    sessionStorage.setItem(KEY, '1');
+                } catch (e) {
+                    /* ignore */
+                }
+                this.checkOtherGamesForAuth()
+                    .then((foundAuth) => resolve(foundAuth ? true : null))
+                    .catch(() => resolve(null));
+            };
+
+            // Sign-in happens on auth.glitchrealm.ca, so the only local intent
+            // signals are links/buttons into the account flow.
+            const AUTH_HINT = /(?:^|\/)(?:account|user-portal|signin|login|settings)(?:\/|\.html|$)/i;
+            const trigger = (event) => {
+                const target = event.target && event.target.closest
+                    ? event.target.closest('a[href], button, [data-auth-required]')
+                    : null;
+                if (!target) return;
+
+                const href = target.getAttribute('href') || '';
+                const wantsAuth = target.hasAttribute('data-auth-required')
+                    || (href && !href.startsWith('#') && AUTH_HINT.test(href));
+                if (!wantsAuth) return;
+
+                window.removeEventListener('click', trigger, true);
+                run();
+            };
+
+            window.addEventListener('click', trigger, { capture: true, passive: true });
+        });
+    }
+
     async checkOtherGamesForAuth() {
-        
+        const PROBE_TIMEOUT_MS = 12000;
+
         const promises = this.gameOrigins.map(origin => {
             return new Promise((resolve) => {
+                let settled = false;
+                let iframe = null;
+
+                const cleanup = (result) => {
+                    if (settled) return;
+                    settled = true;
+                    window.removeEventListener('message', messageHandler);
+                    clearTimeout(hardTimeout);
+                    if (iframe && document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                    resolve(result);
+                };
+
+                const messageHandler = (event) => {
+                    if (event.origin === origin && event.data && event.data.type === 'auth_status_response') {
+                        cleanup(event.data.authData);
+                    }
+                };
+
+                // A hidden game can stall on a slow connection; never leave the
+                // iframe (and its downloads) attached to the page.
+                const hardTimeout = setTimeout(() => cleanup(null), PROBE_TIMEOUT_MS);
+
                 try {
-                    const iframe = document.createElement('iframe');
+                    iframe = document.createElement('iframe');
                     iframe.style.display = 'none';
                     iframe.src = origin;
-                    
-                    // Set up message listener for this specific check
-                    const messageHandler = (event) => {
-                        if (event.origin === origin && event.data && event.data.type === 'auth_status_response') {
-                            window.removeEventListener('message', messageHandler);
-                            resolve(event.data.authData);
-                        }
-                    };
-                    
+
                     window.addEventListener('message', messageHandler);
-                    
+
                     iframe.onload = () => {
                         // Request auth status from the other game
-                        iframe.contentWindow.postMessage({
-                            type: 'auth_status_request'
-                        }, origin);
-                        
-                        // Cleanup after timeout
-                        setTimeout(() => {
-                            window.removeEventListener('message', messageHandler);
-                            if (document.body.contains(iframe)) {
-                                document.body.removeChild(iframe);
-                            }
-                            resolve(null); // No response
-                        }, 3000);
+                        try {
+                            iframe.contentWindow.postMessage({
+                                type: 'auth_status_request'
+                            }, origin);
+                        } catch (error) {
+                            cleanup(null);
+                            return;
+                        }
+
+                        // Give the game a moment to answer, then drop the iframe.
+                        setTimeout(() => cleanup(null), 3000);
                     };
-                    
-                    iframe.onerror = () => {
-                        window.removeEventListener('message', messageHandler);
-                        resolve(null);
-                    };
-                    
+
+                    iframe.onerror = () => cleanup(null);
+
                     document.body.appendChild(iframe);
                 } catch (error) {
-                    resolve(null);
+                    cleanup(null);
                 }
             });
         });
@@ -1970,99 +2093,130 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     
     // Load header IMMEDIATELY — it's above-the-fold critical content.
-    // The <link rel="preload" as="fetch" href="components/header.html?v=2"> in <head>
-    // ensures the browser starts fetching even before this script runs.
+    // The build inlines components/header.html into each page and marks the
+    // placeholder with data-inlined="1"; in that case the fetch is skipped
+    // entirely (the partial's scripts already executed during parsing).
     const HEADER_VERSION = '2';
-    const loadHeader = () => fetch('components/header.html?v=' + HEADER_VERSION)
-        .then(response => response.text())
-        .then(data => {
-            const headerPlaceholder = document.getElementById('header-placeholder');
-            
-            if (headerPlaceholder) {
-                headerPlaceholder.innerHTML = data;
-                
-                // After injecting header via innerHTML, inline <script> tags don't auto-execute.
-                // Re-run any script tags (e.g., sign-in button setup) safely.
-                try {
-                    const headerScripts = headerPlaceholder.querySelectorAll('script');
-                    headerScripts.forEach(orig => {
-                        if (orig.dataset.executed === '1') return;
-                        const clone = document.createElement('script');
-                        for (const attr of orig.attributes) {
-                            if (attr.name === 'id' && document.getElementById(attr.value)) continue;
-                            clone.setAttribute(attr.name, attr.value);
-                        }
-                        clone.dataset.fromHeader = '1';
-                        if (!orig.src) clone.textContent = orig.textContent || '';
-                        document.body.appendChild(clone);
-                        orig.dataset.executed = '1';
-                    });
-                } catch (e) { console.warn('Header script execution issue:', e); }
-                
-                // Also call setupSignInButton immediately in case inline script didn't set listener
-                if (window._setupSignInButton) window._setupSignInButton();
-                
-                // Update active nav link based on current page
-                const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-                const navLinks = document.querySelectorAll('.nav-link');
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    const href = link.getAttribute('href');
-                    if ((href === 'index.html' || href === './index.html') && currentPage === 'index.html') {
-                        link.classList.add('active');
+
+    const initializeHeader = (headerPlaceholder, runScripts) => {
+        if (!headerPlaceholder) return;
+
+        // After injecting header via innerHTML, inline <script> tags don't auto-execute.
+        // Re-run any script tags (e.g., sign-in button setup) safely.
+        if (runScripts) {
+            try {
+                const headerScripts = headerPlaceholder.querySelectorAll('script');
+                headerScripts.forEach(orig => {
+                    if (orig.dataset.executed === '1') return;
+                    const clone = document.createElement('script');
+                    for (const attr of orig.attributes) {
+                        if (attr.name === 'id' && document.getElementById(attr.value)) continue;
+                        clone.setAttribute(attr.name, attr.value);
                     }
+                    clone.dataset.fromHeader = '1';
+                    if (!orig.src) clone.textContent = orig.textContent || '';
+                    document.body.appendChild(clone);
+                    orig.dataset.executed = '1';
                 });
-                
-                // Initialize auth elements immediately — innerHTML is synchronous,
-                // no setTimeout needed since DOM is already updated at this point.
-                if (window.firebaseAuth) {
-                    if (window.pendingAuthInit) {
-                        window.pendingAuthInit();
-                        window.pendingAuthInit = null;
-                    } else {
-                        initializeAuthElements();
-                    }
-                    // Wire Moderation menu based on current auth state (dev UIDs only)
-                    try {
-                        const user = window.firebaseAuth.currentUser;
-                        const moderationMenuBtn = document.getElementById('moderation-menu-btn');
-                        if (moderationMenuBtn) {
-                            const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
-                            const newBtn = moderationMenuBtn.cloneNode(true);
-                            moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
-                            const show = !!(user && DEV_UIDS.has(user.uid));
-                            if (show) {
-                                newBtn.style.display = 'flex';
-                                newBtn.addEventListener('click', (e) => {
-                                    e.preventDefault();
-                                    window.location.href = 'moderation.html';
-                                });
-                            } else {
-                                newBtn.remove();
-                            }
-                        }
-                    } catch (e) { /* non-fatal */ }
-                } else {
-                    initializeAuthElements();
-                }
-                
-                // Initialize dropdowns immediately
-                forceInitializeDropdowns();
+            } catch (e) { console.warn('Header script execution issue:', e); }
+        }
+
+        // Also call setupSignInButton immediately in case inline script didn't set listener
+        if (window._setupSignInButton) window._setupSignInButton();
+
+        // Update active nav link based on current page
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const href = link.getAttribute('href');
+            if ((href === 'index.html' || href === './index.html') && currentPage === 'index.html') {
+                link.classList.add('active');
             }
-        })
-        .catch(error => {
-            console.error('Error loading header:', error);
         });
+
+        // Initialize auth elements immediately — innerHTML is synchronous,
+        // no setTimeout needed since DOM is already updated at this point.
+        if (window.firebaseAuth) {
+            if (window.pendingAuthInit) {
+                window.pendingAuthInit();
+                window.pendingAuthInit = null;
+            } else {
+                initializeAuthElements();
+            }
+            // Wire Moderation menu based on current auth state (dev UIDs only)
+            try {
+                const user = window.firebaseAuth.currentUser;
+                const moderationMenuBtn = document.getElementById('moderation-menu-btn');
+                if (moderationMenuBtn) {
+                    const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
+                    const newBtn = moderationMenuBtn.cloneNode(true);
+                    moderationMenuBtn.parentNode.replaceChild(newBtn, moderationMenuBtn);
+                    const show = !!(user && DEV_UIDS.has(user.uid));
+                    if (show) {
+                        newBtn.style.display = 'flex';
+                        newBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            window.location.href = 'moderation.html';
+                        });
+                    } else {
+                        newBtn.remove();
+                    }
+                }
+            } catch (e) { /* non-fatal */ }
+        } else {
+            initializeAuthElements();
+        }
+
+        // Initialize dropdowns immediately
+        forceInitializeDropdowns();
+    };
+
+    const loadHeader = () => {
+        const headerPlaceholder = document.getElementById('header-placeholder');
+        if (!headerPlaceholder) return;
+
+        // Build-inlined partial: no request, no CLS, no script re-execution.
+        if (headerPlaceholder.dataset.inlined === '1') {
+            initializeHeader(headerPlaceholder, false);
+            return;
+        }
+
+        fetch('components/header.html?v=' + HEADER_VERSION)
+            .then(response => response.text())
+            .then(data => {
+                headerPlaceholder.innerHTML = data;
+                initializeHeader(headerPlaceholder, true);
+            })
+            .catch(error => {
+                console.error('Error loading header:', error);
+            });
+    };
 
     // Start header fetch immediately — no requestIdleCallback delay
     loadHeader();
 
     // Load footer (defer to idle — it's below the fold)
-    const loadFooter = () => fetch('components/footer.html')
-        .then(response => response.text())
-        .then(data => {
-            const footerPlaceholder = document.getElementById('footer-placeholder');
-            if (footerPlaceholder) {
+    const initializeFooter = (footerPlaceholder) => {
+        // Initialize chatbot FAB only on support page after attempting to (re)load scripts
+        if (/\/support\.html$/i.test(location.pathname)) {
+            try { setupChatbotFab(); } catch (e) { console.warn('setupChatbotFab failed:', e); }
+        }
+    };
+
+    const loadFooter = () => {
+        const footerPlaceholder = document.getElementById('footer-placeholder');
+        if (!footerPlaceholder) return;
+
+        // Build-inlined partial: scripts already executed during parsing.
+        if (footerPlaceholder.dataset.inlined === '1') {
+            initializeFooter(footerPlaceholder);
+            return;
+        }
+
+        fetch('components/footer.html')
+            .then(response => response.text())
+            .then(data => {
                 footerPlaceholder.innerHTML = data;
                 // After injecting footer via innerHTML, inline <script> tags don't auto-execute.
                 // Re-run any script tags (e.g., chatbot loader, Buy Me a Coffee widget) safely.
@@ -2082,13 +2236,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 } catch (e) { console.warn('Footer script execution issue:', e); }
 
-                // Initialize chatbot FAB only on support page after attempting to (re)load scripts
-                if (/\/support\.html$/i.test(location.pathname)) {
-                    try { setupChatbotFab(); } catch (e) { console.warn('setupChatbotFab failed:', e); }
-                }
-            }
-        })
-        .catch(error => console.error('Error loading footer:', error));
+                initializeFooter(footerPlaceholder);
+            })
+            .catch(error => console.error('Error loading footer:', error));
+    };
 
     if ('requestIdleCallback' in window) {
         requestIdleCallback(() => loadFooter());
