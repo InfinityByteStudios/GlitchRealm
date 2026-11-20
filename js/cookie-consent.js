@@ -145,7 +145,7 @@
   wrapper.innerHTML = [
     /* ---- bottom bar ---- */
     '<div id="gr-cookie-bar">',
-      '<span>We use cookies to keep the site running and improve your experience. <a href="/cookie-policy">Learn more</a></span>',
+      '<span>We use cookies to keep the site running and improve your experience. <a href="https://legal.glitchrealm.ca/cookie-policy">Learn more</a></span>',
       '<button id="gr-cb-accept">Accept All</button>',
       '<button id="gr-cb-reject">Reject Ads</button>',
       '<button id="gr-cb-prefs">Preferences</button>',
