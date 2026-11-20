@@ -14,6 +14,8 @@
  *   4. minifies HTML, CSS and JS
  *   5. adds a content-derived `?v=<build id>` to CSS/JS URLs (HTML + module
  *      imports) so those files can be cached immutably
+ *   6. writes a real copy of each 200-rewrite target at its public URL, so a
+ *      missing/ignored `_redirects` rule can never turn a page into a 404
  *
  * Run `scripts/optimize-static-images.js`, `generate-cover-thumbs.js`,
  * `generate-prerendered-content.js` and `generate-sitemap.js` first (see the
@@ -396,6 +398,54 @@ function inlineSmallStylesheets(file) {
   }
 }
 
+/**
+ * Emits a real copy of every 200-rewrite target at its public URL.
+ *
+ * The site keeps its sources under `subdomains/pages/...` and relies on
+ * `_redirects` for URLs like `/games.html`. Netlify silently stopped applying
+ * those rules on this deploy (headers were ignored too), which turned every
+ * public page into a 404. Netlify skips a non-forced 200 rewrite when the
+ * requested path already exists, so shipping the page itself at the public URL
+ * makes the routes resilient — redirects become an optimization, not a
+ * requirement.
+ */
+function writePublicUrlPages() {
+  const redirectsFile = path.join(DIST, '_redirects');
+  if (!fs.existsSync(redirectsFile)) return 0;
+
+  const written = new Set();
+  let count = 0;
+
+  for (const raw of readText(redirectsFile).split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    const [from, to, status = '301'] = line.split(/\s+/);
+    if (status !== '200') continue;
+    if (!from.startsWith('/') || !to.startsWith('/')) continue;
+    // Dynamic rules (splats/placeholders/query strings) need the redirect engine.
+    if (/[*?:]/.test(from) || /[*?:]/.test(to)) continue;
+    if (from.startsWith('/components/') || to.startsWith('/components/')) continue;
+
+    const target = path.join(DIST, to.replace(/^\//, ''));
+    if (!target.endsWith('.html') || !fs.existsSync(target)) continue;
+
+    // Extensionless public URLs resolve to the `.html` copy via pretty URLs.
+    const publicPath = from.endsWith('.html') ? from : `${from}.html`;
+    if (publicPath === to) continue;
+
+    const out = path.join(DIST, publicPath.replace(/^\//, ''));
+    if (written.has(out) || fs.existsSync(out)) continue;
+
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.copyFileSync(target, out);
+    written.add(out);
+    count += 1;
+  }
+
+  return count;
+}
+
 async function main() {
   log('cleaning dist/');
   await fsp.rm(DIST, { recursive: true, force: true });
@@ -465,6 +515,9 @@ async function main() {
     stats.html += 1;
   }
 
+  log('writing public URL pages');
+  const publicPages = writePublicUrlPages();
+
   const mb = (bytes) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   log(
     `${stats.html} pages, ${stats.css} CSS, ${stats.js} JS — ` +
@@ -472,6 +525,7 @@ async function main() {
   );
   log(`inlined partials on ${stats.inlined} pages, removed ${stats.deduped} duplicate tag(s), ${mb(stats.bytesBefore)} copied`);
   if (stats.cssInlined) log(`inlined ${stats.cssInlined} small stylesheet(s) into their page`);
+  log(`wrote ${publicPages} public URL page(s) so routes work without rewrites`);
 }
 
 main().catch((error) => {

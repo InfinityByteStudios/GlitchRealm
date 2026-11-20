@@ -201,8 +201,8 @@
 
 # Note: edu/ content is in subdomains/edu/ for branch deploys
 
-# 404 page configuration
-[[redirects]]
-  from = "/*"
-  to = "/404.html"
-  status = 404
+# NOTE: there is deliberately no catch-all `/* -> /404.html` rule here.
+# Netlify already serves 404.html for unmatched paths, and a catch-all in
+# netlify.toml is evaluated before _redirects — it swallowed every public URL
+# rewrite (e.g. /games.html), turning pages into 404s.
+
