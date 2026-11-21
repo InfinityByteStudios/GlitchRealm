@@ -1856,58 +1856,48 @@ function closeDropdowns(except) {
     }
 }
 
-// Idempotent: safe to call on DOMContentLoaded, after the header is injected,
-// and on every auth-state change. The bind guard lives on the element itself so
-// a freshly injected header is still wired up, but a second call never adds a
-// duplicate handler.
+// Idempotent and safe to call on DOMContentLoaded, after the header is
+// injected, and on every auth-state change.
+//
+// Clicks are delegated from the document instead of bound to the trigger
+// element. The header partial can be re-injected or cloned, and a cloned node
+// copies its data-* attributes but not its listeners, which is exactly how the
+// dropdown used to end up with a "bound" marker and no working handler.
 function initializeDropdowns() {
-    const navDropdown = document.querySelector('.nav-dropdown');
-    const navTrigger = navDropdown?.querySelector('.dropdown-trigger');
-
-    if (navDropdown && navTrigger && !navTrigger.dataset.dropdownBound) {
-        navTrigger.dataset.dropdownBound = '1';
-        navTrigger.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const willOpen = !navDropdown.classList.contains('open');
-            closeDropdowns(navDropdown);
-            setDropdownOpen(navDropdown, willOpen);
-        });
-    }
-
-    if (navDropdown) {
-        navDropdown.querySelectorAll('.nav-dropdown-link').forEach((link) => {
-            if (link.dataset.dropdownBound) return;
-            link.dataset.dropdownBound = '1';
-            link.addEventListener('click', () => setDropdownOpen(navDropdown, false));
-        });
-    }
-
-    const profileDropdown = document.querySelector('.profile-dropdown');
-    const profileTrigger = profileDropdown?.querySelector('.profile-trigger');
-
-    if (profileDropdown && profileTrigger && !profileTrigger.dataset.dropdownBound) {
-        profileTrigger.dataset.dropdownBound = '1';
-        profileTrigger.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const willOpen = !profileDropdown.classList.contains('open');
-            closeDropdowns(profileDropdown);
-            setDropdownOpen(profileDropdown, willOpen);
-        });
-    }
-
     initializeProfileActions();
 
-    // Global close handlers: bound once for the lifetime of the page.
+    // Bound once for the lifetime of the page.
     if (window._globalDropdownHandlerAdded) return;
     window._globalDropdownHandlerAdded = true;
 
     document.addEventListener('click', (e) => {
+        const target = e.target instanceof Element ? e.target : null;
+        if (!target) return;
+
+        const trigger = target.closest('.dropdown-trigger, .profile-trigger');
+        if (trigger) {
+            const dropdown = trigger.closest('.nav-dropdown, .profile-dropdown');
+            if (!dropdown) return;
+            e.preventDefault();
+            const willOpen = !dropdown.classList.contains('open');
+            closeDropdowns(dropdown);
+            setDropdownOpen(dropdown, willOpen);
+            return;
+        }
+
+        // A menu link closes its own menu before navigating away.
+        const link = target.closest('.nav-dropdown-link');
+        if (link) {
+            const dropdown = link.closest('.nav-dropdown');
+            if (dropdown) setDropdownOpen(dropdown, false);
+            return;
+        }
+
+        // Click outside closes whatever is open.
         document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach((dropdown) => {
-            if (!dropdown.contains(e.target)) setDropdownOpen(dropdown, false);
+            if (!dropdown.contains(target)) setDropdownOpen(dropdown, false);
         });
-    });
+    }, true);
 
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
