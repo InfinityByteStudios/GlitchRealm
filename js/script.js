@@ -585,9 +585,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // modal has been retired, so only the shared form styling remains here).
     initializeInputFocusEffects();
     
-    // Initialize shared authentication system for SSO
-    initializeSharedAuth();
-    
     // Initialize Firebase auth (async)
     initializeAuth();
     
@@ -886,35 +883,6 @@ async function initializeAuth() {
             console.error('Sign-out error:', error);        }
     });
 
-    // Check for existing authentication in other games (NEW FEATURE)
-    if (window.sharedAuth) {
-        // First check localStorage for existing auth state
-        const existingAuthState = window.sharedAuth.checkExistingAuthState();
-        if (existingAuthState) {
-            const mockUser = {
-                uid: existingAuthState.uid,
-                email: existingAuthState.email,
-                displayName: existingAuthState.displayName,
-                photoURL: existingAuthState.photoURL,
-                providerData: existingAuthState.providerData
-            };
-            if (typeof window.updateUIForUser === 'function') {
-                window.updateUIForUser(mockUser);
-                showAuthMessage('Synced with existing account.', 'info');
-            }
-        } else {
-            // If no localStorage auth, probe other games — lazily and at most
-            // once per tab session (see probeOtherGamesOnce).
-            window.sharedAuth.probeOtherGamesOnce().then(foundAuth => {
-                if (foundAuth) {
-                    showAuthMessage('Connected via cross-game account.', 'success');
-                }
-            }).catch(error => {
-                console.error('Error checking other games for auth:', error);
-            });
-        }
-    }
-
     // Auth state observer with profile monitoring
     onAuthStateChanged(auth, (rawUser) => {
         // Anonymous sessions are created silently just to let guests leave
@@ -953,11 +921,6 @@ async function initializeAuth() {
                 }
             } catch (e) { /* non-fatal */ }
             
-            // Store auth state for SSO
-            if (window.sharedAuth) {
-                window.sharedAuth.storeAuthState(user);
-            }
-            
             // Set up profile picture monitoring
             if (!window.profileMonitorInterval) {
                 setupProfilePictureMonitoring(auth);
@@ -983,11 +946,6 @@ async function initializeAuth() {
             if (notificationBell) notificationBell.style.display = 'none';
             if (moderationMenuBtn) moderationMenuBtn.remove();
             if (userPortalLink) userPortalLink.style.display = 'none';
-            
-            // Clear auth state for SSO
-            if (window.sharedAuth) {
-                window.sharedAuth.clearAuthState();
-            }
             
             // Clear profile monitoring
             if (window.profileMonitorInterval) {
@@ -1089,7 +1047,7 @@ async function initializeAuth() {
             if (userPortalLink) userPortalLink.style.display = 'none';
         }
     }
-      // Make updateUIForUser available globally for SharedAuthSystem
+    // Expose the UI updater for other modules (portal, header, notifications)
     window.updateUIForUser = updateUIForUser;
 
         // --- Firestore Notifications: initialization and listeners ---
@@ -1175,7 +1133,6 @@ async function initializeAuth() {
             try {
                 await user.reload();
                 updateUserProfile(user);
-                if (window.sharedAuth) window.sharedAuth.storeAuthState(user);
             } catch (e) { /* silent - non-critical */ }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -1189,11 +1146,6 @@ async function initializeAuth() {
             // Reload user data from Firebase
             currentUser.reload().then(() => {
                 updateUserProfile(currentUser);
-                
-                // Update SSO state
-                if (window.sharedAuth) {
-                    window.sharedAuth.storeAuthState(currentUser);
-                }
                 
                 showAuthMessage('Profile refreshed!', 'info');
             }).catch(error => {
@@ -1277,401 +1229,6 @@ async function initializeAuth() {
         showAuthMessage('Authentication system unavailable. Basic features enabled.', 'info');
     }
 }
-
-// Shared Authentication System for Cross-Game SSO
-class SharedAuthSystem {
-    constructor() {
-        this.storageKey = 'glitchRealm_auth_state';
-        this.eventKey = 'glitchRealm_auth_change';
-        this.gameOrigins = [
-            'https://coderunner-test.netlify.app',
-            'https://neurocorebytewars.netlify.app',
-            'https://bytewars.game.glitchrealm.ca',
-            'https://coderunner.game.glitchrealm.ca'
-        ];
-        this.initCrossTabSync();
-    }
-
-    // Initialize cross-tab/cross-site authentication sync
-    initCrossTabSync() {
-        // Listen for auth state changes from other tabs/games
-        window.addEventListener('storage', (e) => {
-            if (e.key === this.storageKey && e.newValue !== e.oldValue) {
-                this.handleExternalAuthChange(e.newValue);
-            }
-        });
-
-        // Listen for custom auth events (for same-tab communication)
-        window.addEventListener(this.eventKey, (e) => {
-            this.handleExternalAuthChange(e.detail);
-        });
-    }
-
-    // Store auth state when user signs in
-    storeAuthState(user) {
-        const authData = {
-            isSignedIn: true,
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            providerData: user.providerData,
-            timestamp: Date.now(),
-            source: 'glitchRealm'
-        };
-        
-        localStorage.setItem(this.storageKey, JSON.stringify(authData));
-        this.broadcastAuthChange(authData);
-    }
-
-    // Clear auth state when user signs out
-    clearAuthState() {
-        // Firebase reports a null user on every signed-out page load, so this
-        // runs constantly. Broadcasting that "signed out" state loads four
-        // complete games in hidden iframes (tens of MB of music/sprites), so
-        // only broadcast when we actually had a session to end.
-        let wasSignedIn = false;
-        try {
-            const previous = JSON.parse(localStorage.getItem(this.storageKey) || 'null');
-            wasSignedIn = !!(previous && previous.isSignedIn);
-        } catch (e) {
-            wasSignedIn = false;
-        }
-
-        const authData = {
-            isSignedIn: false,
-            timestamp: Date.now(),
-            source: 'glitchRealm'
-        };
-
-        localStorage.setItem(this.storageKey, JSON.stringify(authData));
-        if (wasSignedIn) this.broadcastAuthChange(authData);
-    }
-
-    // Broadcast auth changes to other tabs/games
-    broadcastAuthChange(authData) {
-        // Broadcast to other tabs via custom event
-        window.dispatchEvent(new CustomEvent(this.eventKey, { detail: authData }));
-        
-        // Also use postMessage for cross-origin communication
-        this.broadcastToGames(authData);
-    }
-
-    // Broadcast auth changes to other games that are already open.
-    //
-    // This used to inject a hidden iframe per game origin on every call, which
-    // pulled in four full games (tens of MB) just to deliver one postMessage —
-    // and it ran on every signed-out page view. Games that are already running
-    // (opener, parent, or same-document frames) can be reached directly.
-    //
-    // Signing out is the one case where a game in an unrelated tab must be told
-    // promptly, and it only happens once per user action, so the iframe relay is
-    // kept for that path.
-    broadcastToGames(authData) {
-        const targets = [];
-
-        try {
-            if (window.opener) targets.push(window.opener);
-        } catch (error) {
-            /* cross-origin opener access can throw */
-        }
-        try {
-            if (window.parent && window.parent !== window) targets.push(window.parent);
-        } catch (error) {
-            /* ignore */
-        }
-        for (let i = 0; i < window.frames.length; i++) {
-            targets.push(window.frames[i]);
-        }
-
-        targets.forEach((target) => {
-            try {
-                const origin = target.location.origin;
-                if (!this.gameOrigins.includes(origin)) return;
-                target.postMessage({ type: 'auth_update', data: authData }, origin);
-            } catch (error) {
-                /* cross-origin target: nothing to do without a reference */
-            }
-        });
-
-        if (authData.isSignedIn === false) this.relaySignOutToGames(authData);
-    }
-
-    relaySignOutToGames(authData) {
-        this.gameOrigins.forEach((origin) => {
-            let iframe;
-            const drop = () => {
-                if (iframe && document.body.contains(iframe)) document.body.removeChild(iframe);
-            };
-
-            try {
-                iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.setAttribute('aria-hidden', 'true');
-                iframe.setAttribute('tabindex', '-1');
-                iframe.src = origin;
-                iframe.onload = () => {
-                    try {
-                        iframe.contentWindow.postMessage({ type: 'auth_update', data: authData }, origin);
-                    } catch (error) {
-                        /* ignore */
-                    }
-                    setTimeout(drop, 1000);
-                };
-                document.body.appendChild(iframe);
-                setTimeout(drop, 15000);
-            } catch (error) {
-                drop();
-            }
-        });
-    }
-
-    // NEW: Actively check other games for existing auth state
-    //
-    // Each probe loads four complete games in hidden iframes; their music and
-    // sprite assets add up to tens of MB. Doing that on page load was by far
-    // the largest cost on every page, so the check now waits for an explicit
-    // sign-in intent and runs at most once per tab session.
-    probeOtherGamesOnce() {
-        const KEY = 'gr.crossGameProbe';
-
-        try {
-            if (sessionStorage.getItem(KEY)) return Promise.resolve(null);
-        } catch (e) {
-            /* private mode: still bounded to a single probe per page */
-            if (this._probeStarted) return Promise.resolve(null);
-        }
-        this._probeStarted = true;
-
-        return new Promise((resolve) => {
-            const run = () => {
-                try {
-                    sessionStorage.setItem(KEY, '1');
-                } catch (e) {
-                    /* ignore */
-                }
-                this.checkOtherGamesForAuth()
-                    .then((foundAuth) => resolve(foundAuth ? true : null))
-                    .catch(() => resolve(null));
-            };
-
-            // Sign-in happens on auth.glitchrealm.ca, so the only local intent
-            // signals are links/buttons into the account flow.
-            const AUTH_HINT = /(?:^|\/)(?:account|user-portal|signin|login|settings)(?:\/|\.html|$)/i;
-            const trigger = (event) => {
-                const target = event.target && event.target.closest
-                    ? event.target.closest('a[href], button, [data-auth-required]')
-                    : null;
-                if (!target) return;
-
-                const href = target.getAttribute('href') || '';
-                const wantsAuth = target.hasAttribute('data-auth-required')
-                    || (href && !href.startsWith('#') && AUTH_HINT.test(href));
-                if (!wantsAuth) return;
-
-                window.removeEventListener('click', trigger, true);
-                run();
-            };
-
-            window.addEventListener('click', trigger, { capture: true, passive: true });
-        });
-    }
-
-    async checkOtherGamesForAuth() {
-        const PROBE_TIMEOUT_MS = 12000;
-
-        const promises = this.gameOrigins.map(origin => {
-            return new Promise((resolve) => {
-                let settled = false;
-                let iframe = null;
-
-                const cleanup = (result) => {
-                    if (settled) return;
-                    settled = true;
-                    window.removeEventListener('message', messageHandler);
-                    clearTimeout(hardTimeout);
-                    if (iframe && document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
-                    resolve(result);
-                };
-
-                const messageHandler = (event) => {
-                    if (event.origin === origin && event.data && event.data.type === 'auth_status_response') {
-                        cleanup(event.data.authData);
-                    }
-                };
-
-                // A hidden game can stall on a slow connection; never leave the
-                // iframe (and its downloads) attached to the page.
-                const hardTimeout = setTimeout(() => cleanup(null), PROBE_TIMEOUT_MS);
-
-                try {
-                    iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = origin;
-
-                    window.addEventListener('message', messageHandler);
-
-                    iframe.onload = () => {
-                        // Request auth status from the other game
-                        try {
-                            iframe.contentWindow.postMessage({
-                                type: 'auth_status_request'
-                            }, origin);
-                        } catch (error) {
-                            cleanup(null);
-                            return;
-                        }
-
-                        // Give the game a moment to answer, then drop the iframe.
-                        setTimeout(() => cleanup(null), 3000);
-                    };
-
-                    iframe.onerror = () => cleanup(null);
-
-                    document.body.appendChild(iframe);
-                } catch (error) {
-                    cleanup(null);
-                }
-            });
-        });
-        
-        try {
-            const results = await Promise.all(promises);
-            const validAuth = results.find(authData => 
-                authData && 
-                authData.isSignedIn && 
-                authData.timestamp > Date.now() - (24 * 60 * 60 * 1000) // 24 hours
-            );
-            
-            if (validAuth) {
-                this.syncExternalSignIn(validAuth);
-                return true;
-            }
-        } catch (error) {
-            console.error('Error checking other games for auth:', error);
-        }
-        
-        return false;
-    }
-
-    // Handle auth state changes from other tabs/games
-    handleExternalAuthChange(authDataInput) {
-        try {
-            let authData;
-            
-            // Handle both JSON strings and objects
-            if (typeof authDataInput === 'string') {
-                authData = JSON.parse(authDataInput);
-            } else if (typeof authDataInput === 'object' && authDataInput !== null) {
-                authData = authDataInput;
-            } else {
-                console.warn('Invalid auth data format:', authDataInput);
-                return;
-            }
-            
-            // Only process if this change is recent and from another source
-            if (authData.timestamp > Date.now() - 5000) { // 5 second window
-                if (authData.isSignedIn && !window.firebaseAuth?.currentUser) {
-                    // User signed in elsewhere - we should sync this state
-                    this.syncExternalSignIn(authData);
-                } else if (!authData.isSignedIn && window.firebaseAuth?.currentUser) {
-                    // User signed out elsewhere - sign out here too
-                    if (window.firebaseAuth) {
-                        window.firebaseAuth.signOut();
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error handling external auth change:', error);
-        }
-    }
-
-    // Sync sign-in state from external source
-    async syncExternalSignIn(authData) {
-        try {
-            // Update UI to show signed-in state without going through Firebase again
-            if (typeof window.updateUIForUser === 'function') {
-                const mockUser = {
-                    uid: authData.uid,
-                    email: authData.email,
-                    displayName: authData.displayName,
-                    photoURL: authData.photoURL,
-                    providerData: authData.providerData
-                };
-                window.updateUIForUser(mockUser);
-                
-                // Show notification that we synced from another game
-                if (typeof showAuthMessage === 'function') {
-                    showAuthMessage('Synced from existing account.', 'info');
-                }
-            }
-        } catch (error) {
-            console.error('Error syncing external sign-in:', error);
-        }
-    }
-
-    // Check for existing auth state on page load
-    checkExistingAuthState() {
-        const authDataString = localStorage.getItem(this.storageKey);
-        if (authDataString) {
-            try {
-                const authData = JSON.parse(authDataString);
-                // If auth is recent (less than 24 hours) and user is signed in
-                if (authData.isSignedIn && 
-                    authData.timestamp > Date.now() - (24 * 60 * 60 * 1000) &&
-                    authData.uid) { // Make sure we have actual user data
-                    return authData;
-                }
-            } catch (error) {
-                console.error('Error checking existing auth state:', error);
-                // Clear invalid auth data
-                localStorage.removeItem(this.storageKey);
-            }
-        }
-        return null;
-    }
-}
-
-// Initialize shared auth system
-function initializeSharedAuth() {
-    if (!window.sharedAuth) {
-        window.sharedAuth = new SharedAuthSystem();
-    }
-}
-
-// Listen for auth status requests from other games
-window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'auth_status_request') {
-        // Respond with current auth state
-        const authData = window.sharedAuth ? window.sharedAuth.checkExistingAuthState() : null;
-        const currentUser = window.firebaseAuth?.currentUser;
-        
-        let responseData = null;
-        if (currentUser) {
-            responseData = {
-                isSignedIn: true,
-                uid: currentUser.uid,
-                email: currentUser.email,
-                displayName: currentUser.displayName,
-                photoURL: currentUser.photoURL,
-                providerData: currentUser.providerData,
-                timestamp: Date.now(),
-                source: 'glitchRealm'
-            };
-        } else if (authData) {
-            responseData = authData;
-        }
-        
-        event.source.postMessage({
-            type: 'auth_status_response',
-            authData: responseData
-        }, event.origin);
-    } else if (event.data && event.data.type === 'auth_update' && window.sharedAuth) {
-        window.sharedAuth.handleExternalAuthChange(event.data.data);
-    }
-});
 
 // CSS Animations are now in styles.css (glitchOverlay, rippleEffect, messageSlideIn/Out, fadeOut)
 
@@ -1955,45 +1512,31 @@ function setupChatbotFab() {
 function initializeProfileActions() {
     const closeDropdown = () => {
         const dd = document.querySelector('.profile-dropdown');
-        if (dd) dd.classList.remove('open');
+        if (dd) setDropdownOpen(dd, false);
     };
 
-    const refreshBtn = document.getElementById('refresh-profile-btn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => { closeDropdown(); refreshUserProfile(); });
-    }
+    // This runs again after every auth-state change, so bind each control once.
+    const bind = (el, handler) => {
+        if (!el || el.dataset.actionsBound) return;
+        el.dataset.actionsBound = '1';
+        el.addEventListener('click', handler);
+    };
 
-    const userPortalBtn = document.getElementById('user-portal-btn');
-    if (userPortalBtn) {
-        userPortalBtn.addEventListener('click', () => { closeDropdown(); window.location.href = 'user-portal.html'; });
-    }
-
-    const signOutBtn = document.getElementById('sign-out-btn');
-    if (signOutBtn) {
-        signOutBtn.addEventListener('click', () => { closeDropdown(); signOut(); });
-    }
+    bind(document.getElementById('refresh-profile-btn'), () => { closeDropdown(); refreshUserProfile(); });
+    bind(document.getElementById('user-portal-btn'), () => { closeDropdown(); window.location.href = 'user-portal.html'; });
+    bind(document.getElementById('sign-out-btn'), () => { closeDropdown(); signOut(); });
 
     // Account deletion is requested by email now (self-service deletion UI was
     // retired). The entry is an anchor with a mailto: href, so no navigation
     // handler is needed here.
-    const deleteAccountBtn = document.getElementById('delete-account-btn');
-    if (deleteAccountBtn) {
-        deleteAccountBtn.addEventListener('click', () => { closeDropdown(); });
-    }
-
-    const settingsBtn = document.getElementById('settings-btn');
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => { closeDropdown(); window.location.href = '/settings.html'; });
-    }
+    bind(document.getElementById('delete-account-btn'), () => { closeDropdown(); });
+    bind(document.getElementById('settings-btn'), () => { closeDropdown(); window.location.href = '/settings.html'; });
 
     // Notification bell
-    const notificationBell = document.getElementById('notification-bell');
-    if (notificationBell) {
-        notificationBell.addEventListener('click', (e) => {
-            e.preventDefault();
-            handleNotificationClick();
-        });
-    }
+    bind(document.getElementById('notification-bell'), (e) => {
+        e.preventDefault();
+        handleNotificationClick();
+    });
 }
 
 // Account deletion is now requested by email (the self-service deletion UI
@@ -2169,7 +1712,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Initialize dropdowns immediately
-        forceInitializeDropdowns();
+        initializeDropdowns();
     };
 
     const loadHeader = () => {
@@ -2255,8 +1798,8 @@ function initializeAuthElements() {
     const userProfile = document.getElementById('user-profile');
     const userPortalLink = document.getElementById('user-portal-link');
         
-        // Re-initialize dropdown functionality
-        initializeDropdownFunctionality();
+        // Re-initialize dropdown functionality (idempotent)
+        initializeDropdowns();
         
         // Profile picture upload now handled by portal-avatar-integration.js (Supabase)
         // Old initializeProfilePictureUpload() and initializeCropModal() removed
@@ -2279,112 +1822,101 @@ function initializeAuthElements() {
         }
 }
 
-// Function to initialize dropdown functionality
-function initializeDropdownFunctionality() {
-    const dropdown = document.querySelector('.nav-dropdown');
-    const trigger = dropdown?.querySelector('.dropdown-trigger');
-    const menu = dropdown?.querySelector('.nav-dropdown-menu');
-    
+// ==================== DROPDOWN STATE ====================
+// One owner for dropdown state. This used to be two independent initializers
+// that each cloned the trigger and bound their own click handler, so a single
+// click toggled the menu twice (open, then immediately closed). State now goes
+// through setDropdownOpen(), which also keeps aria-expanded / aria-hidden in
+// sync for screen readers and the keyboard navigation module.
+function setDropdownOpen(dropdown, open) {
+    if (!dropdown) return;
 
-    if (dropdown && trigger && menu) {
-        
-        // Clear any existing event listeners by removing and re-adding the element
-        const newTrigger = trigger.cloneNode(true);
-        trigger.parentNode.replaceChild(newTrigger, trigger);
-        
-        // Toggle dropdown on click
-        newTrigger.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Close other dropdowns first
-            document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach(dd => {
-                if (dd !== dropdown) dd.classList.remove('open');
-            });
-            
-            dropdown.classList.toggle('open');
-        });
+    const trigger = dropdown.querySelector('.dropdown-trigger, .profile-trigger');
+    const menu = dropdown.querySelector('.nav-dropdown-menu, .profile-menu');
+    // On mobile the profile menu is shown by `.user-profile.open`.
+    const wrapper = dropdown.classList.contains('profile-dropdown')
+        ? dropdown.closest('.user-profile')
+        : null;
 
-        // Global click handler for closing dropdowns
-        if (!document.body.dataset.globalDropdownListenerAdded) {
-            document.addEventListener('click', function(e) {
-                const openDropdowns = document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open');
-                openDropdowns.forEach(dropdown => {
-                    if (!dropdown.contains(e.target)) {
-                        dropdown.classList.remove('open');
-                    }
-                });
-            });
+    dropdown.classList.toggle('open', !!open);
+    if (wrapper) wrapper.classList.toggle('open', !!open);
+    if (trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (menu) menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+}
 
-            // Global escape key handler
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach(dd => {
-                        dd.classList.remove('open');
-                    });
-                }
-            });
-            
-            document.body.dataset.globalDropdownListenerAdded = 'true';
-        }
+// accessibility-keyboard-nav.js drives the same menu from the keyboard.
+window.setDropdownOpen = setDropdownOpen;
 
-        // Handle dropdown links
-        const dropdownLinks = dropdown.querySelectorAll('.nav-dropdown-link');
-        dropdownLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                dropdown.classList.remove('open');
-            });
-        });
-    } else {
+function closeDropdowns(except) {
+    document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach((dropdown) => {
+        if (dropdown !== except) setDropdownOpen(dropdown, false);
+    });
+    if (!except || !except.classList.contains('profile-dropdown')) {
+        document.querySelectorAll('.user-profile.open').forEach((wrapper) => wrapper.classList.remove('open'));
     }
 }
 
-// Force initialize dropdowns with simplified approach (single unified handler)
-function forceInitializeDropdowns() {
-    // Nav dropdown
+// Idempotent: safe to call on DOMContentLoaded, after the header is injected,
+// and on every auth-state change. The bind guard lives on the element itself so
+// a freshly injected header is still wired up, but a second call never adds a
+// duplicate handler.
+function initializeDropdowns() {
     const navDropdown = document.querySelector('.nav-dropdown');
-    const navTrigger = document.querySelector('.dropdown-trigger');
-    if (navDropdown && navTrigger) {
-        const newTrigger = navTrigger.cloneNode(true);
-        navTrigger.parentNode.replaceChild(newTrigger, navTrigger);
-        newTrigger.addEventListener('click', (e) => {
+    const navTrigger = navDropdown?.querySelector('.dropdown-trigger');
+
+    if (navDropdown && navTrigger && !navTrigger.dataset.dropdownBound) {
+        navTrigger.dataset.dropdownBound = '1';
+        navTrigger.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            document.querySelectorAll('.profile-dropdown.open').forEach(dd => dd.classList.remove('open'));
-            navDropdown.classList.toggle('open');
+            const willOpen = !navDropdown.classList.contains('open');
+            closeDropdowns(navDropdown);
+            setDropdownOpen(navDropdown, willOpen);
         });
     }
 
-    // Profile dropdown
+    if (navDropdown) {
+        navDropdown.querySelectorAll('.nav-dropdown-link').forEach((link) => {
+            if (link.dataset.dropdownBound) return;
+            link.dataset.dropdownBound = '1';
+            link.addEventListener('click', () => setDropdownOpen(navDropdown, false));
+        });
+    }
+
     const profileDropdown = document.querySelector('.profile-dropdown');
-    const profileTrigger = document.querySelector('.profile-trigger');
-    if (profileDropdown && profileTrigger) {
-        const newTrigger = profileTrigger.cloneNode(true);
-        profileTrigger.parentNode.replaceChild(newTrigger, profileTrigger);
-        newTrigger.addEventListener('click', (e) => {
+    const profileTrigger = profileDropdown?.querySelector('.profile-trigger');
+
+    if (profileDropdown && profileTrigger && !profileTrigger.dataset.dropdownBound) {
+        profileTrigger.dataset.dropdownBound = '1';
+        profileTrigger.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            document.querySelectorAll('.nav-dropdown.open').forEach(dd => dd.classList.remove('open'));
-            profileDropdown.classList.toggle('open');
+            const willOpen = !profileDropdown.classList.contains('open');
+            closeDropdowns(profileDropdown);
+            setDropdownOpen(profileDropdown, willOpen);
         });
     }
 
     initializeProfileActions();
 
-    // Global close handler (once only)
-    if (!window._globalDropdownHandlerAdded) {
-        document.addEventListener('click', (e) => {
-            document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach(dd => {
-                if (!dd.contains(e.target)) dd.classList.remove('open');
-            });
+    // Global close handlers: bound once for the lifetime of the page.
+    if (window._globalDropdownHandlerAdded) return;
+    window._globalDropdownHandlerAdded = true;
+
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach((dropdown) => {
+            if (!dropdown.contains(e.target)) setDropdownOpen(dropdown, false);
         });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.nav-dropdown.open, .profile-dropdown.open').forEach(dd => dd.classList.remove('open'));
-            }
-        });
-        window._globalDropdownHandlerAdded = true;
-    }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const open = document.querySelector('.nav-dropdown.open, .profile-dropdown.open');
+        if (!open) return;
+        closeDropdowns();
+        const trigger = open.querySelector('.dropdown-trigger, .profile-trigger');
+        if (trigger) trigger.focus();
+    });
 }
 
 // Notification Bell Functions
@@ -2628,17 +2160,7 @@ function initializeMobileNavigation() {
     }
 
     function closeAllDropdowns() {
-        // Close nav dropdown
-        const navDropdown = document.querySelector('.nav-dropdown');
-        if (navDropdown) {
-            navDropdown.classList.remove('open');
-        }
-        
-        // Close profile dropdown
-        const userProfile = document.querySelector('.user-profile');
-        if (userProfile) {
-            userProfile.classList.remove('open');
-        }
+        closeDropdowns();
     }
 
     // Mobile menu toggle click handler
@@ -2686,29 +2208,6 @@ function initializeMobileNavigation() {
         if (window.innerWidth > 768 && isMenuOpen) {
             closeMobileMenu();
         }
-    });
-
-    // Enhanced dropdown handling for mobile
-    const dropdownTriggers = document.querySelectorAll('.dropdown-trigger, .profile-trigger');
-    dropdownTriggers.forEach(trigger => {
-        trigger.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const dropdown = this.closest('.nav-dropdown, .user-profile');
-            const isOpen = dropdown.classList.contains('open');
-            
-            // Close all other dropdowns
-            dropdownTriggers.forEach(otherTrigger => {
-                const otherDropdown = otherTrigger.closest('.nav-dropdown, .user-profile');
-                if (otherDropdown !== dropdown) {
-                    otherDropdown.classList.remove('open');
-                }
-            });
-            
-            // Toggle current dropdown
-            dropdown.classList.toggle('open', !isOpen);
-        });
     });
 
     // Touch handling for better mobile experience

@@ -170,17 +170,19 @@
     function toggleDropdown(dropdown, trigger, menu, forceState) {
         if (!dropdown || !trigger || !menu) return;
 
-        const shouldOpen = forceState !== undefined ? forceState : !dropdown.classList.contains('active');
+        const shouldOpen = forceState !== undefined ? forceState : !dropdown.classList.contains('open');
 
-        if (shouldOpen) {
-            dropdown.classList.add('active');
-            trigger.setAttribute('aria-expanded', 'true');
-            menu.setAttribute('aria-hidden', 'false');
-        } else {
-            dropdown.classList.remove('active');
-            trigger.setAttribute('aria-expanded', 'false');
-            menu.setAttribute('aria-hidden', 'true');
+        // script.js owns the state so mouse, keyboard and ARIA never disagree.
+        // The `.active` class this used to toggle had no matching CSS rule, so
+        // keyboard users saw the menu close when it was supposed to open.
+        if (typeof window.setDropdownOpen === 'function') {
+            window.setDropdownOpen(dropdown, shouldOpen);
+            return;
         }
+
+        dropdown.classList.toggle('open', shouldOpen);
+        trigger.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+        menu.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
     }
 
     function focusFirstDropdownItem(menu) {
