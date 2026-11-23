@@ -96,3 +96,75 @@
 
 /site.webmanifest
   Cache-Control: public, max-age=86400
+# =============================================================================
+# Index control
+# =============================================================================
+# Internal tools, account screens, duplicates and retired pages must never be
+# indexed. Public content pages get their robots meta from the build (index,
+# follow) and no header override here.
+
+/admin*
+  X-Robots-Tag: noindex, nofollow
+
+/admin-console*
+  X-Robots-Tag: noindex, nofollow
+
+/admin-panel*
+  X-Robots-Tag: noindex, nofollow
+
+/admin-status*
+  X-Robots-Tag: noindex, nofollow
+
+/admin-verify-writer*
+  X-Robots-Tag: noindex, nofollow
+
+/auth-bridge*
+  X-Robots-Tag: noindex, nofollow
+
+/user-portal*
+  X-Robots-Tag: noindex, nofollow
+
+/settings*
+  X-Robots-Tag: noindex, nofollow
+
+/developer-dashboard*
+  X-Robots-Tag: noindex, nofollow
+
+/moderation*
+  X-Robots-Tag: noindex, nofollow
+
+/theme-scheduler*
+  X-Robots-Tag: noindex, nofollow
+
+/newsletter-modal*
+  X-Robots-Tag: noindex, nofollow
+
+/newsletter-success*
+  X-Robots-Tag: noindex, nofollow
+
+/thank-you*
+  X-Robots-Tag: noindex, nofollow
+
+/leaderboards*
+  X-Robots-Tag: noindex, nofollow
+
+/blank*
+  X-Robots-Tag: noindex, nofollow
+
+/offline*
+  X-Robots-Tag: noindex, nofollow
+
+/maintenance*
+  X-Robots-Tag: noindex, nofollow
+
+/404*
+  X-Robots-Tag: noindex, nofollow
+
+/subdomains/*
+  X-Robots-Tag: noindex, nofollow
+
+/game-detail.html
+  X-Robots-Tag: noindex, nofollow
+
+/game-detail
+  X-Robots-Tag: noindex, nofollow

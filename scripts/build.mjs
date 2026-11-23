@@ -30,6 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { transform as esbuildTransform } from 'esbuild';
 import { transform as lightningTransform } from 'lightningcss';
 import { minify as minifyHtml } from 'html-minifier-terser';
+import { bakeContent, finalizePrettyLinks } from './build-content.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -453,6 +454,10 @@ async function main() {
   log('copying site');
   await copyTree(ROOT, DIST);
 
+  log('baking static content');
+  const games = await bakeContent(DIST, ROOT);
+  log(`baked ${games.length} game page(s) and page metadata`);
+
   const header = readText(path.join(ROOT, 'components', 'header.html')).trim();
   const footer = readText(path.join(ROOT, 'components', 'footer.html')).trim();
 
@@ -485,6 +490,9 @@ async function main() {
     for (const message of scriptErrors.slice(0, 20)) console.error(`  - ${message}`);
     process.exit(1);
   }
+
+  log('rewriting internal links to pretty URLs');
+  finalizePrettyLinks(DIST, ROOT);
 
   log('versioning JS module imports');
   for (const file of await listFiles(path.join(DIST, 'js'), '.js')) {

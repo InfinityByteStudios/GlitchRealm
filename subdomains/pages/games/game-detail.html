@@ -860,9 +860,13 @@
       // Developer UIDs
     const DEV_UIDS = window.GlitchRealmDev?.DEV_UIDS || window.__ADMIN_UIDS__ || new Set();
 
+    // Static game pages (/games/<slug>/) ship their content in the HTML; the
+    // dynamic ?id= page keeps working for old links and unknown ids.
+    const BAKED_GAME = window.__GAME_DETAIL_STATIC__ || null;
+
     // Get game ID from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const gameId = urlParams.get('id');
+    const gameId = urlParams.get('id') || (BAKED_GAME && BAKED_GAME.id) || null;
     let currentUser = null;
     let gameData = null;
 
@@ -912,6 +916,14 @@
       const loadingState = document.getElementById('loadingState');
       const notFoundState = document.getElementById('notFoundState');
       const gameContent = document.getElementById('gameContent');
+
+      if (BAKED_GAME && !urlParams.get('id')) {
+        // Content is already rendered in the document, so never fetch it again
+        // or flash the loading / not-found state.
+        gameData = BAKED_GAME;
+        checkOwnership();
+        return;
+      }
 
       if (!gameId) {
         loadingState.style.display = 'none';

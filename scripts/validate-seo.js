@@ -21,9 +21,11 @@ const criticalFiles = [
   'components/footer.html',
   'robots.txt',
   'netlify.toml',
-  'netlify/edge-functions/prerender.js',
+  'scripts/build-content.mjs',
+  'scripts/lib/site.mjs',
+  'scripts/lib/games.mjs',
   'scripts/generate-prerendered-content.js',
-  'scripts/generate-sitemap.js',
+  'scripts/generate-sitemap.mjs',
   'sitemap.xml',
   'subdomains/pages/legal/privacy-policy.html',
   'subdomains/pages/legal/terms-of-service.html'
@@ -134,35 +136,34 @@ try {
   errors.push(`❌ Error reading robots.txt: ${err.message}`);
 }
 
-// Check 5: Validate prerender edge function
+// Check 5: Validate the build-time content bakery
 try {
-  const prerenderContent = fs.readFileSync('netlify/edge-functions/prerender.js', 'utf8');
-  
-  if (prerenderContent.includes('export default')) {
-    success.push('✅ Edge function exports default handler');
+  const bakery = fs.readFileSync('scripts/build-content.mjs', 'utf8');
+
+  if (bakery.includes('export async function bakeContent')) {
+    success.push('✅ Content bakery exports bakeContent()');
   } else {
-    errors.push('❌ Edge function missing default export');
+    errors.push('❌ scripts/build-content.mjs missing bakeContent()');
   }
-  
-  if (prerenderContent.includes('firestore.googleapis.com')) {
-    success.push('✅ Edge function fetches from Firestore');
+
+  if (bakery.includes('gameJsonLd')) {
+    success.push('✅ Static game pages add VideoGame JSON-LD');
   } else {
-    warnings.push('⚠️  Edge function may not be fetching game data');
+    warnings.push('⚠️  Static game pages should add VideoGame JSON-LD');
   }
-  
-  if (prerenderContent.includes('JSON-LD') || prerenderContent.includes('application/ld+json')) {
-    success.push('✅ Edge function adds structured data');
+
+  if (bakery.includes('window.__GAME_DETAIL_STATIC__')) {
+    success.push('✅ Static game pages hydrate from baked data');
   } else {
-    warnings.push('⚠️  Edge function should add JSON-LD structured data');
+    warnings.push('⚠️  Static game pages should hydrate from baked data');
   }
-  
 } catch (err) {
-  errors.push(`❌ Error reading netlify/edge-functions/prerender.js: ${err.message}`);
+  errors.push(`❌ Error reading scripts/build-content.mjs: ${err.message}`);
 }
 
-// Check 5b: Validate build-time prerendered content (crawler-visible HTML)
+// Check 5b: Validate the built HTML (crawler-visible, JS off)
 try {
-  const indexContent = fs.readFileSync('index.html', 'utf8');
+  const indexContent = fs.readFileSync('dist/index.html', 'utf8');
   const newestInfo = /<div class="featured-info" id="newest-game-info">([\s\S]*?)<\/div>/.exec(indexContent);
   if (newestInfo && /<h3>[^<]+<\/h3>/.test(newestInfo[1]) && !newestInfo[1].includes('Loading...')) {
     success.push('✅ Homepage ships a server-rendered "Newest Game" card');
@@ -170,18 +171,24 @@ try {
     errors.push('❌ Homepage "Newest Game" card has no server-rendered content');
   }
 
-  if (/game-detail\.html\?id=/.test(indexContent)) {
-    success.push('✅ Homepage links to the newest game detail page');
+  if (/href="\/games\/[a-z0-9-]+\/"/.test(indexContent)) {
+    success.push('✅ Homepage links to the newest game static page');
   } else {
-    errors.push('❌ Homepage does not link to the newest game detail page');
+    errors.push('❌ Homepage does not link to the newest game static page');
   }
 
-  const gamesContent = fs.readFileSync('subdomains/pages/games/games.html', 'utf8');
-  const bakedCards = (gamesContent.match(/class="game-card is-submission"/g) || []).length;
-  if (bakedCards > 0) {
-    success.push(`✅ Games page ships ${bakedCards} server-rendered community game cards`);
+  const gamesContent = fs.readFileSync('dist/games.html', 'utf8');
+  const bakedCards = (gamesContent.match(/class="game-card/g) || []).length;
+  if (bakedCards > 5) {
+    success.push(`✅ Games page ships ${bakedCards} server-rendered game cards`);
   } else {
-    errors.push('❌ Games page has no server-rendered community game cards');
+    errors.push('❌ Games page has no server-rendered game cards');
+  }
+  const gameLinks = (gamesContent.match(/href="\/games\/[a-z0-9-]+\/"/g) || []).length;
+  if (gameLinks > 0) {
+    success.push(`✅ Games page links to ${gameLinks} static game pages`);
+  } else {
+    errors.push('❌ Games page does not link to static game pages');
   }
 
   const gameDetailContent = fs.readFileSync('subdomains/pages/games/game-detail.html', 'utf8');
@@ -199,14 +206,14 @@ try {
   }
 
   const sitemapContent = fs.readFileSync('sitemap.xml', 'utf8');
-  const gameUrls = (sitemapContent.match(/game-detail\.html\?id=/g) || []).length;
+  const gameUrls = (sitemapContent.match(/<loc>https:\/\/glitchrealm\.ca\/games\/[a-z0-9-]+\/<\/loc>/g) || []).length;
   if (gameUrls > 0) {
-    success.push(`✅ sitemap.xml lists ${gameUrls} game detail URLs`);
+    success.push(`✅ sitemap.xml lists ${gameUrls} static game URLs`);
   } else {
-    errors.push('❌ sitemap.xml lists no game detail URLs');
+    errors.push('❌ sitemap.xml lists no game URLs');
   }
 } catch (err) {
-  errors.push(`❌ Error validating prerendered content: ${err.message}`);
+  errors.push(`❌ Error validating built content: ${err.message}`);
 }
 
 // Check 6: Validate footer exists and has legal links
@@ -214,18 +221,18 @@ try {
   const footerContent = fs.readFileSync('components/footer.html', 'utf8');
   
   const requiredLinks = [
-    'privacy-policy.html',
-    'terms-of-service.html',
-    'contact.html'
+    ['privacy-policy', 'privacy-policy.html'],
+    ['terms-of-service', 'terms-of-service.html'],
+    ['contact', 'contact.html'],
   ];
-  
-  requiredLinks.forEach(link => {
-    if (footerContent.includes(link)) {
-      success.push(`✅ Footer has link to ${link}`);
+
+  for (const [pretty, legacy] of requiredLinks) {
+    if (footerContent.includes(`/${pretty}"`) || footerContent.includes(`${pretty}.html`)) {
+      success.push(`✅ Footer has link to ${pretty}`);
     } else {
-      warnings.push(`⚠️  Footer should link to ${link}`);
+      warnings.push(`⚠️  Footer should link to ${legacy}`);
     }
-  });
+  }
   
   // Check for email addresses
   if (footerContent.includes('@glitchrealm.ca')) {

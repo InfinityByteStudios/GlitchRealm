@@ -245,6 +245,20 @@
             const bakedId = imageDiv.dataset.bakedId;
             const isSameBakedGame = bakedId && String(bakedId) === String(game.id) && imageDiv.style.backgroundImage;
 
+            // The baked card already contains the title, description, play button
+            // and a static /games/<slug>/ link. Leave that markup alone; only make
+            // the whole card clickable to the static page.
+            if (isSameBakedGame) {
+                const bakedPath = cardDiv.dataset.detailPath || imageDiv.dataset.detailPath;
+                if (bakedPath) {
+                    cardDiv.style.cursor = 'pointer';
+                    cardDiv.onclick = (e) => {
+                        if (!e.target.closest('a, .neural-button')) window.location.href = bakedPath;
+                    };
+                }
+                return;
+            }
+
             if (displayCover && !isSameBakedGame) {
                 // Cover URLs are already complete (usually percent-encoded by the
                 // submission pipeline). Do NOT re-encode them: encodeURI() re-encodes

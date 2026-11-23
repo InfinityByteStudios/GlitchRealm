@@ -3,7 +3,7 @@
   # Bake live game content into the static HTML for crawlers, then publish a
   # curated sitemap.xml (static pages + published game detail pages)
   publish = "dist"
-  command = "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.js && node scripts/build.mjs && node scripts/check-links.mjs"
+  command = "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.mjs && node scripts/build.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-static-content.mjs"
 
 [build.environment]
   # The build needs devDependencies (esbuild, lightningcss, html-minifier-terser).
@@ -180,8 +180,9 @@
     Vary = "Accept-Encoding"
     # Enable Netlify Observability headers
     X-Netlify-Trace = "enabled"
-    # Help AI agents understand site structure
-    X-Robots-Tag = "index, follow"
+    # NOTE: no global X-Robots-Tag. Per-page <meta name="robots"> (baked at
+    # build time) and the noindex rules in _headers decide indexability; a
+    # global header here used to force private pages to be indexed.
 
 # Redirects to auth subdomain
 [[redirects]]

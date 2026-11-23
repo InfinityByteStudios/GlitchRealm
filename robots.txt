@@ -1,20 +1,35 @@
-# GlitchRealm Robots.txt
-# Updated for SEO and AdSense compliance
+# GlitchRealm robots.txt
+# https://glitchrealm.ca
+#
+# Everything a crawler needs is listed here and in /llms.txt:
+#   /llms.txt        short, link-first index for language models
+#   /llms-full.txt   full text reference (games, pages, policies)
+#   /sitemap.xml     every indexable URL
 
-# Allow all crawlers
 User-agent: *
 Allow: /
-
-# Disallow internal, admin, and private areas (never indexed)
-Disallow: /admin*
+Disallow: /admin
+Disallow: /admin-console
+Disallow: /admin-panel
+Disallow: /admin-status
+Disallow: /admin-verify-writer
+Disallow: /auth-bridge
+Disallow: /user-portal
+Disallow: /settings
+Disallow: /developer-dashboard
+Disallow: /moderation
+Disallow: /theme-scheduler
+Disallow: /newsletter-modal
+Disallow: /newsletter-success
+Disallow: /thank-you
+Disallow: /leaderboards
+Disallow: /reviews
+Disallow: /blank
+Disallow: /offline
+Disallow: /maintenance
+Disallow: /404
 Disallow: /functions/
 Disallow: /.well-known/
-Disallow: /auth-bridge*
-Disallow: /portal-auth.js
-Disallow: /maintenance.html
-Disallow: /offline.html
-Disallow: /blank.html
-Disallow: /404.html
 Disallow: /subdomains/
 Disallow: /node_modules/
 Disallow: /utilities/
@@ -25,34 +40,83 @@ Disallow: /docs/
 Disallow: /supabase/
 Disallow: /config/
 
+# ---------------------------------------------------------------- AI agents
+# GlitchRealm content is public. These agents are welcome to read the games,
+# their descriptions and the policies. Please respect the rate limits below.
 
-# Allow important assets for rendering
-Allow: /assets/
-Allow: /Games/
-Allow: /styles.css
-Allow: /script.js
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /subdomains/
 
-# Sitemap location
-Sitemap: https://glitchrealm.ca/sitemap.xml
+User-agent: OAI-SearchBot
+Allow: /
 
-# Google-specific directives
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /subdomains/
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+# ------------------------------------------------------------ search engines
+
 User-agent: Googlebot
 Allow: /
 Crawl-delay: 0
 
-# Google AdSense bot (must be able to see content)
 User-agent: Mediapartners-Google
 Allow: /
 
-# Google AdSense ads bot
 User-agent: AdsBot-Google
 Allow: /
 
-# Google AdSense ads bot (mobile)
 User-agent: AdsBot-Google-Mobile
 Allow: /
 
-# Bing
 User-agent: Bingbot
 Allow: /
 Crawl-delay: 1
+
+Sitemap: https://glitchrealm.ca/sitemap.xml
+Sitemap: https://legal.glitchrealm.ca/sitemap.xml

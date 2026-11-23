@@ -9,6 +9,94 @@
 /header.html    /components/header.html   200
 /footer.html    /components/footer.html   200
 
+# =============================================================================
+# Canonical URLs — one form per page
+# =============================================================================
+# Everything below is forced (`!`) so a copied .html file in the deploy can
+# never shadow the redirect. Internal links, canonicals, the sitemap and
+# llms.txt all use these extensionless URLs.
+/index.html                              /                        301!
+/games.html                              /games                   301!
+/about.html                              /about                   301!
+/community.html                          /community               301!
+/newsletter.html                         /newsletter              301!
+/contact.html                            /contact                 301!
+/support.html                            /support                 301!
+/donate.html                             /donate                  301!
+/credits.html                            /credits                 301!
+/our-goal.html                           /our-goal                301!
+/projects.html                           /projects                301!
+
+# Utility pages keep a single, extensionless public URL too
+/user-portal.html                        /user-portal             301!
+/settings.html                           /settings                301!
+/developer-dashboard.html                /developer-dashboard     301!
+/leaderboards.html                       /leaderboards            301!
+/thank-you.html                          /thank-you               301!
+/moderation.html                         /moderation              301!
+/theme-scheduler.html                    /theme-scheduler         301!
+/newsletter-modal.html                   /newsletter-modal        301!
+/newsletter-success.html                 /newsletter-success      301!
+
+# Legal documents canonicalise to the legal subdomain
+/privacy-policy.html                     https://legal.glitchrealm.ca/privacy-policy             301!
+/terms-of-service.html                   https://legal.glitchrealm.ca/terms-of-service          301!
+/cookie-policy.html                      https://legal.glitchrealm.ca/cookie-policy             301!
+/eula.html                               https://legal.glitchrealm.ca/eula                      301!
+/dpa.html                                https://legal.glitchrealm.ca/dpa                       301!
+/coppa.html                              https://legal.glitchrealm.ca/coppa                     301!
+/accessibility-statement.html            https://legal.glitchrealm.ca/accessibility-statement   301!
+/developer-agreement.html                https://legal.glitchrealm.ca/developer-agreement       301!
+/submission-policy.html                  https://legal.glitchrealm.ca/submission-policy         301!
+/moderation-policy.html                  https://legal.glitchrealm.ca/moderation-policy         301!
+/copyright-dmca.html                     https://legal.glitchrealm.ca/copyright-dmca            301!
+/ip-notice.html                          https://legal.glitchrealm.ca/ip-notice                 301!
+/brand-protection.html                   https://legal.glitchrealm.ca/brand-protection          301!
+/refund-policy.html                      https://legal.glitchrealm.ca/refund-policy             301!
+/donation-policy.html                    https://legal.glitchrealm.ca/donation-policy           301!
+/code-of-conduct.html                    https://legal.glitchrealm.ca/code-of-conduct           301!
+/external-platforms.html                 https://legal.glitchrealm.ca/external-platforms        301!
+/legal-definitions.html                  https://legal.glitchrealm.ca/legal-definitions         301!
+/legal-contact.html                      https://legal.glitchrealm.ca/legal-contact             301!
+/legal-information.html                  https://legal.glitchrealm.ca/legal-information         301!
+
+/privacy-policy                          https://legal.glitchrealm.ca/privacy-policy             301!
+/terms-of-service                        https://legal.glitchrealm.ca/terms-of-service          301!
+/cookie-policy                           https://legal.glitchrealm.ca/cookie-policy             301!
+/eula                                    https://legal.glitchrealm.ca/eula                      301!
+/dpa                                     https://legal.glitchrealm.ca/dpa                       301!
+/coppa                                   https://legal.glitchrealm.ca/coppa                     301!
+/accessibility-statement                 https://legal.glitchrealm.ca/accessibility-statement   301!
+/developer-agreement                     https://legal.glitchrealm.ca/developer-agreement       301!
+/submission-policy                       https://legal.glitchrealm.ca/submission-policy         301!
+/moderation-policy                       https://legal.glitchrealm.ca/moderation-policy         301!
+/copyright-dmca                          https://legal.glitchrealm.ca/copyright-dmca            301!
+/ip-notice                               https://legal.glitchrealm.ca/ip-notice                 301!
+/brand-protection                        https://legal.glitchrealm.ca/brand-protection          301!
+/refund-policy                           https://legal.glitchrealm.ca/refund-policy             301!
+/donation-policy                         https://legal.glitchrealm.ca/donation-policy           301!
+/code-of-conduct                         https://legal.glitchrealm.ca/code-of-conduct           301!
+/external-platforms                      https://legal.glitchrealm.ca/external-platforms        301!
+/legal-definitions                       https://legal.glitchrealm.ca/legal-definitions         301!
+/legal-contact                           https://legal.glitchrealm.ca/legal-contact             301!
+/legal-information                       https://legal.glitchrealm.ca/legal-information         301!
+
+# Old game detail URLs -> the static per-game page.
+# The id -> slug table below is generated at build time from assets/game-data/
+# (see scripts/build-content.mjs, marker: GAME-DETAIL-REDIRECTS), so a newly
+# published game is covered on the next deploy without editing this file.
+# GAME-DETAIL-REDIRECTS
+/game-detail.html                        /games                   301!
+/game-detail                             /games                   301!
+
+# Empty /reviews page retired
+/reviews.html                            /games                   301!
+/reviews                                 /games                   301!
+
+# Legal subdomain discovery files
+https://legal.glitchrealm.ca/robots.txt  /legal-robots.txt        200
+https://legal.glitchrealm.ca/sitemap.xml /legal-sitemap.xml       200
+
 # V2 website has been retired - redirect to the live equivalents
 /v2                  /                                                301
 /v2/                 /                                                301
@@ -152,9 +240,6 @@ https://legal.glitchrealm.ca/*     /subdomains/legal/:splat      200
 /games                                  /subdomains/pages/games/games.html   200
 /leaderboards.html                      /subdomains/pages/games/leaderboards.html   200
 /leaderboards                           /subdomains/pages/games/leaderboards.html   200
-/reviews.html                           /subdomains/pages/games/reviews.html   200
-/reviews                                /subdomains/pages/games/reviews.html   200
-
 # The on-site submission form is retired - the official submission website is
 # the only public way to submit a game.
 /submit-game.html                       https://submit-game.forms.glitchrealm.ca/   301
