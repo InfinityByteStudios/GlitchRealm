@@ -168,3 +168,7 @@
 
 /game-detail
   X-Robots-Tag: noindex, nofollow
+
+# Lowercase copy of the Godot game shell (canonical lives at /Games/UnderYourSkin/)
+/games/UnderYourSkin*
+  X-Robots-Tag: noindex, nofollow
