@@ -5,6 +5,11 @@
 # Both /page.html and /page (extensionless) are supported.
 # =============================================================================
 
+# Diagnostic canary — the very first rule in the file.
+# If https://glitchrealm.ca/rules-canary does not 301 to /, Netlify is not
+# reading _redirects at all. Safe to remove once redirects are confirmed.
+/rules-canary    /   301!
+
 # Header/footer partials now live in components/
 /header.html    /components/header.html   200
 /footer.html    /components/footer.html   200
