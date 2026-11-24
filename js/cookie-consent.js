@@ -260,11 +260,52 @@
     openModal();
   };
 
+  /* ── Google CMP (Funding Choices) detection ───────────── */
+  /* Google's own consent message covers the EEA, UK and Switzerland. When it
+     is active it must be the only prompt on the page: a second first-party
+     banner would ask twice and look broken to a reviewer. Funding Choices
+     injects #googlefcPresent when it renders a message, so we step aside
+     there and let Google collect the choice directly. */
+  function googleCmpActive() {
+    if (document.getElementById('googlefcPresent')) return true;
+    return !!(window.googlefc && typeof window.googlefc.getConsentData === 'function');
+  }
+
+  /* If our bar is already visible when the Google message loads (it can arrive
+     a moment later on slow connections), drop ours immediately. */
+  function watchForGoogleCmp() {
+    if (googleCmpActive()) { hideBar(); closeModal(); return true; }
+    return false;
+  }
+
   /* ── boot: show bar if no consent stored ──────────────── */
   var storedConsent = getConsent();
-  if (!storedConsent) {
-    showBar();
-  } else {
+  if (storedConsent) {
     updateGoogleConsent(!!storedConsent.advertising);
+  } else if (watchForGoogleCmp()) {
+    /* Google's CMP owns this visitor's choice; nothing to do. */
+  } else {
+    /* Give a slow CMP a moment to appear before we claim the screen. */
+    var tries = 0;
+    var timer = setInterval(function () {
+      if (watchForGoogleCmp()) {
+        clearInterval(timer);
+        return;
+      }
+      tries += 1;
+      if (tries >= 8) {
+        clearInterval(timer);
+        showBar();
+      }
+    }, 150);
   }
+
+  /* Late-arriving Google message: hide our bar whenever it shows up. */
+  try {
+    var observer = new MutationObserver(function () {
+      if (watchForGoogleCmp()) observer.disconnect();
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    setTimeout(function () { observer.disconnect(); }, 15000);
+  } catch (e) { /* no MutationObserver */ }
 })();
