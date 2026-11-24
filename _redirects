@@ -19,13 +19,21 @@
 /games.html                              /games                   301!
 /about.html                              /about                   301!
 /community.html                          /community               301!
-/newsletter.html                         /newsletter              301!
 /contact.html                            /contact                 301!
 /support.html                            /support                 301!
 /donate.html                             /donate                  301!
 /credits.html                            /credits                 301!
 /our-goal.html                           /our-goal                301!
-/projects.html                           /projects                301!
+/projects.html                           https://labs.glitchrealm.ca   301!
+/projects                                https://labs.glitchrealm.ca   301!
+
+# Newsletter has been retired
+/newsletter.html                         /                        301!
+/newsletter                              /                        301!
+/newsletter-modal.html                   /                        301!
+/newsletter-modal                        /                        301!
+/newsletter-success.html                 /                        301!
+/newsletter-success                      /                        301!
 
 # Utility pages keep a single, extensionless public URL too
 /user-portal.html                        /user-portal             301!
@@ -35,8 +43,6 @@
 /thank-you.html                          /thank-you               301!
 /moderation.html                         /moderation              301!
 /theme-scheduler.html                    /theme-scheduler         301!
-/newsletter-modal.html                   /newsletter-modal        301!
-/newsletter-success.html                 /newsletter-success      301!
 
 # Legal documents canonicalise to the legal subdomain
 /privacy-policy.html                     https://legal.glitchrealm.ca/privacy-policy             301!
@@ -266,14 +272,18 @@ https://legal.glitchrealm.ca/*     /subdomains/legal/:splat      200
 /community                              /subdomains/pages/community/community.html   200
 
 # =============================================================================
-# URL-preserving rewrites - pages/newsletter/
+# URL-preserving rewrites - pages/guides/
 # =============================================================================
-/newsletter.html                        /subdomains/pages/newsletter/newsletter.html   200
-/newsletter                             /subdomains/pages/newsletter/newsletter.html   200
-/newsletter-modal.html                  /subdomains/pages/newsletter/newsletter-modal.html   200
-/newsletter-modal                       /subdomains/pages/newsletter/newsletter-modal.html   200
-/newsletter-success.html                /subdomains/pages/newsletter/newsletter-success.html   200
-/newsletter-success                     /subdomains/pages/newsletter/newsletter-success.html   200
+/guides.html                             /subdomains/pages/guides/index.html   200
+/guides                                  /subdomains/pages/guides/index.html   200
+/guides/how-to-play-browser-games.html   /subdomains/pages/guides/how-to-play-browser-games.html   200
+/guides/how-to-play-browser-games        /subdomains/pages/guides/how-to-play-browser-games.html   200
+/guides/controller-keyboard-setup.html   /subdomains/pages/guides/controller-keyboard-setup.html   200
+/guides/controller-keyboard-setup        /subdomains/pages/guides/controller-keyboard-setup.html   200
+/guides/low-end-performance.html         /subdomains/pages/guides/low-end-performance.html   200
+/guides/low-end-performance              /subdomains/pages/guides/low-end-performance.html   200
+/guides/submit-a-game.html               /subdomains/pages/guides/submit-a-game.html   200
+/guides/submit-a-game                    /subdomains/pages/guides/submit-a-game.html   200
 
 # News has been discontinued - retired News URLs point at the games directory
 /news.html                              /games.html   301
@@ -293,8 +303,6 @@ https://legal.glitchrealm.ca/*     /subdomains/legal/:splat      200
 /donate                                 /subdomains/pages/info/donate.html   200
 /our-goal.html                          /subdomains/pages/info/our-goal.html   200
 /our-goal                               /subdomains/pages/info/our-goal.html   200
-/projects.html                          /subdomains/pages/info/projects.html   200
-/projects                               /subdomains/pages/info/projects.html   200
 /support.html                           /subdomains/pages/info/support.html   200
 /support                                /subdomains/pages/info/support.html   200
 /thank-you.html                         /subdomains/pages/info/thank-you.html   200

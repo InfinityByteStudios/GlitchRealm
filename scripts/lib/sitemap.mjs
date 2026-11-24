@@ -2,7 +2,7 @@
  * GlitchRealm — sitemap generation.
  *
  * One list, built from `scripts/lib/site.mjs` (public pages) and
- * `scripts/lib/games.mjs` (published games as /games/<slug>/). Used by the
+ * `scripts/lib/games.mjs` (published games as /game/<slug>/). Used by the
  * pre-build script that refreshes the committed sitemap.xml and by the build
  * itself, which writes dist/sitemap.xml — so the two can never disagree.
  */
@@ -55,6 +55,9 @@ export function buildSitemapXml(root) {
   }
 
   for (const game of games) {
+    // Thin submissions are generated but stay out of the index until their
+    // copy is filled in (see computeContentReady).
+    if (game.contentReady === false) continue;
     const snapshot = path.join('assets', 'game-data', `${game.id}.json`);
     entries.push(urlEntry(game.canonicalUrl, fileDate(root, snapshot), 'weekly', '0.8'));
   }

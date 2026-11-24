@@ -72,7 +72,7 @@ for (const loc of locs) {
 
   const html = fs.readFileSync(file, 'utf8');
   const text = visibleText(html);
-  const isGamePage = loc.startsWith(`${ORIGIN}/games/`) && loc !== `${ORIGIN}/games`;
+  const isGamePage = loc.startsWith(`${ORIGIN}/game/`);
   const min = isGamePage ? 700 : (MIN_TEXT[loc] || 500);
 
   if (text.length < min) {
@@ -97,7 +97,7 @@ if (fs.existsSync(gamesFile)) {
   const html = fs.readFileSync(gamesFile, 'utf8');
   const cards = (html.match(/class="game-card[^"]*"/g) || []).length;
   if (cards < 10) fail(`/games: only ${cards} game cards in the HTML`);
-  const detailLinks = (html.match(/href="\/games\/[a-z0-9-]+\/"/g) || []).length;
+  const detailLinks = (html.match(/href="\/game\/[a-z0-9-]+\/"/g) || []).length;
   if (detailLinks < 10) fail(`/games: only ${detailLinks} links to static game pages`);
 } else {
   fail('/games: games.html missing');

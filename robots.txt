@@ -19,8 +19,6 @@ Disallow: /settings
 Disallow: /developer-dashboard
 Disallow: /moderation
 Disallow: /theme-scheduler
-Disallow: /newsletter-modal
-Disallow: /newsletter-success
 Disallow: /thank-you
 Disallow: /leaderboards
 Disallow: /reviews

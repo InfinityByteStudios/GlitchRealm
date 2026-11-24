@@ -45,6 +45,7 @@ import {
   buildGameCard,
   buildNewestGameCard,
   gameJsonLd,
+  gameFaqJsonLd,
   usableScreenshot,
 } from './lib/games.mjs';
 import { buildSitemapXml } from './lib/sitemap.mjs';
@@ -133,23 +134,18 @@ function bakeGamesPage(dist, games) {
 
   let html = read(file);
 
-  // Drop cards baked by a previous build, then insert a fresh, complete set
-  // before the coming-soon card. Balanced removal avoids leaving stray divs.
-  html = removeCards(html);
+  // Hand-authored cards duplicate the generated ones and are not fully
+  // clickable. Replace the whole set so each game appears exactly once.
+  html = removeAllCards(html);
   const cards = games.map(buildGameCard).join('\n                    ');
-  const marker = '<div class="game-card coming-soon"';
+  const marker = '<div class="game-cards">';
   const at = html.indexOf(marker);
   if (at === -1) {
-    log('games.html: coming-soon marker missing, cards not inserted');
+    log('games.html: game-cards container missing, cards not inserted');
     return;
   }
-  html = `${html.slice(0, at)}${cards}\n                    ${html.slice(at)}`;
-
-  // The in-house cards are hand-written; add crawlable links to their static
-  // detail pages without touching the rest of the card markup.
-  for (const game of games.filter((item) => item.source === 'featured')) {
-    html = addFeaturedDetailsLink(html, game);
-  }
+  const insertAt = at + marker.length;
+  html = `${html.slice(0, insertAt)}\n                    ${cards}\n                    ${html.slice(insertAt)}`;
 
   write(file, html);
   log(`games.html: ${games.length} game cards baked into HTML`);
@@ -182,18 +178,28 @@ function removeElement(html, openTag) {
   return html;
 }
 
-function removeCards(html) {
+/**
+ * Removes every hand-authored `.game-card` block from the catalog source.
+ * The source cards are kept for no-JS fallbacks and local previews, but the
+ * generated cards replace them so each game appears exactly once and every
+ * card is fully clickable.
+ */
+function removeAllCards(html) {
   let output = html;
-  const openTag = '<div class="game-card is-submission" data-prerendered="1"';
   let guard = 0;
-  while (output.includes(openTag) && guard < 500) {
+
+  while (guard < 200) {
     guard += 1;
-    const start = output.indexOf(openTag);
+    const match = /<div class="game-card(?:\s[^"]*)?"/.exec(output);
+    if (!match) break;
+
+    const start = match.index;
     let depth = 0;
     let index = start;
     let end = -1;
     const openPattern = /<div\b/gi;
     const closePattern = /<\/div\s*>/gi;
+
     while (index < output.length) {
       openPattern.lastIndex = index;
       closePattern.lastIndex = index;
@@ -212,30 +218,12 @@ function removeCards(html) {
         break;
       }
     }
+
     if (end === -1) break;
     output = output.slice(0, start) + output.slice(end);
   }
-  // Collapse the blank lines the removal leaves behind.
+
   return output.replace(/\n(?:[ \t]*\n){2,}/g, '\n\n');
-}
-
-function addFeaturedDetailsLink(html, game) {
-  const marker = `data-game="${game.id}"`;
-  const start = html.indexOf(marker);
-  if (start === -1) return html;
-
-  const contentAt = html.indexOf('<div class="card-content">', start);
-  if (contentAt === -1) return html;
-
-  const playAt = html.indexOf('data-play-url=', contentAt);
-  if (playAt === -1) return html;
-
-  // Insert the link just before the play button's opening tag.
-  const buttonAt = html.lastIndexOf('<button', playAt);
-  if (buttonAt === -1) return html;
-
-  const link = `\n                            <a class="card-details-link" href="${game.detailPath}">View ${escapeAttr(game.title)} details</a>`;
-  return html.slice(0, buttonAt) + link + html.slice(buttonAt);
 }
 
 /**
@@ -253,6 +241,7 @@ function writeGameRedirects(dist, games) {
     if (!game.id || !game.slug) continue;
     lines.push(`/game-detail.html  id=${game.id}   ${game.detailPath}   301!`);
     lines.push(`/game-detail       id=${game.id}   ${game.detailPath}   301!`);
+    lines.push(`${game.legacyPath}   ${game.detailPath}   301!`);
   }
 
   const html = read(file);
@@ -275,8 +264,65 @@ function absoluteAssetUrls(html) {
   });
 }
 
-function renderGamePage(template, game, games) {
-  const url = game.canonicalUrl;
+function detailsSection(game) {
+  const rows = [
+    ['Developer', game.developer || 'GlitchRealm'],
+    ['Genre', (game.tags || []).join(', ')],
+    ['Platform', 'Web browser'],
+    ['Price', 'Free'],
+    ['Status', game.status || 'published'],
+  ]
+    .filter(([, value]) => value)
+    .map(([label, value]) => `<dt>${escapeHtmlText(label)}</dt><dd>${escapeHtmlText(value)}</dd>`)
+    .join('');
+
+  return `<section id="gameDetailsSection" class="detail-section">
+        <h2>Game Details</h2>
+        <dl class="game-details-list" style="display:grid;grid-template-columns:max-content 1fr;gap:8px 24px;margin:0;">
+            ${rows}
+        </dl>
+      </section>`;
+}
+
+function controlsSection(game) {
+  if (!Array.isArray(game.controls) || !game.controls.length) return '';
+  const rows = game.controls
+    .map(
+      (control) =>
+        `<tr><th scope="row" style="text-align:left;padding:6px 16px 6px 0;font-weight:600;">${escapeHtmlText(control.action)}</th><td style="padding:6px 0;">${escapeHtmlText(control.keys)}</td></tr>`
+    )
+    .join('');
+  return `<section id="controlsSection" class="detail-section">
+        <h2>Controls</h2>
+        <table class="controls-table" style="border-collapse:collapse;width:100%;max-width:720px;">
+            <tbody>${rows}</tbody>
+        </table>
+      </section>`;
+}
+
+function tipsSection(game) {
+  if (!Array.isArray(game.tips) || !game.tips.length) return '';
+  const items = game.tips.map((tip) => `<li>${escapeHtmlText(tip)}</li>`).join('');
+  return `<section id="tipsSection" class="detail-section">
+        <h2>Tips &amp; Strategy</h2>
+        <ul>${items}</ul>
+      </section>`;
+}
+
+function faqSection(game) {
+  if (!Array.isArray(game.faq) || !game.faq.length) return '';
+  const items = game.faq
+    .map((item) => `<h3>${escapeHtmlText(item.q)}</h3>\n        <p>${escapeHtmlText(item.a)}</p>`)
+    .join('\n        ');
+  return `<section id="faqSection" class="detail-section">
+        <h2>Frequently Asked Questions</h2>
+        ${items}
+      </section>`;
+}
+
+function renderGamePage(template, game, games, options = {}) {
+  const alias = Boolean(options.alias);
+  const url = alias ? `${ORIGIN}${game.legacyPath}` : game.canonicalUrl;
   const title = `${game.title} - Play Free on GlitchRealm`;
   const description = markdownToText(game.description || game.extendedDescription || '', 158);
   const cover = game.cover && game.cover.startsWith('http')
@@ -296,7 +342,7 @@ function renderGamePage(template, game, games) {
   html = replaceOnce(
     html,
     '<link rel="canonical" href="https://glitchrealm.ca/game-detail.html">',
-    `<link rel="canonical" href="${escapeAttr(url)}">`,
+    `<link rel="canonical" href="${escapeAttr(game.canonicalUrl)}">`,
     'canonical'
   );
 
@@ -321,7 +367,11 @@ function renderGamePage(template, game, games) {
     `<meta name="twitter:image" content="${escapeAttr(cover)}">`,
   ].join('\n  ');
 
-  const structuredData = gameJsonLd(game, games)
+  const structuredNodes = [...gameJsonLd(game, games)];
+  const faqNode = gameFaqJsonLd(game);
+  if (faqNode) structuredNodes.push(faqNode);
+
+  const structuredData = structuredNodes
     .map((node) => `<script type="application/ld+json">${JSON.stringify(node)}</script>`)
     .join('\n  ');
 
@@ -329,6 +379,20 @@ function renderGamePage(template, game, games) {
     '</head>',
     `  ${ogTags}\n  ${structuredData}\n</head>`
   );
+
+  // Legacy alias (/games/<slug>/) keeps working but must never compete with the
+  // canonical /game/<slug>/ page in search. Thin submissions are published but
+  // kept out of the index until their copy is filled in.
+  if (alias || game.contentReady === false) {
+    if (/<meta[^>]+name=["']robots["']/i.test(html)) {
+      html = html.replace(
+        /<meta[^>]+name=["']robots["'][^>]*>/gi,
+        '<meta name="robots" content="noindex, follow">'
+      );
+    } else {
+      html = html.replace('</head>', '  <meta name="robots" content="noindex, follow">\n</head>');
+    }
+  }
 
   // --- breadcrumbs ------------------------------------------------------
   html = html.replace(/href="\/index\.html"/g, 'href="/"');
@@ -416,6 +480,12 @@ function renderGamePage(template, game, games) {
   }
 
   // --- long-form content ------------------------------------------------
+  const details = detailsSection(game);
+  html = html.replace(
+    '<section id="extendedDescSection"',
+    `${details}\n  <section id="extendedDescSection"`
+  );
+
   const extended = renderMarkdown(game.extendedDescription);
   if (extended) {
     html = html.replace(
@@ -428,6 +498,8 @@ function renderGamePage(template, game, games) {
       `<div id="extendedDescription">${extended}</div>`,
       'extended description'
     );
+  } else {
+    html = removeElement(html, '<section id="extendedDescSection"');
   }
 
   const howTo = renderMarkdown(game.howToPlay);
@@ -442,6 +514,8 @@ function renderGamePage(template, game, games) {
       `<div id="howToPlay">${howTo}</div>`,
       'how to play'
     );
+  } else {
+    html = removeElement(html, '<section id="howToPlaySection"');
   }
 
   const shots = game.screenshots.map(usableScreenshot).filter(Boolean).slice(0, 6);
@@ -488,9 +562,15 @@ function renderGamePage(template, game, games) {
       </section>
       `;
 
+  const extras = [
+    controlsSection(game),
+    tipsSection(game),
+    faqSection(game),
+  ].filter(Boolean).join('\n      ');
+
   html = html.replace(
-    '<div id="adsense-bottom" class="adsense-container"',
-    `${relatedSection}<div id="adsense-bottom" class="adsense-container"`
+    '</article>',
+    `${extras}\n      ${relatedSection}\n    </article>`
   );
 
   // --- hydration data ---------------------------------------------------
@@ -503,7 +583,7 @@ function renderGamePage(template, game, games) {
     playUrl: game.playUrl || '',
     ownerId: game.ownerId || '',
     status: game.status || 'published',
-    canonicalUrl: url,
+    canonicalUrl: game.canonicalUrl,
   };
   html = html.replace(
     '<script type="module">',
@@ -529,9 +609,13 @@ function generateGamePages(dist, games) {
 
   for (const game of games) {
     const html = renderGamePage(template, game, games);
-    write(path.join(dist, 'games', game.slug, 'index.html'), html);
+    write(path.join(dist, 'game', game.slug, 'index.html'), html);
+
+    // Legacy /games/<slug>/ URL: identical content, canonical + noindex.
+    const aliasHtml = renderGamePage(template, game, games, { alias: true });
+    write(path.join(dist, 'games', game.slug, 'index.html'), aliasHtml);
   }
-  log(`wrote ${games.length} static game page(s) under /games/<slug>/`);
+  log(`wrote ${games.length} static game page(s) under /game/<slug>/ (+ legacy aliases)`);
 }
 
 /** Injects a slug map into the dynamic game-detail fallback and redirects
@@ -541,7 +625,7 @@ function injectGameSlugRedirects(dist, games) {
   if (!fs.existsSync(file)) return;
 
   const map = Object.fromEntries(games.map((game) => [game.id, game.slug]));
-  const script = `<script>(function(){try{var m=${JSON.stringify(map)};var id=new URLSearchParams(location.search).get('id');var slug=id&&m[id];if(slug){location.replace('/games/'+slug+'/');}}catch(e){}})();</script>`;
+  const script = `<script>(function(){try{var m=${JSON.stringify(map)};var id=new URLSearchParams(location.search).get('id');var slug=id&&m[id];if(slug){location.replace('/game/'+slug+'/');}}catch(e){}})();</script>`;
 
   let html = read(file);
   html = html.replace('</head>', `  ${script}\n</head>`);
@@ -641,6 +725,20 @@ function applyHeadMetadata(dist, games) {
       html = html.replace(/<title[^>]*>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(page.title)}</title>`);
       html = setMeta(html, 'name', 'description', page.description);
       html = setMeta(html, 'name', 'robots', ROBOTS_INDEX);
+      html = setMeta(html, 'name', 'google-adsense-account', 'ca-pub-7271783548299942');
+
+      // Google Auto ads: one loader per public page. Individual ad units are
+      // not hand-placed — Auto ads decides placement from the page content.
+      // Consent Mode defaults to denied for advertising before the ad script
+      // runs; js/cookie-consent.js updates it when the visitor chooses.
+      if (!/adsbygoogle\.js/i.test(html)) {
+        html = html.replace(
+          '</head>',
+          `  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','analytics_storage':'granted'});</script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7271783548299942" crossorigin="anonymous"></script>
+</head>`
+        );
+      }
       html = setCanonical(html, url);
       html = setMeta(html, 'property', 'og:type', 'website');
       html = setMeta(html, 'property', 'og:site_name', SITE_NAME);
@@ -882,6 +980,27 @@ function writeLlmsTxt(dist, games) {
       full.push('');
       full.push(howTo);
       full.push('');
+    }
+    if (Array.isArray(game.controls) && game.controls.length) {
+      full.push('Controls:');
+      full.push('');
+      for (const control of game.controls) full.push(`- ${control.action}: ${control.keys}`);
+      full.push('');
+    }
+    if (Array.isArray(game.tips) && game.tips.length) {
+      full.push('Tips:');
+      full.push('');
+      for (const tip of game.tips) full.push(`- ${tip}`);
+      full.push('');
+    }
+    if (Array.isArray(game.faq) && game.faq.length) {
+      full.push('FAQ:');
+      full.push('');
+      for (const item of game.faq) {
+        full.push(`Q: ${item.q}`);
+        full.push(`A: ${item.a}`);
+        full.push('');
+      }
     }
   }
   for (const page of [...PUBLIC_PAGES, ...LEGAL_PAGES]) {

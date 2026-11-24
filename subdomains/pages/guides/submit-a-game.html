@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Submit a Game to GlitchRealm</title>
+    <meta name="description" content="What GlitchRealm looks for in a submission, what to prepare, and how the review process works for indie browser games.">
+    <link rel="canonical" href="https://glitchrealm.ca/guides/submit-a-game">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+</head>
+<body>
+    <div class="background-animation"></div>
+
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">Submit a Game to GlitchRealm</h1>
+                <p class="page-subtitle">What to prepare, what we review and what happens after approval</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <div class="policy-section">
+                <p>GlitchRealm is a curated library, not an open upload site. Every game is reviewed by a person before it appears in the catalogue. That review is short, but it is real: we check that the game runs, that it is yours to publish, and that a visitor can understand what they are about to play.</p>
+                <p>This guide explains exactly what we look at so you can prepare a submission that passes the first time.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>1. What kinds of games we accept</h2>
+                <p>We accept browser games that run from a URL without an install step. In practice that means HTML5, JavaScript and WebGL games hosted on your own domain or a static host.</p>
+                <ul>
+                    <li><strong>Original games</strong> you built or have the rights to publish.</li>
+                    <li><strong>Playable in a modern browser</strong> — Chrome, Firefox, Safari or Edge, on desktop or mobile.</li>
+                    <li><strong>Free to play</strong>, or with a free, clearly playable core.</li>
+                    <li><strong>Complete enough to play</strong> — a prototype is fine if it has a real loop and the controls work.</li>
+                </ul>
+                <p>We do not accept game portals, link collections, games that require a separate paid download, or pages whose main purpose is advertising.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>2. What to prepare</h2>
+                <p>A complete submission includes:</p>
+                <ul>
+                    <li><strong>The playable URL</strong> — the page that opens the game directly. Use HTTPS.</li>
+                    <li><strong>A title</strong> — the name players will see. Keep it under about 40 characters.</li>
+                    <li><strong>A short description</strong> — one or two sentences, roughly 80–200 characters, explaining what the player does.</li>
+                    <li><strong>A long description</strong> — several paragraphs covering the setting, the loop, modes, progression and what makes the game different. This becomes the “About This Game” section.</li>
+                    <li><strong>How to play</strong> — controls, objective, win and lose conditions, and any systems a new player must understand.</li>
+                    <li><strong>Tags</strong> — three to six genres or mechanics, such as “puzzle”, “tower defence” or “incremental”.</li>
+                    <li><strong>A cover image</strong> — landscape, at least 1280×720, with the game's title readable at small sizes.</li>
+                    <li><strong>Screenshots</strong> — optional but strongly recommended. Two to six images showing actual gameplay.</li>
+                </ul>
+                <p>Write the description yourself. Copy that reads like marketing filler is the most common reason a submission needs a second round.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>3. Technical requirements</h2>
+                <ul>
+                    <li>The game must load without a build step or a local server on the player's machine.</li>
+                    <li>It must run over HTTPS. Mixed-content requests are blocked by browsers and will break parts of the game.</li>
+                    <li>It should not depend on a plugin, a desktop app or a specific browser engine.</li>
+                    <li>If it needs sound, the game should handle the browser's audio-unlock rule by starting audio after the first click.</li>
+                    <li>If it stores progress, say where: local storage, your own account system, or nowhere.</li>
+                    <li>If it has an account system, the sign-up and privacy flow must be yours to operate, and it must be described accurately.</li>
+                </ul>
+                <p>Before submitting, test the game in a private window with no extensions, and test it once on a phone. Both catch problems that are invisible on a developer machine.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>4. Rights and content rules</h2>
+                <p>You must own the game or have written permission from the rights holder. That includes the code, art, audio and any trademarks. Fan games built on someone else's intellectual property cannot be published without that permission.</p>
+                <p>We do not publish games that contain hateful content, sexual content involving minors, targeted harassment, malware, or deceptive advertising. Games that collect personal data must disclose what they collect and link to their own privacy policy.</p>
+                <p>The full rules are in the <a href="https://legal.glitchrealm.ca/submission-policy">submission policy</a> and the <a href="https://legal.glitchrealm.ca/developer-agreement">developer agreement</a>. By submitting, you confirm that you have read them.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>5. How review works</h2>
+                <p>Submissions arrive through the <a href="https://submit-game.forms.glitchrealm.ca/">official submission form</a>. A reviewer opens the game, plays long enough to understand the loop, and checks the listing against the submission.</p>
+                <p>There are three possible outcomes:</p>
+                <ul>
+                    <li><strong>Approved</strong> — the game is published and gets a permanent page on GlitchRealm.</li>
+                    <li><strong>Changes requested</strong> — we explain what needs fixing, usually missing description, broken mobile layout or unclear controls. You can resubmit.</li>
+                    <li><strong>Declined</strong> — the game falls outside the content rules or the rights cannot be verified.</li>
+                </ul>
+                <p>Review time depends on the queue. Most submissions are reviewed within a few days. There is no fee, and submitting does not transfer ownership of your game.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>6. After approval</h2>
+                <p>Approved games get a canonical page at <code>/game/&lt;slug&gt;/</code> with a title, description, controls, FAQ, screenshots and structured data. The page is static HTML, so it loads quickly and can be read by search engines and AI assistants.</p>
+                <p>To give the page the best chance of being indexed, make sure the long description and how-to-play sections are substantial. Pages with only a short blurb are published but kept out of the sitemap until the copy is filled in.</p>
+                <p>If you update the game later, send the changes through the same contact route. We can update the listing without changing its URL, and the URL stays stable if the title changes.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>7. Common reasons a submission is delayed</h2>
+                <ul>
+                    <li>The playable URL opens a landing page instead of the game.</li>
+                    <li>The description repeats the title without explaining the loop.</li>
+                    <li>Controls are missing or do not match the game.</li>
+                    <li>The cover image has unreadable text at card size.</li>
+                    <li>The game breaks on mobile or in a fresh browser profile.</li>
+                    <li>The rights holder is unclear, or the game uses assets the submitter does not own.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>Related links</h2>
+                <ul>
+                    <li><a href="https://submit-game.forms.glitchrealm.ca/">Submit a game</a> — the official form.</li>
+                    <li><a href="/games">Browse published games</a> for examples of complete listings.</li>
+                    <li><a href="/guides">All GlitchRealm guides</a>.</li>
+                    <li><a href="/contact">Contact the team</a> if the form is not working.</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="/js/script.js"></script>
+</body>
+</html>

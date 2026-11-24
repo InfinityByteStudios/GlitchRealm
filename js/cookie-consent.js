@@ -48,9 +48,27 @@
       timestamp: new Date().toISOString()
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch (e) { /* quota */ }
+    updateGoogleConsent(!!advertising);
     /* notify listeners (e.g. js/analytics) that consent changed */
     try { window.dispatchEvent(new CustomEvent('gr:consentchange', { detail: { analytics: true, advertising: !!advertising } })); } catch (e) { /* ignore */ }
     return obj;
+  }
+
+  /* ── Google Consent Mode v2 bridge ─────────────────────── */
+  /* Advertising storage stays denied until the visitor accepts. The default
+     is declared inline in each page's <head>, before the AdSense loader. */
+  function updateGoogleConsent(advertising) {
+    var state = advertising ? 'granted' : 'denied';
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    try {
+      window.gtag('consent', 'update', {
+        ad_storage: state,
+        ad_user_data: state,
+        ad_personalization: state,
+        analytics_storage: 'granted'
+      });
+    } catch (e) { /* ignore */ }
   }
 
   /* ── expose global helpers ─────────────────────────────── */
@@ -243,7 +261,10 @@
   };
 
   /* ── boot: show bar if no consent stored ──────────────── */
-  if (!getConsent()) {
+  var storedConsent = getConsent();
+  if (!storedConsent) {
     showBar();
+  } else {
+    updateGoogleConsent(!!storedConsent.advertising);
   }
 })();

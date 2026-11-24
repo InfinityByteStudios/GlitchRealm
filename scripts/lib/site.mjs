@@ -54,13 +54,49 @@ export const PUBLIC_PAGES = [
     priority: '0.8',
   },
   {
-    path: '/newsletter',
-    source: 'subdomains/pages/newsletter/newsletter.html',
-    title: 'Newsletter - GlitchRealm',
+    path: '/guides',
+    source: 'subdomains/pages/guides/index.html',
+    title: 'GlitchRealm Guides - How to Play Browser Games',
     description:
-      'Subscribe to the GlitchRealm newsletter for game releases, community events and platform updates.',
+      'Practical GlitchRealm guides: how to play browser games, set up a controller, improve performance on low-end devices and submit your own game.',
     changefreq: 'monthly',
-    priority: '0.5',
+    priority: '0.7',
+  },
+  {
+    path: '/guides/how-to-play-browser-games',
+    source: 'subdomains/pages/guides/how-to-play-browser-games.html',
+    title: 'How to Play Browser Games - GlitchRealm',
+    description:
+      'A beginner guide to playing free browser games on GlitchRealm: controls, fullscreen, saves, accounts and troubleshooting.',
+    changefreq: 'monthly',
+    priority: '0.6',
+  },
+  {
+    path: '/guides/controller-keyboard-setup',
+    source: 'subdomains/pages/guides/controller-keyboard-setup.html',
+    title: 'Controller and Keyboard Setup for Browser Games - GlitchRealm',
+    description:
+      'How to set up a controller or keyboard for browser games, fix input problems and choose the right control scheme.',
+    changefreq: 'monthly',
+    priority: '0.6',
+  },
+  {
+    path: '/guides/low-end-performance',
+    source: 'subdomains/pages/guides/low-end-performance.html',
+    title: 'Browser Game Performance on Low-End Devices - GlitchRealm',
+    description:
+      'Make browser games run smoothly on older laptops and phones: browser settings, tabs, graphics options and network tips.',
+    changefreq: 'monthly',
+    priority: '0.6',
+  },
+  {
+    path: '/guides/submit-a-game',
+    source: 'subdomains/pages/guides/submit-a-game.html',
+    title: 'How to Submit a Game to GlitchRealm',
+    description:
+      'What GlitchRealm looks for in a submission, what to prepare, and how the review process works for indie browser games.',
+    changefreq: 'monthly',
+    priority: '0.6',
   },
   {
     path: '/contact',
@@ -104,15 +140,6 @@ export const PUBLIC_PAGES = [
     title: 'Our Goal - GlitchRealm',
     description:
       'Why GlitchRealm exists: a free, creator-first home for indie browser games.',
-    changefreq: 'monthly',
-    priority: '0.5',
-  },
-  {
-    path: '/projects',
-    source: 'subdomains/pages/info/projects.html',
-    title: 'Projects - GlitchRealm',
-    description:
-      'Games and projects built by InfinityByte Studios and the GlitchRealm community.',
     changefreq: 'monthly',
     priority: '0.5',
   },
@@ -192,12 +219,14 @@ export const NOINDEX_PATHS = [
   '/reviews',
   '/ads',
   '/game-detail',
+  '/projects',
+  '/newsletter',
   '/06a965f6ee081157c87d0ad51dcc734e',
   '/google45e7c06578ec8df3',
   '/dist',
 ];
 
-export const NOINDEX_PREFIXES = ['/admin', '/auth-bridge', '/subdomains/'];
+export const NOINDEX_PREFIXES = ['/admin', '/auth-bridge', '/subdomains/', '/games/'];
 
 export function absoluteUrl(page) {
   const base = page.origin === 'legal' ? LEGAL_ORIGIN : ORIGIN;

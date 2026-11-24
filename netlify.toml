@@ -3,7 +3,7 @@
   # Bake live game content into the static HTML for crawlers, then publish a
   # curated sitemap.xml (static pages + published game detail pages)
   publish = "dist"
-  command = "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.mjs && node scripts/build.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-static-content.mjs"
+  command = "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.mjs && node scripts/build.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-static-content.mjs && node scripts/check-content-quality.mjs"
 
 [build.environment]
   # The build needs devDependencies (esbuild, lightningcss, html-minifier-terser).
@@ -174,7 +174,7 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.gstatic.com https://cdnjs.buymeacoffee.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://apis.google.com https://www.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' blob: https: wss:; frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://badge.uptimerobot.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self' blob: data: https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.gstatic.com https://cdnjs.buymeacoffee.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://apis.google.com https://www.google.com https://static.cloudflareinsights.com https://www.googletagservices.com https://adservice.google.com https://securepubads.g.doubleclick.net https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' blob: https: wss:; frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.googletagservices.com https://securepubads.g.doubleclick.net https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://badge.uptimerobot.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self' blob: data: https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     # Enable Brotli/Gzip
     Vary = "Accept-Encoding"
@@ -184,15 +184,10 @@
     # build time) and the noindex rules in _headers decide indexability; a
     # global header here used to force private pages to be indexed.
 
-# Redirects to auth subdomain
-[[redirects]]
-  from = "auth.glitchrealm.ca"
-  to = "https://auth.glitchrealm.ca"
-  status = 301
-  force = true
-
-# NOTE: /signin, /login, /signin.html, /forgot-password and /reset-password are
-# handled in _redirects (single source of truth for the retired auth UI).
+# NOTE: auth.glitchrealm.ca is a Netlify domain alias, not a path. A redirect
+# whose `from` is a hostname made this block invalid and was removed; host-level
+# redirects belong in the Netlify UI or DNS. Paths such as /signin are handled in
+# _redirects (single source of truth for the retired auth UI).
 
 [[redirects]]
   from = "/edu/*"

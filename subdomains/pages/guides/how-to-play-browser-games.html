@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Play Browser Games - GlitchRealm</title>
+    <meta name="description" content="A beginner guide to playing free browser games on GlitchRealm: controls, fullscreen, saves, accounts and troubleshooting.">
+    <link rel="canonical" href="https://glitchrealm.ca/guides/how-to-play-browser-games">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+</head>
+<body>
+    <div class="background-animation"></div>
+
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">How to Play Browser Games</h1>
+                <p class="page-subtitle">Launching, controlling and troubleshooting games that run in your browser</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <div class="policy-section">
+                <p>Browser games are ordinary web pages that happen to be interactive. There is nothing to install, no launcher to update and no store account to create. That is the appeal, but it also means a game inherits the behaviour of your browser: its permissions, its zoom level, its extensions and its cache all matter.</p>
+                <p>This guide walks through the full path from opening a game page to fixing the problems that stop a game from starting.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>1. Start from the game page</h2>
+                <p>Open the <a href="/games">games library</a> and choose a title. Every game has its own page with a description, controls, tips and a Play button. Read the controls section before you launch: a game that looks unresponsive is often waiting for a key you have not pressed yet.</p>
+                <p>The Play button opens the game in a new tab. That tab is the actual game, sometimes hosted by the developer on a separate domain. GlitchRealm stays open in the original tab, so you can return to the game page for controls or tips without losing your place.</p>
+                <p>If the Play button does nothing, check whether your browser blocked a pop-up. Browsers block new tabs by default unless the action came directly from a click, and aggressive pop-up settings can still interfere. Allow pop-ups for glitchrealm.ca and try again.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>2. Understand the controls</h2>
+                <p>Most games use one of three input schemes:</p>
+                <ul>
+                    <li><strong>Keyboard only</strong> — arrow keys or WASD to move, space to jump or confirm, escape to pause. This is the most common scheme for arcade and puzzle games.</li>
+                    <li><strong>Keyboard and mouse</strong> — WASD to move, mouse to look or aim, left click to fire or select. First-person and strategy games usually need both.</li>
+                    <li><strong>Pointer or touch</strong> — click, drag or tap. Puzzle, merge and card games are usually built around a single pointer.</li>
+                </ul>
+                <p>The game page always lists the controls the developer provided. If a control is not listed, try the usual suspects before assuming the game is broken: space, enter, escape, the arrow keys and a click on the game area. Some games only accept input after you click once inside the canvas so the browser knows where to send keyboard events.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>3. Use fullscreen properly</h2>
+                <p>Fullscreen removes browser chrome and gives the game more room. It also changes how the browser reports the window size, so a game may resize or restart when you enter or leave fullscreen. That is normal.</p>
+                <p>Press <strong>F11</strong> on Windows or Linux, or <strong>Control + Command + F</strong> on macOS, for browser fullscreen. Many games also have their own fullscreen button inside the canvas. If keyboard input stops working after entering fullscreen, click once inside the game to return focus to it.</p>
+                <p>On mobile, fullscreen support depends on the browser. Safari on iPhone does not offer the same fullscreen API as desktop browsers, so some games run in a letterboxed area instead. Rotating the device to landscape usually gives the best result.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>4. Sound, permissions and focus</h2>
+                <p>Browsers do not allow audio to start until you interact with the page. If a game seems silent, click inside it once. That single click satisfies the browser's autoplay policy.</p>
+                <p>Games may also ask for permissions such as pointer lock for mouse look, or clipboard access for share codes. Grant pointer lock for first-person games; deny anything that does not match what the game actually does. You can review and revoke permissions later in your browser's site settings.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>5. Saves and progress</h2>
+                <p>There are three common ways a browser game stores progress:</p>
+                <ul>
+                    <li><strong>Local storage</strong> — saved inside your browser on this device. Clearing site data or using private browsing erases it.</li>
+                    <li><strong>Game accounts</strong> — saved on the developer's server and available on any device after signing in.</li>
+                    <li><strong>Nothing at all</strong> — arcade games often keep score only for the current session.</li>
+                </ul>
+                <p>The game page's FAQ section says which model a game uses when the developer told us. If a game has its own account system, that account is managed by the developer, not by GlitchRealm. Treat the game's own sign-up screen with the same caution you would use anywhere else.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>6. When a game will not start</h2>
+                <p>Work through these in order. Most problems are solved by the first three steps.</p>
+                <ul>
+                    <li><strong>Reload the game tab.</strong> A single failed asset request can leave a blank canvas.</li>
+                    <li><strong>Try a second browser.</strong> If it works elsewhere, the problem is a setting or extension in the first browser.</li>
+                    <li><strong>Disable extensions for the game's domain.</strong> Ad blockers and privacy extensions sometimes block the scripts or fonts a game needs.</li>
+                    <li><strong>Allow the site in your content blocker.</strong> Add glitchrealm.ca and the game's own domain to your allowlist.</li>
+                    <li><strong>Clear site data for the game's domain only.</strong> This resets a corrupted save without touching the rest of your browsing.</li>
+                    <li><strong>Check your connection.</strong> Browser games stream assets as you play; a flaky connection can stall a level load even when the first screen appeared.</li>
+                </ul>
+                <p>If the page itself does not load, the problem is on our side or in your network. Check the <a href="https://status.glitchrealm.ca/">status page</a> before reporting it.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>7. Mobile and touch devices</h2>
+                <p>Many GlitchRealm games work on phones and tablets, but not all of them. Games that depend on a keyboard, such as first-person shooters or games with dozens of hotkeys, expect a desktop. Games built around a single pointer work well with touch.</p>
+                <p>On mobile, keep the browser updated, close background apps when a game stutters, and prefer Wi-Fi for anything that streams large assets. If a game offers an on-screen control layout, use it rather than the browser's zoom gesture; pinch-zooming during play usually breaks the layout.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>8. A note on ads and privacy</h2>
+                <p>GlitchRealm is free to use and supported by advertising. Ads never change how a game plays, and they are never placed inside the game itself. You can manage consent choices from the footer of any page. The <a href="https://legal.glitchrealm.ca/privacy-policy">privacy policy</a> explains what is collected and why.</p>
+                <p>If an ad blocks the page or a game for you, report it through the <a href="/contact">contact form</a> with the page URL and a screenshot. That is the fastest way to get a bad ad removed.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Related guides</h2>
+                <ul>
+                    <li><a href="/guides/controller-keyboard-setup">Controller and keyboard setup</a> if input is the problem.</li>
+                    <li><a href="/guides/low-end-performance">Performance on low-end devices</a> if the game runs slowly.</li>
+                    <li><a href="/guides">All GlitchRealm guides</a>.</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="/js/script.js"></script>
+</body>
+</html>

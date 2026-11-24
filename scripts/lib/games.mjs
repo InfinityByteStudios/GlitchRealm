@@ -11,6 +11,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { GAME_CONTENT, computeContentReady } from './game-content.mjs';
+
 /** In-house games that are authored directly in games.html. */
 const FEATURED_GAMES = [
   {
@@ -35,7 +37,7 @@ const FEATURED_GAMES = [
     description:
       'Ride the digital waves in this high-speed cyberpunk racing adventure. Master the art of data surfing through neon-lit networks.',
     extendedDescription:
-      '**ByteSurge** is a high-speed cyberpunk racer from NanoShade Studios. Surf data streams through neon-lit networks, dodge corrupted traffic and chase the fastest line through the grid.\n\nIt is a free browser game — no download, no install, no account required to play.',
+      '**ByteSurge** is a high-speed cyberpunk racer from NanoShade Studios. Surf data streams through neon-lit networks, dodge corrupted traffic and chase the fastest line through the grid.\n\nRuns are short by design. Each attempt is a single stretch of network: learn where the traffic patterns bunch up, find the line that keeps your speed high, and restart immediately when a crash ends the run. The score is speed and distance, so a clean line beats a cautious one.\n\nThe visual language is borrowed from terminal interfaces and neon signage — hard edges, bright traces on dark backgrounds and a constant sense of motion. It is a free browser game: no download, no install and no account required to play.',
     howToPlay:
       '### Controls\n\n- Steer with the **arrow keys** or **A/D**.\n- Keep your speed up through the data streams and avoid corrupted traffic.\n- Restart instantly after a crash and chase a faster run.\n\nSelect **Play Now** to launch ByteSurge in a new tab.',
     tags: ['Racing', 'Speed', 'Cyberpunk'],
@@ -51,7 +53,7 @@ const FEATURED_GAMES = [
     description:
       'Engage in neural combat using advanced algorithms. Battle through digital networks in this strategic warfare game.',
     extendedDescription:
-      '**NeuroCore: Byte Wars** is a strategy game from InfinityByte Studios. Command neural combat programs, out-think rival algorithms and fight for control of the network.\n\nIt runs directly in your browser as part of the GlitchRealm library.',
+      '**NeuroCore: Byte Wars** is a strategy game from InfinityByte Studios. Command neural combat programs, out-think rival algorithms and fight for control of the network.\n\nThe match is decided by position, not by the size of your army. Each round you commit programs to nodes while the enemy does the same, and the network state shifts as nodes change hands. Watching how the opposition spends its units is more useful than spending yours quickly.\n\nIt is built for short sessions: a few rounds, a clear result, and a reason to try a different opening next time. The interface keeps the board readable so the decision stays in the open rather than in hidden statistics.\n\nIt runs directly in your browser as part of the GlitchRealm library, with no download and no install.',
     howToPlay:
       '### Controls\n\n- Build and deploy your programs using the in-game command panel.\n- Watch enemy movement and commit your units to the right node.\n- Adapt your strategy each round as the network changes.\n\nSelect **Play Now** to launch NeuroCore: Byte Wars in a new tab.',
     tags: ['Strategy', 'Combat', 'Sci-Fi'],
@@ -138,8 +140,24 @@ export function loadGames(root) {
     while (used.has(slug)) slug = `${slugify(game.title)}-${suffix++}`;
     used.add(slug);
     game.slug = slug;
-    game.detailPath = `/games/${slug}/`;
-    game.canonicalUrl = `https://glitchrealm.ca/games/${slug}/`;
+    game.detailPath = `/game/${slug}/`;
+    game.canonicalUrl = `https://glitchrealm.ca/game/${slug}/`;
+    game.legacyPath = `/games/${slug}/`;
+
+    // Content that lives outside Firestore. Existing copy always wins; the
+    // override file only fills fields the snapshot left empty and adds the
+    // structural sections (controls / tips / FAQ) around the game's own text.
+    const override = GAME_CONTENT[slug] || GAME_CONTENT[game.id] || {};
+    if (!String(game.extendedDescription || '').trim()) {
+      game.extendedDescription = override.extendedDescription || '';
+    }
+    if (!String(game.howToPlay || '').trim()) {
+      game.howToPlay = override.howToPlay || '';
+    }
+    game.controls = Array.isArray(game.controls) ? game.controls : (override.controls || []);
+    game.tips = Array.isArray(game.tips) ? game.tips : (override.tips || []);
+    game.faq = Array.isArray(game.faq) ? game.faq : (override.faq || []);
+    game.contentReady = computeContentReady(game);
   }
 
   return games;
@@ -279,12 +297,14 @@ export function buildNewestGameCard(game) {
 
   return `<div class="featured-card" id="newest-game-card" data-prerendered="1" data-baked-id="${escapeAttr(game.id)}" data-detail-path="${escapeAttr(game.detailPath)}">
                     <div class="featured-image" id="newest-game-image" data-baked-id="${escapeAttr(game.id)}" data-detail-path="${escapeAttr(game.detailPath)}" ${coverStyle}>
-                        ${coverImg}
-                        <div class="game-badge new">NEW</div>
+                        <a class="featured-image-link" href="${escapeAttr(game.detailPath)}" aria-label="View ${title} details" style="display:block;position:absolute;inset:0;z-index:1;">
+                            ${coverImg}
+                            <div class="game-badge new">NEW</div>
+                        </a>
                     </div>
                     <div class="featured-info" id="newest-game-info">
-                        <h3>${title}</h3>
-                        <p class="featured-description">${description}</p>
+                        <h3><a href="${escapeAttr(game.detailPath)}">${title}</a></h3>
+                        <p class="featured-description"><a href="${escapeAttr(game.detailPath)}" style="color:inherit;text-decoration:none;">${description}</a></p>
                         <p class="featured-developer">Made by <strong>${developer}</strong></p>
                         <p><a href="${escapeAttr(game.detailPath)}" class="featured-details-link">Game details</a></p>
                         <a href="${playUrl || escapeAttr(game.detailPath)}" class="play-btn featured-play-btn" target="_blank" rel="noopener noreferrer">
@@ -312,17 +332,20 @@ export function buildGameCard(game) {
     ? `<a class="btn btn-primary card-btn play-now-btn" href="${playUrl}" target="_blank" rel="noopener noreferrer" data-play-url="${playUrl}" data-play-game="${escapeAttr(game.id)}" data-play-name="${escapeAttr(game.title)}">Play Now</a>`
     : '<span class="btn btn-disabled card-btn" aria-disabled="true">Play link pending</span>';
 
-  return `<div class="game-card is-submission" data-prerendered="1" data-game="${escapeAttr(game.id)}">
+  return `<div class="game-card is-submission" data-prerendered="1" data-game="${escapeAttr(game.id)}" data-detail-path="${escapeAttr(game.detailPath)}">
                         <div class="card-image">
-                            <img src="${cover}"${srcset} alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
-                            <div class="card-overlay"></div>
+                            <a class="card-image-link" href="${escapeAttr(game.detailPath)}" aria-label="View ${title} details" style="display:block;width:100%;height:100%;position:relative;">
+                                <img src="${cover}"${srcset} alt="${title}" class="game-logo-image" loading="lazy" decoding="async" width="320" height="180">
+                                <div class="card-overlay"></div>
+                            </a>
                             <div class="game-badge new" style="display:${game.badge === 'new' ? 'block' : 'none'};">NEW</div>
                         </div>
                         <div class="card-content">
                             <h3 class="card-title"><a href="${escapeAttr(game.detailPath)}">${title}</a></h3>
-                            <p class="card-description">${description || 'No description provided.'}</p>
+                            <p class="card-description"><a href="${escapeAttr(game.detailPath)}" style="color:inherit;text-decoration:none;">${description || 'No description provided.'}</a></p>
                             <p class="card-developer">Made by <strong>${developer}</strong></p>
                             <div class="card-tags">${tags}</div>
+                            <a class="card-details-link" href="${escapeAttr(game.detailPath)}">View game details →</a>
                             ${playMarkup}
                         </div>
                     </div>`;
@@ -335,6 +358,8 @@ export function gameJsonLd(game, allGames) {
     .slice(0, 6)
     .map((other) => ({ '@type': 'VideoGame', name: other.title, url: other.canonicalUrl }));
 
+  const shots = (game.screenshots || []).map(usableScreenshot).filter(Boolean).slice(0, 6);
+
   return [
     {
       '@context': 'https://schema.org',
@@ -346,6 +371,7 @@ export function gameJsonLd(game, allGames) {
       image: game.cover && game.cover.startsWith('http')
         ? game.cover
         : `https://glitchrealm.ca${game.cover || '/assets/icons/anonymous.png'}`,
+      ...(shots.length ? { screenshot: shots } : {}),
       genre: game.tags,
       gamePlatform: 'Web Browser',
       operatingSystem: 'Any',
@@ -370,6 +396,21 @@ export function gameJsonLd(game, allGames) {
       ],
     },
   ];
+}
+
+/** FAQPage structured data for the visible FAQ section on a game page. */
+export function gameFaqJsonLd(game) {
+  if (!Array.isArray(game.faq) || game.faq.length < 3) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    '@id': `${game.canonicalUrl}#faq`,
+    mainEntity: game.faq.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  };
 }
 
 /** Turns stored screenshot URLs into ones an <img> can actually load. */

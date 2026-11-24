@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Game Performance on Low-End Devices - GlitchRealm</title>
+    <meta name="description" content="Make browser games run smoothly on older laptops and phones: browser settings, tabs, graphics options and network tips.">
+    <link rel="canonical" href="https://glitchrealm.ca/guides/low-end-performance">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+</head>
+<body>
+    <div class="background-animation"></div>
+
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">Performance on Low-End Devices</h1>
+                <p class="page-subtitle">Getting a steady frame rate out of an older laptop, a budget phone or a slow connection</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <div class="policy-section">
+                <p>Browser games are lighter than installed games, but they are not free. A modern browser is a full rendering platform, and a game competes with every other tab, extension and background service on the machine. On a low-end device, that competition is what turns a smooth game into a slideshow.</p>
+                <p>This guide is ordered from the changes with the biggest effect to the smallest. Start at the top and stop when the game is playable.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>1. Turn on hardware acceleration</h2>
+                <p>Hardware acceleration lets the browser draw with your graphics processor instead of the CPU. It is the single most important setting for browser game performance, and it is sometimes switched off after a driver update or by a power-saving policy.</p>
+                <ul>
+                    <li><strong>Chrome and Edge</strong> — Settings → System → “Use graphics acceleration when available”. Relaunch the browser after changing it.</li>
+                    <li><strong>Firefox</strong> — Settings → General → Performance → “Use hardware acceleration when available”.</li>
+                    <li><strong>Safari</strong> — hardware acceleration is on by default on macOS; there is no user-facing switch.</li>
+                </ul>
+                <p>After enabling it, open <code>chrome://gpu</code> or <code>about:support</code> in Firefox and check that WebGL and canvas acceleration are listed as hardware accelerated rather than software only.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>2. Close what you are not using</h2>
+                <p>Every open tab holds memory and timers. A video tab, a chat app and a dozen background tabs can consume more CPU than the game. Close them before you play, especially anything that plays audio or video.</p>
+                <p>On Windows, check Task Manager for background processes using high CPU. On macOS, use Activity Monitor. On phones, close apps you are not using and restart the browser if it has been open for days.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>3. Reduce the rendering workload</h2>
+                <ul>
+                    <li><strong>Play at 100% browser zoom.</strong> Any other zoom level forces the browser to rescale every frame.</li>
+                    <li><strong>Use a smaller window.</strong> Rendering fewer pixels is the most direct performance win. A game that stutters at fullscreen may run smoothly in a window.</li>
+                    <li><strong>Lower the display resolution</strong> on very old machines. A 4K panel driven by integrated graphics is a heavy load for any canvas game.</li>
+                    <li><strong>Disable animations in the operating system</strong> if the browser feels sluggish even outside games. Reduced motion also helps the site's own interface.</li>
+                    <li><strong>Turn off browser features you do not need</strong> while playing, such as picture-in-picture video or a second monitor running a video stream.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>4. Check extensions and content blockers</h2>
+                <p>Extensions run inside every page you open, and some of them rewrite or observe the page constantly. Ad blockers and privacy tools are usually fine, but aggressive script blockers, grammar checkers and screenshot tools can add measurable overhead.</p>
+                <p>Test with extensions disabled for the game's domain. If performance improves, re-enable them one at a time. Allowlisting glitchrealm.ca and the game's own domain is usually enough; you do not need to uninstall anything.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>5. Improve the network side</h2>
+                <p>Browser games load assets over the network. A slow first load is often bandwidth, while stutter during play is usually latency or packet loss.</p>
+                <ul>
+                    <li>Prefer a wired connection or a 5 GHz Wi-Fi band over a crowded 2.4 GHz network.</li>
+                    <li>Pause downloads and video streams while playing online games.</li>
+                    <li>Move closer to the router, or use a mesh node, if the signal is weak.</li>
+                    <li>Disable VPNs for online games when you can. A VPN adds a hop and often increases latency.</li>
+                    <li>Reload the page after a network drop. Some games recover badly from a brief disconnect and keep retrying stale requests.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>6. Mobile-specific advice</h2>
+                <p>Phones thermal-throttle. A game that runs well for five minutes and then stutters is usually hitting a temperature limit, not a memory leak. Remove the case if it traps heat, avoid charging while playing, and lower screen brightness.</p>
+                <p>Close background apps, disable battery saver for the browser, and keep the browser updated. On Android, Chrome's “Lite mode” and data-saving features can interfere with game assets; disable them for the game's domain. On iOS, low power mode reduces background activity and can affect frame pacing.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>7. What not to do</h2>
+                <ul>
+                    <li><strong>Do not install “game booster” software.</strong> It rarely helps browser games and often adds background processes of its own.</li>
+                    <li><strong>Do not disable your antivirus</strong> to gain performance. The risk is not worth the few frames.</li>
+                    <li><strong>Do not use unofficial browser flags</strong> you do not understand. A flag that helps one site can break another, and the effect is usually temporary.</li>
+                    <li><strong>Do not judge a game by its first ten seconds.</strong> Shader compilation and asset streaming often settle after the first level.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>8. When the device is simply too old</h2>
+                <p>Some hardware cannot run modern WebGL games at a playable frame rate, and no setting changes that. Integrated graphics from before roughly 2015, phones with 2 GB of RAM and browsers that no longer receive updates are the usual limits. In that case, prefer games tagged as text-based, puzzle or incremental; they are designed to run on modest hardware.</p>
+                <p>You can filter the library on the <a href="/games">games page</a> and read each game's requirements in its details section.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>Related guides</h2>
+                <ul>
+                    <li><a href="/guides/how-to-play-browser-games">How to play browser games</a> for startup troubleshooting.</li>
+                    <li><a href="/guides/controller-keyboard-setup">Controller and keyboard setup</a> for input problems.</li>
+                    <li><a href="/guides">All GlitchRealm guides</a>.</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="/js/script.js"></script>
+</body>
+</html>

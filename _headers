@@ -136,12 +136,6 @@
 /theme-scheduler*
   X-Robots-Tag: noindex, nofollow
 
-/newsletter-modal*
-  X-Robots-Tag: noindex, nofollow
-
-/newsletter-success*
-  X-Robots-Tag: noindex, nofollow
-
 /thank-you*
   X-Robots-Tag: noindex, nofollow
 
@@ -168,6 +162,11 @@
 
 /game-detail
   X-Robots-Tag: noindex, nofollow
+
+# Legacy game-page URLs (/games/<slug>/) 301 to /game/<slug>/; the physical
+# copies stay noindex in case redirects are unavailable on a preview deploy.
+/games/*
+  X-Robots-Tag: noindex, follow
 
 # Lowercase copy of the Godot game shell (canonical lives at /Games/UnderYourSkin/)
 /games/UnderYourSkin*

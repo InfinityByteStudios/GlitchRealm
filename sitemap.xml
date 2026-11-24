@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://glitchrealm.ca/</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://glitchrealm.ca/games</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -20,19 +20,43 @@
   </url>
   <url>
     <loc>https://glitchrealm.ca/community</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/newsletter</loc>
-    <lastmod>2026-11-01</lastmod>
+    <loc>https://glitchrealm.ca/guides</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/guides/how-to-play-browser-games</loc>
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/guides/controller-keyboard-setup</loc>
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/guides/low-end-performance</loc>
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://glitchrealm.ca/guides/submit-a-game</loc>
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://glitchrealm.ca/contact</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -44,7 +68,7 @@
   </url>
   <url>
     <loc>https://glitchrealm.ca/donate</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -61,20 +85,14 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/projects</loc>
-    <lastmod>2026-11-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://legal.glitchrealm.ca/terms-of-service</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://legal.glitchrealm.ca/privacy-policy</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -187,89 +205,89 @@
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/coderunner/</loc>
+    <loc>https://glitchrealm.ca/game/coderunner/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/bytesurge/</loc>
+    <loc>https://glitchrealm.ca/game/bytesurge/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/neurocore-byte-wars/</loc>
+    <loc>https://glitchrealm.ca/game/neurocore-byte-wars/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/no-map-home/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/no-map-home/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/sobosuba-squishy-merge-puzzle/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/sobosuba-squishy-merge-puzzle/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/roadrival/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/roadrival/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/xfps/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/xfps/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/spire-oath/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/spire-oath/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/poke-survivor/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/poke-survivor/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/hood-warfare/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/hood-warfare/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/sushi-catch/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/sushi-catch/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/spaceshooter-master/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/spaceshooter-master/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/random-realms-3d/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/random-realms-3d/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/reality-sim/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/reality-sim/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glitchrealm.ca/games/questforge/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <loc>https://glitchrealm.ca/game/questforge/</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

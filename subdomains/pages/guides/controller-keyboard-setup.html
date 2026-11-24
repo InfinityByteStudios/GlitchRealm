@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controller and Keyboard Setup for Browser Games - GlitchRealm</title>
+    <meta name="description" content="How to set up a controller or keyboard for browser games, fix input problems and choose the right control scheme.">
+    <link rel="canonical" href="https://glitchrealm.ca/guides/controller-keyboard-setup">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/assets/Favicon and Icons/favicon.svg">
+</head>
+<body>
+    <div class="background-animation"></div>
+
+    <div id="header-placeholder"></div>
+
+    <main class="main">
+        <section class="games-hero">
+            <div class="container">
+                <h1 class="page-title">Controller and Keyboard Setup</h1>
+                <p class="page-subtitle">Getting the right input working in a browser game</p>
+            </div>
+        </section>
+
+        <div class="policy-container">
+            <div class="policy-section">
+                <p>Input is the most common reason a browser game feels broken. The game is running, the graphics are fine, but the character will not move. Almost always the cause is focus, a browser shortcut, or a controller the browser cannot see.</p>
+                <p>This guide explains how browser input actually works, how to connect a controller, and how to fix the specific problems players run into most.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>1. How browser games read input</h2>
+                <p>Browser games do not talk to your operating system directly. They receive events from the browser, which means three things:</p>
+                <ul>
+                    <li>The game must have <strong>focus</strong>. If you clicked a browser toolbar, an ad or a chat window, your keystrokes go there instead of the game.</li>
+                    <li>Browser and operating-system shortcuts take priority. Alt+Tab, Command+Tab, F11 and similar combinations will never reach a game.</li>
+                    <li>Controllers are exposed through the browser's Gamepad API. If the browser does not detect the device, the game cannot use it.</li>
+                </ul>
+                <p>If input stops working mid-game, click once inside the game area. That restores focus without reloading.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>2. Keyboard: the reliable default</h2>
+                <p>A wired or built-in keyboard is the most dependable way to play. It needs no drivers, no pairing and no browser permission. Before blaming a game, check these common issues:</p>
+                <ul>
+                    <li><strong>Num Lock and Caps Lock</strong> — games that use arrow keys or letter keys can behave oddly if these are toggled. Some games use the numeric keypad, which does nothing while Num Lock is off.</li>
+                    <li><strong>Keyboard layout</strong> — games are usually written for a US layout. On AZERTY, QWERTZ or Dvorak layouts, WASD may not sit where the game expects. Many games also support arrow keys, which are layout-independent.</li>
+                    <li><strong>Stuck modifier keys</strong> — if Shift or Control appears to be held down, press it twice. Operating systems sometimes latch modifiers after a shortcut.</li>
+                    <li><strong>Hardware key rollover</strong> — cheap keyboards may drop a key when several are pressed at once. If sprinting and turning at the same time fails, that is a keyboard limitation, not a game bug.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>3. Connecting a controller</h2>
+                <p>Most modern browsers support standard gamepads through the Gamepad API. Support is best on Chrome, Edge and Firefox; Safari support exists but is less consistent.</p>
+                <h3>Wired controllers</h3>
+                <p>Plug the controller in, then <strong>reload the game page</strong>. Browsers usually only register a gamepad on page load. A controller connected after the game starts may not appear until you refresh.</p>
+                <h3>Bluetooth controllers</h3>
+                <p>Pair the controller with your operating system first, not with the browser. Once the system sees it as an input device, reload the game. On Windows, the controller should appear under Settings → Bluetooth &amp; devices. On macOS, check System Settings → Bluetooth. On Linux, most controllers appear as an evdev device automatically.</p>
+                <h3>PlayStation, Xbox and Switch controllers</h3>
+                <p>Xbox controllers use XInput on Windows and are the most consistent choice. PlayStation controllers work through the browser's standard mapping, but button labels may not match the game's prompts. Switch Pro controllers often work in the browser once paired, though the button order may differ. Whichever controller you use, the game must explicitly support gamepads; a keyboard-only game will ignore it.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>4. When the browser does not see the controller</h2>
+                <p>Use a browser gamepad tester page to confirm the device is detected. If the tester shows no device, the problem is below the browser. Check, in order:</p>
+                <ul>
+                    <li>The cable or Bluetooth pairing.</li>
+                    <li>Whether another application has exclusive control of the controller. Steam, console emulators and some launchers hold the device open.</li>
+                    <li>Whether the controller is in the wrong mode. Some third-party pads have a switch between XInput, DirectInput and Switch modes; browser games generally expect XInput.</li>
+                    <li>Whether the page is focused. Gamepad input is delivered to the focused document.</li>
+                </ul>
+                <p>If the tester detects the pad but the game does not respond, the game likely has no controller support. Check its controls section on the game page.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>5. Reducing input lag</h2>
+                <p>Input lag is the delay between pressing a button and seeing the result. On a browser game it comes from four places: display latency, browser rendering, network latency and the game's own code.</p>
+                <ul>
+                    <li><strong>Use a monitor's game mode</strong> if it has one. It disables post-processing that adds tens of milliseconds.</li>
+                    <li><strong>Close extra tabs</strong> so the browser is not competing for CPU.</li>
+                    <li><strong>Prefer a wired connection</strong> for online games; Wi-Fi adds variable latency that no input setting can remove.</li>
+                    <li><strong>Disable browser zoom</strong>. Non-100% zoom forces extra scaling work on every frame.</li>
+                </ul>
+                <p>For single-player games, most remaining latency is display and rendering. For online games, network distance usually dominates, and nothing on your keyboard changes that.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>6. Accessibility and alternative input</h2>
+                <p>Browser games inherit browser accessibility support. If you use a switch device, an on-screen keyboard or voice control, those tools send ordinary key events if configured to emulate a keyboard. Games that support arrow keys are usually the easiest to drive this way because arrows map cleanly to directional switches.</p>
+                <p>Games that require precise mouse aim are harder to adapt. Some players use a trackball or a controller with gyro aiming; others rely on the game's own difficulty or assist options. If a game is unusable with your setup, tell us through the <a href="/contact">contact form</a> and we will pass the feedback to the developer.</p>
+            </div>
+
+            <div class="policy-section">
+                <h2>7. Quick checklist</h2>
+                <ul>
+                    <li>Click inside the game before pressing keys.</li>
+                    <li>Reload after connecting a controller.</li>
+                    <li>Close applications that may hold the controller.</li>
+                    <li>Check Caps Lock, Num Lock and your keyboard layout.</li>
+                    <li>Try a second browser to separate game problems from browser problems.</li>
+                    <li>Confirm the game lists the control scheme you are trying to use.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>Related guides</h2>
+                <ul>
+                    <li><a href="/guides/how-to-play-browser-games">How to play browser games</a> for the full startup checklist.</li>
+                    <li><a href="/guides/low-end-performance">Performance on low-end devices</a> if the game runs but stutters.</li>
+                    <li><a href="/guides">All GlitchRealm guides</a>.</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="/js/script.js"></script>
+</body>
+</html>
