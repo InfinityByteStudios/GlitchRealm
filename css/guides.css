@@ -1,0 +1,178 @@
+/* ==========================================================================
+   GlitchRealm Guides
+   Long-form reading layout for /guides. Mirrors the .policy-container pattern
+   used on /our-goal so guide pages sit inside the same visual system as the
+   rest of the site: narrow measure, cyan section rules, Orbitron headings.
+   ========================================================================== */
+
+.policy-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+
+.policy-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.policy-section {
+    margin-bottom: 2.5rem;
+}
+
+.policy-section h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--primary-cyan, #00fff9);
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 255, 249, 0.2);
+}
+
+.policy-section h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 1.75rem 0 0.6rem;
+}
+
+.policy-section p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 1rem;
+}
+
+.policy-section ul,
+.policy-section ol {
+    margin: 1rem 0 1.25rem 1.35rem;
+    padding: 0;
+}
+
+.policy-section li {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 0.6rem;
+}
+
+.policy-section strong {
+    color: #fff;
+}
+
+.policy-section a {
+    color: var(--primary-cyan, #00fff9);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.policy-section a:hover {
+    color: #fff;
+}
+
+/* -- hub cards ----------------------------------------------------------- */
+
+.guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.1rem;
+    margin: 1.5rem 0 2.5rem;
+}
+
+.guide-card {
+    display: block;
+    padding: 1.35rem 1.4rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(0, 255, 249, 0.18);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.guide-card:hover,
+.guide-card:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(0, 255, 249, 0.5);
+    box-shadow: 0 0 22px rgba(0, 255, 249, 0.1);
+    text-decoration: none;
+}
+
+.guide-card__kicker {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: rgba(0, 255, 249, 0.65);
+    margin-bottom: 0.5rem;
+}
+
+.guide-card__title {
+    display: block;
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: #fff;
+    margin-bottom: 0.55rem;
+}
+
+.guide-card__text {
+    display: block;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+/* -- article extras ------------------------------------------------------ */
+
+.guide-breadcrumb {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    color: rgba(0, 255, 249, 0.75);
+    text-decoration: none;
+}
+
+.guide-breadcrumb:hover {
+    color: #fff;
+}
+
+.guide-callout {
+    background: rgba(0, 255, 249, 0.06);
+    border: 1px solid rgba(0, 255, 249, 0.22);
+    border-left: 3px solid var(--primary-cyan, #00fff9);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+}
+
+.guide-callout p {
+    margin-bottom: 0;
+}
+
+.guide-next {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.guide-next a {
+    font-size: 0.95rem;
+}
+
+@media (max-width: 600px) {
+    .policy-container {
+        padding: 1.25rem 1.1rem 3rem;
+    }
+
+    .policy-section h2 {
+        font-size: 1.15rem;
+    }
+}
