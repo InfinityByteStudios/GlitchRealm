@@ -1,0 +1,20 @@
+# GlitchRealm
+
+> GlitchRealm (glitchrealm.ca) is a browser-game platform where players discover and play indie web games, and developers publish their games to a curated community.
+
+Play games: [https://glitchrealm.ca/games.html](https://glitchrealm.ca/games.html)
+Submit a game: [https://glitchrealm.ca/submit-game.html](https://glitchrealm.ca/submit-game.html)
+
+## Changelog
+
+- [Changelog overview](https://glitchrealm.ca/changelog/): every published release, fully rendered in HTML. No JavaScript required.
+- [RSS feed](https://glitchrealm.ca/changelog/feed.xml): RSS 2.0, one item per published release.
+- [Atom feed](https://glitchrealm.ca/changelog/atom.xml): Atom 1.0.
+- [JSON release index](https://glitchrealm.ca/changelog/releases.json): machine-readable index (schema at /changelog/releases.schema.json).
+
+## Platform
+
+- [Games](https://glitchrealm.ca/games.html): the community game directory.
+- [News](https://glitchrealm.ca/news.html): platform announcements.
+- [Support](https://glitchrealm.ca/support.html): player and developer support.
+- [Developers](https://developers.glitchrealm.ca/): developer portal and resources.

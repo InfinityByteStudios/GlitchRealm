@@ -6,6 +6,10 @@
  * reflected without waiting for the next deploy (the build-time
  * scripts/generate-sitemap.js output remains as the static fallback).
  *
+ * Changelog URLs (overview + every published release page) are merged in from
+ * the static /changelog/releases.json shipped in the same deploy, so the live
+ * sitemap always covers the complete release history.
+ *
  * Mirrors the static-page list and published-status handling in
  * scripts/generate-sitemap.js and netlify/edge-functions/prerender.js.
  *
@@ -103,57 +107,103 @@ async function fetchPublishedGames() {
   return games;
 }
 
-function buildSitemap(games, today) {
-  const seen = new Set();
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+async function fetchChangelogReleases() {
+	try {
+		const resp = await fetch(`${BASE_URL}/changelog/releases.json`, {
+			signal: AbortSignal.timeout(5000),
+		});
+		if (!resp.ok) return [];
+		const data = await resp.json();
+		if (!data || !Array.isArray(data.releases)) return [];
+		return data.releases
+			.filter((release) => release && /^\d+\.\d+\.\d+$/.test(String(release.version || '')))
+			.map((release) => ({
+				version: release.version,
+				publishedAt: release.publishedAt || '',
+			}));
+	} catch {
+		return [];
+	}
+}
+
+function buildSitemap(games, changelogReleases, today) {
+	const seen = new Set();
+	let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 `;
 
-  for (const page of STATIC_PAGES) {
-    const loc = BASE_URL + page.url;
-    if (seen.has(loc)) continue;
-    seen.add(loc);
-    xml += `  <url>
+	for (const page of STATIC_PAGES) {
+		const loc = BASE_URL + page.url;
+		if (seen.has(loc)) continue;
+		seen.add(loc);
+		xml += `  <url>
     <loc>${escapeXml(loc)}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>
 `;
-  }
+	}
 
-  for (const game of games) {
-    const loc = `${BASE_URL}/game-detail.html?id=${encodeURIComponent(game.id)}`;
-    if (seen.has(loc)) continue;
-    seen.add(loc);
-    xml += `  <url>
+	const changelogOverview = `${BASE_URL}/changelog/`;
+	if (!seen.has(changelogOverview)) {
+		seen.add(changelogOverview);
+		xml += `  <url>
+    <loc>${escapeXml(changelogOverview)}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+	}
+
+	for (const release of changelogReleases) {
+		const loc = `${BASE_URL}/changelog/v${release.version.replace(/\./g, '-')}/`;
+		if (seen.has(loc)) continue;
+		seen.add(loc);
+		xml += `  <url>
+    <loc>${escapeXml(loc)}</loc>
+    <lastmod>${isoDate(release.publishedAt, today)}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+`;
+	}
+
+	for (const game of games) {
+		const loc = `${BASE_URL}/game-detail.html?id=${encodeURIComponent(game.id)}`;
+		if (seen.has(loc)) continue;
+		seen.add(loc);
+		xml += `  <url>
     <loc>${escapeXml(loc)}</loc>
     <lastmod>${isoDate(game.updatedAt, today)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 `;
-  }
+	}
 
-  return xml + '</urlset>\n';
+	return xml + '</urlset>\n';
 }
 
 export default async (req, context) => {
-  let games;
-  const today = new Date().toISOString().split('T')[0];
-  try {
-    games = await fetchPublishedGames();
-  } catch {
-    return; // fall through to the build-time static sitemap.xml
-  }
+	let games;
+	let changelogReleases;
+	const today = new Date().toISOString().split('T')[0];
+	try {
+		games = await fetchPublishedGames();
+	} catch {
+		return; // fall through to the build-time static sitemap.xml
+	}
+	changelogReleases = await fetchChangelogReleases();
 
-  return new Response(buildSitemap(games, today), {
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=300, s-maxage=600',
-      'X-Robots-Tag': 'noindex',
-    },
-  });
+	return new Response(buildSitemap(games, changelogReleases, today), {
+		headers: {
+			'Content-Type': 'application/xml; charset=utf-8',
+			'Cache-Control': 'public, max-age=300, s-maxage=600',
+			'X-Robots-Tag': 'noindex',
+		},
+	});
 };
 
 export const config = {

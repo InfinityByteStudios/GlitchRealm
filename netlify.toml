@@ -1,8 +1,14 @@
 # Enable Netlify's new AI-powered features
 [build]
-  # Bake live game content into the static HTML for crawlers, then publish a
-  # curated sitemap.xml (static pages + published game detail pages)
-  command = "node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.js"
+  # 1. Changelog pipeline: extract commits since the last published release,
+  #    compute the next semver, generate release pages + RSS/Atom/JSON, and
+  #    update the committed manifest (changelog/versions.json).
+  # 2. Bake live game content into the static HTML for crawlers.
+  # 3. Publish a curated sitemap.xml (static pages + changelog releases +
+  #    published game detail pages). Order matters: the sitemap step reads the
+  #    changelog manifest produced in step 1 and fails the build if any
+  #    published release is missing from it.
+  command = "node scripts/changelog/generate.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.js"
 
 [build.environment]
   # Firebase API keys are public by design and secured by Firestore rules
@@ -88,6 +94,13 @@
 
 [[headers]]
   for = "/pages/**/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Changelog pages, feeds and machine-readable indexes regenerate on every
+# deploy; always serve the freshest build.
+[[headers]]
+  for = "/changelog/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 

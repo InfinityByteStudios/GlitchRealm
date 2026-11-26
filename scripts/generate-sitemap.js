@@ -5,10 +5,16 @@
  *   - Hand-picked static pages (only public, indexable ones)
  *   - Published game detail pages fetched from Firestore (no auth needed —
  *     the collection is publicly readable, same as the client JS)
+ *   - Changelog pages: the overview plus every published release page, read
+ *     from the changelog manifest written earlier in the build by
+ *     scripts/changelog/generate.js
  *
  * Replaces the @netlify/plugin-sitemap crawl, which was publishing internal
  * URLs (node_modules, tests, admin, auth, components, etc.) into the sitemap.
  */
+
+const fs = require('fs');
+const path = require('path');
 
 const FIREBASE_PROJECT_ID = 'shared-sign-in';
 const FIRESTORE_RUN_QUERY =
@@ -92,6 +98,39 @@ async function fetchPublishedGames(limit = 200) {
 }
 
 // ---------------------------------------------------------------------------
+// Changelog manifest (written by scripts/changelog/generate.js earlier in the
+// build; drafts are never included — only status "published" entries)
+// ---------------------------------------------------------------------------
+
+function changelogManifestPath() {
+	if (process.env.CHANGELOG_MANIFEST) return process.env.CHANGELOG_MANIFEST;
+	return path.join(__dirname, '..', 'changelog', 'versions.json');
+}
+
+function loadChangelogReleases() {
+	const file = changelogManifestPath();
+	try {
+		if (!fs.existsSync(file)) return [];
+		const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+		if (!data || !Array.isArray(data.releases)) return [];
+		return data.releases
+			.filter((release) => release && release.status === 'published' && /^\d+\.\d+\.\d+$/.test(String(release.version || '')))
+			.map((release) => ({
+				version: release.version,
+				publishedAt: release.publishedAt || release.lastModifiedAt || '',
+			}))
+			.sort((a, b) => {
+				const [amaj, amin, apat] = a.version.split('.').map(Number);
+				const [bmaj, bmin, bpat] = b.version.split('.').map(Number);
+				return (bmaj - amaj) || (bmin - amin) || (bpat - apat);
+			});
+	} catch (error) {
+		console.warn(`[sitemap] changelog manifest unreadable (${error.message}) — changelog URLs omitted`);
+		return [];
+	}
+}
+
+// ---------------------------------------------------------------------------
 // XML helpers
 // ---------------------------------------------------------------------------
 
@@ -121,41 +160,72 @@ function isoDate(value) {
 // ---------------------------------------------------------------------------
 
 async function generateSitemap() {
-  const games = await fetchPublishedGames();
+	const games = await fetchPublishedGames();
+	const changelogReleases = loadChangelogReleases();
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+	let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 `;
 
-  for (const page of STATIC_PAGES) {
-    xml += `  <url>
+	for (const page of STATIC_PAGES) {
+		xml += `  <url>
     <loc>${escapeXml(BASE_URL + page.url)}</loc>
     <lastmod>${TODAY}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>
 `;
-  }
+	}
 
-  for (const game of games) {
-    xml += `  <url>
+	// Changelog overview — the complete discovery index for every release.
+	xml += `  <url>
+    <loc>${escapeXml(`${BASE_URL}/changelog/`)}</loc>
+    <lastmod>${TODAY}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+
+	for (const release of changelogReleases) {
+		xml += `  <url>
+    <loc>${escapeXml(`${BASE_URL}/changelog/v${release.version.replace(/\./g, '-')}/`)}</loc>
+    <lastmod>${isoDate(release.publishedAt)}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+`;
+	}
+
+	for (const game of games) {
+		xml += `  <url>
     <loc>${escapeXml(`${BASE_URL}/game-detail.html?id=${encodeURIComponent(game.id)}`)}</loc>
     <lastmod>${isoDate(game.updatedAt)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 `;
-  }
+	}
 
-  xml += `</urlset>
+	xml += `</urlset>
 `;
 
-  const fs = require('fs');
-  fs.writeFileSync('sitemap.xml', xml);
-  console.log(`[sitemap] wrote ${STATIC_PAGES.length} static pages + ${games.length} game detail pages to sitemap.xml`);
+	const target = process.env.CHANGELOG_SITEMAP_OUT || 'sitemap.xml';
+	fs.writeFileSync(target, xml);
+	console.log(`[sitemap] wrote ${STATIC_PAGES.length} static pages + ${changelogReleases.length} changelog releases + ${games.length} game detail pages to ${target}`);
+
+	// Authoritative cross-check: every published release must be present.
+	const missing = changelogReleases
+		.filter((release) => !xml.includes(`${BASE_URL}/changelog/v${release.version.replace(/\./g, '-')}/`));
+	if (missing.length) {
+		const error = new Error(`[sitemap] published release URL(s) missing from sitemap: ${missing.map((r) => `v${r.version}`).join(', ')}`);
+		error.validation = true;
+		throw error;
+	}
 }
 
 generateSitemap().catch((err) => {
-  console.error('[sitemap] failed:', err);
-  process.exit(0); // Don't fail the deploy — the sitemap is not critical
+	console.error('[sitemap] failed:', err.message);
+	// Changelog/sitemap integrity failures must stop publication; transient
+	// upstream failures (e.g. Firestore) only degrade to static pages.
+	process.exit(err.validation ? 1 : 0);
 });

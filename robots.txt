@@ -38,6 +38,14 @@ Allow: /Games/
 Allow: /styles.css
 Allow: /script.js
 
+# Public changelog — fully static, crawlable HTML + machine-readable feeds.
+# Every published release is linked from /changelog/ and included in sitemap.xml.
+Allow: /changelog/
+Allow: /changelog/feed.xml
+Allow: /changelog/atom.xml
+Allow: /changelog/releases.json
+Allow: /llms.txt
+
 # Sitemap location
 Sitemap: https://glitchrealm.ca/sitemap.xml
 
@@ -62,3 +70,30 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 Crawl-delay: 1
+
+# AI search and assistant crawlers — public changelog and documentation are
+# intentionally accessible. Allowing a crawler does not guarantee indexing or
+# AI citations; it only permits retrieval of public content.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /

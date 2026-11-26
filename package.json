@@ -20,7 +20,10 @@
 		"optimize:images": "node scripts/optimize-images.js",
 		"update:html": "node scripts/update-html-images.js",
 		"add:preloads": "node scripts/add-critical-preloads.js",
-		"build:images": "npm run optimize:images && npm run update:html && npm run add:preloads"
+		"build:images": "npm run optimize:images && npm run update:html && npm run add:preloads",
+		"changelog:generate": "node scripts/changelog/generate.js",
+		"changelog:test": "node --test scripts/changelog/test/",
+		"changelog:crawl": "node scripts/changelog/crawl-check.js"
 	},
 	"dependencies": {
 		"cors": "^2.8.5",

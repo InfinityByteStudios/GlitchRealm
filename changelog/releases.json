@@ -1,0 +1,165 @@
+{
+  "name": "GlitchRealm Changelog",
+  "description": "Official release history and platform updates for GlitchRealm Games.",
+  "url": "https://glitchrealm.ca/changelog/",
+  "feed": "https://glitchrealm.ca/changelog/feed.xml",
+  "atom": "https://glitchrealm.ca/changelog/atom.xml",
+  "generatedAt": "2026-11-26T04:14:05.955Z",
+  "latestVersion": "v1.0.0",
+  "count": 1,
+  "schema": "https://glitchrealm.ca/changelog/releases.schema.json",
+  "releases": [
+    {
+      "version": "1.0.0",
+      "title": "GlitchRealm release notes: search, reviews, game pages and site updates",
+      "summary": "This release improves how search engines and ad crawlers read GlitchRealm, fixes problems with game links, reviews and sign-in, and updates the site's pages, documentation and contributor guidance.",
+      "publishedAt": "2026-11-12T19:03:18.000Z",
+      "url": "https://glitchrealm.ca/changelog/v1-0-0/",
+      "categories": [
+        "Maintenance",
+        "New Features",
+        "Bug Fixes",
+        "Performance",
+        "Improvements",
+        "Security"
+      ],
+      "changes": {
+        "features": [
+          {
+            "title": "Clicking play should add parameters to the URL",
+            "description": "Clicking play should add parameters to the URL"
+          },
+          {
+            "title": "Update structural reorganization blueprint to clarify canonical file locations and enhance deployment configuration",
+            "description": "Updated structural reorganization blueprint to clarify canonical file locations and enhance deployment configuration"
+          },
+          {
+            "title": "Add structural reorganization blueprint for improved project organization and maintainability",
+            "description": "Added structural reorganization blueprint for improved project organization and maintainability"
+          },
+          {
+            "title": "Update submit game link and add password protection",
+            "description": "Updated submit game link and add password protection"
+          },
+          {
+            "title": "Update hardcoded game URLs to new domain",
+            "description": "Updated hardcoded game URLs to new domain"
+          },
+          {
+            "title": "Update footer link to support site and adjust support page content",
+            "description": "Updated footer link to support site and adjust support page content"
+          },
+          {
+            "title": "Add guest pass button to Smbit game for Glitchrealm with device ID saving",
+            "description": "Added guest pass button to Smbit game for Glitchrealm with device ID saving"
+          },
+          {
+            "title": "Add legal documentation pages and theme toggle functionality",
+            "description": "Added legal documentation pages and theme toggle functionality"
+          }
+        ],
+        "fixes": [
+          {
+            "title": "Submit review function causing internal server error",
+            "description": "Submit review function causing internal server error"
+          },
+          {
+            "title": "Firebase index creation required for reviews modal error",
+            "description": "Firebase index creation required for reviews modal error"
+          },
+          {
+            "title": "Fix missing guest pass button after merge issue",
+            "description": "Fixed missing guest pass button after merge issue"
+          },
+          {
+            "title": "Fix navigation and wishlist button issues on game detail page",
+            "description": "Fixed navigation and wishlist button issues on game detail page"
+          }
+        ],
+        "performance": [
+          {
+            "title": "Optimize performance metrics for Netlify site",
+            "description": "Optimized performance metrics for Netlify site"
+          }
+        ],
+        "security": [
+          {
+            "title": "Content security policy violation and script loading errors",
+            "description": "Content security policy violation and script loading errors"
+          }
+        ],
+        "maintenance": [
+          {
+            "title": "Improve GlitchRealm's search engine and AI crawler accessibility",
+            "description": "Improved GlitchRealm's search engine and AI crawler accessibility"
+          },
+          {
+            "title": "Prerender game content in static HTML so the AdSense crawler sees it",
+            "description": "Prerendered game content in static HTML so the AdSense crawler sees it"
+          },
+          {
+            "title": "Serve prerendered game detail content to bots via a Netlify edge function",
+            "description": "Served prerendered game detail content to bots via a Netlify edge function"
+          },
+          {
+            "title": "Game URL not updating after clicking play",
+            "description": "Game URL not updating after clicking play"
+          },
+          {
+            "title": "Understanding subdomain data access and storage",
+            "description": "Understanding subdomain data access and storage"
+          },
+          {
+            "title": "Building an analytics system: key components to include",
+            "description": "Building an analytics system: key components to include"
+          },
+          {
+            "title": "Clarifying if the repo organization is confusing",
+            "description": "Clarifying if the repo organization is confusing"
+          },
+          {
+            "title": "The AI checkking reviews doenst do anything Ijust tried typing [filtered] and it let it through",
+            "description": "The AI checkking reviews doenst do anything Ijust tried typing [filtered] and it let it through"
+          },
+          {
+            "title": "Finding solutions for user reviews without sign-in",
+            "description": "Finding solutions for user reviews without sign-in"
+          },
+          {
+            "title": "URL storage issue with Supabase and Firebase",
+            "description": "URL storage issue with Supabase and Firebase"
+          },
+          {
+            "title": "Ensure game does not appear as newest on homepage and display warnings when played",
+            "description": "Ensure game does not appear as newest on homepage and display warnings when played"
+          },
+          {
+            "title": "Video not working in game descriptions",
+            "description": "Video not working in game descriptions"
+          },
+          {
+            "title": "Use uptime robot badge for status page and link to status.glitchrealm.ca - Session 2",
+            "description": "Use uptime robot badge for status page and link to status.glitchrealm.ca - Session 2"
+          },
+          {
+            "title": "Update project page to announce move to labs.glitchrealm.ca",
+            "description": "Updated project page to announce move to labs.glitchrealm.ca"
+          },
+          {
+            "title": "Update README to clarify sign-in button issues",
+            "description": "Updated README to clarify sign-in button issues"
+          },
+          {
+            "title": "Update README with sign-in button issues",
+            "description": "Updated README with sign-in button issues"
+          }
+        ]
+      },
+      "commitRange": {
+        "from": null,
+        "to": "0199d6a3a1f11a606e18d820d9eb5b7840efe3b1"
+      },
+      "tag": "v1.0.0"
+    }
+  ]
+}
