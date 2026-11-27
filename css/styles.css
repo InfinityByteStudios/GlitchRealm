@@ -1612,6 +1612,64 @@ html {
     margin: 0 auto;
 }
 
+/* Intro copy above the catalogue (also the bot-readable page summary) */
+.games-intro-section {
+    padding: 2.5rem 0 0;
+}
+
+.games-intro {
+    max-width: 860px;
+    margin: 0 auto 2rem;
+    padding: 1.75rem 2rem;
+    background: linear-gradient(135deg, rgba(0, 40, 55, 0.45), rgba(0, 10, 20, 0.55));
+    border: 1px solid rgba(0, 255, 249, 0.22);
+    border-left: 3px solid var(--primary-cyan);
+    border-radius: 12px;
+    box-shadow: 0 0 30px -12px rgba(0, 255, 249, 0.45);
+}
+
+.games-intro p {
+    margin: 0;
+    color: var(--gray-200);
+    font-size: 1.05rem;
+    line-height: 1.75;
+}
+
+.games-intro p + p {
+    margin-top: 1rem;
+}
+
+.games-intro p:first-child {
+    color: var(--white);
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.games-intro a {
+    color: var(--primary-cyan);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 255, 249, 0.45);
+    transition: color 0.2s ease, border-color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.games-intro a:hover,
+.games-intro a:focus-visible {
+    color: var(--white);
+    border-bottom-color: var(--primary-cyan);
+    text-shadow: 0 0 10px rgba(0, 255, 249, 0.6);
+    outline: none;
+}
+
+@media (max-width: 600px) {
+    .games-intro {
+        padding: 1.25rem;
+    }
+
+    .games-intro p:first-child {
+        font-size: 1.08rem;
+    }
+}
+
 .games-grid {
     padding: 4rem 0;
 }
