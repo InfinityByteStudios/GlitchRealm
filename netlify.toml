@@ -3,7 +3,7 @@
   # Bake live game content into the static HTML for crawlers, then publish a
   # curated sitemap.xml (static pages + published game detail pages)
   publish = "dist"
-  command = "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.mjs && node scripts/build.mjs && node scripts/sync-redirects.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-static-content.mjs && node scripts/check-content-quality.mjs"
+  command = "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.mjs && node scripts/build.mjs && node scripts/sync-redirects.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-static-content.mjs && node scripts/check-content-quality.mjs && node scripts/write-redirect-stubs.mjs"
 
 [build.environment]
   # The build needs devDependencies (esbuild, lightningcss, html-minifier-terser).

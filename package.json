@@ -6,7 +6,7 @@
 	},
 	"main": "index.js",
 	"scripts": {
-		"build": "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.mjs && node scripts/build.mjs && node scripts/sync-redirects.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-static-content.mjs && node scripts/check-content-quality.mjs",
+		"build": "node scripts/optimize-static-images.js && node scripts/generate-cover-thumbs.js && node scripts/generate-prerendered-content.js && node scripts/generate-sitemap.mjs && node scripts/build.mjs && node scripts/sync-redirects.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-static-content.mjs && node scripts/check-content-quality.mjs && node scripts/write-redirect-stubs.mjs",
 		"serve": "firebase emulators:start --only functions",
 		"serve:preview": "node scripts/serve-preview.mjs",
 		"deploy": "firebase deploy --only functions",
