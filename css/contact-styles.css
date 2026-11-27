@@ -552,3 +552,75 @@
 .action-icon {
     font-size: 1.2rem;
 }
+
+/* ------------------------------------------------------------------
+   Pre-send guidance ("Before You Write") — matches the contact cards
+   ------------------------------------------------------------------ */
+.contact-guide {
+    background: rgba(0, 255, 249, 0.05);
+    border: 1px solid rgba(0, 255, 249, 0.22);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.contact-guide__title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+    color: var(--primary-cyan);
+    margin: 0 0 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(0, 255, 249, 0.2);
+}
+
+.contact-guide__intro,
+.contact-guide__note {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0 0 1rem;
+}
+
+.contact-guide__note:last-child {
+    margin-bottom: 0;
+}
+
+.contact-guide__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem 2rem;
+    margin: 1.5rem 0;
+}
+
+.contact-guide__item {
+    padding-left: 0.9rem;
+    border-left: 2px solid rgba(0, 255, 249, 0.35);
+}
+
+.contact-guide__label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: rgba(0, 255, 249, 0.8);
+    margin-bottom: 0.35rem;
+}
+
+.contact-guide__text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.contact-guide a {
+    color: var(--primary-cyan);
+}
+
+@media (max-width: 600px) {
+    .contact-guide {
+        padding: 1.35rem 1.2rem;
+    }
+}
